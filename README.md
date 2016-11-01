@@ -35,6 +35,7 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
 
     ```json
     "dependencies": {
+      "jquery": ">= 2.1",
       "node-uuid": "~1.4.0"
     }
     ```
@@ -52,19 +53,30 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
     let ds = new Drab()
     ```
 
-  7. Add cipher keys to `config/dev.exs` (or `prod.exs`):
+  7. And to the layout page (`web/templates/layout/app.html.eex`)
+
+    ```html
+    <%= Drab.Client.js(@conn) %>
+    ```
+    
+    just before the following line:
+
+    ```html
+    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    ```
+  8. Add cipher keys to `config/dev.exs` (or `prod.exs`):
 
     ```elixir
-    config :cipher, keyphrase: "sdjv8eieudvicd",
-                ivphrase: "d9sdidbnbbdhdh",
-                magic_token: "ddh9d99hhffbbssid"
+    config :cipher, keyphrase: "sdjv8eieudvavasvaffvicd",
+                ivphrase: "d9sdidbnbbdzfvfvsdfvsdfvsdfhdh",
+                magic_token: "ddh9d99vsdfvsdfvsdfhhffbbssid"
     ```
 
-  8. Initialize websockets by adding the following to `lib/endpoing.ex`:
+  9. Initialize websockets by adding the following to `lib/endpoint.ex`:
 
-    ```elixie
+    ```elixir
     socket "/drab/socket", Drab.Socket
     ```
 
-  9. 
+  10. 
 

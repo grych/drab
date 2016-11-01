@@ -1,5 +1,6 @@
 import {Socket} from "phoenix"
 import uuid from "node-uuid"
+import $ from "jquery"
 
 class Drab {
   constructor() {
