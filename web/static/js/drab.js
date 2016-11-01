@@ -17,7 +17,6 @@ export var Drab = {
   },
 
   connected: function(resp, him) {
-    // console.log("Joined successfully", resp)
     him.channel.on("onload", (message) => {
       // console.log("onload message:", message)
     })
@@ -58,12 +57,11 @@ export var Drab = {
     //       hacked with off(), bit I don't like it as a solution 
     let events = ["click", "change", "keyup", "keydown"]
     for (let ev of events) {
-      // let ev = events[i]
-      // console.log(ev)
       $(`[drab-${ev}]`).off(ev).on(ev, function(event) {
         him.channel.push("event", {event: ev, payload: payload($(this), ev)})
       })
     }
+
     // $("[drab-click]").off('click').on("click", function(event) {
     //   him.channel.push("event", {event: "click", payload: payload($(this), "click")})
     // })
