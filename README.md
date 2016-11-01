@@ -26,7 +26,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
 
   3. Install Drab Javascript library (TODO: npm package):
 
-    ```bash
+    ```shell
     $ mix drab.install.js
 
     Created a link to drab.js in web/static/js
