@@ -24,7 +24,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     mix deps.get
     ```
 
-  3. Install Drab Javascript library (TODO: to be done as npm package):
+  3. Install Drab Javascript library (TODO: npm package):
 
     ```bash
     cd web/static/js/
@@ -73,21 +73,35 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     ```html
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
     ```
-  9. Add cipher keys to `config/dev.exs` (or `prod.exs`):
+  9. Generate Cipher random keys and append it to `config/dev.exs` (or `config/prod.secret.exs` while deploying on production):
 
-    ```elixir
-    config :cipher, keyphrase: "sdjv8eieudvavasvaffvicd",
-                ivphrase: "d9sdidbnbbdzfvfvsdfvsdfvsdfhdh",
-                magic_token: "ddh9d99vsdfvsdfvsdfhhffbbssid"
+    ```bash
+    $ mix drab.gen.cipher dev 
+    The following lines were added to your `config/dev.exs`:
+
+    # Configuration of Cipher, required by Drab
+    config :cipher, keyphrase:   "QSIMcSGtup9yHt92v0WwdXVikuP1Gu8poZ4HbkRDQSm4kBgDzhc6ezh/pN1e3h/A",
+                    ivphrase:    "RvK4eh9mbTn3jkAPVDXToRsy0jrqeRznn+wc3wGqjBMdsKm/fXTNfkYLJFTlhyCb",
+                    magic_token: "FRb2qlyE2Z/w01iAxm2/oXsmuVnQRL+OD13RF+ISLh/si1m7fwOWmT+MtOG86kUp"
     ```
 
   10. Initialize websockets by adding the following to `lib/endpoint.ex`:
 
     ```elixir
-    socket "/drab/drab/socket", Drab.Socket
+    socket "/drab/socket", Drab.Socket
     ```
 
-  11. Add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
+  11. Generate the first page Commander (commander is a controller for Drab live page). Commander name should correspond to controller, so PageController should have Page Commander:
+
+    ```bash
+    $ mix drab.gen.commander Page
+    * creating web/commanders/page_commander.ex
+
+    Add the following line to your Example.PageController:
+        use Drab.Controller 
+    ```
+
+  11. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
 
     ```elixir
     defmodule Testapp.PageController do
@@ -100,7 +114,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     end    
     ```
 
-  12. Create the first page Commander (commander is a controller for Drab live page) in file `web/commanders/page_commander.ex` (or the other name corresponding to the controller):
+  12. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action in it:
 
     ```elixir
     defmodule Testapp.PageCommander do
