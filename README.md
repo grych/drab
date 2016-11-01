@@ -31,7 +31,7 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
     ln -s ../../../deps/drab/web/static/js/drab.js drab.js
     ```
 
-  4. Add `node-uuid` to `package.json`:
+  4. Add `node-uuid` and `jquery` to `package.json`:
 
     ```json
     "dependencies": {
@@ -40,20 +40,29 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
     }
     ```
 
-  5. And install it:
+  5. Add jQuery as a global at the end of `brunch-config.js`:
+
+    ```javascript
+    npm: {globals: {
+      $: 'jquery',
+      jQuery: 'jquery'
+    }}
+
+
+  6. And install it:
 
     ```bash
     npm install
     ```
 
-  6. Initialize `drab.js` by adding the following to `web/static/js/app.js` in your application:
+  7. Initialize `drab.js` by adding the following to `web/static/js/app.js` in your application:
 
     ```javascript
     import Drab from "./drab"
     let ds = new Drab()
     ```
 
-  7. And to the layout page (`web/templates/layout/app.html.eex`)
+  8. And to the layout page (`web/templates/layout/app.html.eex`)
 
     ```html
     <%= Drab.Client.js(@conn) %>
@@ -64,7 +73,7 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
     ```html
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
     ```
-  8. Add cipher keys to `config/dev.exs` (or `prod.exs`):
+  9. Add cipher keys to `config/dev.exs` (or `prod.exs`):
 
     ```elixir
     config :cipher, keyphrase: "sdjv8eieudvavasvaffvicd",
@@ -72,11 +81,38 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
                 magic_token: "ddh9d99vsdfvsdfvsdfhhffbbssid"
     ```
 
-  9. Initialize websockets by adding the following to `lib/endpoint.ex`:
+  10. Initialize websockets by adding the following to `lib/endpoint.ex`:
 
     ```elixir
     socket "/drab/socket", Drab.Socket
     ```
 
-  10. 
+  11. Add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
 
+    ```elixir
+    defmodule Testapp.PageController do
+      use Testapp.Web, :controller
+      use Drab.Controller 
+
+      def index(conn, _params) do
+        render conn, "index.html"
+      end
+    end    
+    ```
+
+  12. Create the first page Commander (commander is a controller for Drab live page) in file `web/commanders/page_commander.ex` (or the other name corresponding to the controller):
+
+    ```elixir
+    defmodule Testapp.PageCommander do
+      use Drab.Commander, onload: :page_loaded
+
+      # Drab Callbacks
+      def page_loaded(socket) do
+        html(socket, "#div.jumbotron h2", "Welcome to Phoenix+Drab!")
+        socket
+      end
+    end
+    ```
+
+  Finally! Run the phoenix server and enjoy working on the dark side of the web.
+  
