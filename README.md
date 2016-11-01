@@ -27,8 +27,11 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
   3. Install Drab Javascript library (TODO: npm package):
 
     ```bash
-    cd web/static/js/
-    ln -s ../../../deps/drab/web/static/js/drab.js drab.js
+    $ mix drab.install.js
+
+    Created a link to drab.js in web/static/js
+
+    lrwxr-xr-x  1 grych  staff  40  1 lis 23:12 drab.js -> ../../../deps/drab/web/static/js/drab.js
     ```
 
   4. Add `node-uuid` and `jquery` to `package.json`:

@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.Drab.Gen.Cipher do
   use Mix.Task
-  require IEx
 
   @shortdoc "Generates a Cipher part of config"
 
