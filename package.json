@@ -1,0 +1,18 @@
+{
+  "name": "drab",
+  "version": "0.0.1",
+  "main": "priv/static/js/drab.js",
+  "license": "MIT",
+  "repository": {
+  },
+  "dependencies": {
+    "jquery": ">= 2.1",
+    "node-uuid": "~1.4.0"
+  },
+  "devDependencies": {
+    "brunch": "^2.7.4",
+    "babel-brunch": "^6.0.0",
+    "uglify-js-brunch": "~2.0.1"
+  },
+  "files": ["LICENSE.md", "package.json", "priv/static/js/drab.js", "web/static/js/drab.js"]
+}
