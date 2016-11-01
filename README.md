@@ -52,7 +52,7 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
   6. And install it:
 
     ```bash
-    npm install
+    npm install && node_modules/brunch/bin/brunch build 
     ```
 
   7. Initialize `drab.js` by adding the following to `web/static/js/app.js` in your application:
@@ -108,8 +108,10 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
 
       # Drab Callbacks
       def page_loaded(socket) do
-        html(socket, "#div.jumbotron h2", "Welcome to Phoenix+Drab!")
-        socket
+        socket 
+          |> html("div.jumbotron h2", "Welcome to Phoenix+Drab!")
+          |> html("div.jumbotron p.lead", 
+                  "Please visit <a href='https://tg.pl/drab'>Drab Proof-of-Concept</a> page for more examples and description")
       end
     end
     ```
