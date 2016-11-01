@@ -27,15 +27,44 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
   3. Install Drab Javascript library (TODO: to be done as npm package):
 
     ```bash
-    ln -s deps/drab/web/static/js/drab.js web/static/js/drab.js
+    cd web/static/js/
+    ln -s ../../../deps/drab/web/static/js/drab.js drab.js
     ```
 
-  4. Initialize `drab.js` by adding the following to `app.js` in your application:
+  4. Add `node-uuid` to `package.json`:
+
+    ```json
+    "dependencies": {
+      "node-uuid": "~1.4.0"
+    }
+    ```
+
+  5. And install it:
+
+    ```bash
+    npm install
+    ```
+
+  6. Initialize `drab.js` by adding the following to `web/static/js/app.js` in your application:
 
     ```javascript
     import Drab from "./drab"
     let ds = new Drab()
     ```
 
+  7. Add cipher keys to `config/dev.exs` (or `prod.exs`):
 
+    ```elixir
+    config :cipher, keyphrase: "sdjv8eieudvicd",
+                ivphrase: "d9sdidbnbbdhdh",
+                magic_token: "ddh9d99hhffbbssid"
+    ```
+
+  8. Initialize websockets by adding the following to `lib/endpoing.ex`:
+
+    ```elixie
+    socket "/drab/socket", Drab.Socket
+    ```
+
+  9. 
 

@@ -5,7 +5,7 @@ class Drab {
   constructor() {
     this.self = this
     this.myid = uuid.v1()
-    let socket = new Socket("/drab/drab/socket", {params: {token: window.userToken}})
+    let socket = new Socket("/drab/socket", {params: {token: window.userToken}})
     socket.connect()
     this.channel = socket.channel(`drab:${this.myid}`, [])
     // console.log(this)
