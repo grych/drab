@@ -84,7 +84,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
   10. Initialize websockets by adding the following to `lib/endpoint.ex`:
 
     ```elixir
-    socket "/drab/socket", Drab.Socket
+    socket "/drab/drab/socket", Drab.Socket
     ```
 
   11. Add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
