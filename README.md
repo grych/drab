@@ -47,7 +47,7 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
       $: 'jquery',
       jQuery: 'jquery'
     }}
-
+    ```
 
   6. And install it:
 
@@ -115,4 +115,4 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
     ```
 
   Finally! Run the phoenix server and enjoy working on the dark side of the web.
-  
+
