@@ -2,8 +2,9 @@ import {Socket} from "phoenix"
 import uuid from "node-uuid"
 import $ from "jquery"
 
-class Drab {
-  constructor() {
+export var Drab = {
+  run: function(drab_return) {
+    this.drab_return = drab_return
     this.self = this
     this.myid = uuid.v1()
     let socket = new Socket("/drab/socket", {params: {token: window.userToken}})
@@ -13,8 +14,9 @@ class Drab {
     this.channel.join()
       .receive("error", resp => { console.log("Unable to join", resp) })
       .receive("ok", resp => this.connected(resp, this))
-  }
-  connected(resp, him) {
+  },
+
+  connected: function(resp, him) {
     // console.log("Joined successfully", resp)
     him.channel.on("onload", (message) => {
       // console.log("onload message:", message)
@@ -75,8 +77,8 @@ class Drab {
     //   him.channel.push("event", {event: "keydown", payload: payload($(this), "keydown")})
     // })
     // initialize onload on server side
-    him.channel.push("onload", {path: location.pathname, drab_return: window.drab_return})
+    him.channel.push("onload", {path: location.pathname, drab_return: this.drab_return})
   }
 }
 
-export default Drab
+// export default Drab

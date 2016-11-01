@@ -3,7 +3,7 @@ defmodule Drab.Client do
     controller_and_action = Cipher.encrypt("#{Phoenix.Controller.controller_module(conn)}##{Phoenix.Controller.action_name(conn)}")
     Phoenix.HTML.raw """
     <script>
-      window.drab_return = '#{controller_and_action}'
+      require("web/static/js/drab").Drab.run('#{controller_and_action}')
     </script>
     """
   end

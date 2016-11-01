@@ -18,23 +18,15 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     end
     ```
 
-  2. Install dependencies:
-
-    ```bash
-    mix deps.get
-    ```
-
-  3. Install Drab Javascript library (TODO: npm package):
+  2. Install Drab Javascript library (TODO: npm package):
 
     ```shell
     $ mix drab.install.js
-
     Created a link to drab.js in web/static/js
-
     lrwxr-xr-x  1 grych  staff  40  1 lis 23:12 drab.js -> ../../../deps/drab/web/static/js/drab.js
     ```
 
-  4. Add `node-uuid` and `jquery` to `package.json`:
+  3. Add `node-uuid` and `jquery` to `package.json`:
 
     ```json
     "dependencies": {
@@ -43,7 +35,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     }
     ```
 
-  5. Add jQuery as a global at the end of `brunch-config.js`:
+  4. Add jQuery as a global at the end of `brunch-config.js`:
 
     ```javascript
     npm: {globals: {
@@ -52,31 +44,25 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     }}
     ```
 
-  6. And install it:
+  5. And install it:
 
     ```bash
-    npm install && node_modules/brunch/bin/brunch build 
+    $ npm install && node_modules/brunch/bin/brunch build 
     ```
 
-  7. Initialize `drab.js` by adding the following to `web/static/js/app.js` in your application:
-
-    ```javascript
-    import Drab from "./drab"
-    let ds = new Drab()
-    ```
-
-  8. And to the layout page (`web/templates/layout/app.html.eex`)
+  6. Initialize Drab client library by adding to the layout page (`web/templates/layout/app.html.eex`)
 
     ```html
     <%= Drab.Client.js(@conn) %>
     ```
     
-    just before the following line:
+    just after the following line:
 
     ```html
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
     ```
-  9. Generate Cipher random keys and append it to `config/dev.exs` (or `config/prod.secret.exs` while deploying on production):
+    
+  7. Generate Cipher random keys and append it to `config/dev.exs` (or `config/prod.secret.exs` while deploying on production):
 
     ```bash
     $ mix drab.gen.cipher dev 
@@ -88,13 +74,13 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
                     magic_token: "FRb2qlyE2Z/w01iAxm2/oXsmuVnQRL+OD13RF+ISLh/si1m7fwOWmT+MtOG86kUp"
     ```
 
-  10. Initialize websockets by adding the following to `lib/endpoint.ex`:
+  8. Initialize websockets by adding the following to `lib/endpoint.ex`:
 
     ```elixir
     socket "/drab/socket", Drab.Socket
     ```
 
-  11. Generate the first page Commander (commander is a controller for Drab live page). Commander name should correspond to controller, so PageController should have Page Commander:
+  9. Generate the first page Commander (commander is a controller for Drab live page). Commander name should correspond to controller, so PageController should have Page Commander:
 
     ```bash
     $ mix drab.gen.commander Page
@@ -104,7 +90,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
         use Drab.Controller 
     ```
 
-  11. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
+  10. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
 
     ```elixir
     defmodule Testapp.PageController do
@@ -117,7 +103,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     end    
     ```
 
-  12. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action in it:
+  11. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action in it:
 
     ```elixir
     defmodule Testapp.PageCommander do
