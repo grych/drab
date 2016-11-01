@@ -4,7 +4,7 @@ Query and update browser DOM objects directly from the server side. No javascrip
 
 ## Warning: this software is still experimental!
 
-See [Demo Page](https://tg.pl/drab) to live demo and description.
+See [Demo Page](https://tg.pl/drab) for live demo and description.
 
 ## Installation
 
@@ -117,4 +117,15 @@ See [Demo Page](https://tg.pl/drab) to live demo and description.
     ```
 
   Finally! Run the phoenix server and enjoy working on the dark side of the web.
+
+## What now?
+
+Visit [Demo Page](https://tg.pl/drab) for live demo and description.
+
+## Contact
+
+(c)2016 Tomek "Grych" Gryszkiewicz, 
+<grych@tg.pl>
+
+
 
