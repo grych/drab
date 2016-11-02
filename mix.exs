@@ -43,6 +43,7 @@ defmodule Drab.Mixfile do
   defp deps do
     [
      {:phoenix, "~> 1.2"}
+     # {:cipher, ">= 1.2.0"}
     ]
   end
 
