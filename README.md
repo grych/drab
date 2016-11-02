@@ -1,6 +1,36 @@
 # Drab
 
-Query and update browser DOM objects directly from the server side. No javascript programming needed anymore!
+Manipulate browser DOM objects directly from Elixir. No javascript programming needed anymore!
+
+## Teaser
+
+* Client side:
+
+    ```html
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" style="width:0%">
+      </div>
+    </div>
+    <button drab-click="perform_long_process">Click to start processing</button>
+    ```
+
+* Server side:
+
+    ```elixir
+    def perform_long_process(socket, dom_sender) do
+      steps = MyLongProcess.number_of_steps()
+      for i <- 1..steps do
+        MyLongProcess.perform_step(i)
+        # update the progress bar after each of MyLongProcess steps
+        socket 
+          |> attr(".progress-bar", "style", "width: #{i * 100 / steps}%")
+          |> html(".progress-bar", "#{Float.round(i * 100 / steps, 2)}%")
+      end
+      add_class(socket, ".progress-bar", "progress-bar-success")
+
+      {socket, dom_sender}
+    end
+    ```
 
 ## Warning: this software is still experimental!
 
@@ -88,6 +118,8 @@ All the Drab functions (callbacks, event handlers) are placed in the module call
 
 To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your application controller. Notice that it will enable Drab on all the pages under the specific controller.
 
+Remember the difference: `controller` renders the page while `commander` works on the live page.
+
   1. Generate the page Commander. Commander name should correspond to controller, so PageController should have Page Commander:
 
     ```bash
@@ -101,8 +133,8 @@ To enable Drab on the specific pages, you need to add the directive `use Drab.Co
   2. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
 
     ```elixir
-    defmodule Testapp.PageController do
-      use Testapp.Web, :controller
+    defmodule Example.PageController do
+      use Example.Web, :controller
       use Drab.Controller 
 
       def index(conn, _params) do
@@ -111,10 +143,10 @@ To enable Drab on the specific pages, you need to add the directive `use Drab.Co
     end    
     ```
 
-  3. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action in it:
+  3. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action - the `onload` callback which fires when the browser connects to Drab.
 
     ```elixir
-    defmodule Testapp.PageCommander do
+    defmodule Example.PageCommander do
       use Drab.Commander, onload: :page_loaded
 
       # Drab Callbacks
@@ -127,11 +159,42 @@ To enable Drab on the specific pages, you need to add the directive `use Drab.Co
     end
     ```
 
-  Finally! Run the phoenix server and enjoy working on the dark side of the web.
+Function `html/3` (shorthand for `Drab.Query.html/3`) sets the HTML of DOM object, analogically to `$().html()` on the client side.
+
+Finally! Run the phoenix server and enjoy working on the dark side of the web.
+
+## Drab Callbacks
+
+Currently there is the only one callback, `onload`. You need to set it up with `use Drab.Commander` directive.
+
+## Drab Events
+
+With Drab, you assign the events directly in HTML, using `drab-[event]='event_handler'` attribute, when `event` is the event name (currently: click, change, keyup, keydown) and `event_handler` is the function name in the Commander. This function will be fired on event. Example:
+
+    ```html
+    <button drab-click='button_clicked'>Clickme!</button>
+    ```
+
+When clicked, this button will launch the following action on the corresponding commander:
+
+    ```elixir
+    defmodule Example.PageCommander do
+      use Drab.Commander
+
+      # Drab Events
+      def button_clicked(socket, dom_sender) do
+        socket 
+          |> text(this(dom_sender), "alread clicked")
+          |> prop(this(dom_sender), "disabled", true)
+      end
+    end
+    ```
+
+As you probably guess, this changes button description (`Drab.Query.text/3`) and disables it (`Drab.Query.prop/4`).
 
 ## What now?
 
-Visit [Demo Page](https://tg.pl/drab) for live demo and description.
+Visit [Demo Page](https://tg.pl/drab) for a live demo and more description.
 
 ## Contact
 

@@ -16,6 +16,15 @@ defmodule Drab.Query do
     socket
   end
 
+  def text(socket, query) do
+    generic_query(socket, query, "text()")
+  end
+
+  def text(socket, query, value) do
+    generic_query(socket, query, "text(#{Poison.encode!(value)})")
+    socket
+  end
+
   def val(socket, query) do
     generic_query(socket, query, "val()")
   end
