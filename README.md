@@ -80,7 +80,15 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     socket "/drab/socket", Drab.Socket
     ```
 
-  9. Generate the first page Commander (commander is a controller for Drab live page). Commander name should correspond to controller, so PageController should have Page Commander:
+Congratullations! You have Drab installed and you can proceed with your own Commanders.
+
+## Usage
+
+All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. Think about it as a controller for the live pages. Commanders are similar to Phoenix controllers and should be placed in `web/commanders` directory.
+
+To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your application controller. Notice that it will enable Drab on all the pages under the specific controller.
+
+  1. Generate the page Commander. Commander name should correspond to controller, so PageController should have Page Commander:
 
     ```bash
     $ mix drab.gen.commander Page
@@ -90,7 +98,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
         use Drab.Controller 
     ```
 
-  10. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
+  2. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
 
     ```elixir
     defmodule Testapp.PageController do
@@ -103,7 +111,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     end    
     ```
 
-  11. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action in it:
+  3. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action in it:
 
     ```elixir
     defmodule Testapp.PageCommander do
