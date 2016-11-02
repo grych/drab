@@ -126,7 +126,7 @@ Remember the difference: `controller` renders the page while `commander` works o
   2. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
 
     ```elixir
-    defmodule Example.PageController do
+    defmodule DrabExample.PageController do
       use Example.Web, :controller
       use Drab.Controller 
 
@@ -139,7 +139,7 @@ Remember the difference: `controller` renders the page while `commander` works o
   3. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action - the `onload` callback which fires when the browser connects to Drab.
 
     ```elixir
-    defmodule Example.PageCommander do
+    defmodule DrabExample.PageCommander do
       use Drab.Commander, onload: :page_loaded
 
       # Drab Callbacks
@@ -155,6 +155,8 @@ Remember the difference: `controller` renders the page while `commander` works o
 Function `html/3` (shorthand for `Drab.Query.html/3`) sets the HTML of DOM object, analogically to `$().html()` on the client side.
 
 Finally! Run the phoenix server and enjoy working on the dark side of the web.
+
+### The code above is available for download [here](https://github.com/grych/drab-example)
 
 ## Drab Callbacks
 
