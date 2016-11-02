@@ -9,15 +9,18 @@ defmodule Drab.Channel do
   end
 
   def handle_in("query", %{"ok" => [query, sender_encrypted, reply]}, socket) do
-    sender = Cipher.decrypt(sender_encrypted) |> :erlang.binary_to_term
+    {:ok, sender_decrypted} = Phoenix.Token.verify(socket, "sender", sender_encrypted)
+    sender = sender_decrypted |> :erlang.binary_to_term
+
     send(sender, {:got_results_from_client, reply})
     {:noreply, assign(socket, query, reply)}
   end
 
-  def handle_in("onload", %{"path" => url_path, "drab_return" => controller_and_action}, socket) do
+  def handle_in("onload", %{"path" => url_path, "drab_return" => controller_and_action_token}, socket) do
     # Client side provides the url path (location.path), which is a base to determine the name of the Drab Controller
-    # Logger.debug ":-:-: payload on load: #{inspect(payload)}"
-    [controller, action] = String.split(Cipher.decrypt(controller_and_action), "#")
+    {:ok, controller_and_action} = Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token)
+    [controller, action] = String.split(controller_and_action, "#")
+
     socket_assigned = socket 
       |> assign(:controller, String.to_existing_atom(controller))
       |> assign(:action, String.to_existing_atom(action))

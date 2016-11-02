@@ -42,8 +42,7 @@ defmodule Drab.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-     {:phoenix, "~> 1.2"},
-     {:cipher, ">= 1.2.0"}
+     {:phoenix, "~> 1.2"}
     ]
   end
 

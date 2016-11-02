@@ -97,19 +97,7 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
     ```
     
-  7. Generate Cipher random keys and append it to `config/dev.exs` (or `config/prod.secret.exs` while deploying on production):
-
-    ```bash
-    $ mix drab.gen.cipher dev 
-    The following lines were added to your `config/dev.exs`:
-
-    # Configuration of Cipher, required by Drab
-    config :cipher, keyphrase:   "QSIMcSGtup9yHt92v0WwdXVikuP1Gu8poZ4HbkRDQSm4kBgDzhc6ezh/pN1e3h/A",
-                    ivphrase:    "RvK4eh9mbTn3jkAPVDXToRsy0jrqeRznn+wc3wGqjBMdsKm/fXTNfkYLJFTlhyCb",
-                    magic_token: "FRb2qlyE2Z/w01iAxm2/oXsmuVnQRL+OD13RF+ISLh/si1m7fwOWmT+MtOG86kUp"
-    ```
-
-  8. Initialize websockets by adding the following to `lib/endpoint.ex`:
+  7. Initialize websockets by adding the following to `lib/endpoint.ex`:
 
     ```elixir
     socket "/drab/socket", Drab.Socket

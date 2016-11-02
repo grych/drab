@@ -75,7 +75,8 @@ defmodule Drab.Query do
 
   defp generic_query(socket, query, get_function) do
     myself = :erlang.term_to_binary(self())
-    sender = Cipher.encrypt(myself)
+    sender = Phoenix.Token.sign(socket, "sender", myself)
+
     Phoenix.Channel.push(socket, "query",  %{query: query, sender: sender, get_function: get_function})
     receive do
       {:got_results_from_client, reply} ->
