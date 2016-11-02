@@ -1,7 +1,8 @@
 defmodule Drab.Commander do
-  @defmodule """
+  @moduledoc """
   Enables Drab Commander on the module. Imports all Drab.Query functions.
   """
+
   defmacro __using__(options) do
     quote do
       import Drab.Query
@@ -15,4 +16,5 @@ defmodule Drab.Commander do
       end
     end
   end
+
 end

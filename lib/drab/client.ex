@@ -1,4 +1,20 @@
 defmodule Drab.Client do
+  @moduledoc """
+  Switch on Drab on the client side. Must be included in HTML template, for example 
+  in `web/templates/layout/app.html.eex`:
+
+      <%= Drab.Client.js(@conn) %>
+
+  after the line which loads app.js:
+
+      <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+  """
+
+  @doc """
+  Generates JS code which runs Drab. Passes controller and action name, tokenized for safety.
+  Runs only when the controller which renders current action has been compiled
+  with `use Drab.Controller`
+  """
   def js(conn) do
     controller = Phoenix.Controller.controller_module(conn)
     # Enable Drab only if Controller compiles with `use Drab.Controller`
@@ -15,4 +31,5 @@ defmodule Drab.Client do
       ""
     end
   end
+
 end

@@ -18,14 +18,10 @@ export var Drab = {
 
   connected: function(resp, him) {
     him.channel.on("onload", (message) => {
-      // console.log("onload message:", message)
     })
     // handler for "query" message from the server
     him.channel.on("query", (message) => {
-      // console.log("he is:", him)
-      // console.log("message: ", $(message))
       let r = $(message.query)
-      // console.log("reply: ", r)
       let query_output = [
         message.query,
         message.sender,
@@ -74,9 +70,8 @@ export var Drab = {
     // $("[drab-keydown]").off('keydown').on("keydown", function(event) {
     //   him.channel.push("event", {event: "keydown", payload: payload($(this), "keydown")})
     // })
+
     // initialize onload on server side
     him.channel.push("onload", {path: location.pathname, drab_return: this.drab_return})
   }
 }
-
-// export default Drab

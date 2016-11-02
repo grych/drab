@@ -9,6 +9,7 @@ defmodule Drab.Controller do
     * CommanderModule: commander module, defaults to similar name as controller, 
       eg. PageController becames PageCommander
   """
+  
   defmacro __using__(options) do
     quote do
       Module.put_attribute(__MODULE__, :__drab_opts__, unquote(options))
