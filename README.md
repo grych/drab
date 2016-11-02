@@ -40,12 +40,17 @@ See [Demo Page](https://tg.pl/drab) for live demo and description.
 
   So far the process of the installation is rather manually, in the future will be automatized.
 
-  1. Add `drab` to your list of dependencies in `mix.exs` in your Phoenix application:
+  1. Add `drab` to your list of dependencies in `mix.exs` in your Phoenix application and install it:
 
     ```elixir
     def deps do
       [{:drab, git: "https://github.com/grych/drab.git"}]
     end
+    ```
+
+    ```bash
+    $ mix deps.get
+    $ mix compile
     ```
 
   2. Install Drab Javascript library (TODO: npm package):
@@ -120,7 +125,7 @@ To enable Drab on the specific pages, you need to add the directive `use Drab.Co
 
 Remember the difference: `controller` renders the page while `commander` works on the live page.
 
-  1. Generate the page Commander. Commander name should correspond to controller, so PageController should have Page Commander:
+  1. Generate the page Commander. Commander name should correspond to controller, so PageController should have PageCommander:
 
     ```bash
     $ mix drab.gen.commander Page

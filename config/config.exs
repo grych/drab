@@ -28,3 +28,6 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env}.exs"
+config :cipher, keyphrase:   "QSIMcSGtup9yHt92v0WwdXVikuP1Gu8poZ4HbkRDQSm4kBgDzhc6ezh/pN1e3h/A",
+                ivphrase:    "RvK4eh9mbTn3jkAPVDXToRsy0jrqeRznn+wc3wGqjBMdsKm/fXTNfkYLJFTlhyCb",
+                magic_token: "FRb2qlyE2Z/w01iAxm2/oXsmuVnQRL+OD13RF+ISLh/si1m7fwOWmT+MtOG86kUp"
