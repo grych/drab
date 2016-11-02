@@ -34,7 +34,7 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
 
 ## Warning: this software is still experimental!
 
-See [Demo Page](https://tg.pl/drab) for live demo and description.
+### See [Proof of Concept Page](https://tg.pl/drab) for live demo and description.
 
 ## Installation
 
