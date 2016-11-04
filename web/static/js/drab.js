@@ -3,33 +3,56 @@ import uuid from "node-uuid"
 import $ from "jquery"
 
 export var Drab = {
+  EVENTS: ["click", "change", "keyup", "keydown"],
   run: function(drab_return) {
     this.drab_return = drab_return
     this.self = this
     this.myid = uuid.v1()
+    this.onload_launched = false,
+    this.path = location.pathname
+
+    // disable all the Drab-related objects
+    // they will be re-enable on connection
+    this.disable_drab_objects(true)
+
     let socket = new Socket("/drab/socket", {params: {token: window.userToken}})
     socket.connect()
-    this.channel = socket.channel(`drab:${this.myid}`, [])
-    // console.log(this)
+    this.channel = socket.channel(`drab:${this.path}`, {path: this.path, drab_return: this.drab_return})
     this.channel.join()
       .receive("error", resp => { console.log("Unable to join", resp) })
       .receive("ok", resp => this.connected(resp, this))
   },
 
+  disable_drab_objects: function(disable) {
+    for (let ev of this.EVENTS) {
+      $(`[drab-${ev}]`).prop('disabled', disable)
+    }
+  },
+
   connected: function(resp, him) {
     him.channel.on("onload", (message) => {
     })
-    // handler for "query" message from the server
-    him.channel.on("query", (message) => {
-      let r = $(message.query)
+    // // handler for "query" message from the server
+    // him.channel.on("query", (message) => {
+    //   let r = $(message.query)
+    //   let query_output = [
+    //     message.query,
+    //     message.sender,
+    //     $(message.query).map(() => {
+    //       return eval(`$(this).${message.get_function}`)
+    //     }).toArray()
+    //   ]
+    //   him.channel.push("query", {ok: query_output})
+    // })
+    // execjs sends ready JS partial to be run here
+    him.channel.on("execjs", (message) => {
+      // console.log(message.js)
       let query_output = [
-        message.query,
         message.sender,
-        $(message.query).map(() => {
-          return eval(`$(this).${message.get_function}`)
-        }).toArray()
+        eval(message.js)
       ]
-      him.channel.push("query", {ok: query_output})
+      // console.log(query_output)
+      him.channel.push("execjs", {ok: query_output})
     })
 
     // Drab Events
@@ -51,8 +74,7 @@ export var Drab = {
     }
     // TODO: after rejoin the even handler is doubled or tripled
     //       hacked with off(), bit I don't like it as a solution 
-    let events = ["click", "change", "keyup", "keydown"]
-    for (let ev of events) {
+    for (let ev of this.EVENTS) {
       $(`[drab-${ev}]`).off(ev).on(ev, function(event) {
         him.channel.push("event", {event: ev, payload: payload($(this), ev)})
       })
@@ -71,7 +93,11 @@ export var Drab = {
     //   him.channel.push("event", {event: "keydown", payload: payload($(this), "keydown")})
     // })
 
-    // initialize onload on server side
-    him.channel.push("onload", {path: location.pathname, drab_return: this.drab_return})
+    // initialize onload on server side, just once
+    if (!this.onload_launched) {
+      this.onload_launched = true
+      this.disable_drab_objects(false)
+      him.channel.push("onload", null)
+    }
   }
 }

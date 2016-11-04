@@ -1,4 +1,6 @@
 defmodule Drab do
+  require Logger
+
   @moduledoc """
   Drab allows to query and manipulate the browser DOM objext directly from the Phoenix server.
 
@@ -95,7 +97,9 @@ defmodule Drab do
 
   # returns the commander name for the given controller (assigned in token)
   defp commander(socket) do
-    socket.assigns.controller.__drab__().commander
+    # Logger.debug "**** ASSIGNS: #{inspect(socket.assigns)}"
+    controller = socket.assigns.controller
+    controller.__drab__()[:commander]
   end
 
   # if module is commander or controller with drab enabled, it has __drab__/0 function with Drab configuration

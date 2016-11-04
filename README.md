@@ -23,10 +23,10 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
         MyLongProcess.perform_step(i)
         # update the progress bar after each of MyLongProcess steps
         socket 
-          |> attr(".progress-bar", "style", "width: #{i * 100 / steps}%")
-          |> html(".progress-bar", "#{Float.round(i * 100 / steps, 2)}%")
+          |> update(".progress-bar", :attr, "style", "width: #{i * 100 / steps}%")
+          |> update(".progress-bar", :html, "#{Float.round(i * 100 / steps, 2)}%")
       end
-      add_class(socket, ".progress-bar", "progress-bar-success")
+      update(socket, ".progress-bar", :addClass, "progress-bar-success")
 
       {socket, dom_sender}
     end
@@ -145,14 +145,14 @@ Remember the difference: `controller` renders the page while `commander` works o
       # Drab Callbacks
       def page_loaded(socket) do
         socket 
-          |> html("div.jumbotron h2", "Welcome to Phoenix+Drab!")
-          |> html("div.jumbotron p.lead", 
+          |> update("div.jumbotron h2", :html, "Welcome to Phoenix+Drab!")
+          |> update("div.jumbotron p.lead", :html, 
                   "Please visit <a href='https://tg.pl/drab'>Drab Proof-of-Concept</a> page for more examples and description")
       end
     end
     ```
 
-Function `html/3` (shorthand for `Drab.Query.html/3`) sets the HTML of DOM object, analogically to `$().html()` on the client side.
+Function `update/4` (shorthand for `Drab.Query.update/4`) with `:html` parameter sets the HTML of DOM object, analogically to `$().html()` on the client side.
 
 Finally! Run the phoenix server and enjoy working on the dark side of the web.
 
@@ -179,13 +179,13 @@ When clicked, this button will launch the following action on the corresponding 
       # Drab Events
       def button_clicked(socket, dom_sender) do
         socket 
-          |> text(this(dom_sender), "alread clicked")
-          |> prop(this(dom_sender), "disabled", true)
+          |> update(this(dom_sender), :text, "alread clicked")
+          |> update(this(dom_sender), :prop, "disabled", true)
       end
     end
     ```
 
-As you probably guess, this changes button description (`Drab.Query.text/3`) and disables it (`Drab.Query.prop/4`).
+As you probably guess, this changes button description (`Drab.Query.update/4` used with `:text`) and disables it (`Drab.Query.prop/5` with `:prop`).
 
 ## What now?
 
