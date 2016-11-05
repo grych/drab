@@ -32,7 +32,7 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
               set: "#{Float.round(i * 100 / steps, 2)}%", 
               on: ".progress-bar")
       end
-      socket |> insert(class: "progress-bar-success", to: ".progress-bar")
+      socket |> insert(class: "progress-bar-success", into: ".progress-bar")
 
       {socket, dom_sender}
     end

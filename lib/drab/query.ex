@@ -65,10 +65,10 @@ defmodule Drab.Query do
   def select(_socket, method, [from: selector]) do
     wrong_query! selector, method 
   end
-  def select(socket, [{method, argument}, {:from, selector}]) when method in @methods_with_argument do
+  def select(socket, [{method, argument}, from: selector]) when method in @methods_with_argument do
     do_query(socket, selector, jquery_method(method, argument))
   end
-  def select(_socket, [{method, argument}, {:from, selector}]) do
+  def select(_socket, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument
   end
 
@@ -90,24 +90,24 @@ defmodule Drab.Query do
     socket
   end
   def update(_socket, method, [set: value, on: selector]) do
-    wrong_query! selector, method
+    wrong_query! selector, method, value
   end
 
-  def update(socket, [{method, argument}, {:set, value}, {:on, selector}]) when method in @methods_with_argument do
+  def update(socket, [{method, argument}, set: value, on: selector]) when method in @methods_with_argument do
     do_query(socket, selector, jquery_method(method, argument, value))
     socket
   end
   def update(socket, [class: from_class, set: to_class, on: selector]) do
     socket 
-      |> insert(class: to_class, to: selector)
+      |> insert(class: to_class, into: selector)
       |> delete(class: from_class, from: selector)
   end
-  def update(_socket, [{method, argument}, {:set, value}, {:on, selector}]) do
+  def update(_socket, [{method, argument}, {:set, _value}, {:on, selector}]) do
     wrong_query! selector, method, argument
   end
 
   # delete(class: 'klasa', from: selector)
-  # insert(class: 'klasa', to: selector)
+  # insert(class: 'klasa', into: selector)
   
   # insert(html: '<b>htnm', before: selector)
   # insert(html: '<b>htnm', after: selector)
@@ -115,14 +115,14 @@ defmodule Drab.Query do
   @doc """
   Adds class to the selected DOM objects.
 
-      socket |> insert(class: "btn-success", to: "#button")
+      socket |> insert(class: "btn-success", into: "#button")
   """
-  def insert(socket, [class: class, to: selector]) do
+  def insert(socket, [class: class, into: selector]) do
     do_query(socket, selector, jquery_method(:addClass, class))
     socket
   end
-  def insert(_socket, [class: class, to: selector]) do
-    wrong_query! selector, :class, class
+  def insert(_socket, [{method, argument}, into: selector]) do
+    wrong_query! selector, method, argument
   end
   @doc """
   Removes class in the selected DOM objects.
@@ -133,8 +133,8 @@ defmodule Drab.Query do
     do_query(socket, selector, jquery_method(:removeClass, class))
     socket
   end
-  def delete(_socket, [class: class, from: selector]) do
-    wrong_query! selector, :class, class
+  def delete(_socket, [{method, argument}, from: selector]) do
+    wrong_query! selector, method, argument
   end
 
   # Build and run general jQuery query
