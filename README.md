@@ -23,10 +23,16 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
         MyLongProcess.perform_step(i)
         # update the progress bar after each of MyLongProcess steps
         socket 
-          |> update(".progress-bar", :attr, "style", "width: #{i * 100 / steps}%")
-          |> update(".progress-bar", :html, "#{Float.round(i * 100 / steps, 2)}%")
+          |> update(
+              attr: "style", 
+              set: "width: #{i * 100 / steps}%", 
+              on: ".progress-bar")
+          |> update(
+              :html,         
+              set: "#{Float.round(i * 100 / steps, 2)}%", 
+              on: ".progress-bar")
       end
-      update(socket, ".progress-bar", :addClass, "progress-bar-success")
+      socket |> insert(class: "progress-bar-success", to: ".progress-bar")
 
       {socket, dom_sender}
     end
@@ -145,14 +151,15 @@ Remember the difference: `controller` renders the page while `commander` works o
       # Drab Callbacks
       def page_loaded(socket) do
         socket 
-          |> update("div.jumbotron h2", :html, "Welcome to Phoenix+Drab!")
-          |> update("div.jumbotron p.lead", :html, 
-                  "Please visit <a href='https://tg.pl/drab'>Drab Proof-of-Concept</a> page for more examples and description")
+          |> update(:html, set: "Welcome to Phoenix+Drab!", on: "div.jumbotron h2")
+          |> update(:html, 
+              set: "Please visit <a href='https://tg.pl/drab'>Drab Proof-of-Concept</a> page for more examples and description",
+              on:  "div.jumbotron p.lead")
       end
     end
     ```
 
-Function `update/4` (shorthand for `Drab.Query.update/4`) with `:html` parameter sets the HTML of DOM object, analogically to `$().html()` on the client side.
+Function `update/3` (shorthand for `Drab.Query.update/3`) with `:html` parameter sets the HTML of DOM object, analogically to `$().html()` on the client side.
 
 Finally! Run the phoenix server and enjoy working on the dark side of the web.
 
