@@ -27,6 +27,7 @@ defmodule Drab.Query do
 
   @methods               ~w(html text val)a
   @methods_with_argument ~w(attr prop)a
+  @insert_methods        ~w(before after prepend append)a
 
   @doc """
   Finds the DOM object which triggered the event. To be used only in event handlers.
@@ -126,7 +127,8 @@ defmodule Drab.Query do
   # insert(html: '<b>htnm', after: selector)
 
   @doc """
-  Adds class to the selected DOM objects.
+  Adds new node or class to the selected object.
+  When 
   Options:
   * class: class - class name to be inserted
   * into: selector - class will be added to specified selector(s)
@@ -142,13 +144,25 @@ defmodule Drab.Query do
   def insert(_socket, [{method, argument}, into: selector]) do
     wrong_query! selector, method, argument
   end
+  @doc "See `Drab.Query.insert/2`"
+  def insert(socket, html, [{method, selector}]) when method in @insert_methods do
+    do_query(socket, selector, jquery_method(method, html), :insert)
+    socket
+  end
+  def insert(_socket, html, [{method, selector}]) do
+    wrong_query! html, method, selector
+  end
 
   @doc """
-  With given selector, removes it and all its children. With given `from: selector` option, removes only 
+  Removes nodes, classes or attributes from selected node.
+  With selector and no options, removes it and all its children. With given `from: selector` option, removes only 
   the content, but element remains in the DOM tree. With options `class: class, from: selector` removes
-  class from given node(s).
+  class from given node(s). Given option `prop: property` or `attr: attribute` it is able to remove 
+  property or attribute from the DOM node.
   Options:
   * class: class - class name to be deleted
+  * prop: property - property to be removed from selected node(s)
+  * attr: attribute - attribute to be deleted from selected node(s)
   * from: selector - DOM selector
 
   Example:
@@ -179,17 +193,24 @@ defmodule Drab.Query do
     socket
   end
 
-  # Build and run general jQuery query
-  defp do_query(socket, selector, method_jqueried, type) do
+  @doc """
+  Synchronously executes the given javascript on the client side and returns value
+  """
+  def execjs(socket, js) do
     myself = :erlang.term_to_binary(self())
     sender = Phoenix.Token.sign(socket, "sender", myself)
 
-    Phoenix.Channel.push(socket, "execjs",  %{js: build_js(selector, method_jqueried, type), sender: sender})
+    Phoenix.Channel.push(socket, "execjs",  %{js: js, sender: sender})
 
     receive do
       {:got_results_from_client, reply} ->
         reply
     end
+  end
+
+  # Build and run general jQuery query
+  defp do_query(socket, selector, method_jqueried, type) do
+    execjs(socket, build_js(selector, method_jqueried, type))
   end
 
   defp jquery_method(method) do
@@ -220,7 +241,7 @@ defmodule Drab.Query do
   defp escape_value(value) when is_nil(value),      do: ""
   defp escape_value(value),                         do: "#{encode_js(value)}"
 
-  defp encode_js(value), do: Poison.encode!(value)
+  def encode_js(value), do: Poison.encode!(value)
 
   defp wrong_query!(selector, method, arguments \\ nil) do
     raise """
