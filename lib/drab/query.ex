@@ -165,6 +165,12 @@ defmodule Drab.Query do
     do_query(socket, selector, jquery_method(:removeClass, class), :delete)
     socket
   end
+  def delete(socket, [prop: property, from: selector]) do
+    do_query(socket, selector, jquery_method(:removeProp, property), :delete)
+  end
+  def delete(socket, [attr: attribute, from: selector]) do
+    do_query(socket, selector, jquery_method(:removeAttr, attribute), :delete)
+  end
   def delete(_socket, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument
   end
