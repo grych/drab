@@ -1,24 +1,23 @@
 defmodule Drab.Query do
   @moduledoc """
-  Provides interface to DOM objects on the client side. You may query (`select`) or manipulate 
+  Provides interface to DOM objects on the server side. You may query (`select`) or manipulate 
   (`update`, `insert`, `delete`) properties of the selected DOM object.
   General syntax:
 
-      return = select(socket, selector, property or jquery method, optional value1)
-      update(socket, selector, property or jquery method, optional value1, optional value2)
-      insert(socket, selector, property or jquery method, optional value1, optional value2)
-      delete(socket, selector, property or jquery method, optional value1)
+      return = socket |> select(what, from: selector)
+      socket |> update(what, set: new_value, on: selector)
+      socket |> insert(what, into: selector)
+      socket |> delete(what, from: selector)
 
   where:
   * socket - websocket used in connection
   * selector - string with a DOM selector
-  * property or jquery method - indicates which property of the DOM object to retrieve or manipulate. Must 
-    correspond to jQuery method on the object, so to run `$(selector).text()`, the `select(socket, selector, :text)`
-    should be used
-  * optional value1 - in select queries used to give a name of the attribute to retrieve; in updates could be 
-    a new value of the property or attribute name
-  * optional value2 - only in update queries: stores the attribute value
-  See functions descriptions for details.
+  * what - a representation of jQuery method; an atom (eg. :html, :val) or key/value pair (like attr: name).
+    An atom will launch the corresponding jQuey function without any arguments (eg. `.html()`). Key/value
+    pair will launch the method named as the key with arguments taken from its value, so `text: "some"` becomes
+    `.text("some")`.
+
+  See function descriptions for details.
 
   Object manipulation (`update`, `insert`, `delete`) functions always returns socket - be be piped. Query `select`
   returns list of found DOM object properties (list of htmls, values etc) or empty list.
@@ -26,8 +25,8 @@ defmodule Drab.Query do
 
   require Logger
 
-  @methods            [:html, :text, :val, :attr]
-  @methods_with_argument  [:attr, :prop]
+  @methods               ~w(html text val)a
+  @methods_with_argument ~w(attr prop)a
 
   @doc """
   Finds the DOM object which triggered the event. To be used only in event handlers.
@@ -45,7 +44,12 @@ defmodule Drab.Query do
   @doc """
   Returns an array of values get by issue jQuery `method` on selected DOM objects. In case the method
   requires an argument (like `attr()`), it should be given as key/value pair: method_name: "argument".
+  Options:
+  * from: selector - DOM selector which is queried
+  * attr: attribute - DOM attribute
+  * prop: property - DOM property
 
+  Examples:
       name = socket |> select(:val, from: "#name") |> List.first
       attr = socket |> select(attr: "style", from: "#name") |> List.first()
 
@@ -57,25 +61,33 @@ defmodule Drab.Query do
 
   Available methods: see @methods, @methods_with_argument
   """
-
-
-  def select(socket, method, [from: selector]) when method in @methods do
-    do_query(socket, selector, jquery_method(method))
-  end
-  def select(_socket, method, [from: selector]) do
-    wrong_query! selector, method 
-  end
+  def select(socket, options)
   def select(socket, [{method, argument}, from: selector]) when method in @methods_with_argument do
-    do_query(socket, selector, jquery_method(method, argument))
+    do_query(socket, selector, jquery_method(method, argument), :select)
   end
   def select(_socket, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument
+  end
+  @doc "See `Drab.Query.select/2`"
+  def select(socket, method, options)
+  def select(socket, method, from: selector) when method in @methods do
+    do_query(socket, selector, jquery_method(method), :select)
+  end
+  def select(_socket, method, from: selector) do
+    wrong_query! selector, method 
   end
 
   @doc """
   Sets the DOM object property corresponding to `method`. In case the method
   requires an argument (like `attr()`), it should be given as key/value pair: method_name: "argument".
+  Options:
+  * on: selector - DOM selector, on which the changes are made
+  * attr: attribute - DOM attribute
+  * prop: property - DOM property
+  * class: class - class name to be changed
+  * set: value - new value
 
+  Examples:
       socket |> update(:text, set: "saved...", on: "#save_button")
       socket |> update(attr: "style", set: "width: 100%", on: ".progress-bar")
 
@@ -85,16 +97,9 @@ defmodule Drab.Query do
 
   Available methods: see @methods, @methods_with_argument, :class
   """
-  def update(socket, method, [set: value, on: selector]) when method in @methods do
-    do_query(socket, selector, jquery_method(method, value))
-    socket
-  end
-  def update(_socket, method, [set: value, on: selector]) do
-    wrong_query! selector, method, value
-  end
-
+  def update(socket, options)
   def update(socket, [{method, argument}, set: value, on: selector]) when method in @methods_with_argument do
-    do_query(socket, selector, jquery_method(method, argument, value))
+    do_query(socket, selector, jquery_method(method, argument, value), :update)
     socket
   end
   def update(socket, [class: from_class, set: to_class, on: selector]) do
@@ -106,57 +111,79 @@ defmodule Drab.Query do
     wrong_query! selector, method, argument
   end
 
-  # delete(class: 'klasa', from: selector)
-  # insert(class: 'klasa', into: selector)
+  @doc "See `Drab.Query.update/2`"
+  def update(socket, method, options)
+  def update(socket, method, set: value, on: selector) when method in @methods do
+    do_query(socket, selector, jquery_method(method, value), :update)
+    socket
+  end
+  def update(_socket, method, set: value, on: selector) do
+    wrong_query! selector, method, value
+  end
+
   
   # insert(html: '<b>htnm', before: selector)
   # insert(html: '<b>htnm', after: selector)
 
   @doc """
   Adds class to the selected DOM objects.
+  Options:
+  * class: class - class name to be inserted
+  * into: selector - class will be added to specified selector(s)
 
+  Example:
       socket |> insert(class: "btn-success", into: "#button")
   """
-  def insert(socket, [class: class, into: selector]) do
-    do_query(socket, selector, jquery_method(:addClass, class))
+  def insert(socket, options)
+  def insert(socket, class: class, into: selector) do
+    do_query(socket, selector, jquery_method(:addClass, class), :insert)
     socket
   end
   def insert(_socket, [{method, argument}, into: selector]) do
     wrong_query! selector, method, argument
   end
-  @doc """
-  Removes class in the selected DOM objects.
 
+  @doc """
+  With given selector, removes it and all its children. With given `from: selector` option, removes only 
+  the content, but element remains in the DOM tree. With options `class: class, from: selector` removes
+  class from given node(s).
+  Options:
+  * class: class - class name to be deleted
+  * from: selector - DOM selector
+
+  Example:
+      socket |> delete(".btn")       # remove all `.btn`
+      socket |> delete(from: "code") # empty all `<code>`, but node remains
       socket |> delete(class: "btn-success", from: "#button")
   """
-  def delete(socket, [class: class, from: selector]) do
-    do_query(socket, selector, jquery_method(:removeClass, class))
+  def delete(socket, options)
+  def delete(socket, from: selector) do
+    do_query(socket, selector, jquery_method(:empty), :delete)
+    socket
+  end
+  def delete(socket, class: class, from: selector) do
+    do_query(socket, selector, jquery_method(:removeClass, class), :delete)
     socket
   end
   def delete(_socket, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument
   end
+  def delete(socket, selector) do
+    do_query(socket, selector, jquery_method(:remove), :delete)
+    socket
+  end
 
   # Build and run general jQuery query
-  defp do_query(socket, selector, method_jqueried) do
+  defp do_query(socket, selector, method_jqueried, type) do
     myself = :erlang.term_to_binary(self())
     sender = Phoenix.Token.sign(socket, "sender", myself)
 
-    Phoenix.Channel.push(socket, "execjs",  %{js: build_js(selector, method_jqueried), sender: sender})
+    Phoenix.Channel.push(socket, "execjs",  %{js: build_js(selector, method_jqueried, type), sender: sender})
 
     receive do
       {:got_results_from_client, reply} ->
         reply
     end
-  end
-
-  defp wrong_query!(selector, method, arguments \\ nil) do
-    raise """
-    Drab does not recognize your query:
-      selector:  #{inspect(selector)}
-      method:    #{inspect(method)}
-      arguments: #{inspect(arguments)}
-    """
   end
 
   defp jquery_method(method) do
@@ -169,11 +196,17 @@ defmodule Drab.Query do
     "#{method}(#{escape_value(attribute)}, #{escape_value(value)})"
   end
 
-  defp build_js(selector, method) do
+  # TODO: move it to templates
+  defp build_js(selector, method_javascripted, :select) do
     """
     $('#{selector}').map(function() {
-      return $(this).#{method}
+      return $(this).#{method_javascripted}
     }).toArray()
+    """
+  end
+  defp build_js(selector, method_javascripted, type) when type in ~w(update insert delete)a do
+    """
+    $('#{selector}').#{method_javascripted}.toArray()
     """
   end
 
@@ -183,6 +216,14 @@ defmodule Drab.Query do
 
   defp encode_js(value), do: Poison.encode!(value)
 
+  defp wrong_query!(selector, method, arguments \\ nil) do
+    raise """
+    Drab does not recognize your query:
+      selector:  #{inspect(selector)}
+      method:    #{inspect(method)}
+      arguments: #{inspect(arguments)}
+    """
+  end
 
 
   # @doc """
