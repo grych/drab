@@ -40,7 +40,6 @@ defmodule Drab.Channel do
 
   def handle_in("modal", %{"ok" => [sender_encrypted, reply]}, socket) do
     # sends { :button, %{"Param" => "value"}}
-    Logger.debug "******** REPLY: #{reply |> inspect}"
     send(sender(socket, sender_encrypted), 
       {
         :got_results_from_client, 

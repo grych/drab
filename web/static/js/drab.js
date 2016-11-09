@@ -61,10 +61,10 @@ export var Drab = {
       })
 
       him.channel.on("modal", (message) => {
-        $(this.MODAL_FORM).on("submit", (event) => {
-          modal_button_clicked(message, "ok")
-          return false // prevent submit
-        })
+        // $(this.MODAL_FORM).on("submit", (event) => {
+        //   modal_button_clicked(message, "ok")
+        //   return false // prevent submit
+        // })
         $(this.MODAL_BUTTON_OK).on("click", (event) => {
           $(this.MODAL_BUTTON_OK).data("clicked", true)
           modal_button_clicked(message, "ok")
@@ -83,7 +83,6 @@ export var Drab = {
     }
 
     function modal_button_clicked(message, button_clicked) {
-      $('#_drab_modal').modal('hide')
       let vals = {}
       $("#_drab_modal form :input").map(function() {
         let key = $(this).attr("name") || $(this).attr("id")
@@ -97,6 +96,7 @@ export var Drab = {
         }
       ]      
       him.channel.push("modal", {ok: query_output})        
+      $('#_drab_modal').modal('hide')
     }
 
     // Drab Events
