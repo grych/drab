@@ -29,11 +29,27 @@ defmodule Drab.Channel do
 
   def handle_in("execjs", %{"ok" => [sender_encrypted, reply]}, socket) do
     # sender contains PID of the process which sended the query
-    {:ok, sender_decrypted} = Phoenix.Token.verify(socket, "sender", sender_encrypted)
-    sender = sender_decrypted |> :erlang.binary_to_term
-
     # sender is waiting for the result
-    send(sender, {:got_results_from_client, reply})
+    send(sender(socket, sender_encrypted), 
+      {
+        :got_results_from_client, reply
+      })
+
+    {:noreply, socket}
+  end
+
+  def handle_in("modal", %{"ok" => [sender_encrypted, reply]}, socket) do
+    # sends { :button, %{"Param" => "value"}}
+    Logger.debug "******** REPLY: #{reply |> inspect}"
+    send(sender(socket, sender_encrypted), 
+      {
+        :got_results_from_client, 
+        { 
+          reply["button_clicked"] |> String.to_atom, 
+          reply["params"]
+        }
+      })
+
     {:noreply, socket}
   end
 
@@ -48,4 +64,9 @@ defmodule Drab.Channel do
     GenServer.cast(socket.assigns.drab_pid, {String.to_atom(event), socket, payload})
     {:noreply, socket}
   end   
+
+  defp sender(socket, sender_encrypted) do
+    {:ok, sender_decrypted} = Phoenix.Token.verify(socket, "sender", sender_encrypted)
+    sender_decrypted |> :erlang.binary_to_term
+  end
 end

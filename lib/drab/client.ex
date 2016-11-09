@@ -22,9 +22,11 @@ defmodule Drab.Client do
     if Enum.member?(controller.__info__(:functions), {:__drab__, 0}) do
       controller_and_action = Phoenix.Token.sign(conn, "controller_and_action", 
                               "#{controller}##{Phoenix.Controller.action_name(conn)}")
+      # TODO: script to template(?)
       Phoenix.HTML.raw """
       <script>
         require("web/static/js/drab").Drab.run('#{controller_and_action}')
+        // require("drab").Drab.run('#{controller_and_action}')
       </script>
       """
     else 

@@ -6,7 +6,7 @@ defmodule Drab.Commander do
   defmacro __using__(options) do
     quote do
       import Drab.Query
-      import Drab.Alert
+      import Drab.Call
       
       Module.put_attribute(__MODULE__, :__drab_opts__, unquote(options))
 

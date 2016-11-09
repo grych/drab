@@ -26,7 +26,7 @@ defmodule Drab.Query do
   require Logger
 
   @methods               ~w(html text val)a
-  @methods_with_argument ~w(attr prop)a
+  @methods_with_argument ~w(attr prop css data)a
   @insert_methods        ~w(before after prepend append)a
 
   @doc """
@@ -46,13 +46,15 @@ defmodule Drab.Query do
   Returns an array of values get by issue jQuery `method` on selected DOM objects. In case the method
   requires an argument (like `attr()`), it should be given as key/value pair: method_name: "argument".
   Options:
-  * from: selector - DOM selector which is queried
-  * attr: attribute - DOM attribute
-  * prop: property - DOM property
+  * from: "selector" - DOM selector which is queried
+  * attr: "attribute" - DOM attribute
+  * prop: "property" - DOM property
+  * css: "css"
+  * data: "data"
 
   Examples:
       name = socket |> select(:val, from: "#name") |> List.first
-      attr = socket |> select(attr: "style", from: "#name") |> List.first()
+      font = socket |> select(css: "font", from: "#name") |> List.first()
 
   The first example above translates to javascript:
 
@@ -86,6 +88,8 @@ defmodule Drab.Query do
   * attr: attribute - DOM attribute
   * prop: property - DOM property
   * class: class - class name to be changed
+  * css: updates given css
+  * data: updates data-* attribute
   * set: value - new value
 
   Examples:
@@ -155,10 +159,12 @@ defmodule Drab.Query do
 
   @doc """
   Removes nodes, classes or attributes from selected node.
+
   With selector and no options, removes it and all its children. With given `from: selector` option, removes only 
   the content, but element remains in the DOM tree. With options `class: class, from: selector` removes
   class from given node(s). Given option `prop: property` or `attr: attribute` it is able to remove 
   property or attribute from the DOM node.
+  
   Options:
   * class: class - class name to be deleted
   * prop: property - property to be removed from selected node(s)
@@ -194,18 +200,30 @@ defmodule Drab.Query do
   end
 
   @doc """
+  Execute given jQuery method on selector.
+
+      socket |> execute(:click, "#mybutton")
+      socket |> execute(trigger: "click", "mybutton")
+  """
+  def execute() do
+    
+  end
+
+  @doc """
   Synchronously executes the given javascript on the client side and returns value
   """
   def execjs(socket, js) do
-    myself = :erlang.term_to_binary(self())
-    sender = Phoenix.Token.sign(socket, "sender", myself)
-
-    Phoenix.Channel.push(socket, "execjs",  %{js: js, sender: sender})
+    Phoenix.Channel.push(socket, "execjs",  %{js: js, sender: tokenize(socket, self())})
 
     receive do
       {:got_results_from_client, reply} ->
         reply
     end
+  end
+
+  def tokenize(socket, pid) do
+    myself = :erlang.term_to_binary(pid)
+    Phoenix.Token.sign(socket, "sender", myself)
   end
 
   # Build and run general jQuery query

@@ -4,11 +4,17 @@ import $ from "jquery"
 
 export var Drab = {
   EVENTS: ["click", "change", "keyup", "keydown"],
+  MODAL: "#_drab_modal",
+  MODAL_FORM: "#_drab_modal form",
+  MODAL_BUTTON_OK: "#_drab_modal_button_ok",
+  MODAL_BUTTON_CANCEL: "#_drab_modal_button_cancel",
+
   run: function(drab_return) {
     this.drab_return = drab_return
     this.self = this
     this.myid = uuid.v1()
-    this.onload_launched = false,
+    this.onload_launched = false
+    this.already_connected = false
     this.path = location.pathname
 
     // disable all the Drab-related objects
@@ -17,10 +23,21 @@ export var Drab = {
 
     let socket = new Socket("/drab/socket", {params: {token: window.userToken}})
     socket.connect()
-    this.channel = socket.channel(`drab:${this.path}`, {path: this.path, drab_return: this.drab_return})
+    this.channel = socket.channel(
+      `drab:${this.path}`, 
+      {
+        path: this.path, 
+        drab_return: this.drab_return
+      })
     this.channel.join()
       .receive("error", resp => { console.log("Unable to join", resp) })
       .receive("ok", resp => this.connected(resp, this))
+    // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
+    // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
+    socket.onClose((event) => {
+      // on disconnect
+      this.disable_drab_objects(true)
+    })
   },
 
   disable_drab_objects: function(disable) {
@@ -30,30 +47,57 @@ export var Drab = {
   },
 
   connected: function(resp, him) {
-    him.channel.on("onload", (message) => {
-    })
-    // // handler for "query" message from the server
-    // him.channel.on("query", (message) => {
-    //   let r = $(message.query)
-    //   let query_output = [
-    //     message.query,
-    //     message.sender,
-    //     $(message.query).map(() => {
-    //       return eval(`$(this).${message.get_function}`)
-    //     }).toArray()
-    //   ]
-    //   him.channel.push("query", {ok: query_output})
-    // })
-    // execjs sends ready JS partial to be run here
-    him.channel.on("execjs", (message) => {
-      // console.log(message.js)
+    // prevent to re-assign messages
+    if (!this.already_connected) {
+      him.channel.on("onload", (message) => {
+      })
+
+      him.channel.on("execjs", (message) => {
+        let query_output = [
+          message.sender,
+          eval(message.js)
+        ]
+        him.channel.push("execjs", {ok: query_output})
+      })
+
+      him.channel.on("modal", (message) => {
+        $(this.MODAL_FORM).on("submit", (event) => {
+          modal_button_clicked(message, "ok")
+          return false // prevent submit
+        })
+        $(this.MODAL_BUTTON_OK).on("click", (event) => {
+          $(this.MODAL_BUTTON_OK).data("clicked", true)
+          modal_button_clicked(message, "ok")
+        })
+        $(this.MODAL).on("hidden.bs.modal", (event) => {
+          if (!$(this.MODAL_BUTTON_OK).data("clicked")) {
+            // if it is not an OK button (prevent double send)
+            modal_button_clicked(message, "cancel")
+          }
+        })
+
+        $(this.MODAL).modal()
+      })
+
+      this.already_connected = true
+    }
+
+    function modal_button_clicked(message, button_clicked) {
+      $('#_drab_modal').modal('hide')
+      let vals = {}
+      $("#_drab_modal form :input").map(function() {
+        let key = $(this).attr("name") || $(this).attr("id")
+        vals[key] = $(this).val()
+      })
       let query_output = [
         message.sender,
-        eval(message.js)
-      ]
-      // console.log(query_output)
-      him.channel.push("execjs", {ok: query_output})
-    })
+        {
+          button_clicked: button_clicked, 
+          params: vals
+        }
+      ]      
+      him.channel.push("modal", {ok: query_output})        
+    }
 
     // Drab Events
     function payload(who, event) {
@@ -80,24 +124,14 @@ export var Drab = {
       })
     }
 
-    // $("[drab-click]").off('click').on("click", function(event) {
-    //   him.channel.push("event", {event: "click", payload: payload($(this), "click")})
-    // })
-    // $("[drab-change]").off('change').on("change", function(event) {
-    //   him.channel.push("event", {event: "change", payload: payload($(this), "change")})
-    // })
-    // $("[drab-keyup]").off('keyup').on("keyup", function(event) {
-    //   him.channel.push("event", {event: "keyup", payload: payload($(this), "keyup")})
-    // })
-    // $("[drab-keydown]").off('keydown').on("keydown", function(event) {
-    //   him.channel.push("event", {event: "keydown", payload: payload($(this), "keydown")})
-    // })
-
+    // re-enable drab controls
+    this.disable_drab_objects(false)
     // initialize onload on server side, just once
     if (!this.onload_launched) {
       this.onload_launched = true
-      this.disable_drab_objects(false)
       him.channel.push("onload", null)
     }
   }
 }
+
+
