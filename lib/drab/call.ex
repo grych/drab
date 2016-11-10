@@ -6,12 +6,14 @@ defmodule Drab.Call do
   Call contains functions used to communicate from the server back to the browser.
   """
 
+  @drab_templates "priv/templates/drab"  
+
   @doc """
   Modal, synchronous alert box. This functions shows bootstrap modal window on the browser and waits for the user input.
 
   Options:
   * title - title of the message box
-  * body - html with the body of the alert box. When contains input, selects etc functions returns their values
+  * body - html with the body of the alert box. When contains input, selects, etc, this function return their values
   * buttons - names of the buttons (:ok, :cancel are only available), like ok: "Yes", cancel: "No"
 
   Returns a tuple {clicked_button, params}, where:
@@ -19,6 +21,11 @@ defmodule Drab.Call do
     return :cancel, while pressing `enter` returns :ok
   * params: Map `%{name|id => value}` of all inputs, selects, etc which are in the alert box body. Uses `name` 
     attribute as a key (or `id` when there is no `name`, or `undefined`).
+
+  Templates used to generate HTML for the alert box could be found in `deps/drab/priv/templates/drab/`. If you want to
+  modify it, copy them to `priv/templates/drab` in your application.
+  There are two templates for default `:ok` and `:cancel` buttons, but you may create new one and use them in the same
+  way.
 
   Examples:
 
@@ -35,28 +42,16 @@ defmodule Drab.Call do
       end
       
   """
+
   def alert(socket, title, body, buttons \\ [ok: "OK"]) do
     # TODO: move it to template
-    html = """
-    <div id="_drab_modal" class="modal fade" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title">#{title}</h4>
-          </div>
-          <div class="modal-body">
-            <form>
-              <p>#{body}</p>
-            </form>
-          </div>
-          <div class="modal-footer">
-            #{buttons_html(buttons)}
-          </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
-    """
+    bindings = [
+      title: title,
+      body: body,
+      buttons: buttons_html(buttons)
+    ]
+    html = render_template("call.alert.html.eex", bindings)
+
     socket |> delete("#_drab_modal")
     socket |> insert(html, append: "body")
 
@@ -69,21 +64,27 @@ defmodule Drab.Call do
 
   end
 
+  def render_template(filename, bindings) do
+    EEx.eval_file(full_path(filename), bindings)
+  end
+
+  def full_path(filename) do
+    sources = Enum.map(paths(), &(priv_dir(&1))) |> Enum.map(&(Path.join(&1, filename)))
+    Enum.find(sources, &(File.exists?(&1))) || raise "Can't find the template #{filename} in priv/templates"
+  end
+
+  def priv_dir(app) when is_atom(app) do
+    Application.app_dir(app) |> Path.join(@drab_templates)
+  end
+  def priv_dir(path) when is_binary(path) do
+    Path.join(path, @drab_templates)
+  end
+
+  def paths(), do: [".", :drab]
+
   defp buttons_html(buttons) do
-    "" <> 
-    if buttons[:ok] do
-      """
-      <button id="_drab_modal_button_ok" type="submit" class="btn btn-primary" data-dismiss="modal">#{buttons[:ok]}</button>
-      """
-    else 
-      ""
-    end <>
-    if buttons[:cancel] do
-      """
-      <button id="_drab_modal_button_cancel" type="button" class="btn btn-danger" data-dismiss="modal">#{buttons[:cancel]}</button>
-      """
-    else 
-      ""
-    end
+    Enum.map(buttons, fn {button, label} -> 
+      render_template("call.alert.button.#{Atom.to_string(button)}.html.eex", [label: label])
+    end) |> Enum.join("\n")
   end
 end

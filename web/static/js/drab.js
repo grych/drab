@@ -61,10 +61,10 @@ export var Drab = {
       })
 
       him.channel.on("modal", (message) => {
-        // $(this.MODAL_FORM).on("submit", (event) => {
-        //   modal_button_clicked(message, "ok")
-        //   return false // prevent submit
-        // })
+        $(this.MODAL_FORM).on("submit", (event) => {
+          modal_button_clicked(message, "ok")
+          return false // prevent submit
+        })
         $(this.MODAL_BUTTON_OK).on("click", (event) => {
           $(this.MODAL_BUTTON_OK).data("clicked", true)
           modal_button_clicked(message, "ok")
@@ -74,6 +74,10 @@ export var Drab = {
             // if it is not an OK button (prevent double send)
             modal_button_clicked(message, "cancel")
           }
+        })
+        // set focus on form
+        $(this.MODAL).on("shown.bs.modal", (event) => {
+          $(this.MODAL_FORM + " :input").first().focus()
         })
 
         $(this.MODAL).modal()

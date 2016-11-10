@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     check_if_controller_exists!(path, binding[:module])
 
     Mix.Phoenix.copy_from paths(), "priv/templates/", "", binding, [
-      {:eex, "drab.gen.commander.ex", "web/commanders/#{path}_commander.ex"}
+      {:eex, "drab.gen.commander.ex.eex", "web/commanders/#{path}_commander.ex"}
     ]
 
     Mix.shell.info """
