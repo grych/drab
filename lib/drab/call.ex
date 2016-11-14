@@ -11,9 +11,10 @@ defmodule Drab.Call do
   @doc """
   Modal, synchronous alert box. This functions shows bootstrap modal window on the browser and waits for the user input.
 
-  Options:
+  Parameters and options:
   * title - title of the message box
   * body - html with the body of the alert box. When contains input, selects, etc, this function return their values
+  * class - additional classes to .modal-dialog, ex. modal-lg, modal-sm, modal-xs
   * buttons - names of the buttons (:ok, :cancel are only available), like ok: "Yes", cancel: "No"
 
   Returns a tuple {clicked_button, params}, where:
@@ -42,12 +43,11 @@ defmodule Drab.Call do
       end
       
   """
-
-  def alert(socket, title, body, buttons \\ [ok: "OK"]) do
-    # TODO: move it to template
+  def alert(socket, title, body, class, buttons) do
     bindings = [
       title: title,
       body: body,
+      class: class,
       buttons: buttons_html(buttons)
     ]
     html = render_template("call.alert.html.eex", bindings)
@@ -60,8 +60,25 @@ defmodule Drab.Call do
     receive do
       {:got_results_from_client, reply} ->
         reply
-    end
-
+    end    
+  end
+  @doc """
+  Launches `Drab.Call.query/5` without additional classes
+  """
+  def alert(socket, title, body, buttons) when is_list(buttons) do
+    alert(socket, title, body, "", buttons)
+  end
+  @doc """
+  Launches `Drab.Call.query/5` with default OK button and additional classes
+  """
+  def alert(socket, title, body, class) when is_binary(class) do
+    alert(socket, title, body, class, [ok: "OK"])
+  end
+  @doc """
+  Launches `Drab.Call.query/4` with default OK button
+  """
+  def alert(socket, title, body) do
+    alert(socket, title, body, [ok: "OK"])
   end
 
   def render_template(filename, bindings) do

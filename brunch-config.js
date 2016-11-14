@@ -3,11 +3,11 @@ exports.config = {
   production: true,
 
   modules: {
-    definition: false,
+    // definition: false,
     // wrapper: function(path, code){
     //   return "(function(exports){\n" + code + "\n})(typeof(exports) === \"undefined\" ? window.Drab = window.Drab || {} : exports);\n";
     // }
-    wrapper: false,
+    // wrapper: false,
   },
 
   files: {

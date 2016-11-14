@@ -1,8 +1,8 @@
 {
   "name": "drab",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "description.",
-  "main": "./priv/static/drab.js",
+  "main": "./drab.js",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -11,7 +11,9 @@
   "author": "Tomek 'Grych' Gryszkiewicz <grych@tg.pl> (http://www.tg.pl)",
   "dependencies": {
     "jquery": ">= 3.1.1",
-    "node-uuid": "~1.4.0"
+    "node-uuid": "~1.4.0",
+    "phoenix": "~ 1.2.0",
+    "asn1.js": "~ 4.9.0"
   },
   "devDependencies": {
     "brunch": "~2.6.5",
@@ -19,7 +21,7 @@
     "babel-brunch": "^6.0.0",
     "uglify-js-brunch": "~2.0.1"
   },
-  "files": ["README.md", "LICENSE.md", "package.json", "priv/static/drab.js", "web/static/js/drab.js"],
+  "files": ["README.md", "LICENSE.md", "package.json", "drab.js"],
   "scripts": {
     "test": "./node_modules/.bin/mocha ./web/test/**/*.js --compilers js:babel-register"
   }
