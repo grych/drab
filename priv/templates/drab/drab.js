@@ -1,19 +1,14 @@
 (function(){
-  function createUUID() {
-    // http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-    // http://www.ietf.org/rfc/rfc4122.txt
-    var s = [];
-    var hexDigits = "0123456789abcdef";
-    for (var i = 0; i < 36; i++) {
-        s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
-    }
-    s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
-    s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
-    s[8] = s[13] = s[18] = s[23] = "-";
-
-    var uuid = s.join("");
-    return uuid;
+  function uuid() {
+    var d = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0
+        d = Math.floor(d/16)
+        return (c=='x' ? r : (r&0x3|0x8)).toString(16)
+    })
+    return uuid
   }
+   
 
   var Drab = {
     EVENTS: ["click", "change", "keyup", "keydown"],
@@ -31,7 +26,7 @@
       this.drab_return = drab_return
       this.self = this
       // this.myid = uuid.v1()
-      this.myid = createUUID()
+      this.myid = uuid()
       this.onload_launched = false
       this.already_connected = false
       this.path = location.pathname
@@ -136,9 +131,11 @@
           event_function: who.attr(`drab-${event}`)
         }
       }
+
       function setid(whom) {
-        whom.attr("drab-id", createUUID())
+        whom.attr("drab-id", uuid())
       }
+
       // TODO: after rejoin the even handler is doubled or tripled
       //       hacked with off(), bit I don't like it as a solution 
       for (let ev of this.EVENTS) {
