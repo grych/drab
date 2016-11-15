@@ -1,6 +1,10 @@
-import {Socket} from "phoenix"
-import uuid from "node-uuid"
-import $ from "jquery"
+// import {Socket} from "phoenix"
+// import uuid from "node-uuid"
+// import $ from "jquery"
+
+var Socket = require("phoenix").Socket
+var uuid = require("node-uuid").uuid
+var $ = require("jquery").$
 
 export var Drab = {
   EVENTS: ["click", "change", "keyup", "keydown"],

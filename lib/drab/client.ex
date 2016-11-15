@@ -10,6 +10,8 @@ defmodule Drab.Client do
       <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   """
 
+  import Drab.Templates
+
   @doc """
   Generates JS code which runs Drab. Passes controller and action name, tokenized for safety.
   Runs only when the controller which renders current action has been compiled
@@ -22,11 +24,14 @@ defmodule Drab.Client do
     if Enum.member?(controller.__info__(:functions), {:__drab__, 0}) do
       controller_and_action = Phoenix.Token.sign(conn, "controller_and_action", 
                               "#{controller}##{Phoenix.Controller.action_name(conn)}")
-      # TODO: script to template(?)
+      bindings = [
+        controller_and_action: controller_and_action
+      ]
+      js = render_template("drab.js", bindings)
+
       Phoenix.HTML.raw """
       <script>
-        require("web/static/js/drab").Drab.run('#{controller_and_action}')
-        // require("drab").Drab.run('#{controller_and_action}')
+        #{js}
       </script>
       """
     else 
