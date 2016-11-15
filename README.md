@@ -59,24 +59,15 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
     $ mix compile
     ```
 
-  2. Install Drab Javascript library (TODO: npm package):
-
-    ```shell
-    $ mix drab.install.js
-    Created a link to drab.js in web/static/js
-    lrwxr-xr-x  1 grych  staff  40  1 lis 23:12 drab.js -> ../../../deps/drab/web/static/js/drab.js
-    ```
-
-  3. Add `node-uuid` and `jquery` to `package.json`:
+  2. Add `jquery` to `package.json`:
 
     ```json
     "dependencies": {
-      "jquery": ">= 2.1",
-      "node-uuid": "~1.4.0"
+      "jquery": ">= 3.1.1"
     }
     ```
 
-  4. Add jQuery as a global at the end of `brunch-config.js`:
+  3. Add jQuery as a global at the end of `brunch-config.js`:
 
     ```javascript
     npm: {globals: {
@@ -85,13 +76,13 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
     }}
     ```
 
-  5. And install it:
+  4. And install it:
 
     ```bash
     $ npm install && node_modules/brunch/bin/brunch build 
     ```
 
-  6. Initialize Drab client library by adding to the layout page (`web/templates/layout/app.html.eex`)
+  5. Initialize Drab client library by adding to the layout page (`web/templates/layout/app.html.eex`)
 
     ```html
     <%= Drab.Client.js(@conn) %>
@@ -103,7 +94,7 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
     ```
     
-  7. Initialize websockets by adding the following to `lib/endpoint.ex`:
+  6. Initialize Drab websockets by adding the following to `lib/endpoint.ex`:
 
     ```elixir
     socket "/drab/socket", Drab.Socket
