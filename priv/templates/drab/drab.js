@@ -12,6 +12,7 @@
 
   var Drab = {
     EVENTS: ["click", "change", "keyup", "keydown"],
+    EVENTS_TO_DISABLE: <%= Drab.config.events_to_disable |> Drab.Query.encode_js %>,
     MODAL: "#_drab_modal",
     MODAL_FORM: "#_drab_modal form",
     MODAL_BUTTON_OK: "#_drab_modal_button_ok",
@@ -35,7 +36,7 @@
       // they will be re-enable on connection
       this.disable_drab_objects(true)
 
-      let socket = new this.Socket("/drab/socket", {params: {token: window.userToken}})
+      let socket = new this.Socket("<%= Drab.config.socket %>", {params: {token: window.userToken}})
       socket.connect()
       this.channel = socket.channel(
         `drab:${this.path}`, 
@@ -44,7 +45,7 @@
           drab_return: this.drab_return
         })
       this.channel.join()
-        .receive("error", resp => { console.log("Unable to join", resp) })
+        .receive("error", resp => { console.log("Unable to join DRAB channel", resp) })
         .receive("ok", resp => this.connected(resp, this))
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
@@ -55,9 +56,11 @@
     },
 
     disable_drab_objects: function(disable) {
-      for (let ev of this.EVENTS) {
-        $(`[drab-${ev}]`).prop('disabled', disable)
-      }
+      <%= if Drab.config.disable_controls_when_disconnected do %>
+        for (let ev of this.EVENTS) {
+          $(`[drab-${ev}]`).prop('disabled', disable)
+        }
+      <% end %>
     },
 
     connected: function(resp, him) {
@@ -139,7 +142,16 @@
       // TODO: after rejoin the even handler is doubled or tripled
       //       hacked with off(), bit I don't like it as a solution 
       for (let ev of this.EVENTS) {
+        events_to_disable = this.EVENTS_TO_DISABLE
         $(`[drab-${ev}]`).off(ev).on(ev, function(event) {
+          // disable current control - will be re-enabled after finish
+          <%= if Drab.config.disable_controls_while_processing do %>
+            console.log(ev)
+            console.log(events_to_disable)
+            if ($.inArray(ev, events_to_disable) >= 0) {
+              $(this).prop('disabled', true)
+            }
+          <% end %>
           him.channel.push("event", {event: ev, payload: payload($(this), ev)})
         })
       }

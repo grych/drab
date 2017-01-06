@@ -87,11 +87,16 @@ defmodule Drab do
   defp do_handle_cast(socket, evt_fun, payload) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
+      dom_sender = Map.delete(payload, "event_function")
       apply(
         commander(socket), 
         String.to_atom(evt_fun), 
-        [socket, Map.delete(payload, "event_function")]
-      ) 
+        [socket, dom_sender]
+      )
+      # re-enable the button if needed
+      if Drab.config.disable_controls_while_processing do
+        socket |> Drab.Query.update(prop: "disabled", set: false, on: Drab.Query.this(dom_sender))
+      end
     end
     {:noreply, socket}
   end
@@ -106,5 +111,15 @@ defmodule Drab do
   # if module is commander or controller with drab enabled, it has __drab__/0 function with Drab configuration
   defp drab_config(module) do
     module.__drab__()
+  end
+
+  # configuration defaults
+  def config() do
+    %{
+      disable_controls_while_processing: Application.get_env(:drab, :disable_controls_while_processing, true),
+      disable_controls_when_disconnected: Application.get_env(:drab, :disable_controls_when_disconnected, true),
+      events_to_disable: Application.get_env(:drab, :events_to_disable, ["click"]),
+      socket: Application.get_env(:drab, :socket, "/drab/socket")
+    }
   end
 end

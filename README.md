@@ -97,7 +97,7 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
   6. Initialize Drab websockets by adding the following to `lib/endpoint.ex`:
 
     ```elixir
-    socket "/drab/socket", Drab.Socket
+    socket Drab.config.socket, Drab.Socket
     ```
 
 Congratullations! You have Drab installed and you can proceed with your own Commanders.
