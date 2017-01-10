@@ -187,9 +187,10 @@ defmodule Drab.Query do
   end
   def delete(socket, [prop: property, from: selector]) do
     do_query(socket, selector, jquery_method(:removeProp, property), :delete)
+    socket
   end
   def delete(socket, [attr: attribute, from: selector]) do
-    do_query(socket, selector, jquery_method(:removeAttr, attribute), :delete)
+    delete(socket, [prop: attribute, from: selector])
   end
   def delete(_socket, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument
@@ -200,13 +201,25 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Execute given jQuery method on selector.
+  Execute given jQuery method on selector. To be used in case built-in method calls are not enough.
 
-      socket |> execute(:click, "#mybutton")
-      socket |> execute(trigger: "click", "mybutton")
+      socket |> execute(:click, on: "#mybutton")
+      socket |> execute(trigger: "click", on: "#mybutton")
+      socket |> execute("trigger(\"click\")", on: "#mybutton")
   """
-  def execute() do
-    
+  def execute(socket, options)
+  def execute(socket, [{method, parameter}, {:on, selector}]) do
+    do_query(socket, selector, jquery_method(method, parameter), :execute)
+    socket
+  end
+  def execute(socket, method, on: selector) when is_atom(method) do
+    # execute(socket, jquery_method(method), selector)
+    do_query(socket, selector, jquery_method(method), :execute)
+    socket
+  end
+  def execute(socket, method, on: selector) when is_binary(method) do
+    do_query(socket, selector, method, :execute)
+    socket
   end
 
   @doc """
@@ -249,7 +262,7 @@ defmodule Drab.Query do
     }).toArray()
     """
   end
-  defp build_js(selector, method_javascripted, type) when type in ~w(update insert delete)a do
+  defp build_js(selector, method_javascripted, type) when type in ~w(update insert delete execute)a do
     """
     $('#{selector}').#{method_javascripted}.toArray()
     """

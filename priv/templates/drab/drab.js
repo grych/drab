@@ -146,8 +146,6 @@
         $(`[drab-${ev}]`).off(ev).on(ev, function(event) {
           // disable current control - will be re-enabled after finish
           <%= if Drab.config.disable_controls_while_processing do %>
-            console.log(ev)
-            console.log(events_to_disable)
             if ($.inArray(ev, events_to_disable) >= 0) {
               $(this).prop('disabled', true)
             }
