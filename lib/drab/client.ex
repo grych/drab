@@ -1,6 +1,6 @@
 defmodule Drab.Client do
   @moduledoc """
-  Switch on Drab on the client side. Must be included in HTML template, for example 
+  Enable Drab on the browser side. Must be included in HTML template, for example 
   in `web/templates/layout/app.html.eex`:
 
       <%= Drab.Client.js(@conn) %>
