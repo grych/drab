@@ -71,23 +71,23 @@ defmodule Drab do
   end
 
   # TODO: generate it with macro
-  def handle_cast({:click, socket, %{"event_function" => evt_fun} = payload}, _) do
+  def handle_cast({_, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
     do_handle_cast(socket, evt_fun, payload)
   end
-  def handle_cast({:change, socket, %{"event_function" => evt_fun} = payload}, _) do
-    do_handle_cast(socket, evt_fun, payload)
-  end
-  def handle_cast({:keyup, socket, %{"event_function" => evt_fun} = payload}, _) do
-    do_handle_cast(socket, evt_fun, payload)
-  end
-  def handle_cast({:keydown, socket, %{"event_function" => evt_fun} = payload}, _) do
-    do_handle_cast(socket, evt_fun, payload)
-  end
+  # def handle_cast({:change, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
+  #   do_handle_cast(socket, evt_fun, payload)
+  # end
+  # def handle_cast({:keyup, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
+  #   do_handle_cast(socket, evt_fun, payload)
+  # end
+  # def handle_cast({:keydown, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
+  #   do_handle_cast(socket, evt_fun, payload)
+  # end
 
   defp do_handle_cast(socket, evt_fun, payload) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
-      dom_sender = Map.delete(payload, "event_function")
+      dom_sender = Map.delete(payload, "event_handler_function")
       apply(
         commander(socket), 
         String.to_atom(evt_fun), 

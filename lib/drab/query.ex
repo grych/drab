@@ -66,7 +66,7 @@ defmodule Drab.Query do
   """
   def select(socket, options)
   def select(socket, [{method, argument}, from: selector]) when method in @methods_with_argument do
-    do_query(socket, selector, jquery_method(method, argument), :select)
+    do_query(socket, selector, jquery_method(method, argument), :select, :no_broadcast)
   end
   def select(_socket, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument
@@ -75,7 +75,7 @@ defmodule Drab.Query do
   @doc "See `Drab.Query.select/2`"
   def select(socket, method, options)
   def select(socket, method, from: selector) when method in @methods do
-    do_query(socket, selector, jquery_method(method), :select)
+    do_query(socket, selector, jquery_method(method), :select, :no_broadcast)
   end
   def select(_socket, method, from: selector) do
     wrong_query! selector, method 
@@ -106,56 +106,104 @@ defmodule Drab.Query do
 
   Available methods: see @methods, @methods_with_argument, :class
   """
-  def update(socket, options)
-  def update(socket, [{method, argument}, set: value, on: selector]) when method in @methods_with_argument do
-    {:ok, do_query(socket, selector, jquery_method(method, argument, value), :update)}
-  end
-  def update(socket, [class: from_class, set: to_class, on: selector]) do
-    socket |> insert(class: to_class, into: selector)
-    {:ok, socket |> delete(class: from_class, from: selector)}
-  end
-  def update(_socket, [{method, argument}, {:set, _value}, {:on, selector}]) do
-    wrong_query! selector, method, argument
+  def update(socket, options) do
+    do_update(socket, :no_broadcast, options)
   end
 
   @doc "See `Drab.Query.update/2`"
-  def update(socket, method, options)
-  def update(socket, method, set: value, on: selector) when method in @methods do
-    {:ok, do_query(socket, selector, jquery_method(method, value), :update)}
+  def update(socket, method, options) do
+    do_update(socket, :no_broadcast, method, options)
   end
-  def update(_socket, method, set: value, on: selector) do
+
+  @doc """
+  """
+  def update!(socket, options) do
+    do_update(socket, :broadcast, options)
+    # bang function does not return anything
+    :sent
+  end
+
+  @doc "See `Drab.Query.update!/2`"
+  def update!(socket, method, options) do
+    do_update(socket, :broadcast, method, options)
+    :sent
+  end
+
+  defp do_update(socket, broadcast, [{method, argument}, set: value, on: selector]) when method in @methods_with_argument do
+    {:ok, do_query(socket, selector, jquery_method(method, argument, value), :update, broadcast)}
+  end
+  defp do_update(socket, broadcast, [class: from_class, set: to_class, on: selector]) do
+    case broadcast do
+      :broadcast ->
+        socket |> insert!(class: to_class, into: selector)
+        socket |> delete!(class: from_class, from: selector)
+      :no_broadcast ->
+        socket |> insert(class: to_class, into: selector)
+        {:ok, socket |> delete(class: from_class, from: selector)}
+    end
+  end
+  defp do_update(_socket, _broadcast, [{method, argument}, {:set, _value}, {:on, selector}]) do
+    wrong_query! selector, method, argument
+  end
+
+  defp do_update(socket, broadcast, method, set: value, on: selector) when method in @methods do
+    {:ok, do_query(socket, selector, jquery_method(method, value), :update, broadcast)}
+  end
+  defp do_update(_socket, _broadcast, method, set: value, on: selector) do
     wrong_query! selector, method, value
   end
 
-  
-  # insert(html: '<b>htnm', before: selector)
-  # insert(html: '<b>htnm', after: selector)
 
   @doc """
-  Adds new node or class to the selected object.
+  Adds new node (html) or class to the selected object.
   Returns:
   * `{:ok, number}` - number of DOM objects inserted
   
   Options:
   * class: class - class name to be inserted
   * into: selector - class will be added to specified selector(s)
+  * before: selector - creates html before the selector
+  * after: selector - creates html node after the selector
+  * append: selector - adds html to the end of the selector (inside the selector)
+  * prepend: selector - adds html to the beginning of the selector (inside the selector)
 
   Example:
       socket |> insert(class: "btn-success", into: "#button")
+      socket |> insert("<b>warning</b>", before: "#pane")
   """
-  def insert(socket, options)
-  def insert(socket, class: class, into: selector) do
-    {:ok, do_query(socket, selector, jquery_method(:addClass, class), :insert)}
-  end
-  def insert(_socket, [{method, argument}, into: selector]) do
-    wrong_query! selector, method, argument
+  def insert(socket, options) do
+    do_insert(socket, :no_broadcast, options)
   end
 
   @doc "See `Drab.Query.insert/2`"
-  def insert(socket, html, [{method, selector}]) when method in @insert_methods do
-    {:ok, do_query(socket, selector, jquery_method(method, html), :insert)}
+  def insert(socket, html, options) do
+    do_insert(socket, :no_broadcast, html, options)
   end
-  def insert(_socket, html, [{method, selector}]) do
+
+  @doc """
+  """
+  def insert!(socket, options) do
+    do_insert(socket, :broadcast, options)
+    :sent
+  end
+
+  @doc "See `Drab.Query.insert/2`"
+  def insert!(socket, html, options) do
+    do_insert(socket, :broadcast, html, options)
+    :sent
+  end
+
+  defp do_insert(socket, broadcast, class: class, into: selector) do
+    {:ok, do_query(socket, selector, jquery_method(:addClass, class), :insert, broadcast)}
+  end
+  defp do_insert(_socket, _broadcast, [{method, argument}, into: selector]) do
+    wrong_query! selector, method, argument
+  end
+
+  defp do_insert(socket, broadcast, html, [{method, selector}]) when method in @insert_methods do
+    {:ok, do_query(socket, selector, jquery_method(method, html), :insert, broadcast)}
+  end
+  defp do_insert(_socket, _broadcast, html, [{method, selector}]) do
     wrong_query! html, method, selector
   end
 
@@ -181,24 +229,34 @@ defmodule Drab.Query do
       socket |> delete(from: "code") # empty all `<code>`, but node remains
       socket |> delete(class: "btn-success", from: "#button")
   """
-  def delete(socket, options)
-  def delete(socket, from: selector) do
-    {:ok, do_query(socket, selector, jquery_method(:empty), :delete)}
+  def delete(socket, options) do
+    do_delete(socket, :no_broadcast, options)
   end
-  def delete(socket, class: class, from: selector) do
-    {:ok, do_query(socket, selector, jquery_method(:removeClass, class), :delete)}
+
+  @doc """
+  """
+  def delete!(socket, options) do
+    do_delete(socket, :broadcast, options)
+    :sent
   end
-  def delete(socket, [prop: property, from: selector]) do
-    {:ok, do_query(socket, selector, jquery_method(:removeProp, property), :delete)}
+
+  defp do_delete(socket, broadcast, from: selector) do
+    {:ok, do_query(socket, selector, jquery_method(:empty), :delete, broadcast)}
   end
-  def delete(socket, [attr: attribute, from: selector]) do
+  defp do_delete(socket, broadcast, class: class, from: selector) do
+    {:ok, do_query(socket, selector, jquery_method(:removeClass, class), :delete, broadcast)}
+  end
+  defp do_delete(socket, broadcast, [prop: property, from: selector]) do
+    {:ok, do_query(socket, selector, jquery_method(:removeProp, property), :delete, broadcast)}
+  end
+  defp do_delete(socket, _broadcast, [attr: attribute, from: selector]) do
     delete(socket, [prop: attribute, from: selector])
   end
-  def delete(_socket, [{method, argument}, from: selector]) do
+  defp do_delete(_socket, _broadcast, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument
   end
-  def delete(socket, selector) do
-    {:ok, do_query(socket, selector, jquery_method(:remove), :delete)}
+  defp do_delete(socket, broadcast, selector) do
+    {:ok, do_query(socket, selector, jquery_method(:remove), :delete, broadcast)}
   end
 
   @doc """
@@ -210,20 +268,42 @@ defmodule Drab.Query do
       socket |> execute(trigger: "click", on: "#mybutton")
       socket |> execute("trigger(\"click\")", on: "#mybutton")
   """
-  def execute(socket, options)
-  def execute(socket, [{method, parameter}, {:on, selector}]) do
-    {:ok, do_query(socket, selector, jquery_method(method, parameter), :execute)}
+  def execute(socket, options) do
+    do_execute(socket, :no_broadcast, options)
   end
 
   @doc """
   See `Drab.Query.execute/2`
   """
-  def execute(socket, method, on: selector) when is_atom(method) do
-    # execute(socket, jquery_method(method), selector)
-    {:ok, do_query(socket, selector, jquery_method(method), :execute)}
+  def execute(socket, method, options) do
+    do_execute(socket, :no_broadcast, method, options)
   end
-  def execute(socket, method, on: selector) when is_binary(method) do
-    {:ok, do_query(socket, selector, method, :execute)}
+
+  @doc """
+  """
+  def execute!(socket, options) do
+    do_execute(socket, :broadcast, options)
+    :sent
+  end
+
+  @doc """
+  See `Drab.Query.execute!/2`
+  """
+  def execute!(socket, method, options) do
+    do_execute(socket, :broadcast, method, options)
+    :sent
+  end
+
+  defp do_execute(socket, broadcast, [{method, parameter}, {:on, selector}]) do
+    {:ok, do_query(socket, selector, jquery_method(method, parameter), :execute, broadcast)}
+  end
+
+  defp do_execute(socket, broadcast, method, on: selector) when is_atom(method) do
+    # execute(socket, jquery_method(method), selector)
+    {:ok, do_query(socket, selector, jquery_method(method), :execute, broadcast)}
+  end
+  defp do_execute(socket, broadcast, method, on: selector) when is_binary(method) do
+    {:ok, do_query(socket, selector, method, :execute, broadcast)}
   end
 
   @doc """
@@ -238,13 +318,25 @@ defmodule Drab.Query do
     end
   end
 
+  @doc """
+  Asynchronously broadsasts given javascript to all browsers displaying current page
+  """
+  def broadcastjs(socket, js) do
+    Phoenix.Channel.broadcast(socket, "broadcastjs",  %{js: js, sender: tokenize(socket, self())})
+    :sent
+  end
+
   def tokenize(socket, pid) do
     myself = :erlang.term_to_binary(pid)
     Phoenix.Token.sign(socket, "sender", myself)
   end
 
   # Build and run general jQuery query
-  defp do_query(socket, selector, method_jqueried, type) do
+  defp do_query(socket, selector, method_jqueried, type, :broadcast) do
+    broadcastjs(socket, build_js(selector, method_jqueried, type))
+  end
+
+  defp do_query(socket, selector, method_jqueried, type, :no_broadcast) do
     execjs(socket, build_js(selector, method_jqueried, type))
   end
 

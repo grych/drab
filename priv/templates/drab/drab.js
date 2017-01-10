@@ -69,12 +69,18 @@
         him.channel.on("onload", (message) => {
         })
 
+        // exec is synchronous, returns the result
         him.channel.on("execjs", (message) => {
           let query_output = [
             message.sender,
             eval(message.js)
           ]
           him.channel.push("execjs", {ok: query_output})
+        })
+
+        // broadcast does not return a meesage
+        him.channel.on("broadcastjs", (message) => {
+          eval(message.js)
         })
 
         him.channel.on("modal", (message) => {
@@ -131,7 +137,7 @@
           val:  who.val(),
           data: who.data(),
           drab_id: who.attr("drab-id"),
-          event_function: who.attr(`drab-${event}`)
+          event_handler_function: who.attr(`drab-${event}`)
         }
       }
 
