@@ -80,6 +80,13 @@ defmodule Drab.Call do
     alert(socket, title, body, [ok: "OK"])
   end
 
+  @doc """
+  Sends the log to the browsers console for debugging
+  """
+  def console(socket, log) do
+    Phoenix.Channel.push(socket, "console",  %{log: log, sender: tokenize(socket, self())})
+  end
+
   defp buttons_html(buttons) do
     Enum.map(buttons, fn {button, label} -> 
       render_template("call.alert.button.#{Atom.to_string(button)}.html.eex", [label: label])

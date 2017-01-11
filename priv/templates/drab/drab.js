@@ -100,6 +100,10 @@
           $(this.MODAL).modal()
         })
 
+        him.channel.on("console", (message) => {
+          console.log(message.log)
+        })
+
         this.already_connected = true
       }
 

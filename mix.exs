@@ -61,7 +61,7 @@ defmodule Drab.Mixfile do
       files: ["lib", "priv", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["Tomek Gryszkiewicz"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/grych/drab", "Docs" => "https://tg.pl/drab/docs"}
+      links: %{"GitHub" => "https://github.com/grych/drab", "Docs" => "https://tg.pl/drab/docs", "Home" => "https://tg.pl/drab"}
     ]
   end
 
