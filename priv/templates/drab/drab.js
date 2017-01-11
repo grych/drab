@@ -2,17 +2,16 @@
   function uuid() {
     var d = new Date().getTime();
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = (d + Math.random()*16)%16 | 0
-        d = Math.floor(d/16)
-        return (c=='x' ? r : (r&0x3|0x8)).toString(16)
+      var r = (d + Math.random()*16)%16 | 0
+      d = Math.floor(d/16)
+      return (c=='x' ? r : (r&0x3|0x8)).toString(16)
     })
     return uuid
   }
    
-
   var Drab = {
     EVENTS: ["click", "change", "keyup", "keydown"],
-    EVENTS_TO_DISABLE: <%= Drab.config.events_to_disable |> Drab.Query.encode_js %>,
+    EVENTS_TO_DISABLE: <%= Drab.config.events_to_disable_while_processing |> Drab.Query.encode_js %>,
     MODAL: "#_drab_modal",
     MODAL_FORM: "#_drab_modal form",
     MODAL_BUTTON_OK: "#_drab_modal_button_ok",
@@ -20,13 +19,9 @@
 
     run: function(drab_return) {
       this.Socket = require("phoenix").Socket
-      // window.uuid = require("node-uuid")
-      // window.$ = require("jquery")
-      // window.jQuery = $
 
       this.drab_return = drab_return
       this.self = this
-      // this.myid = uuid.v1()
       this.myid = uuid()
       this.onload_launched = false
       this.already_connected = false
@@ -55,11 +50,10 @@
       })
     },
 
+    // disable all drab object when disconnected from the server
     disable_drab_objects: function(disable) {
       <%= if Drab.config.disable_controls_when_disconnected do %>
-        for (let ev of this.EVENTS) {
-          $(`[drab-${ev}]`).prop('disabled', disable)
-        }
+        $(`[drab-event]`).prop('disabled', disable)
       <% end %>
     },
 
@@ -126,18 +120,19 @@
         $('#_drab_modal').modal('hide')
       }
 
-      // Drab Events
-      function payload(who, event) {
+      function payload(who) {
         setid(who)
         return {
           // by default, we pass back some sender attributes
-          id:   who.attr("id"),
-          text: who.text(),
-          html: who.html(),
-          val:  who.val(),
-          data: who.data(),
+          id:     who.attr("id"),
+          name:   who.attr("name"),
+          class:  who.attr("class"),
+          text:   who.text(),
+          html:   who.html(),
+          val:    who.val(),
+          data:   who.data(),
           drab_id: who.attr("drab-id"),
-          event_handler_function: who.attr(`drab-${event}`)
+          event_handler_function: who.attr(`drab-handler`)
         }
       }
 
@@ -145,20 +140,33 @@
         whom.attr("drab-id", uuid())
       }
 
-      // TODO: after rejoin the even handler is doubled or tripled
-      //       hacked with off(), bit I don't like it as a solution 
+      // set up the controls with drab handlers
+      // first serve the shortcut controls by adding the longcut attrbutes
       for (let ev of this.EVENTS) {
-        events_to_disable = this.EVENTS_TO_DISABLE
-        $(`[drab-${ev}]`).off(ev).on(ev, function(event) {
-          // disable current control - will be re-enabled after finish
-          <%= if Drab.config.disable_controls_while_processing do %>
-            if ($.inArray(ev, events_to_disable) >= 0) {
-              $(this).prop('disabled', true)
-            }
-          <% end %>
-          him.channel.push("event", {event: ev, payload: payload($(this), ev)})
+        $(`[drab-${ev}]`).each(function() {
+          $(this).attr("drab-event", ev) 
+          $(this).attr("drab-handler", $(this).attr(`drab-${ev}`))
         })
       }
+
+      let events_to_disable = this.EVENTS_TO_DISABLE
+      $("[drab-event]").each(function() {
+        if($(this).attr("drab-handler")) {
+          let ev=$(this).attr("drab-event")
+          $(this).off(ev).on(ev, function(event) {
+            // disable current control - will be re-enabled after finish
+            <%= if Drab.config.disable_controls_while_processing do %>
+              if ($.inArray(ev, events_to_disable) >= 0) {
+                $(this).prop('disabled', true)
+              }
+            <% end %>
+            // send the message back to the server
+            him.channel.push("event", {event: ev, payload: payload($(this))})
+          })
+        } else {
+          console.log("Drab Error: drab-event definded without drab-handler", $(this))
+        }
+      })
 
       // re-enable drab controls
       this.disable_drab_objects(false)

@@ -2,6 +2,8 @@ defmodule Drab.Templates do
   require IEx
   @drab_templates "priv/templates/drab"  
 
+  @moduledoc false
+
   def render_template(filename, bindings) do
     EEx.eval_file(full_path(filename), bindings)
   end

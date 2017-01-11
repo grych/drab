@@ -1,13 +1,21 @@
 defmodule Drab.Query do
+  require Logger
+
+  @methods               ~w(html text val)a
+  @methods_with_argument ~w(attr prop css data)a
+  @insert_methods        ~w(before after prepend append)a
+
   @moduledoc """
-  Provides interface to DOM objects on the server side. You may query (`select`) or manipulate 
-  (`update`, `insert`, `delete`) properties of the selected DOM object.
+  Provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
+  (`update/2`, `insert/2`, `delete/2`, `execute/2`) the selected DOM object.
+
   General syntax:
 
       return = socket |> select(what, from: selector)
       socket |> update(what, set: new_value, on: selector)
       socket |> insert(what, into: selector)
       socket |> delete(what, from: selector)
+      socket |> execute(what, on: selector)
 
   where:
   * socket - websocket used in connection
@@ -17,34 +25,58 @@ defmodule Drab.Query do
     pair will launch the method named as the key with arguments taken from its value, so `text: "some"` becomes
     `.text("some")`.
 
-  See function descriptions for details.
+  Object manipulation (`update/2`, `insert/2`, `delete/2`, `execute/2`) returns tuple {:ok, number_of_objects_affected}. 
+  Query `select/2` returns list of found DOM object properties (list of htmls, values etc) or empty list when nothing 
+  found.
 
-  Object manipulation (`update`, `insert`, `delete`) functions always returns socket - be be piped. Query `select`
-  returns list of found DOM object properties (list of htmls, values etc) or empty list.
+  Select queries always refers to the page on which the event were launched. Data manipulation queries (`update/2`, 
+  `insert/2`, `delete/2`, `execute/2`) changes DOM objects on this page as well, but they have a broadcast versions:
+  `update!/2`, `insert!/2`, `delete!/2` and `execute!/2`, which works the same, but changes DOM on every currently 
+  connected browsers, which has opened the same URL.
   """
-
-  require Logger
-
-  @methods               ~w(html text val)a
-  @methods_with_argument ~w(attr prop css data)a
-  @insert_methods        ~w(before after prepend append)a
 
   @doc """
   Finds the DOM object which triggered the event. To be used only in event handlers.
 
       def button_clicked(socket, dom_sender) do
-        socket
-          |> update(:text, set: "alread clicked", on: this(dom_sender))
-          |> update(attr: "disabled", set: true, on: this(dom_sender))
+        socket |> update(:text, set: "alread clicked", on: this(dom_sender))
+        socket |> update(attr: "disabled", set: true, on: this(dom_sender))
       end        
+
+  Do not use it with with broadcast functions (`Drab.Query.update!`, `Drab.Query.insert`, `Drab.Query.delete`, 
+  `Drab.Query.execute!`), because it returns the *exact* DOM object. In case if you want to broadcast, use 
+  `Drab.Query.this!/1` instead.
+
   """
   def this(dom_sender) do
     "[drab-id=#{dom_sender["drab_id"]}]"
   end
 
   @doc """
-  Returns an array of values get by issue jQuery `method` on selected DOM objects. In case the method
-  requires an argument (like `attr()`), it should be given as key/value pair: method_name: "argument".
+  Like `Drab.Query.this/1`, but returns CSS ID of the object, so it may be used with broadcasting functions.
+
+      def button_clicked(socket, dom_sender) do
+        socket |> update!(:text, set: "alread clicked", on: this!(dom_sender))
+        socket |> update!(attr: "disabled", set: true, on: this!(dom_sender))
+      end
+
+  Raises exception when being used on the object without an ID.
+  """
+  def this!(dom_sender) do
+    id = dom_sender["drab_id"]
+    unless id, do: raise """
+    Try to use Drab.Query.this!/1 on DOM object without an ID:
+    inspect(dom_sender)
+    """ 
+    "##{id}"
+  end
+
+  @doc """
+  Returns an array of values get by executing jQuery `method` on selected DOM objects. 
+
+  In case the method requires an argument (like `attr()`), it should be given as key/value 
+  pair: method_name: "argument".
+
   Options:
   * from: "selector" - DOM selector which is queried
   * attr: "attribute" - DOM attribute
@@ -82,10 +114,12 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Sets the DOM object property corresponding to `method`. In case the method
-  requires an argument (like `attr()`), it should be given as key/value pair: method_name: "argument".
-  Returns:
-  * `{:ok, number}` - number of DOM objects updated
+  Sets the DOM object property corresponding to `method`. 
+
+  In case when the method requires an argument (like `attr()`), it should be given as key/value pair: 
+  method_name: "argument".
+  
+  Returns tuple`{:ok, number}` - number of DOM objects updated
 
   Options:
   * on: selector - DOM selector, on which the changes are made
@@ -116,6 +150,9 @@ defmodule Drab.Query do
   end
 
   @doc """
+  Like `Drab.Query.update/2`, but broadcasts to all currently connected browsers, which have the same URL opened.
+
+  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
   """
   def update!(socket, options) do
     do_update(socket, :broadcast, options)
@@ -156,8 +193,8 @@ defmodule Drab.Query do
 
   @doc """
   Adds new node (html) or class to the selected object.
-  Returns:
-  * `{:ok, number}` - number of DOM objects inserted
+
+  Returns tuple`{:ok, number}` - number of DOM objects inserted
   
   Options:
   * class: class - class name to be inserted
@@ -181,6 +218,9 @@ defmodule Drab.Query do
   end
 
   @doc """
+  Like `Drab.Query.insert/2`, but broadcast to all currently connected browsers, which have the same URL opened.
+
+  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
   """
   def insert!(socket, options) do
     do_insert(socket, :broadcast, options)
@@ -234,6 +274,9 @@ defmodule Drab.Query do
   end
 
   @doc """
+  Like `Dom.Query.delete/2`, but broadcasts to all currently connected browsers, which have the same URL opened.
+
+  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
   """
   def delete!(socket, options) do
     do_delete(socket, :broadcast, options)
@@ -261,8 +304,8 @@ defmodule Drab.Query do
 
   @doc """
   Execute given jQuery method on selector. To be used in case built-in method calls are not enough.
-  Returns:
-  * `{:ok, number}` - number of DOM objects processed
+
+  Returns tuple`{:ok, number}` - number of DOM objects processed
 
       socket |> execute(:click, on: "#mybutton")
       socket |> execute(trigger: "click", on: "#mybutton")
@@ -280,6 +323,9 @@ defmodule Drab.Query do
   end
 
   @doc """
+  Like `Drab.Query.execute/2`, but broadcasts to all currently connected browsers, which have the same URL opened.
+
+  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
   """
   def execute!(socket, options) do
     do_execute(socket, :broadcast, options)
@@ -307,7 +353,7 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Synchronously executes the given javascript on the client side and returns value
+  Synchronously executes the given javascript on the client side and returns value.
   """
   def execjs(socket, js) do
     Phoenix.Channel.push(socket, "execjs",  %{js: js, sender: tokenize(socket, self())})
@@ -319,13 +365,14 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Asynchronously broadsasts given javascript to all browsers displaying current page
+  Asynchronously broadsasts given javascript to all browsers displaying current page.
   """
   def broadcastjs(socket, js) do
     Phoenix.Channel.broadcast(socket, "broadcastjs",  %{js: js, sender: tokenize(socket, self())})
     :sent
   end
 
+  @doc false
   def tokenize(socket, pid) do
     myself = :erlang.term_to_binary(pid)
     Phoenix.Token.sign(socket, "sender", myself)
@@ -368,6 +415,7 @@ defmodule Drab.Query do
   defp escape_value(value) when is_nil(value),      do: ""
   defp escape_value(value),                         do: "#{encode_js(value)}"
 
+  @doc false
   def encode_js(value), do: Poison.encode!(value)
 
   defp wrong_query!(selector, method, arguments \\ nil) do
@@ -378,154 +426,5 @@ defmodule Drab.Query do
       arguments: #{inspect(arguments)}
     """
   end
-
-
-  # @doc """
-  # Returns a list of values of jQuery $().html() on the client
-
-  #   name = html(socket, "#name") |> List.first
-  # """
-  # def html(socket, query) do
-  #   generic_query(socket, query, "html()")
-  # end
-
-  # @doc """
-  # Sets html of the DOM object by running $().html(value) on the client. Returns socket so it can be piped.
-
-  #   html(socket, "#warning_div", "You must provide the username")
-  # """
-  # def html(socket, query, value) do
-  #   generic_query(socket, query, "html(#{Poison.encode!(value)})")
-  #   socket
-  # end
-
-  # @doc """
-  # Returns a list of values of jQuery $().text() on the client
-
-  #   buttons = text(socket, "#save_button")
-  # """
-  # def text(socket, query) do
-  #   generic_query(socket, query, "text()")
-  # end
-
-  # @doc """
-  # Sets text of the DOM object by running $().text(value) on the client. Returns socket so it can be piped.
-
-  #   text(socket, "#save_button", "saved...")
-  # """
-  # def text(socket, query, value) do
-  #   generic_query(socket, query, "text(#{Poison.encode!(value)})")
-  #   socket
-  # end
-
-  # @doc """
-  # Returns a list of values of jQuery $().val() on the client
-
-  #     inputs = val(socket, "input")
-  # """
-  # def val(socket, query) do
-  #   generic_query(socket, query, "val()")
-  # end
-
-  # @doc """
-  # Sets value of the DOM object by running $().val(value) on the client. Returns socket so it can be piped.
-
-  #     # clean up all inputs
-  #     val(socket, "input", "")
-  # """
-  # def val(socket, query, value) do
-  #   generic_query(socket, query, "val(#{Poison.encode!(value)})")
-  #   socket
-  # end
-
-  # @doc """
-  # Returns a list of attributes of jQuery $().attr() on the client
-
-  #     is_enabled = attr(socket, "#mybutton", "enabled") |> List.first()
-  # """
-  # def attr(socket, query, att) do
-  #   generic_query(socket, query, "attr(#{Poison.encode!(att)})")
-  # end
-
-  # @doc """
-  # Sets attribute of the DOM object by running $().attr(value) on the client. Returns socket so it can be piped.
-
-  #     attr(socket, "#button", "enabled", false)
-  # """
-  # def attr(socket, query, att, value) do
-  #   generic_query(socket, query, "attr(#{Poison.encode!(att)}, #{escape_value(value)})")
-  #   socket
-  # end
-
-  # @doc """
-  # Returns a list of properties of jQuery $().prop() on the client
-
-  #     is_enabled = prop(socket, "#mybutton", "enabled") |> List.first()
-  # """
-  # def prop(socket, query, att) do
-  #   generic_query(socket, query, "prop(#{Poison.encode!(att)})")
-  # end
-
-  # @doc """
-  # Sets property of the DOM object by running $().prop(value) on the client. Returns socket so it can be piped.
-
-  #     prop(socket, "#button", "enabled", false)
-  # """
-  # def prop(socket, query, att, value) do
-  #   generic_query(socket, query, "prop(#{Poison.encode!(att)}, #{escape_value(value)})")
-  #   socket
-  # end
-
-  # @doc """
-  # Add a class to DOM object classes
-
-  #     add_class(socket, "#mybutton", "btn-success")
-  # """
-  # def add_class(socket, query, value) do
-  #   generic_query(socket, query, "addClass(#{Poison.encode!(value)})")
-  #   socket
-  # end
-
-  # @doc """
-  # Remove a class from DOM object classes
-
-  #     remove_class(socket, "#mybutton", "btn-success")
-  # """
-  # def remove_class(socket, query, value) do
-  #   generic_query(socket, query, "removeClass(#{Poison.encode!(value)})")
-  #   socket
-  # end
-
-  # @doc """
-  # Toggles class in DOM object classes. 
-
-  #     toggle_class(socket, "#mybutton", "btn-success")
-  # """
-  # def toggle_class(socket, query, value) do
-  #   generic_query(socket, query, "toggleClass(#{Poison.encode!(value)})")
-  #   socket
-  # end
-
-  # @doc """
-  # Switches classes in DOM object.
-
-  #     change_class(socket, "#mybutton", "btn-success", "btn-danger")
-  # """
-  # def change_class(socket, query, from_value, to_value) do
-  #   add_class(socket, query, to_value)
-  #   remove_class(socket, query, from_value)
-  #   socket
-  # end
-
-  # defp generic_query(socket, query, get_function) do
-  #   myself = :erlang.term_to_binary(self())
-  #   sender = Phoenix.Token.sign(socket, "sender", myself)
-
-  #   Phoenix.Channel.push(socket, "query",  %{query: query, sender: sender, get_function: get_function})
-  #   receive do
-  #     {:got_results_from_client, reply} ->
-  #       reply
-  #   end
-  # end
 
 end

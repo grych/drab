@@ -1,6 +1,6 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.0.12"
+  @version "0.0.15"
 
   def project do
     [app: :drab,
@@ -44,7 +44,8 @@ defmodule Drab.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-     {:phoenix, "~> 1.2"}
+     {:phoenix, "~> 1.2"},
+     {:ex_doc, "~> 0.14", only: :dev}
     ]
   end
 

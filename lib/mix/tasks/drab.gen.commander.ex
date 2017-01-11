@@ -1,14 +1,12 @@
 defmodule Mix.Tasks.Drab.Gen.Commander do
   use Mix.Task
 
-  @shortdoc "Generates a Drab commander"
-
   @moduledoc """
   Generates a Drab commander.
 
       mix drab.gen.commander Name
 
-  This will generate a module NameCommander in web/commanders if and only if NameController is already present.
+  This will generate a module NameCommander in web/commanders, if and only if NameController is already present.
   """
 
   def run(args) do

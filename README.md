@@ -1,4 +1,4 @@
-# Drab
+# Drab, the Server-side jQuery
 
 Manipulate browser DOM objects directly from Elixir. No javascript programming needed anymore!
 
@@ -27,20 +27,19 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
               attr: "style", 
               set: "width: #{i * 100 / steps}%", 
               on: ".progress-bar")
+        socket 
           |> update(
               :html,         
               set: "#{Float.round(i * 100 / steps, 2)}%", 
               on: ".progress-bar")
       end
       socket |> insert(class: "progress-bar-success", into: ".progress-bar")
-
-      {socket, dom_sender}
     end
     ```
 
 ## Warning: this software is still experimental!
 
-### See [Proof of Concept Page](https://tg.pl/drab) for live demo and description.
+### See [Demo Page](https://tg.pl/drab) for live demo and description.
 
 ## Installation
 
@@ -106,7 +105,7 @@ Congratullations! You have Drab installed and you can proceed with your own Comm
 
 All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. Think about it as a controller for the live pages. Commanders are similar to Phoenix controllers and should be placed in `web/commanders` directory.
 
-To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your application controller. Notice that it will enable Drab on all the pages under the specific controller.
+To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your application controller. 
 
 Remember the difference: `controller` renders the page while `commander` works on the live page.
 
@@ -143,8 +142,9 @@ Remember the difference: `controller` renders the page while `commander` works o
       def page_loaded(socket) do
         socket 
           |> update(:html, set: "Welcome to Phoenix+Drab!", on: "div.jumbotron h2")
+        socket 
           |> update(:html, 
-              set: "Please visit <a href='https://tg.pl/drab'>Drab Proof-of-Concept</a> page for more examples and description",
+              set: "Please visit <a href='https://tg.pl/drab'>Drab</a> page for more examples and description",
               on:  "div.jumbotron p.lead")
       end
     end
@@ -178,12 +178,11 @@ When clicked, this button will launch the following action on the corresponding 
       def button_clicked(socket, dom_sender) do
         socket 
           |> update(this(dom_sender), :text, "alread clicked")
-          |> update(this(dom_sender), :prop, "disabled", true)
       end
     end
     ```
 
-As you probably guess, this changes button description (`Drab.Query.update/4` used with `:text`) and disables it (`Drab.Query.prop/5` with `:prop`).
+As you probably guess, this changes button description (`Drab.Query.update/4` used with `:text`).
 
 ## What now?
 
@@ -191,7 +190,7 @@ Visit [Demo Page](https://tg.pl/drab) for a live demo and more description.
 
 ## Contact
 
-(c)2016 Tomek "Grych" Gryszkiewicz, 
+(c)2016-2017 Tomek "Grych" Gryszkiewicz, 
 <grych@tg.pl>
 
 
