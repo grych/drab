@@ -174,18 +174,6 @@ defmodule Drab.Query do
     {:ok, do_query(socket, selector, jquery_method(method, argument, value), :update, broadcast)}
   end
   defp do_update(socket, broadcast, [class: from_class, set: to_class, on: selector]) do
-    # the below does not work in 1.3
-    # case broadcast do
-    #   @broadcast ->
-    #     socket 
-    #       |> insert!(class: to_class, into: selector)
-    #       |> delete!(class: from_class, from: selector)
-    #   @no_broadcast ->
-    #     socket
-    #       |> insert(class: to_class, into: selector)
-    #       |> delete(class: from_class, from: selector)
-    # end
-    # workaround:
     if broadcast == @broadcast do
       socket 
         |> insert!(class: to_class, into: selector)
