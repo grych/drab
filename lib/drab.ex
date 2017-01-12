@@ -82,15 +82,6 @@ defmodule Drab do
   def handle_cast({_, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
     do_handle_cast(socket, evt_fun, payload)
   end
-  # def handle_cast({:change, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
-  #   do_handle_cast(socket, evt_fun, payload)
-  # end
-  # def handle_cast({:keyup, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
-  #   do_handle_cast(socket, evt_fun, payload)
-  # end
-  # def handle_cast({:keydown, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
-  #   do_handle_cast(socket, evt_fun, payload)
-  # end
 
   defp do_handle_cast(socket, evt_fun, payload) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
@@ -107,6 +98,27 @@ defmodule Drab do
       end
     end
     {:noreply, socket}
+  end
+
+  @doc false
+  def push(socket, pid, message, options \\ []) do
+    do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.push/3)
+  end
+
+  @doc false
+  def broadcast(socket, pid, message, options \\ []) do
+    do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.broadcast/3)
+  end
+
+  defp do_push_or_broadcast(socket, pid, message, options, function) do
+    m = options |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, pid)})
+    function.(socket, message,  m)
+  end
+
+  @doc false
+  def tokenize(socket, pid) do
+    myself = :erlang.term_to_binary(pid)
+    Phoenix.Token.sign(socket, "sender", myself)
   end
 
   # returns the commander name for the given controller (assigned in token)

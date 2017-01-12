@@ -1,6 +1,6 @@
 # Drab, the Server-side jQuery
 
-Manipulate browser DOM objects directly from Elixir. No javascript programming needed anymore!
+Manipulate browser DOM objects directly from Elixir/Phoenix. No Javascript programming needed anymore!
 
 ## Teaser
 
@@ -27,7 +27,6 @@ Manipulate browser DOM objects directly from Elixir. No javascript programming n
               attr: "style", 
               set: "width: #{i * 100 / steps}%", 
               on: ".progress-bar")
-        socket 
           |> update(
               :html,         
               set: "#{Float.round(i * 100 / steps, 2)}%", 
@@ -132,7 +131,7 @@ Remember the difference: `controller` renders the page while `commander` works o
     end    
     ```
 
-  3. Edit the commander created above by `mix drab.gen.commander`, file `web/commanders/page_commander.ex` and add some real action - the `onload` callback which fires when the browser connects to Drab.
+  3. Edit the commander file `web/commanders/page_commander.ex` and add some real action - the `onload` callback which fires when the browser connects to Drab.
 
     ```elixir
     defmodule DrabExample.PageCommander do
@@ -142,7 +141,6 @@ Remember the difference: `controller` renders the page while `commander` works o
       def page_loaded(socket) do
         socket 
           |> update(:html, set: "Welcome to Phoenix+Drab!", on: "div.jumbotron h2")
-        socket 
           |> update(:html, 
               set: "Please visit <a href='https://tg.pl/drab'>Drab</a> page for more examples and description",
               on:  "div.jumbotron p.lead")
@@ -152,13 +150,9 @@ Remember the difference: `controller` renders the page while `commander` works o
 
 Function `update/3` (shorthand for `Drab.Query.update/3`) with `:html` parameter sets the HTML of DOM object, analogically to `$().html()` on the client side.
 
-Finally! Run the phoenix server and enjoy working on the dark side of the web.
+Finally! Run the phoenix server and enjoy working on the Dark Side of the web.
 
 ### The code above is available for download [here](https://github.com/grych/drab-example)
-
-## Drab Callbacks
-
-Currently there is the only one callback, `onload`. You need to set it up with `use Drab.Commander` directive.
 
 ## Drab Events
 
@@ -177,20 +171,22 @@ When clicked, this button will launch the following action on the corresponding 
       # Drab Events
       def button_clicked(socket, dom_sender) do
         socket 
-          |> update(this(dom_sender), :text, "alread clicked")
+          |> update(:text, set: "alread clicked", on: this(dom_sender))
       end
     end
     ```
 
-As you probably guess, this changes button description (`Drab.Query.update/4` used with `:text`).
+As you probably guess, this changes button description (`Drab.Query.update/3` used with `:text`).
 
 ## What now?
 
 Visit [Demo Page](https://tg.pl/drab) for a live demo and more description.
 
+Visit [Docs with Examples](https://tg.pl/drab/docs) - documentation with short examples.
+
 ## Contact
 
-(c)2016-2017 Tomek "Grych" Gryszkiewicz, 
+(c)2016 Tomek "Grych" Gryszkiewicz, 
 <grych@tg.pl>
 
 

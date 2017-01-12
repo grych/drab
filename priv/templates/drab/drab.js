@@ -16,6 +16,7 @@
     MODAL_FORM: "#_drab_modal form",
     MODAL_BUTTON_OK: "#_drab_modal_button_ok",
     MODAL_BUTTON_CANCEL: "#_drab_modal_button_cancel",
+    MODAL_BUTTONS: ".drab-modal-button",
 
     run: function(drab_return) {
       this.Socket = require("phoenix").Socket
@@ -78,26 +79,33 @@
         })
 
         him.channel.on("modal", (message) => {
-          $(this.MODAL_FORM).on("submit", (event) => {
+          $(this.MODAL_FORM).on("submit", function() {
             modal_button_clicked(message, "ok")
             return false // prevent submit
           })
-          $(this.MODAL_BUTTON_OK).on("click", (event) => {
-            $(this.MODAL_BUTTON_OK).data("clicked", true)
-            modal_button_clicked(message, "ok")
+          $(this.MODAL_BUTTONS).on("click", function() {
+            $(this).data("clicked", true)
+            modal_button_clicked(message, $(this).attr("name"))
           })
-          $(this.MODAL).on("hidden.bs.modal", (event) => {
+          $(this.MODAL).on("hidden.bs.modal", function() {
             if (!$(this.MODAL_BUTTON_OK).data("clicked")) {
               // if it is not an OK button (prevent double send)
               modal_button_clicked(message, "cancel")
             }
           })
+          // set the timeout on a modal
+          $modal = $(this.MODAL)
+          if (message.timeout) {
+            setTimeout(function() {
+              $modal.modal('hide')
+            }, 1000 * message.timeout)
+          }
           // set focus on form
-          $(this.MODAL).on("shown.bs.modal", (event) => {
+          $modal.on("shown.bs.modal", () => {
             $(this.MODAL_FORM + " :input").first().focus()
           })
 
-          $(this.MODAL).modal()
+          $modal.modal()
         })
 
         him.channel.on("console", (message) => {

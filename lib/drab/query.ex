@@ -4,6 +4,8 @@ defmodule Drab.Query do
   @methods               ~w(html text val)a
   @methods_with_argument ~w(attr prop css data)a
   @insert_methods        ~w(before after prepend append)a
+  @broadcast             &Drab.Query.broadcastjs/2
+  @no_broadcast          &Drab.Query.execjs/2
 
   @moduledoc """
   Provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
@@ -63,10 +65,10 @@ defmodule Drab.Query do
   Raises exception when being used on the object without an ID.
   """
   def this!(dom_sender) do
-    id = dom_sender["drab_id"]
+    id = dom_sender["id"]
     unless id, do: raise """
     Try to use Drab.Query.this!/1 on DOM object without an ID:
-    inspect(dom_sender)
+    #{inspect(dom_sender)}
     """ 
     "##{id}"
   end
@@ -98,7 +100,7 @@ defmodule Drab.Query do
   """
   def select(socket, options)
   def select(socket, [{method, argument}, from: selector]) when method in @methods_with_argument do
-    do_query(socket, selector, jquery_method(method, argument), :select, :no_broadcast)
+    do_query(socket, selector, jquery_method(method, argument), :select, @no_broadcast)
   end
   def select(_socket, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument
@@ -107,7 +109,7 @@ defmodule Drab.Query do
   @doc "See `Drab.Query.select/2`"
   def select(socket, method, options)
   def select(socket, method, from: selector) when method in @methods do
-    do_query(socket, selector, jquery_method(method), :select, :no_broadcast)
+    do_query(socket, selector, jquery_method(method), :select, @no_broadcast)
   end
   def select(_socket, method, from: selector) do
     wrong_query! selector, method 
@@ -119,7 +121,7 @@ defmodule Drab.Query do
   In case when the method requires an argument (like `attr()`), it should be given as key/value pair: 
   method_name: "argument".
   
-  Returns tuple`{:ok, number}` - number of DOM objects updated
+  Waits for the browser to finish the changes and returns socket so it can be stacked.
 
   Options:
   * on: selector - DOM selector, on which the changes are made
@@ -141,42 +143,57 @@ defmodule Drab.Query do
   Available methods: see @methods, @methods_with_argument, :class
   """
   def update(socket, options) do
-    do_update(socket, :no_broadcast, options)
+    do_update(socket, @no_broadcast, options)
+    socket
   end
 
   @doc "See `Drab.Query.update/2`"
   def update(socket, method, options) do
-    do_update(socket, :no_broadcast, method, options)
+    do_update(socket, @no_broadcast, method, options)
+    socket
   end
 
   @doc """
   Like `Drab.Query.update/2`, but broadcasts to all currently connected browsers, which have the same URL opened.
 
-  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
+  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return socket.
   """
   def update!(socket, options) do
-    do_update(socket, :broadcast, options)
+    do_update(socket, @broadcast, options)
     # bang function does not return anything
-    :sent
+    socket
   end
 
   @doc "See `Drab.Query.update!/2`"
   def update!(socket, method, options) do
-    do_update(socket, :broadcast, method, options)
-    :sent
+    do_update(socket, @broadcast, method, options)
+    socket
   end
 
   defp do_update(socket, broadcast, [{method, argument}, set: value, on: selector]) when method in @methods_with_argument do
     {:ok, do_query(socket, selector, jquery_method(method, argument, value), :update, broadcast)}
   end
   defp do_update(socket, broadcast, [class: from_class, set: to_class, on: selector]) do
-    case broadcast do
-      :broadcast ->
-        socket |> insert!(class: to_class, into: selector)
-        socket |> delete!(class: from_class, from: selector)
-      :no_broadcast ->
-        socket |> insert(class: to_class, into: selector)
-        {:ok, socket |> delete(class: from_class, from: selector)}
+    # the below does not work in 1.3
+    # case broadcast do
+    #   @broadcast ->
+    #     socket 
+    #       |> insert!(class: to_class, into: selector)
+    #       |> delete!(class: from_class, from: selector)
+    #   @no_broadcast ->
+    #     socket
+    #       |> insert(class: to_class, into: selector)
+    #       |> delete(class: from_class, from: selector)
+    # end
+    # workaround:
+    if broadcast == @broadcast do
+      socket 
+        |> insert!(class: to_class, into: selector)
+        |> delete!(class: from_class, from: selector)
+    else
+      socket 
+        |> insert(class: to_class, into: selector)
+        |> delete(class: from_class, from: selector)
     end
   end
   defp do_update(_socket, _broadcast, [{method, argument}, {:set, _value}, {:on, selector}]) do
@@ -194,7 +211,7 @@ defmodule Drab.Query do
   @doc """
   Adds new node (html) or class to the selected object.
 
-  Returns tuple`{:ok, number}` - number of DOM objects inserted
+  Waits for the browser to finish the changes and returns socket so it can be stacked.
   
   Options:
   * class: class - class name to be inserted
@@ -209,28 +226,30 @@ defmodule Drab.Query do
       socket |> insert("<b>warning</b>", before: "#pane")
   """
   def insert(socket, options) do
-    do_insert(socket, :no_broadcast, options)
+    do_insert(socket, @no_broadcast, options)
+    socket
   end
 
   @doc "See `Drab.Query.insert/2`"
   def insert(socket, html, options) do
-    do_insert(socket, :no_broadcast, html, options)
+    do_insert(socket, @no_broadcast, html, options)
+    socket
   end
 
   @doc """
   Like `Drab.Query.insert/2`, but broadcast to all currently connected browsers, which have the same URL opened.
 
-  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
+  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return socket.
   """
   def insert!(socket, options) do
-    do_insert(socket, :broadcast, options)
-    :sent
+    do_insert(socket, @broadcast, options)
+    socket
   end
 
   @doc "See `Drab.Query.insert/2`"
   def insert!(socket, html, options) do
-    do_insert(socket, :broadcast, html, options)
-    :sent
+    do_insert(socket, @broadcast, html, options)
+    socket
   end
 
   defp do_insert(socket, broadcast, class: class, into: selector) do
@@ -255,8 +274,7 @@ defmodule Drab.Query do
   class from given node(s). Given option `prop: property` or `attr: attribute` it is able to remove 
   property or attribute from the DOM node.
   
-  Returns:
-  * `{:ok, number}` - number of DOM objects deleted
+  Waits for the browser to finish the changes and returns socket so it can be stacked.
 
   Options:
   * class: class - class name to be deleted
@@ -270,7 +288,8 @@ defmodule Drab.Query do
       socket |> delete(class: "btn-success", from: "#button")
   """
   def delete(socket, options) do
-    do_delete(socket, :no_broadcast, options)
+    do_delete(socket, @no_broadcast, options)
+    socket
   end
 
   @doc """
@@ -279,8 +298,8 @@ defmodule Drab.Query do
   Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
   """
   def delete!(socket, options) do
-    do_delete(socket, :broadcast, options)
-    :sent
+    do_delete(socket, @broadcast, options)
+    socket
   end
 
   defp do_delete(socket, broadcast, from: selector) do
@@ -305,21 +324,23 @@ defmodule Drab.Query do
   @doc """
   Execute given jQuery method on selector. To be used in case built-in method calls are not enough.
 
-  Returns tuple`{:ok, number}` - number of DOM objects processed
+  Waits for the browser to finish the changes and returns socket so it can be stacked.
 
       socket |> execute(:click, on: "#mybutton")
       socket |> execute(trigger: "click", on: "#mybutton")
       socket |> execute("trigger(\"click\")", on: "#mybutton")
   """
   def execute(socket, options) do
-    do_execute(socket, :no_broadcast, options)
+    do_execute(socket, @no_broadcast, options)
+    socket
   end
 
   @doc """
   See `Drab.Query.execute/2`
   """
   def execute(socket, method, options) do
-    do_execute(socket, :no_broadcast, method, options)
+    do_execute(socket, @no_broadcast, method, options)
+    socket
   end
 
   @doc """
@@ -328,16 +349,16 @@ defmodule Drab.Query do
   Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
   """
   def execute!(socket, options) do
-    do_execute(socket, :broadcast, options)
-    :sent
+    do_execute(socket, @broadcast, options)
+    socket
   end
 
   @doc """
   See `Drab.Query.execute!/2`
   """
   def execute!(socket, method, options) do
-    do_execute(socket, :broadcast, method, options)
-    :sent
+    do_execute(socket, @broadcast, method, options)
+    socket
   end
 
   defp do_execute(socket, broadcast, [{method, parameter}, {:on, selector}]) do
@@ -356,7 +377,8 @@ defmodule Drab.Query do
   Synchronously executes the given javascript on the client side and returns value.
   """
   def execjs(socket, js) do
-    Phoenix.Channel.push(socket, "execjs",  %{js: js, sender: tokenize(socket, self())})
+    # Phoenix.Channel.push(socket, "execjs",  %{js: js, sender: tokenize(socket, self())})
+    Drab.push(socket, self(), "execjs", js: js)
 
     receive do
       {:got_results_from_client, reply} ->
@@ -368,24 +390,19 @@ defmodule Drab.Query do
   Asynchronously broadsasts given javascript to all browsers displaying current page.
   """
   def broadcastjs(socket, js) do
-    Phoenix.Channel.broadcast(socket, "broadcastjs",  %{js: js, sender: tokenize(socket, self())})
-    :sent
-  end
-
-  @doc false
-  def tokenize(socket, pid) do
-    myself = :erlang.term_to_binary(pid)
-    Phoenix.Token.sign(socket, "sender", myself)
+    # Phoenix.Channel.broadcast(socket, "broadcastjs",  %{js: js, sender: tokenize(socket, self())})
+    Drab.broadcast(socket, self(), "broadcastjs", js: js)
+    socket
   end
 
   # Build and run general jQuery query
-  defp do_query(socket, selector, method_jqueried, type, :broadcast) do
-    broadcastjs(socket, build_js(selector, method_jqueried, type))
+  defp do_query(socket, selector, method_jqueried, type, push_or_broadcast_function) do
+    push_or_broadcast_function.(socket, build_js(selector, method_jqueried, type))
   end
 
-  defp do_query(socket, selector, method_jqueried, type, :no_broadcast) do
-    execjs(socket, build_js(selector, method_jqueried, type))
-  end
+  # defp do_query(socket, selector, method_jqueried, type, push_or_broadcast_function) do
+  #   push_or_broadcast_function.(socket, build_js(selector, method_jqueried, type))
+  # end
 
   defp jquery_method(method) do
     "#{method}()"

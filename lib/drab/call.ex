@@ -8,13 +8,17 @@ defmodule Drab.Call do
   """
 
   @doc """
-  Modal, synchronous alert box. This functions shows bootstrap modal window on the browser and waits for the user input.
+  Modal, synchronous alert box. This function shows bootstrap modal window on the browser and waits for the user input.
 
-  Parameters and options:
+  Parameters:
   * title - title of the message box
   * body - html with the body of the alert box. When contains input, selects, etc, this function return their values
+
+  Options:
   * class - additional classes to .modal-dialog, ex. modal-lg, modal-sm, modal-xs
-  * buttons - names of the buttons (:ok, :cancel are only available), like ok: "Yes", cancel: "No"
+  * buttons - list of name/text of the buttons (:ok, :cancel are only available names by default; you need to create a 
+    template if you want more buttons), eq. [ok: "Yes", cancel: "No"]
+  * timeout - in seconds - after this time modal window will close and the function return {:cancel, _}
 
   Returns a tuple {clicked_button, params}, where:
   * clicked_button is an atom of `:ok` or `:cancel`. Notice that pressing `esc` or closing the modal window will 
@@ -22,69 +26,78 @@ defmodule Drab.Call do
   * params: Map `%{name|id => value}` of all inputs, selects, etc which are in the alert box body. Uses `name` 
     attribute as a key (or `id` when there is no `name`, or `undefined`).
 
-  Templates used to generate HTML for the alert box could be found in `deps/drab/priv/templates/drab/`. If you want to
-  modify it, copy them to `priv/templates/drab` in your application.
-  There are two templates for default `:ok` and `:cancel` buttons, but you may create new one and use them in the same
-  way.
-
   Examples:
 
       socket |> alert("Title", "Shows this message with default OK button")
 
       # Yes/No requester, returns :ok or :cancel
-      {button, _} = socket |> alert("Message", "Sure?", ok: "Azaliż", cancel: "Poniechaj")
+      {button, _} = socket |> alert("Message", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
       
       # messagebox with two input boxes in body
       form = "<input name='first'><input id='second'>"
-      name = case socket |> alert("What's your name?", form, ok: "OK", cancel: "Cancel") do
+      name = case socket |> alert("What's your name?", form, buttons: [ok: "OK", cancel: "Cancel"]) do
         { :ok, params } -> "\#{params["first"]} \#{params["second"]}"
         { :cancel, _ }  -> "anonymous"
       end
+
+  Templates used to generate HTML for the alert box could be found in `deps/drab/priv/templates/drab/`. If you want to
+  modify it, copy them to `priv/templates/drab` in your application.
+  There are two templates for default `:ok` and `:cancel` buttons, but you may create new one and use them in the same
+  way. For example, to have a new button called `unspecified` create a template 
+  `priv/templates/drab/call.alert.button.unspecified.html.eex`:
+
+      <button id="_drab_modal_button_unspecified" name="unspecified" type="button" 
+       class="btn btn-default drab-modal-button" data-dismiss="modal">
+          <%= label %>
+      </button>
+
+  The button must have `drab-modal-button` class and its name should correspond to key in `buttons` list. Now you
+  can use your button in the same way as `:ok` and `:cancel`
+
+      {button, _} =
+        socket |> alert("3 buttons", "Choice?", 
+                  buttons: [ok: "Yes", cancel: "No", unspecified: "Don't know"])
       
   """
-  def alert(socket, title, body, class, buttons) do
+  def alert(socket, title, body, options \\ []) do
+    buttons = options[:buttons] || [ok: "OK"]
     bindings = [
       title: title,
       body: body,
-      class: class,
+      class: options[:class],
       buttons: buttons_html(buttons)
     ]
     html = render_template("call.alert.html.eex", bindings)
 
-    socket |> delete("#_drab_modal")
-    socket |> insert(html, append: "body")
+    socket 
+      |> delete("#_drab_modal")
+      |> insert(html, append: "body")
 
-    Phoenix.Channel.push(socket, "modal",  %{sender: tokenize(socket, self())})
+    # Phoenix.Channel.push(socket, "modal",  %{sender: tokenize(socket, self())})
+    Drab.push(socket, self(), "modal", timeout: options[:timeout])
 
     receive do
       {:got_results_from_client, reply} ->
         reply
     end    
   end
-  @doc """
-  Launches `Drab.Call.query/5` without additional classes
-  """
-  def alert(socket, title, body, buttons) when is_list(buttons) do
-    alert(socket, title, body, "", buttons)
-  end
-  @doc """
-  Launches `Drab.Call.query/5` with default OK button and additional classes
-  """
-  def alert(socket, title, body, class) when is_binary(class) do
-    alert(socket, title, body, class, [ok: "OK"])
-  end
-  @doc """
-  Launches `Drab.Call.query/4` with default OK button
-  """
-  def alert(socket, title, body) do
-    alert(socket, title, body, [ok: "OK"])
-  end
 
   @doc """
   Sends the log to the browsers console for debugging
   """
   def console(socket, log) do
-    Phoenix.Channel.push(socket, "console",  %{log: log, sender: tokenize(socket, self())})
+    do_console(socket, log, &Drab.push/4)
+  end
+
+  @doc """
+  Broadcasts the log to the browsers console for debugging
+  """
+  def console!(socket, log) do
+    do_console(socket, log, &Drab.broadcast/4)
+  end
+
+  defp do_console(socket, log, push_or_broadcast_function) do
+    push_or_broadcast_function.(socket, self(), "console",  log: log)
   end
 
   defp buttons_html(buttons) do

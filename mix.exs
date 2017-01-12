@@ -1,6 +1,6 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.0.15"
+  @version "0.0.16"
 
   def project do
     [app: :drab,
@@ -14,7 +14,7 @@ defmodule Drab.Mixfile do
      start_permanent: Mix.env == :prod,
      # docs: [source_ref: "v#{@version}", main: "Drab",
      #        source_url: "https://github.com/grych/drab"]]
-     deps: deps,
+     deps: deps(),
      description: description(),
      package: package()
    ]
