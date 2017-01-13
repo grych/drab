@@ -94,6 +94,7 @@
             }
           })
           // set the timeout on a modal
+          // TODO: cancel this event after closing before the timeout
           $modal = $(this.MODAL)
           if (message.timeout) {
             setTimeout(function() {

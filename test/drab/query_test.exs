@@ -1,5 +1,5 @@
 defmodule Drab.QueryTest do
-  use ExUnit.Case
+  use ExUnit.Case, ascync: true
   doctest Drab.Query
 
   test "this/1 should return drab_id" do

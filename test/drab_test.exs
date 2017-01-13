@@ -1,5 +1,5 @@
 defmodule DrabTest do
-  use ExUnit.Case
+  use ExUnit.Case, ascync: true
   doctest Drab
 
   test "config" do
