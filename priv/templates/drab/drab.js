@@ -8,16 +8,16 @@
     })
     return uuid
   }
-   
-  var Drab = {
-    EVENTS: ["click", "change", "keyup", "keydown"],
-    EVENTS_TO_DISABLE: <%= Drab.config.events_to_disable_while_processing |> Drab.Query.encode_js %>,
-    MODAL: "#_drab_modal",
-    MODAL_FORM: "#_drab_modal form",
-    MODAL_BUTTON_OK: "#_drab_modal_button_ok",
-    MODAL_BUTTON_CANCEL: "#_drab_modal_button_cancel",
-    MODAL_BUTTONS: ".drab-modal-button",
+  
+  const MODAL = "#_drab_modal"
+  const MODAL_FORM = "#_drab_modal form"
+  const MODAL_BUTTON_OK = "#_drab_modal_button_ok"
+  const MODAL_BUTTON_CANCEL = "#_drab_modal_button_cancel"
+  const MODAL_BUTTONS = ".drab-modal-button"
+  const EVENTS = ["click", "change", "keyup", "keydown"]
+  const EVENTS_TO_DISABLE = <%= Drab.config.events_to_disable_while_processing |> Drab.Query.encode_js %>
 
+  var Drab = {
     run: function(drab_return) {
       this.Socket = require("phoenix").Socket
 
@@ -79,31 +79,34 @@
         })
 
         him.channel.on("modal", (message) => {
-          $(this.MODAL_FORM).on("submit", function() {
+          $modal = $(MODAL)
+          $(MODAL_FORM).on("submit", function() {
             modal_button_clicked(message, "ok")
             return false // prevent submit
           })
-          $(this.MODAL_BUTTONS).on("click", function() {
+          $(MODAL_BUTTONS).on("click", function() {
             $(this).data("clicked", true)
             modal_button_clicked(message, $(this).attr("name"))
           })
-          $(this.MODAL).on("hidden.bs.modal", function() {
-            if (!$(this.MODAL_BUTTON_OK).data("clicked")) {
+          $modal.on("hidden.bs.modal", function() {
+            if (!$(MODAL_BUTTON_OK).data("clicked")) {
               // if it is not an OK button (prevent double send)
               modal_button_clicked(message, "cancel")
             }
           })
           // set the timeout on a modal
           // TODO: cancel this event after closing before the timeout
-          $modal = $(this.MODAL)
           if (message.timeout) {
-            setTimeout(function() {
-              $modal.modal('hide')
+            if (this.modal_timeout_function) {
+              clearTimeout(this.modal_timeout_function)
+            }
+            this.modal_timeout_function = setTimeout(function() {
+              modal_button_clicked(message, "cancel")
             }, 1000 * message.timeout)
           }
           // set focus on form
           $modal.on("shown.bs.modal", () => {
-            $(this.MODAL_FORM + " :input").first().focus()
+            $(MODAL_FORM + " :input").first().focus()
           })
 
           $modal.modal()
@@ -118,7 +121,7 @@
 
       function modal_button_clicked(message, button_clicked) {
         let vals = {}
-        $("#_drab_modal form :input").map(function() {
+        $(`${MODAL} form :input`).map(function() {
           let key = $(this).attr("name") || $(this).attr("id")
           vals[key] = $(this).val()
         })
@@ -130,7 +133,7 @@
           }
         ]      
         him.channel.push("modal", {ok: query_output})        
-        $('#_drab_modal').modal('hide')
+        $(MODAL).modal('hide')
       }
 
       function payload(who) {
@@ -145,7 +148,7 @@
           val:    who.val(),
           data:   who.data(),
           drab_id: who.attr("drab-id"),
-          event_handler_function: who.attr(`drab-handler`)
+          event_handler_function: who.attr("drab-handler")
         }
       }
 
@@ -155,14 +158,14 @@
 
       // set up the controls with drab handlers
       // first serve the shortcut controls by adding the longcut attrbutes
-      for (let ev of this.EVENTS) {
+      for (let ev of EVENTS) {
         $(`[drab-${ev}]`).each(function() {
           $(this).attr("drab-event", ev) 
           $(this).attr("drab-handler", $(this).attr(`drab-${ev}`))
         })
       }
 
-      let events_to_disable = this.EVENTS_TO_DISABLE
+      let events_to_disable = EVENTS_TO_DISABLE
       $("[drab-event]").each(function() {
         if($(this).attr("drab-handler")) {
           let ev=$(this).attr("drab-event")
