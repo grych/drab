@@ -48,7 +48,7 @@ end
 
 ```elixir
 def deps do
-  [{:drab, git: "https://github.com/grych/drab.git"}]
+  [{:drab, "~> 0.1.0"}]
 end
 ```
 
