@@ -158,9 +158,7 @@ Finally! Run the phoenix server and enjoy working on the Dark Side of the web.
 
 With Drab, you assign the events directly in HTML, using `drab-[event]='event_handler'` attribute, when `event` is the event name (currently: click, change, keyup, keydown) and `event_handler` is the function name in the Commander. This function will be fired on event. Example:
 
-    ```html
     <button drab-click='button_clicked'>Clickme!</button>
-    ```
 
 When clicked, this button will launch the following action on the corresponding commander:
 
