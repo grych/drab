@@ -1,6 +1,6 @@
 # Drab, the Server-side jQuery
 
-[![hex.pm version](https://img.shields.io/hexpm/v/eastar.svg)](https://hex.pm/packages/drab)
+[![hex.pm version](https://img.shields.io/hexpm/v/drab.svg)](https://hex.pm/packages/drab)
 
 Manipulate browser DOM objects directly from Elixir/Phoenix. No Javascript programming needed anymore!
 
