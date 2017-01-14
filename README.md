@@ -6,13 +6,13 @@ Manipulate browser DOM objects directly from Elixir/Phoenix. No Javascript progr
 
 * Client side:
 
-    ```html
-    <div class="progress">
-      <div class="progress-bar" role="progressbar" style="width:0%">
-      </div>
-    </div>
-    <button drab-click="perform_long_process">Click to start processing</button>
-    ```
+```html
+<div class="progress">
+  <div class="progress-bar" role="progressbar" style="width:0%">
+  </div>
+</div>
+<button drab-click="perform_long_process">Click to start processing</button>
+```
 
 * Server side:
 
