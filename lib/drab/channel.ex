@@ -44,7 +44,7 @@ defmodule Drab.Channel do
       {
         :got_results_from_client, 
         { 
-          reply["button_clicked"] |> String.to_atom, 
+          reply["button_clicked"] |> String.to_existing_atom, 
           reply["params"]
         }
       })
@@ -59,8 +59,9 @@ defmodule Drab.Channel do
     {:noreply, socket}
   end
 
-  def handle_in("event", %{"event" => event, "payload" => payload}, socket) do
-    GenServer.cast(socket.assigns.drab_pid, {String.to_atom(event), socket, payload})
+  def handle_in("event", %{"event" => event_name, "payload" => payload}, socket) do
+    # event_name is currently not used (0.1.0)
+    GenServer.cast(socket.assigns.drab_pid, {event_name, socket, payload})
     {:noreply, socket}
   end   
 
