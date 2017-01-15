@@ -375,7 +375,7 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Asynchronously broadsasts given javascript to all browsers displaying current page.
+  Asynchronously broadcasts given javascript to all browsers displaying current page.
   """
   def broadcastjs(socket, js) do
     # Phoenix.Channel.broadcast(socket, "broadcastjs",  %{js: js, sender: tokenize(socket, self())})

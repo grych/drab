@@ -23,6 +23,7 @@ defmodule Drab.Mixfile do
   defp deps do
     [
      {:phoenix, "~> 1.2"},
+     {:phoenix_html, "~> 2.6"},
      {:ex_doc, "~> 0.14", only: :dev}
     ]
   end
@@ -41,7 +42,7 @@ defmodule Drab.Mixfile do
       licenses: ["MIT"],
       links: %{
         "GitHub" => "https://github.com/grych/drab", 
-        "Examples" => "https://tg.pl/drab/docs", 
+        "Docs with Examples" => "https://tg.pl/drab/docs", 
         "Home" => "https://tg.pl/drab",
         "Docs" => "https://hexdocs.pm/drab"
       }
