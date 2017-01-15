@@ -39,7 +39,7 @@ defmodule Drab.Channel do
   end
 
   def handle_in("modal", %{"ok" => [sender_encrypted, reply]}, socket) do
-    # sends { :button, %{"Param" => "value"}}
+    # sends { "button_name", %{"Param" => "value"}}
     send(sender(socket, sender_encrypted), 
       {
         :got_results_from_client, 

@@ -84,12 +84,19 @@ defmodule Drab do
   end
 
   defp do_handle_cast(socket, evt_fun, payload) do
+    commander_module = commander(socket)
+
+    # raise a friendly exception when misspelled the function handler name
+    unless function_exists?(commander_module, evt_fun) do
+      raise "Drab can't find the event handler function \"#{commander_module}.#{evt_fun}/2\"."
+    end
+
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
       dom_sender = Map.delete(payload, "event_handler_function")
       apply(
-        commander(socket), 
-        String.to_atom(evt_fun), 
+        commander_module, 
+        String.to_existing_atom(evt_fun), 
         [socket, dom_sender]
       )
       # re-enable the button if needed
@@ -98,6 +105,12 @@ defmodule Drab do
       end
     end
     {:noreply, socket}
+  end
+
+  defp function_exists?(module_name, function_name) do
+    module_name.__info__(:functions) 
+      |> Enum.map(fn {f, _} -> Atom.to_string(f) end)
+      |> Enum.member?(function_name)
   end
 
   @doc false
