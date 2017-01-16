@@ -1,7 +1,8 @@
 defmodule Drab.Query do
   require Logger
 
-  @methods               ~w(html text val)a
+  @methods               ~w(html text val width height innerWidth innerHeight outerWidth outerHeight position
+                            offset scrollLeft scrollTop)a
   @methods_with_argument ~w(attr prop css data)a
   @insert_methods        ~w(before after prepend append)a
   @broadcast             &Drab.Query.broadcastjs/2
@@ -74,7 +75,7 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Returns an array of values get by executing jQuery `method` on selected DOM objects. 
+  Returns an array of values get by executing jQuery `method` on selected DOM object or objects. 
 
   In case the method requires an argument (like `attr()`), it should be given as key/value 
   pair: method_name: "argument".
@@ -84,11 +85,12 @@ defmodule Drab.Query do
   * attr: "attribute" - DOM attribute
   * prop: "property" - DOM property
   * css: "css"
-  * data: "data"
+  * data: "att" - get "data-att" attribute
 
   Examples:
       name = socket |> select(:val, from: "#name") |> List.first
       font = socket |> select(css: "font", from: "#name") |> List.first()
+      button_ids = socket |> select(data: "button_id", from: "button")
 
   The first example above translates to javascript:
 
@@ -96,7 +98,16 @@ defmodule Drab.Query do
         return $(this).val()
       }).toArray()
 
-  Available methods: see @methods, @methods_with_argument
+  Available jQuery methods: 
+      html text val 
+      width height 
+      innerWidth innerHeight outerWidth outerHeight 
+      position offset scrollLeft scrollTop
+      attr: val prop: val css: val data: val
+
+  There is a shortcut to receive a list of classes from the selectors:
+
+      classes = socket |> select(:classes, from: ".btn")
   """
   def select(socket, options)
   def select(socket, [{method, argument}, from: selector]) when method in @methods_with_argument do
@@ -111,36 +122,58 @@ defmodule Drab.Query do
   def select(socket, method, from: selector) when method in @methods do
     do_query(socket, selector, jquery_method(method), :select, @no_broadcast)
   end
+  def select(socket, :classes, from: selector) do
+    socket |> select(attr: "class", from: selector) |>  Enum.map(&String.split/1)
+  end
   def select(_socket, method, from: selector) do
     wrong_query! selector, method 
   end
 
   @doc """
-  Sets the DOM object property corresponding to `method`. 
+  Sets the DOM object property corresponding to the `method`. 
 
   In case when the method requires an argument (like `attr()`), it should be given as key/value pair: 
   method_name: "argument".
   
-  Waits for the browser to finish the changes and returns socket so it can be stacked.
+  Waits for the browser to finish the changes, returns socket so it can be stacked.
 
   Options:
   * on: selector - DOM selector, on which the changes are made
+  * set: value - new value
   * attr: attribute - DOM attribute
   * prop: property - DOM property
-  * class: class - class name to be changed
+  * class: class - class name to be replaced by another class
   * css: updates given css
   * data: updates data-* attribute
-  * set: value - new value
 
   Examples:
       socket |> update(:text, set: "saved...", on: "#save_button")
       socket |> update(attr: "style", set: "width: 100%", on: ".progress-bar")
+      # the same effect:
+      socket |> update(css: "width", set: "100%", on: ".progress-bar")
 
   Update can also switch the classes in DOM object (remove one and insert another):
 
       socket |> update(class: "btn-success", set: "btn-danger", on: "#save_button")
 
-  Available methods: see @methods, @methods_with_argument, :class
+  You can also cycle between values - switch to the next value from the list 
+  or to the first element, if the actual value is not on the list:
+
+      socket |> update(:text, set: ["One", "Two", "Three"], on: "#thebutton")
+      socket |> update(css: "font-size", set: ["8px", "10px", "12px"], on: "#btn")
+
+  When cycling through the `class` attribute, system will update the class if it is one in the list.
+  In the other case, it will add the first from the list.
+
+      socket |> update(:class, set: ["btn-success", "btn-danger"], on: "#btn")
+
+  Please notice that cycling is only possible on selectors which returns one node.
+
+  Another possibility is to toggle (add if not exists, remove in the other case) the class:
+
+      socket |> update(:class, toggle: "btn-success", on: "#btn")
+
+  Available jQuery methods: see `Drab.Query.select/2`
   """
   def update(socket, options) do
     do_update(socket, @no_broadcast, options)
@@ -170,7 +203,9 @@ defmodule Drab.Query do
     socket
   end
 
-  defp do_update(socket, broadcast, [{method, argument}, set: value, on: selector]) when method in @methods_with_argument do
+  defp do_update(socket, broadcast, [{method, argument}, set: values, on: selector]) 
+  when method in @methods_with_argument do
+    value = next_value(socket, values, method, argument, selector)
     {:ok, do_query(socket, selector, jquery_method(method, argument, value), :update, broadcast)}
   end
   defp do_update(socket, broadcast, [class: from_class, set: to_class, on: selector]) do
@@ -188,13 +223,68 @@ defmodule Drab.Query do
     wrong_query! selector, method, argument
   end
 
-  defp do_update(socket, broadcast, method, set: value, on: selector) when method in @methods do
+  defp do_update(socket, broadcast, method, set: values, on: selector) when method in @methods do
+    value = next_value(socket, values, method, selector)
     {:ok, do_query(socket, selector, jquery_method(method, value), :update, broadcast)}
+  end
+  defp do_update(socket, broadcast, :class, set: value, on: selector) when is_binary(value) do
+    # shorthand for just a simple class update
+    do_update(socket, broadcast, attr: "class", set: value, on: selector)
+  end
+  defp do_update(socket, broadcast, :class, toggle: value, on: selector) do
+    {:ok, do_query(socket, selector, "toggleClass(\"#{value}\")", :update, broadcast)}    
+  end
+  defp do_update(socket, broadcast, :class, set: values, on: selector) when is_list(values) do
+    # switch classes: updates the attr: "class" string with replacement of class, if it is on the list
+    c = socket |> select(:classes, from: selector)
+    one_element_selector_only!(c, selector)
+    classes = c |> List.first()
+    replaced = Enum.map(classes, fn c -> 
+      if c in values do 
+        next_in_list(values, c) 
+      else 
+        c 
+      end
+    end)
+    classes_together = if replaced == classes do
+      [List.first(values) | classes]
+    else
+      replaced
+    end |> Enum.join(" ")
+    do_update(socket, broadcast, attr: "class", set: classes_together, on: selector)
   end
   defp do_update(_socket, _broadcast, method, set: value, on: selector) do
     wrong_query! selector, method, value
   end
 
+  # returns next value of the given list (cycle) or the first element of the list
+  defp next_value(socket, values, method, selector) when is_list(values) do
+    v = socket |> select(method, from: selector)
+    one_element_selector_only!(v, selector)
+    next_in_list(values, v |> List.first())
+  end
+  defp next_value(_socket, value, _method, _selector), do: value
+
+  defp next_value(socket, values, method, argument, selector) when is_list(values) do
+    v = socket |> select([{method, argument}, from: selector]) 
+    one_element_selector_only!(v, selector)
+    next_in_list(values, v |> List.first())
+  end
+  defp next_value(_socket, value, _method, _argument, _selector), do: value
+
+  defp next_in_list(list, value) do
+    pos = value && Enum.find_index(list, &(&1 == value))
+    if pos do
+      Enum.at(list, rem(pos+1, Enum.count(list)))
+    else
+      list |> List.first()
+    end    
+  end
+
+  defp one_element_selector_only!(v, selector) do
+    # TODO: maybe it would be better to allow multiple-element cycling?
+    if Enum.count(v) != 1, do: raise "Cycle is possible only on one element selector, given: \"#{selector}\""
+  end
 
   @doc """
   Adds new node (html) or class to the selected object.
@@ -387,10 +477,6 @@ defmodule Drab.Query do
   defp do_query(socket, selector, method_jqueried, type, push_or_broadcast_function) do
     push_or_broadcast_function.(socket, build_js(selector, method_jqueried, type))
   end
-
-  # defp do_query(socket, selector, method_jqueried, type, push_or_broadcast_function) do
-  #   push_or_broadcast_function.(socket, build_js(selector, method_jqueried, type))
-  # end
 
   defp jquery_method(method) do
     "#{method}()"

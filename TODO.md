@@ -1,5 +1,16 @@
-* check update(css) - not sure if everything is OK with this
-* update can toggle (cycle), when set: argument is an array
-* Update style: update(socket, style: "font-size", set: "6px", on: "#button")
+## 0.1.1
+Changes:
 
-* get rid of jQuery
+## 0.2.0
+Changes:
+* extract Drab core 
+* get rid of jQuery from the Drab.Core, still required in Drab.Query and Drab.Call
+
+## 0.3.0
+Changes:
+
+## Future
+Changes:
+* tests, tests, tests
+* benchmarks
+* allow to specify on which page drab operates

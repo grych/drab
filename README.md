@@ -26,8 +26,8 @@ def perform_long_process(socket, dom_sender) do
     # update the progress bar after each of MyLongProcess steps
     socket 
       |> update(
-          attr: "style", 
-          set: "width: #{i * 100 / steps}%", 
+          css: "width", 
+          set: "#{i * 100 / steps}%", 
           on: ".progress-bar")
       |> update(
           :html,         

@@ -2,9 +2,9 @@ defmodule Drab do
   require Logger
 
   @moduledoc """
-  Drab allows to query and manipulate the browser DOM objects directly from the Phoenix server.
+  Drab allows to query and manipulate the User Interface directly from the Phoenix server backend.
 
-  Drab works with Phoenix Framework. To enable it on the specific page you must find its controller and 
+  To enable it on the specific page you must find its controller and 
   enable Drab by `use Drab.Controller` there:
 
       defmodule DrabExample.PageController do
@@ -53,6 +53,9 @@ defmodule Drab do
   an attribute `drab-EVENT_NAME` must be set. The following like is an equivalent for the previous one:
 
       <button drab-click='button_clicked'>clickme</button>
+
+  Normally Drab operates on the user interface of the browser which generared the event, but it is possible to broadcast
+  the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query` module.
   """
 
   use GenServer
