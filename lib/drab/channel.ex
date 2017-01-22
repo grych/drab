@@ -59,9 +59,13 @@ defmodule Drab.Channel do
     {:noreply, socket}
   end
 
-  def handle_in("event", %{"event" => event_name, "payload" => payload}, socket) do
-    # event_name is currently not used (0.1.0)
-    GenServer.cast(socket.assigns.drab_pid, {event_name, socket, payload})
+  def handle_in("event", %{
+      "event" => event_name, 
+      "payload" => payload, 
+      "event_handler_function" => event_handler_function,
+      "reply_to" => reply_to}, socket) do
+    # event_name is currently not used (0.2.0)
+    GenServer.cast(socket.assigns.drab_pid, {event_name, socket, payload, event_handler_function, reply_to})
     {:noreply, socket}
   end   
 

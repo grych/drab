@@ -1,5 +1,6 @@
 defmodule Drab.Config do
   @moduledoc false
 
-  defstruct commander: nil, onload: nil 
+  # by default load Drab.Query and Drab.Call
+  defstruct commander: nil, onload: nil, modules: [:query, :modal]
 end

@@ -1,4 +1,6 @@
 defmodule Drab.Commander do
+  require Logger
+
   @moduledoc """
   Drab Commander is a module to keep event handlers.
 
@@ -59,10 +61,18 @@ defmodule Drab.Commander do
   """
 
   defmacro __using__(options) do
-    quote do
-      import Drab.Query
-      import Drab.Call
-      
+    quote do      
+      import Drab.Core
+      # import defined modules
+      unquote do
+        opts = Map.merge(%Drab.Config{}, Enum.into(options, %{}))
+        opts.modules |> Enum.map(fn module -> 
+          quote do
+            import unquote(Module.concat(Drab, module |> Atom.to_string |> String.capitalize))
+          end
+        end)
+      end
+
       Module.put_attribute(__MODULE__, :__drab_opts__, unquote(options))
 
       unless Module.defines?(__MODULE__, {:__drab__, 0}) do
@@ -71,6 +81,7 @@ defmodule Drab.Commander do
           Map.merge(%Drab.Config{}, opts) 
         end
       end
+
     end
   end
 

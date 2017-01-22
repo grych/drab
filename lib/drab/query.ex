@@ -5,8 +5,8 @@ defmodule Drab.Query do
                             offset scrollLeft scrollTop)a
   @methods_with_argument ~w(attr prop css data)a
   @insert_methods        ~w(before after prepend append)a
-  @broadcast             &Drab.Query.broadcastjs/2
-  @no_broadcast          &Drab.Query.execjs/2
+  @broadcast             &Drab.Core.broadcastjs/2
+  @no_broadcast          &Drab.Core.execjs/2
 
   @moduledoc """
   Provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
@@ -451,28 +451,6 @@ defmodule Drab.Query do
     {:ok, do_query(socket, selector, method, :execute, broadcast)}
   end
 
-  @doc """
-  Synchronously executes the given javascript on the client side and returns value.
-  """
-  def execjs(socket, js) do
-    # Phoenix.Channel.push(socket, "execjs",  %{js: js, sender: tokenize(socket, self())})
-    Drab.push(socket, self(), "execjs", js: js)
-
-    receive do
-      {:got_results_from_client, reply} ->
-        reply
-    end
-  end
-
-  @doc """
-  Asynchronously broadcasts given javascript to all browsers displaying current page.
-  """
-  def broadcastjs(socket, js) do
-    # Phoenix.Channel.broadcast(socket, "broadcastjs",  %{js: js, sender: tokenize(socket, self())})
-    Drab.broadcast(socket, self(), "broadcastjs", js: js)
-    socket
-  end
-
   # Build and run general jQuery query
   defp do_query(socket, selector, method_jqueried, type, push_or_broadcast_function) do
     push_or_broadcast_function.(socket, build_js(selector, method_jqueried, type))
@@ -504,10 +482,7 @@ defmodule Drab.Query do
 
   defp escape_value(value) when is_boolean(value),  do: "#{inspect(value)}"
   defp escape_value(value) when is_nil(value),      do: ""
-  defp escape_value(value),                         do: "#{encode_js(value)}"
-
-  @doc false
-  def encode_js(value), do: Poison.encode!(value)
+  defp escape_value(value),                         do: "#{Drab.Core.encode_js(value)}"
 
   defp wrong_query!(selector, method, arguments \\ nil) do
     raise """

@@ -1,10 +1,10 @@
-defmodule Drab.Call do
+defmodule Drab.Modal do
   require Logger
   import Drab.Query
-  import Drab.Templates
+  import Drab.Template
 
   @moduledoc """
-  Call contains functions used to communicate from the server back to the browser.
+  Modal contains functions used to communicate from the server back to the browser.
   """
 
   @doc """
@@ -44,7 +44,7 @@ defmodule Drab.Call do
   modify it, copy them to `priv/templates/drab` in your application.
   There are two templates for default `:ok` and `:cancel` buttons, but you may create new one and use them in the same
   way. For example, to have a new button called `unspecified` create a template 
-  `priv/templates/drab/call.alert.button.unspecified.html.eex`:
+  `priv/templates/drab/modal.alert.button.unspecified.html.eex`:
 
       <button id="_drab_modal_button_unspecified" name="unspecified" type="button" 
        class="btn btn-default drab-modal-button" data-dismiss="modal">
@@ -67,42 +67,19 @@ defmodule Drab.Call do
       class: options[:class],
       buttons: buttons_html(buttons)
     ]
-    html = render_template("call.alert.html.eex", bindings)
+    html = render_template("modal.alert.html.eex", bindings)
 
     socket 
       |> delete("#_drab_modal")
       |> insert(html, append: "body")
 
     # Phoenix.Channel.push(socket, "modal",  %{sender: tokenize(socket, self())})
-    Drab.push(socket, self(), "modal", timeout: options[:timeout])
-
-    receive do
-      {:got_results_from_client, reply} ->
-        reply
-    end    
-  end
-
-  @doc """
-  Sends the log to the browsers console for debugging
-  """
-  def console(socket, log) do
-    do_console(socket, log, &Drab.push/4)
-  end
-
-  @doc """
-  Broadcasts the log to the browsers console for debugging
-  """
-  def console!(socket, log) do
-    do_console(socket, log, &Drab.broadcast/4)
-  end
-
-  defp do_console(socket, log, push_or_broadcast_function) do
-    push_or_broadcast_function.(socket, self(), "console",  log: log)
+    Drab.push_and_wait_for_response(socket, self(), "modal", timeout: options[:timeout])
   end
 
   defp buttons_html(buttons) do
     Enum.map(buttons, fn {button, label} -> 
-      render_template("call.alert.button.#{Atom.to_string(button)}.html.eex", [label: label])
+      render_template("modal.alert.button.#{Atom.to_string(button)}.html.eex", [label: label])
     end) |> Enum.join("\n")
   end
 end

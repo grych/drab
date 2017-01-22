@@ -4,7 +4,7 @@ Changes:
 * cycling
     update(:text, set: ["One", "Two", "Three"], on: "#thebutton")
     update(:class, set: ["btn-success", "btn-danger"], on: "#save_button")
-* toggling
+* toggling class
     update(:class, toggle: "btn-success", on: "#btn")
 
 Fixes:

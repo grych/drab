@@ -1,4 +1,4 @@
-defmodule Drab.Templates do
+defmodule Drab.Template do
   require IEx
   @drab_templates "priv/templates/drab"  
 

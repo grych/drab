@@ -1,5 +1,6 @@
 (function(){
   function uuid() {
+    // borrowed from http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
     var d = new Date().getTime();
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = (d + Math.random()*16)%16 | 0
@@ -9,15 +10,7 @@
     return uuid
   }
   
-  const MODAL = "#_drab_modal"
-  const MODAL_FORM = "#_drab_modal form"
-  const MODAL_BUTTON_OK = "#_drab_modal_button_ok"
-  const MODAL_BUTTON_CANCEL = "#_drab_modal_button_cancel"
-  const MODAL_BUTTONS = ".drab-modal-button"
-  const EVENTS = ["click", "change", "keyup", "keydown"]
-  const EVENTS_TO_DISABLE = <%= Drab.config.events_to_disable_while_processing |> Drab.Query.encode_js %>
-
-  var Drab = {
+  window.Drab = {
     run: function(drab_return) {
       this.Socket = require("phoenix").Socket
 
@@ -28,9 +21,10 @@
       this.already_connected = false
       this.path = location.pathname
 
-      // disable all the Drab-related objects
-      // they will be re-enable on connection
-      this.disable_drab_objects(true)
+      // launch all on_load functions
+      for(let f of this.load) {
+        f(this)
+      }
 
       let socket = new this.Socket("<%= Drab.config.socket %>", {params: {token: window.userToken}})
       socket.connect()
@@ -41,158 +35,67 @@
           drab_return: this.drab_return
         })
       this.channel.join()
-        .receive("error", resp => { console.log("Unable to join DRAB channel", resp) })
-        .receive("ok", resp => this.connected(resp, this))
+        .receive("error", resp => { 
+          // TODO: communicate it to user 
+          console.log("Unable to join the Drab Channel", resp) 
+        })
+        .receive("ok", resp => {
+          // launch on_connect
+          for(let f of this.connected) {
+            f(resp, this)
+          }
+          this.already_connected = true
+          // event is sent after Drab finish processing the event
+          this.channel.on("event", (message) => {
+            // console.log("EVENT: ", message)
+            if(this.event_reply_table[message.finished]) {
+              this.event_reply_table[message.finished]()
+              delete this.event_reply_table[message.finished]
+            }
+          })
+        })
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
       socket.onClose((event) => {
-        // on disconnect
-        this.disable_drab_objects(true)
-      })
-    },
-
-    // disable all drab object when disconnected from the server
-    disable_drab_objects: function(disable) {
-      <%= if Drab.config.disable_controls_when_disconnected do %>
-        $(`[drab-event]`).prop('disabled', disable)
-      <% end %>
-    },
-
-    connected: function(resp, him) {
-      // prevent to re-assign messages
-      if (!this.already_connected) {
-        him.channel.on("onload", (message) => {
-        })
-
-        // exec is synchronous, returns the result
-        him.channel.on("execjs", (message) => {
-          let query_output = [
-            message.sender,
-            eval(message.js)
-          ]
-          him.channel.push("execjs", {ok: query_output})
-        })
-
-        // broadcast does not return a meesage
-        him.channel.on("broadcastjs", (message) => {
-          eval(message.js)
-        })
-
-        him.channel.on("modal", (message) => {
-          $modal = $(MODAL)
-          $(MODAL_FORM).on("submit", function() {
-            modal_button_clicked(message, "ok")
-            return false // prevent submit
-          })
-          $(MODAL_BUTTONS).on("click", function() {
-            $(this).data("clicked", true)
-            modal_button_clicked(message, $(this).attr("name"))
-          })
-          $modal.on("hidden.bs.modal", function() {
-            if (!$(MODAL_BUTTON_OK).data("clicked")) {
-              // if it is not an OK button (prevent double send)
-              modal_button_clicked(message, "cancel")
-            }
-          })
-          // set the timeout on a modal
-          // TODO: cancel this event after closing before the timeout
-          if (message.timeout) {
-            if (this.modal_timeout_function) {
-              clearTimeout(this.modal_timeout_function)
-            }
-            this.modal_timeout_function = setTimeout(function() {
-              modal_button_clicked(message, "cancel")
-            }, 1000 * message.timeout)
-          }
-          // set focus on form
-          $modal.on("shown.bs.modal", () => {
-            $(MODAL_FORM + " :input").first().focus()
-          })
-
-          $modal.modal()
-        })
-
-        him.channel.on("console", (message) => {
-          console.log(message.log)
-        })
-
-        this.already_connected = true
-      }
-
-      function modal_button_clicked(message, button_clicked) {
-        let vals = {}
-        $(`${MODAL} form :input`).map(function() {
-          let key = $(this).attr("name") || $(this).attr("id")
-          vals[key] = $(this).val()
-        })
-        let query_output = [
-          message.sender,
-          {
-            button_clicked: button_clicked, 
-            params: vals
-          }
-        ]      
-        him.channel.push("modal", {ok: query_output})        
-        $(MODAL).modal('hide')
-      }
-
-      function payload(who) {
-        setid(who)
-        return {
-          // by default, we pass back some sender attributes
-          id:     who.attr("id"),
-          name:   who.attr("name"),
-          class:  who.attr("class"),
-          text:   who.text(),
-          html:   who.html(),
-          val:    who.val(),
-          data:   who.data(),
-          drab_id: who.attr("drab-id"),
-          event_handler_function: who.attr("drab-handler")
-        }
-      }
-
-      function setid(whom) {
-        whom.attr("drab-id", uuid())
-      }
-
-      // set up the controls with drab handlers
-      // first serve the shortcut controls by adding the longcut attrbutes
-      for (let ev of EVENTS) {
-        $(`[drab-${ev}]`).each(function() {
-          $(this).attr("drab-event", ev) 
-          $(this).attr("drab-handler", $(this).attr(`drab-${ev}`))
-        })
-      }
-
-      let events_to_disable = EVENTS_TO_DISABLE
-      $("[drab-event]").each(function() {
-        if($(this).attr("drab-handler")) {
-          let ev=$(this).attr("drab-event")
-          $(this).off(ev).on(ev, function(event) {
-            // disable current control - will be re-enabled after finish
-            <%= if Drab.config.disable_controls_while_processing do %>
-              if ($.inArray(ev, events_to_disable) >= 0) {
-                $(this).prop('disabled', true)
-              }
-            <% end %>
-            // send the message back to the server
-            him.channel.push("event", {event: ev, payload: payload($(this))})
-          })
-        } else {
-          console.log("Drab Error: drab-event definded without drab-handler", $(this))
+        // on_disconnect
+        for(let f of this.disconnected) {
+          f(this)
         }
       })
-
-      // re-enable drab controls
-      this.disable_drab_objects(false)
-      // initialize onload on server side, just once
-      if (!this.onload_launched) {
-        this.onload_launched = true
-        him.channel.push("onload", null)
+    },
+    // 
+    //   string - event name
+    //   event_handler -  string - function name in Phoenix Commander
+    //   payload: object - will be passed as the second argument to the Event Handler
+    //   execute_after - callback to function executes after event finish
+    launch_event: function(event_name, event_handler, payload, execute_after) {
+      let reply_to = uuid()
+      if(execute_after) {
+        Drab.event_reply_table[reply_to] = execute_after
       }
+      let message = {event: event_name, event_handler_function: event_handler, payload: payload, reply_to: reply_to}
+      this.channel.push("event", message)
+    },
+    connected: [],
+    disconnected: [],
+    load: [],
+    event_reply_table: {},
+    on_connect: function(f) {
+      this.connected.push(f)
+    },
+    on_disconnect: function(f) {
+      this.disconnected.push(f)
+    },
+    on_load: function(f) {
+      this.load.push(f)
     }
   }
+
+  <%= 
+    Enum.map(templates, fn template -> 
+      Drab.Template.render_template(template, [])
+    end)
+  %>
 
   Drab.run('<%= controller_and_action %>')
 })();

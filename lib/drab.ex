@@ -82,16 +82,16 @@ defmodule Drab do
   end
 
   @doc false
-  def handle_cast({_, socket, %{"event_handler_function" => evt_fun} = payload}, _) do
-    do_handle_cast(socket, evt_fun, payload)
+  def handle_cast({_, socket, payload, event_handler_function, reply_to}, _) do
+    do_handle_cast(socket, event_handler_function, payload, reply_to)
   end
 
-  defp do_handle_cast(socket, evt_fun, payload) do
+  defp do_handle_cast(socket, event_handler_function, payload, reply_to) do
     commander_module = commander(socket)
 
     # raise a friendly exception when misspelled the function handler name
-    unless function_exists?(commander_module, evt_fun) do
-      raise "Drab can't find the event handler function \"#{commander_module}.#{evt_fun}/2\"."
+    unless function_exists?(commander_module, event_handler_function) do
+      raise "Drab can't find the event handler function \"#{commander_module}.#{event_handler_function}/2\"."
     end
 
     # TODO: rethink the subprocess strategies - now it is just spawn_link
@@ -99,13 +99,12 @@ defmodule Drab do
       dom_sender = Map.delete(payload, "event_handler_function")
       apply(
         commander_module, 
-        String.to_existing_atom(evt_fun), 
+        String.to_existing_atom(event_handler_function), 
         [socket, dom_sender]
       )
-      # re-enable the button if needed
-      if Drab.config.disable_controls_while_processing do
-        socket |> Drab.Query.update(prop: "disabled", set: false, on: Drab.Query.this(dom_sender))
-      end
+      # Send a message to browser to run the "after event" callback
+      # eg. for enabling the buttons after handling events
+      Phoenix.Channel.push(socket, "event", %{finished: reply_to})
     end
     {:noreply, socket}
   end
@@ -114,6 +113,15 @@ defmodule Drab do
     module_name.__info__(:functions) 
       |> Enum.map(fn {f, _} -> Atom.to_string(f) end)
       |> Enum.member?(function_name)
+  end
+
+  @doc false
+  def push_and_wait_for_response(socket, pid, message, options \\ []) do
+    push(socket, pid, message, options)
+    receive do
+      {:got_results_from_client, reply} ->
+        reply
+    end    
   end
 
   @doc false

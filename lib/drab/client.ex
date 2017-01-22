@@ -10,7 +10,8 @@ defmodule Drab.Client do
       <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   """
 
-  import Drab.Templates
+  import Drab.Template
+  require Logger
 
   @doc """
   Generates JS code which runs Drab. Passes controller and action name, tokenized for safety.
@@ -24,9 +25,16 @@ defmodule Drab.Client do
     if Enum.member?(controller.__info__(:functions), {:__drab__, 0}) do
       controller_and_action = Phoenix.Token.sign(conn, "controller_and_action", 
                               "#{controller}##{Phoenix.Controller.action_name(conn)}")
+      commander = controller.__drab__()[:commander]
+      modules = [:core | commander.__drab__().modules] # core is always included
+      templates = Enum.map(modules, fn x -> "drab.#{Atom.to_string(x)}.js" end)
       bindings = [
-        controller_and_action: controller_and_action
+        controller_and_action: controller_and_action,
+        commander: commander,
+        templates: templates
       ]
+      # Logger.debug inspect(templates)
+      # Logger.debug("************************ #{inspect(commander.__drab__())}")
       js = render_template("drab.js", bindings)
 
       Phoenix.HTML.raw """
