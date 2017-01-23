@@ -51,6 +51,19 @@ defmodule Drab.Commander do
 
   This callback launches when the client browser connects to the server.
 
+  ## Modules
+
+  Drab is modular. You my choose which modules to use in the specific Commander by using `:module` option
+  in `use Drab.Commander` directive. 
+  There is one required module, which is loaded always and can't be disabled: `Drab.Code`. By default, modules
+  `Drab.Query` and `Drab.Modal` are loaded. The following code:
+
+      use Drab.Commander, modules: [Drab.Query]
+
+  will enable only `Drab.Core` and `Drab.Query`.
+
+  Every module has its corresponding JS template, which is loaded only when module is enabled.
+
   ## Generate the Commander
 
   There is a mix task (`Mix.Tasks.Drab.Gen.Commander`) to generate skeleton of commander:
@@ -68,7 +81,8 @@ defmodule Drab.Commander do
         opts = Map.merge(%Drab.Config{}, Enum.into(options, %{}))
         opts.modules |> Enum.map(fn module -> 
           quote do
-            import unquote(Module.concat(Drab, module |> Atom.to_string |> String.capitalize))
+            # import unquote(Module.concat(Drab, module |> Atom.to_string |> String.capitalize))
+            import unquote(module)
           end
         end)
       end

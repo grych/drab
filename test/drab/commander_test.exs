@@ -3,12 +3,12 @@ defmodule Drab.CommanderTest do
   doctest Drab.Commander
 
   defmodule TestCommander do
-    use Drab.Commander, onload: :onload_function, modules: [:query]
+    use Drab.Commander, onload: :onload_function, modules: [Drab.Query]
   end
 
   test "__drab__/0 should return the valid config" do
     assert TestCommander.__drab__() == %Drab.Config{commander: Drab.CommanderTest.TestCommander,
                                                     onload:    :onload_function,
-                                                    modules: [:query]}
+                                                    modules: [Drab.Query]}
   end
 end

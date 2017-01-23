@@ -26,15 +26,15 @@ defmodule Drab.Client do
       controller_and_action = Phoenix.Token.sign(conn, "controller_and_action", 
                               "#{controller}##{Phoenix.Controller.action_name(conn)}")
       commander = controller.__drab__()[:commander]
-      modules = [:core | commander.__drab__().modules] # core is always included
-      templates = Enum.map(modules, fn x -> "drab.#{Atom.to_string(x)}.js" end)
+      modules = [Drab.Core | commander.__drab__().modules] # Drab.Core is included by default
+      templates = Enum.map(modules, fn x -> "#{Module.split(x) |> Enum.join(".") |> String.downcase()}.js" end)
+
       bindings = [
         controller_and_action: controller_and_action,
         commander: commander,
         templates: templates
       ]
-      # Logger.debug inspect(templates)
-      # Logger.debug("************************ #{inspect(commander.__drab__())}")
+
       js = render_template("drab.js", bindings)
 
       Phoenix.HTML.raw """

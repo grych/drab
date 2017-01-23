@@ -4,7 +4,7 @@ defmodule <%= module %>Commander do
   # place your event handers here
   #
   # def button_clicked(socket, dom_sender) end
-  #   html("#output_div", "Clicked button!")
+  #   socket |> update(:html, set: "Clicked the button!", on: "#output_div")
   # end
   #
   # Drab Callbacks
@@ -13,6 +13,6 @@ defmodule <%= module %>Commander do
   # use Drab.Commander, onload: :page_loaded 
   #
   # def page_loaded(socket) do
-  #   html("#output_div", "Page loaded")
+  #   socket |> update(:html, set: "Welcome to Phoenix+Drab!", on: "div.jumbotron h2")
   # end
 end

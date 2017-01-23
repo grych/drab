@@ -1,5 +1,33 @@
 defmodule Drab.Core do
-  @moduledoc """
+  @moduledoc ~S"""
+  Drab Module with the basic communication from Server to the Browser. Does not require any libraries like jQuery,
+  works on pure Phoenix.
+
+      defmodule DrabPoc.JquerylessCommander do
+        use Drab.Commander, modules: [] 
+
+        def clicked(socket, payload) do
+          socket |> console("You've sent me this: #{payload |> inspect}")
+        end
+      end
+
+  See `Drab.Commander` for more info on Drab Modules.
+
+  ## Running Elixir code from the Browser
+
+  There is the Javascript method `Drab.launch_event()` in global `Drab` object, which allows you to run the Elixir
+  function defined in the Commander. 
+
+      Drab.launch_event(event_name, function_name, arguments_map)
+
+  Arguments:
+  * event_name(string) - name of the even which runs the function
+  * function_name(string) - function name in corresponding Commander module
+  * arguments_map(key/value object) - any arguments you want to pass to the Commander function
+
+  Returns:
+  * no return, does not wait for any answer
+
   """
   require Logger
 

@@ -2,7 +2,7 @@
 
 [![hex.pm version](https://img.shields.io/hexpm/v/drab.svg)](https://hex.pm/packages/drab)
 
-Manipulate browser DOM objects directly from Elixir/Phoenix. No Javascript programming needed anymore!
+Drab - Access the browser User Interface from the Server Side. No Javascript programming needed anymore!
 
 ## Teaser
 
@@ -50,7 +50,7 @@ end
 
 ```elixir
 def deps do
-  [{:drab, "~> 0.1.0"}]
+  [{:drab, "~> 0.2.0"}]
 end
 ```
 
@@ -67,6 +67,9 @@ $ mix compile
 }
 ```
 
+  You may ommit this step if you are not planning to use DOM, jQuery, Drab.Query and Drab.Modal -
+  [see Domless Drab](https://tg.pl/drab/nojquery)
+
   3. Add jQuery as a global at the end of `brunch-config.js`:
 
 ```javascript
@@ -75,6 +78,9 @@ npm: {globals: {
   jQuery: 'jquery'
 }}
 ```
+
+  You may ommit this step if you are not planning to use DOM, jQuery, Drab.Query and Drab.Modal -
+  [see Domless Drab](https://tg.pl/drab/nojquery)
 
   4. And install it:
 

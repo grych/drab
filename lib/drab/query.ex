@@ -9,7 +9,7 @@ defmodule Drab.Query do
   @no_broadcast          &Drab.Core.execjs/2
 
   @moduledoc """
-  Provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
+  Drab module which provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
   (`update/2`, `insert/2`, `delete/2`, `execute/2`) the selected DOM object.
 
   General syntax:
@@ -36,6 +36,23 @@ defmodule Drab.Query do
   `insert/2`, `delete/2`, `execute/2`) changes DOM objects on this page as well, but they have a broadcast versions:
   `update!/2`, `insert!/2`, `delete!/2` and `execute!/2`, which works the same, but changes DOM on every currently 
   connected browsers, which has opened the same URL.
+
+  ## Events
+
+  Events are defined directly in the HTML by adding `drab-event` and `drab-handler` properties:
+
+      <button drab-event='click' drab-handler='button_clicked'>clickme</button>
+
+  Clicking such button launches `DrabExample.PageCommander.button_clicked/2` on the Phoenix server.
+
+  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For this event 
+  an attribute `drab-EVENT_NAME` must be set. The following like is an equivalent for the previous one:
+
+      <button drab-click='button_clicked'>clickme</button>
+
+  Normally Drab operates on the user interface of the browser which generared the event, but it is possible to broadcast
+  the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query` module.
+
   """
 
   @doc """

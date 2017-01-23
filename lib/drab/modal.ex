@@ -4,7 +4,7 @@ defmodule Drab.Modal do
   import Drab.Template
 
   @moduledoc """
-  Modal contains functions used to communicate from the server back to the browser.
+  Drab Module which contains function to launch Bootstrap Modals in the browser.
   """
 
   @doc """

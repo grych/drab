@@ -43,19 +43,13 @@ defmodule Drab do
   Drab treats browser page as a database, allows you to read and change the data there. Please refer to `Drab.Query` documentation to 
   find out how `Drab.Query.select/2` or `Drab.Query.update/2` works.
 
-  Events are defined directly in the HTML by adding `drab-event` and `drab-handler` properties:
+  ## Modules
 
-      <button drab-event='click' drab-handler='button_clicked'>clickme</button>
+  Drab is modular. You my choose which modules to use in the specific Commander by using `:module` option
+  in `use Drab.Commander` directive. By default, `Drab.Query` and `Drab.Modal` are loaded, but you may override it using 
+  options with `use Drab.Commander` directive.
 
-  Clicking such button launches `DrabExample.PageCommander.button_clicked/2` on the Phoenix server.
-
-  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For this event 
-  an attribute `drab-EVENT_NAME` must be set. The following like is an equivalent for the previous one:
-
-      <button drab-click='button_clicked'>clickme</button>
-
-  Normally Drab operates on the user interface of the browser which generared the event, but it is possible to broadcast
-  the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query` module.
+  Every module must have the corresponding javascript template, which is added to the client code in case the module is loaded.
   """
 
   use GenServer
