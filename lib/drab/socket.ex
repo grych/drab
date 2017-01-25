@@ -2,6 +2,7 @@ defmodule Drab.Socket do
   @moduledoc false
 
   use Phoenix.Socket
+  require Logger
 
   ## Channels
   channel "drab:*", Drab.Channel
@@ -21,9 +22,19 @@ defmodule Drab.Socket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
-  def connect(_params, socket) do
-    {:ok, socket}
+
+  def connect(%{"drab_return" => controller_and_action_token}, socket) do
+    case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token) do
+      {:ok, controller_and_action} -> 
+        [controller, action] = String.split(controller_and_action, "#")
+        {:ok , socket 
+                |> assign(:controller, String.to_existing_atom(controller))
+                |> assign(:action, String.to_existing_atom(action))
+        }
+      {:error, _reason} -> :error
+    end
   end
+  def connect(_params, _socket), do: :error
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
   #

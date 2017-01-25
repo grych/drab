@@ -27,7 +27,7 @@ Drab.on_connect(function(resp, drab) {
 
   // initialize onload on server side, just once
   if (!drab.onload_launched) {
-    drab.channel.push("onload", null)
+    drab.channel.push("onload", { drab_session_token: Drab.drab_session_token })
     drab.onload_launched = true
   }
 })

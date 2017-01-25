@@ -29,10 +29,19 @@ defmodule Drab.Client do
       modules = [Drab.Core | commander.__drab__().modules] # Drab.Core is included by default
       templates = Enum.map(modules, fn x -> "#{Module.split(x) |> Enum.join(".") |> String.downcase()}.js" end)
 
+      access_session = commander.__drab__().access_session
+      session = access_session 
+        |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end) 
+        |> Enum.into(%{})
+      # Logger.debug "SESSION: #{inspect session}"
+      # session = Phoenix.Token.sign(conn, "controller_and_action", session)
+      session_token = Phoenix.Token.sign(conn, "drab_session_token",  session)
+
       bindings = [
         controller_and_action: controller_and_action,
         commander: commander,
-        templates: templates
+        templates: templates,
+        drab_session_token: session_token
       ]
 
       js = render_template("drab.js", bindings)

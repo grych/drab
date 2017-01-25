@@ -64,6 +64,12 @@ defmodule Drab.Commander do
 
   Every module has its corresponding JS template, which is loaded only when module is enabled.
 
+  ## Session
+  Drab may allow an access to specified Plug Session values. For this, you must whitelist the keys of the 
+  session map. Only this keys will be available to `Drab.Core.get_session/2`
+
+      use Drab.Commander, allow_session: [:user_id]
+
   ## Generate the Commander
 
   There is a mix task (`Mix.Tasks.Drab.Gen.Commander`) to generate skeleton of commander:
@@ -76,22 +82,20 @@ defmodule Drab.Commander do
   defmacro __using__(options) do
     quote do      
       import Drab.Core
-      # import defined modules
+
       unquote do
         opts = Map.merge(%Drab.Config{}, Enum.into(options, %{}))
         opts.modules |> Enum.map(fn module -> 
           quote do
-            # import unquote(Module.concat(Drab, module |> Atom.to_string |> String.capitalize))
             import unquote(module)
           end
         end)
       end
 
-      Module.put_attribute(__MODULE__, :__drab_opts__, unquote(options))
-
+      # Module.put_attribute(__MODULE__, :__drab_opts__, unquote(options))
       unless Module.defines?(__MODULE__, {:__drab__, 0}) do
         def __drab__() do
-          opts = Enum.into(@__drab_opts__, %{commander: __MODULE__})
+          opts = Enum.into(unquote(options), %{commander: __MODULE__})
           Map.merge(%Drab.Config{}, opts) 
         end
       end

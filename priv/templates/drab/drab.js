@@ -11,10 +11,11 @@
   }
   
   window.Drab = {
-    run: function(drab_return) {
+    run: function(drab_return_token, drab_session_token) {
       this.Socket = require("phoenix").Socket
 
-      this.drab_return = drab_return
+      this.drab_return_token = drab_return_token
+      this.drab_session_token = drab_session_token
       this.self = this
       this.myid = uuid()
       this.onload_launched = false
@@ -26,14 +27,9 @@
         f(this)
       }
 
-      let socket = new this.Socket("<%= Drab.config.socket %>", {params: {token: window.userToken}})
+      let socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
       socket.connect()
-      this.channel = socket.channel(
-        `drab:${this.path}`, 
-        {
-          path: this.path, 
-          drab_return: this.drab_return
-        })
+      this.channel = socket.channel(`drab:${this.path}`, {})
       this.channel.join()
         .receive("error", resp => { 
           // TODO: communicate it to user 
@@ -73,7 +69,13 @@
       if(execute_after) {
         Drab.event_reply_table[reply_to] = execute_after
       }
-      let message = {event: event_name, event_handler_function: event_handler, payload: payload, reply_to: reply_to}
+      let message = {
+                      event: event_name, 
+                      event_handler_function: event_handler, 
+                      payload: payload, 
+                      reply_to: reply_to,
+                      drab_session_token: Drab.drab_session_token
+                    }
       this.channel.push("event", message)
     },
     connected: [],
@@ -97,5 +99,5 @@
     end)
   %>
 
-  Drab.run('<%= controller_and_action %>')
+  Drab.run('<%= controller_and_action %>', '<%= drab_session_token %>')
 })();

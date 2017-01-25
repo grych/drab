@@ -29,4 +29,3 @@ use Mix.Config
 #
 #     import_config "#{Mix.env}.exs"
 
-# config :drab, disable_controls_while_processing: true

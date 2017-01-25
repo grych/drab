@@ -74,4 +74,13 @@ defmodule Drab.Core do
   @doc false
   def encode_js(value), do: Poison.encode!(value)
 
+  @doc """
+  Returns the value of the Drab Session represented by the given key. Notice that keys are whitelisted
+  in `:access_session` option in `Drab.Commander`.
+
+      uid = get_session(socket, :user_id)
+  """
+  def get_session(socket, key) do
+    socket.assigns.drab_session[key]
+  end
 end
