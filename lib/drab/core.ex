@@ -58,6 +58,7 @@ defmodule Drab.Core do
   """
   def console(socket, log) do
     do_console(socket, log, &Drab.push/4)
+    socket
   end
 
   @doc """
@@ -75,12 +76,30 @@ defmodule Drab.Core do
   def encode_js(value), do: Poison.encode!(value)
 
   @doc """
-  Returns the value of the Drab Session represented by the given key. Notice that keys are whitelisted
-  in `:access_session` option in `Drab.Commander`.
+  Returns the value of the Drab Session represented by the given key.
 
       uid = get_session(socket, :user_id)
   """
   def get_session(socket, key) do
     socket.assigns.drab_session[key]
+  end
+
+  @doc """
+  Returns the value of the Drab Session represented by the given key or `default` when key not found
+
+      counter = get_session(socket, :counter, 0)
+  """
+  def get_session(socket, key, default) do
+    get_session(socket, key) || default
+  end
+
+  @doc """
+  Returns the socket with the session key => value pair assigned. 
+
+      put_session(socket, :counter, 1)
+  """
+  def put_session(socket, key, value) do
+    session = socket.assigns.drab_session
+    Phoenix.Socket.assign(socket, :drab_session, Map.merge(session, %{key => value}))
   end
 end

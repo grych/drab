@@ -68,7 +68,7 @@ defmodule Drab.Commander do
   Drab may allow an access to specified Plug Session values. For this, you must whitelist the keys of the 
   session map. Only this keys will be available to `Drab.Core.get_session/2`
 
-      use Drab.Commander, allow_session: [:user_id]
+      use Drab.Commander, inherit_session: [:user_id]
 
   ## Generate the Commander
 

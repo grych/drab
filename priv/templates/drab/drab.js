@@ -48,6 +48,8 @@
               this.event_reply_table[message.finished]()
               delete this.event_reply_table[message.finished]
             }
+            // update the session
+            this.drab_session_token = message.drab_session_token
           })
         })
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});

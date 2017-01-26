@@ -1,12 +1,12 @@
-## 0.2.1
+## 0.2.2
 Changes:
-* dependencies for modules (for ex. Modal depends on Query and Core)
 
 ## 0.3.0
 
 ## Future
 Changes:
-* console
+* debuggin console
 * tests, tests, tests
 * benchmarks
 * allow to specify on which pages drab broadcasts, with wildcard
+* dependencies for modules (for ex. Modal depends on Query and Core)

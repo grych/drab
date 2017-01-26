@@ -5,5 +5,5 @@ defmodule Drab.Config do
   defstruct commander: nil, 
     onload: nil, 
     modules: [Drab.Query, Drab.Modal],
-    access_session: []
+    inherit_session: []
 end

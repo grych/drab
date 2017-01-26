@@ -76,6 +76,7 @@ defmodule Drab do
   end
 
   @doc false
+  # any other cast is an event handler
   def handle_cast({_, socket, payload, event_handler_function, reply_to}, _) do
     do_handle_cast(socket, event_handler_function, payload, reply_to)
   end
@@ -91,14 +92,28 @@ defmodule Drab do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
       dom_sender = Map.delete(payload, "event_handler_function")
-      apply(
+      returned_socket = apply(
         commander_module, 
         String.to_existing_atom(event_handler_function), 
         [socket, dom_sender]
       )
+      # check if the handler return socket, if not - ignore
+      # TODO: change the warning to exception
+      updated_session = case returned_socket do
+        %Phoenix.Socket{assigns: returned_assigns} ->
+          returned_assigns.drab_session
+        ret ->
+          Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. The session will not be updated.")
+          socket.assigns.drab_session
+      end
+      drab_session_token = Phoenix.Token.sign(socket, "drab_session_token",  updated_session)
+
       # Send a message to browser to run the "after event" callback
       # eg. for enabling the buttons after handling events
-      Phoenix.Channel.push(socket, "event", %{finished: reply_to})
+      Phoenix.Channel.push(socket, "event", %{
+        finished: reply_to,
+        drab_session_token: drab_session_token,
+      })
     end
     {:noreply, socket}
   end
