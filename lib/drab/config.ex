@@ -3,7 +3,8 @@ defmodule Drab.Config do
 
   # by default load Drab.Query and Drab.Call
   defstruct commander: nil, 
-    onload: nil, 
+    onload: nil,
+    onconnect: nil,
     modules: [Drab.Query, Drab.Modal],
     inherit_session: []
 end

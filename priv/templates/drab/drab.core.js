@@ -30,4 +30,7 @@ Drab.on_connect(function(resp, drab) {
     drab.channel.push("onload", { drab_session_token: Drab.drab_session_token })
     drab.onload_launched = true
   }
+
+  // launch server-side onconnect callback - every time it is connected
+  drab.channel.push("onconnect", { drab_session_token: Drab.drab_session_token })
 })

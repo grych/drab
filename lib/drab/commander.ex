@@ -39,17 +39,24 @@ defmodule Drab.Commander do
 
   ## Callbacks 
 
-  There is currently one callback, `:onload`. It must be specified as the option of `use` macro:
+  Callbacks must be specified in `use Drab.Commander` clause:
 
       defmodule DrabExample.PageCommander do
-        use Drab.Commander, onload: :page_loaded
+        use Drab.Commander, onload: :page_loaded, onconnect: :connected
 
         def page_loaded(socket) do
           ...
         end
+
+        def connected(socket) do
+          ...
+        end
       end
 
-  This callback launches when the client browser connects to the server.
+  Callbacks:
+  * `onconnect` - launched every time client browser connects to the server, including reconnects after server 
+    crash, network broken etc
+  * `onload` - launched only once after page loaded and connects to the server
 
   ## Modules
 

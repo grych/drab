@@ -42,6 +42,10 @@ defmodule Drab.Channel do
     verify_and_cast(:onload, [], socket, drab_session_token)
   end
 
+  def handle_in("onconnect", %{"drab_session_token" => drab_session_token}, socket) do
+    verify_and_cast(:onconnect, [], socket, drab_session_token)
+  end
+
   def handle_in("event", %{
       "event" => event_name, 
       "payload" => payload, 

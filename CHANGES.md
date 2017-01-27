@@ -1,3 +1,7 @@
+## 0.2.2
+Changes:
+* new callback: onconnect
+
 ## 0.2.1
 Introduced Drab Session: the way to access (read-only) the Plug Session map in the Commander.
 

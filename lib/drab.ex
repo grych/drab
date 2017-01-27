@@ -76,6 +76,16 @@ defmodule Drab do
   end
 
   @doc false
+  def handle_cast({:onconnect, socket}, _) do
+    cmdr = commander(socket)
+    onconnect = drab_config(cmdr).onconnect
+    if onconnect do # only if onconnect exists
+      apply(cmdr, onconnect, [socket])
+    end
+    {:noreply, socket}
+  end
+
+  @doc false
   # any other cast is an event handler
   def handle_cast({_, socket, payload, event_handler_function, reply_to}, _) do
     do_handle_cast(socket, event_handler_function, payload, reply_to)
