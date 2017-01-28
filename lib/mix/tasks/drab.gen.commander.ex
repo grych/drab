@@ -1,5 +1,7 @@
 defmodule Mix.Tasks.Drab.Gen.Commander do
   use Mix.Task
+  
+  @shortdoc "Generates a Drab Commander"
 
   @moduledoc """
   Generates a Drab commander.
