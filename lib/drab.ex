@@ -109,20 +109,20 @@ defmodule Drab do
       )
       # check if the handler return socket, if not - ignore
       # TODO: change the warning to exception
-      updated_session = case returned_socket do
+      updated_store = case returned_socket do
         %Phoenix.Socket{assigns: returned_assigns} ->
-          returned_assigns.drab_session
+          returned_assigns.drab_store
         ret ->
-          Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. The session will not be updated.")
-          socket.assigns.drab_session
+          Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. The store will not be updated.")
+          socket.assigns.drab_store
       end
-      drab_session_token = Phoenix.Token.sign(socket, "drab_session_token",  updated_session)
+      drab_store_token = Phoenix.Token.sign(socket, "drab_store_token",  updated_store)
 
       # Send a message to browser to run the "after event" callback
       # eg. for enabling the buttons after handling events
       Phoenix.Channel.push(socket, "event", %{
         finished: reply_to,
-        drab_session_token: drab_session_token,
+        drab_store_token: drab_store_token,
       })
     end
     {:noreply, socket}

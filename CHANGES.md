@@ -1,6 +1,9 @@
 ## 0.2.2
+New callbacks and Session housekeeping (renamed to Store)
+
 Changes:
 * new callback: onconnect
+* renamed Session to Store to avoid confusion
 
 ## 0.2.1
 Introduced Drab Session: the way to access (read-only) the Plug Session map in the Commander.

@@ -38,12 +38,12 @@ defmodule Drab.Channel do
     {:noreply, socket}
   end
 
-  def handle_in("onload", %{"drab_session_token" => drab_session_token}, socket) do
-    verify_and_cast(:onload, [], socket, drab_session_token)
+  def handle_in("onload", %{"drab_store_token" => drab_store_token}, socket) do
+    verify_and_cast(:onload, [], socket, drab_store_token)
   end
 
-  def handle_in("onconnect", %{"drab_session_token" => drab_session_token}, socket) do
-    verify_and_cast(:onconnect, [], socket, drab_session_token)
+  def handle_in("onconnect", %{"drab_store_token" => drab_store_token}, socket) do
+    verify_and_cast(:onconnect, [], socket, drab_store_token)
   end
 
   def handle_in("event", %{
@@ -51,18 +51,18 @@ defmodule Drab.Channel do
       "payload" => payload, 
       "event_handler_function" => event_handler_function,
       "reply_to" => reply_to,
-      "drab_session_token" => drab_session_token}, socket) do
+      "drab_store_token" => drab_store_token}, socket) do
     # event_name is currently not used (0.2.0)
-    verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket, drab_session_token)
+    verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket, drab_store_token)
   end   
 
-  defp verify_and_cast(message, params, socket, drab_session_token) do
-    case Phoenix.Token.verify(socket, "drab_session_token", drab_session_token) do
-      {:ok, drab_session} -> 
-        socket_with_session = assign(socket, :drab_session, drab_session)
-        p = [message, socket_with_session] ++ params
+  defp verify_and_cast(message, params, socket, drab_store_token) do
+    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
+      {:ok, drab_store} -> 
+        socket_with_store = assign(socket, :drab_store, drab_store)
+        p = [message, socket_with_store] ++ params
         GenServer.cast(socket.assigns.drab_pid, List.to_tuple(p))
-        {:noreply, socket_with_session}
+        {:noreply, socket_with_store}
       {:error, reason} -> 
         raise "Can't verify the token: #{inspect(reason)}" # let it die
     end    

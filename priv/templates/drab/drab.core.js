@@ -27,10 +27,10 @@ Drab.on_connect(function(resp, drab) {
 
   // initialize onload on server side, just once
   if (!drab.onload_launched) {
-    drab.channel.push("onload", { drab_session_token: Drab.drab_session_token })
+    drab.channel.push("onload", { drab_store_token: Drab.drab_store_token })
     drab.onload_launched = true
   }
 
   // launch server-side onconnect callback - every time it is connected
-  drab.channel.push("onconnect", { drab_session_token: Drab.drab_session_token })
+  drab.channel.push("onconnect", { drab_store_token: Drab.drab_store_token })
 })

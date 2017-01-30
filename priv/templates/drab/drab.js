@@ -11,11 +11,11 @@
   }
   
   window.Drab = {
-    run: function(drab_return_token, drab_session_token) {
+    run: function(drab_return_token, drab_store_token) {
       this.Socket = require("phoenix").Socket
 
       this.drab_return_token = drab_return_token
-      this.drab_session_token = drab_session_token
+      this.drab_store_token = drab_store_token
       this.self = this
       this.myid = uuid()
       this.onload_launched = false
@@ -48,8 +48,8 @@
               this.event_reply_table[message.finished]()
               delete this.event_reply_table[message.finished]
             }
-            // update the session
-            this.drab_session_token = message.drab_session_token
+            // update the store
+            this.drab_store_token = message.drab_store_token
           })
         })
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
@@ -76,7 +76,7 @@
                       event_handler_function: event_handler, 
                       payload: payload, 
                       reply_to: reply_to,
-                      drab_session_token: Drab.drab_session_token
+                      drab_store_token: Drab.drab_store_token
                     }
       this.channel.push("event", message)
     },
@@ -101,5 +101,5 @@
     end)
   %>
 
-  Drab.run('<%= controller_and_action %>', '<%= drab_session_token %>')
+  Drab.run('<%= controller_and_action %>', '<%= drab_store_token %>')
 })();

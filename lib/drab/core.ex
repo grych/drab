@@ -76,30 +76,30 @@ defmodule Drab.Core do
   def encode_js(value), do: Poison.encode!(value)
 
   @doc """
-  Returns the value of the Drab Session represented by the given key.
+  Returns the value of the Drab store represented by the given key.
 
-      uid = get_session(socket, :user_id)
+      uid = get_store(socket, :user_id)
   """
-  def get_session(socket, key) do
-    socket.assigns.drab_session[key]
+  def get_store(socket, key) do
+    socket.assigns.drab_store[key]
   end
 
   @doc """
-  Returns the value of the Drab Session represented by the given key or `default` when key not found
+  Returns the value of the Drab store represented by the given key or `default` when key not found
 
-      counter = get_session(socket, :counter, 0)
+      counter = get_store(socket, :counter, 0)
   """
-  def get_session(socket, key, default) do
-    get_session(socket, key) || default
+  def get_store(socket, key, default) do
+    get_store(socket, key) || default
   end
 
   @doc """
-  Returns the socket with the session key => value pair assigned. 
+  Returns the socket with the store key => value pair assigned. 
 
-      put_session(socket, :counter, 1)
+      put_store(socket, :counter, 1)
   """
-  def put_session(socket, key, value) do
-    session = socket.assigns.drab_session
-    Phoenix.Socket.assign(socket, :drab_session, Map.merge(session, %{key => value}))
+  def put_store(socket, key, value) do
+    store = socket.assigns.drab_store
+    Phoenix.Socket.assign(socket, :drab_store, Map.merge(store, %{key => value}))
   end
 end
