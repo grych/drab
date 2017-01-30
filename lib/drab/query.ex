@@ -310,7 +310,7 @@ defmodule Drab.Query do
   
   Options:
   * class: class - class name to be inserted
-  * into: selector - class will be added to specified selector(s)
+  * into: selector - class will be added to specified selectors; only applies with `:class` 
   * before: selector - creates html before the selector
   * after: selector - creates html node after the selector
   * append: selector - adds html to the end of the selector (inside the selector)
