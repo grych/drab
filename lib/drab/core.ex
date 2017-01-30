@@ -41,6 +41,7 @@ defmodule Drab.Core do
     receive do
       {:got_results_from_client, reply} ->
         reply
+    # TODO: timeout
     end
   end
 
