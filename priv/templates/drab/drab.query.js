@@ -38,19 +38,19 @@ Drab.on_connect(function(resp, drab) {
 
   // set up the controls with drab handlers
   // first serve the shortcut controls by adding the longcut attrbutes
-  for (let ev of EVENTS) {
+  for (var ev of EVENTS) {
     $(`[drab-${ev}]`).each(function() {
       $(this).attr("drab-event", ev) 
       $(this).attr("drab-handler", $(this).attr(`drab-${ev}`))
     })
   }
 
-  let events_to_disable = EVENTS_TO_DISABLE
+  var events_to_disable = EVENTS_TO_DISABLE
   $("[drab-event]").each(function() {
     if($(this).attr("drab-handler")) {
-      let ev=$(this).attr("drab-event")
+      var ev=$(this).attr("drab-event")
       $(this).off(ev).on(ev, function(event) {
-        let t = $(this)
+        var t = $(this)
         // disable current control - will be re-enabled after finish
         <%= if Drab.config.disable_controls_while_processing do %>
           if ($.inArray(ev, events_to_disable) >= 0) {

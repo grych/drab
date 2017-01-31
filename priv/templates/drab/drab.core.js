@@ -1,13 +1,13 @@
 Drab.on_connect(function(resp, drab) {
   // prevent reassigning messages
   if (!drab.already_connected) {
-    drab.channel.on("onload", (message) => {
+    drab.channel.on("onload", function(message) {
       // reply from onload is not expected
     })
 
     // exec is synchronous, returns the result
-    drab.channel.on("execjs", (message) => {
-      let query_output = [
+    drab.channel.on("execjs", function(message) {
+      var query_output = [
         message.sender,
         eval(message.js)
       ]
@@ -15,12 +15,12 @@ Drab.on_connect(function(resp, drab) {
     })
 
     // broadcast does not return a meesage
-    drab.channel.on("broadcastjs", (message) => {
+    drab.channel.on("broadcastjs", function(message) {
       eval(message.js)
     })
 
     // console.log
-    drab.channel.on("console", (message) => {
+    drab.channel.on("console", function(message) {
       console.log(message.log)
     })
   }

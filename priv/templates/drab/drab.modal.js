@@ -6,12 +6,12 @@ const MODAL_BUTTONS = ".drab-modal-button"
 
 Drab.on_connect(function(resp, drab) {
   function modal_button_clicked(message, button_clicked) {
-    let vals = {}
+    var vals = {}
     $(`${MODAL} form :input`).map(function() {
-      let key = $(this).attr("name") || $(this).attr("id")
+      var key = $(this).attr("name") || $(this).attr("id")
       vals[key] = $(this).val()
     })
-    let query_output = [
+    var query_output = [
       message.sender,
       {
         button_clicked: button_clicked, 
@@ -22,7 +22,7 @@ Drab.on_connect(function(resp, drab) {
     $(MODAL).modal('hide')
   }
 
-  drab.channel.on("modal", (message) => {
+  drab.channel.on("modal", function(message) {
     $modal = $(MODAL)
     $(MODAL_FORM).on("submit", function() {
       modal_button_clicked(message, "ok")
@@ -49,7 +49,7 @@ Drab.on_connect(function(resp, drab) {
       }, 1000 * message.timeout)
     }
     // set focus on form
-    $modal.on("shown.bs.modal", () => {
+    $modal.on("shown.bs.modal", function() {
       $(MODAL_FORM + " :input").first().focus()
     })
 

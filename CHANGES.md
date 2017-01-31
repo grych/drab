@@ -1,3 +1,7 @@
+## 0.2.3
+Fixed:
+* not working on iOS9 (#3): changed all ES6 constructs to plain JS
+
 ## 0.2.2
 New callbacks and Session housekeeping (renamed to Store)
 

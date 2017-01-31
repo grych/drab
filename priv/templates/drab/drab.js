@@ -23,41 +23,43 @@
       this.path = location.pathname
 
       // launch all on_load functions
-      for(let f of this.load) {
+      for(var f of this.load) {
         f(this)
       }
 
-      let socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
+      var socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
       socket.connect()
       this.channel = socket.channel(`drab:${this.path}`, {})
+      
+      var drab = this
       this.channel.join()
-        .receive("error", resp => { 
+        .receive("error", function(resp) { 
           // TODO: communicate it to user 
           console.log("Unable to join the Drab Channel", resp) 
         })
-        .receive("ok", resp => {
+        .receive("ok", function(resp) {
           // launch on_connect
-          for(let f of this.connected) {
-            f(resp, this)
+          for(var f of drab.connected) {
+            f(resp, drab)
           }
-          this.already_connected = true
+          drab.already_connected = true
           // event is sent after Drab finish processing the event
-          this.channel.on("event", (message) => {
+          drab.channel.on("event", function (message) {
             // console.log("EVENT: ", message)
-            if(this.event_reply_table[message.finished]) {
-              this.event_reply_table[message.finished]()
-              delete this.event_reply_table[message.finished]
+            if(drab.event_reply_table[message.finished]) {
+              drab.event_reply_table[message.finished]()
+              delete drab.event_reply_table[message.finished]
             }
             // update the store
-            this.drab_store_token = message.drab_store_token
+            drab.drab_store_token = message.drab_store_token
           })
         })
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
-      socket.onClose((event) => {
+      socket.onClose(function(event) {
         // on_disconnect
-        for(let f of this.disconnected) {
-          f(this)
+        for(var f of drab.disconnected) {
+          f(drab)
         }
       })
     },
@@ -67,11 +69,11 @@
     //   payload: object - will be passed as the second argument to the Event Handler
     //   execute_after - callback to function executes after event finish
     launch_event: function(event_name, event_handler, payload, execute_after) {
-      let reply_to = uuid()
+      var reply_to = uuid()
       if(execute_after) {
         Drab.event_reply_table[reply_to] = execute_after
       }
-      let message = {
+      var message = {
                       event: event_name, 
                       event_handler_function: event_handler, 
                       payload: payload, 
