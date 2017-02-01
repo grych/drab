@@ -1,7 +1,7 @@
 ## 0.3.0
 Changes:
 * handling disconnects (callback ondisconnect on server side?)
-* handling event handler crashes without disconnect 
+* handling event handler crashes without disconnect the whole socket (spawn instead of spawn_link)
 * event handler continue to work after disconnect (is it a really good idea?)
 * Drab.Server to receive messages from the outside world (and broadcast them to the clients)
 
