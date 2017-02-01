@@ -22,16 +22,20 @@
       this.already_connected = false
       this.path = location.pathname
 
+      var drab = this
+
       // launch all on_load functions
-      for(var f of this.load) {
-        f(this)
-      }
+      // for(var f of this.load) {
+      //   f(this)
+      // }
+      drab.load.forEach(function(fx) {
+        fx(drab)
+      })
 
       var socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
       socket.connect()
       this.channel = socket.channel(`drab:${this.path}`, {})
       
-      var drab = this
       this.channel.join()
         .receive("error", function(resp) { 
           // TODO: communicate it to user 
@@ -39,9 +43,12 @@
         })
         .receive("ok", function(resp) {
           // launch on_connect
-          for(var f of drab.connected) {
-            f(resp, drab)
-          }
+          // for(var f of drab.connected) {
+          //   f(resp, drab)
+          // }
+          drab.connected.forEach(function(fx) {
+            fx(resp, drab)
+          })
           drab.already_connected = true
           // event is sent after Drab finish processing the event
           drab.channel.on("event", function (message) {
@@ -58,9 +65,12 @@
       // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
       socket.onClose(function(event) {
         // on_disconnect
-        for(var f of drab.disconnected) {
-          f(drab)
-        }
+        // for(var f of drab.disconnected) {
+          // f(drab)
+        // }
+        drab.disconnected.forEach(function(fx) {
+          fx(drab)
+        })
       })
     },
     // 

@@ -1,3 +1,7 @@
+## 0.2.4
+Fixed:
+* not working in IE11 (#5)
+
 ## 0.2.3
 Fixed:
 * not working on iOS9 (#3): changed all ES6 constructs to plain JS

@@ -38,12 +38,18 @@ Drab.on_connect(function(resp, drab) {
 
   // set up the controls with drab handlers
   // first serve the shortcut controls by adding the longcut attrbutes
-  for (var ev of EVENTS) {
+  // for (var ev of EVENTS) {
+  //   $(`[drab-${ev}]`).each(function() {
+  //     $(this).attr("drab-event", ev) 
+  //     $(this).attr("drab-handler", $(this).attr(`drab-${ev}`))
+  //   })
+  // }
+  EVENTS.forEach(function(ev) {
     $(`[drab-${ev}]`).each(function() {
       $(this).attr("drab-event", ev) 
       $(this).attr("drab-handler", $(this).attr(`drab-${ev}`))
     })
-  }
+  })
 
   var events_to_disable = EVENTS_TO_DISABLE
   $("[drab-event]").each(function() {
