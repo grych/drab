@@ -9,12 +9,15 @@ defmodule Drab.Channel do
     socket_with_path = socket |> assign(:url_path, url_path)
 
     {:ok, pid} = Drab.start_link(socket_with_path)
+    socket_with_pid = assign(socket_with_path, :drab_pid, pid)
 
-    {:ok, assign(socket_with_path, :drab_pid, pid)}
+    Drab.commander(socket).__drab_closing_waiter__(socket_with_pid)
+
+    {:ok, socket_with_pid}
   end
 
   def handle_in("execjs", %{"ok" => [sender_encrypted, reply]}, socket) do
-    # sender contains PID of the process which sended the query
+    # sender contains PID of the process which sent the query
     # sender is waiting for the result
     send(sender(socket, sender_encrypted), 
       {
