@@ -14,7 +14,7 @@ Changes:
 * benchmarks
 * debuggin console
 * timeout for event handlers
-* timeout for Drab.Query and Drab.Modal function
+* timeout for Drab.Query and Drab.Modal functions
 * specify on which pages drab broadcasts, with wildcard
 * dependencies for modules (for ex. Modal depends on Query)
 * keep Store in a permament location (cookie or browser store) on demand

@@ -4,7 +4,7 @@ const EVENTS_TO_DISABLE = <%= Drab.config.events_to_disable_while_processing |> 
 // disable all drab object when disconnected from the server
 Drab.disable_drab_objects = function(disable) {
   <%= if Drab.config.disable_controls_when_disconnected do %>
-    $(`[drab-event]`).prop('disabled', disable)
+    $("[drab-event]").prop('disabled', disable)
   <% end %>
 }
 
@@ -45,9 +45,9 @@ Drab.on_connect(function(resp, drab) {
   //   })
   // }
   EVENTS.forEach(function(ev) {
-    $(`[drab-${ev}]`).each(function() {
+    $("[drab-" + ev + "]").each(function() {
       $(this).attr("drab-event", ev) 
-      $(this).attr("drab-handler", $(this).attr(`drab-${ev}`))
+      $(this).attr("drab-handler", $(this).attr("drab-" + ev))
     })
   })
 

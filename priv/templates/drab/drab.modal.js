@@ -7,7 +7,7 @@ const MODAL_BUTTONS = ".drab-modal-button"
 Drab.on_connect(function(resp, drab) {
   function modal_button_clicked(message, button_clicked) {
     var vals = {}
-    $(`${MODAL} form :input`).map(function() {
+    $(MODAL + " form :input").map(function() {
       var key = $(this).attr("name") || $(this).attr("id")
       vals[key] = $(this).val()
     })
