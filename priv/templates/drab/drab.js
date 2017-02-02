@@ -53,7 +53,7 @@
           // event is sent after Drab finish processing the event
           drab.channel.on("event", function (message) {
             // console.log("EVENT: ", message)
-            if(drab.event_reply_table[message.finished]) {
+            if(message.finished && drab.event_reply_table[message.finished]) {
               drab.event_reply_table[message.finished]()
               delete drab.event_reply_table[message.finished]
             }

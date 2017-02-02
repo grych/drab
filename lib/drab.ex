@@ -61,6 +61,8 @@ defmodule Drab do
 
   @doc false
   def init(socket) do
+    # Drab Closing Waiter handles disconnects, when websocket dies
+    commander(socket).__drab_closing_waiter__(socket)
     {:ok, socket}
   end
 
@@ -69,20 +71,30 @@ defmodule Drab do
     # socket is coming from the first request from the client
     cmdr = commander(socket)
     onload = drab_config(cmdr).onload
-    if onload do # only if onload exists
+    returned_socket = if onload do # only if onload exists
       apply(cmdr, onload, [socket])
+    else
+      socket
     end
-    {:noreply, socket}
+    Phoenix.Channel.push(socket, "event", %{
+      drab_store_token: drab_store_token(socket, returned_socket)
+    })
+    {:noreply, returned_socket}
   end
 
   @doc false
   def handle_cast({:onconnect, socket}, _) do
     cmdr = commander(socket)
     onconnect = drab_config(cmdr).onconnect
-    if onconnect do # only if onconnect exists
+    returned_socket = if onconnect do
       apply(cmdr, onconnect, [socket])
+    else
+      socket
     end
-    {:noreply, socket}
+    Phoenix.Channel.push(socket, "event", %{
+      drab_store_token: drab_store_token(socket, returned_socket)
+    })
+    {:noreply, returned_socket}
   end
 
   @doc false
@@ -107,25 +119,28 @@ defmodule Drab do
         String.to_existing_atom(event_handler_function), 
         [socket, dom_sender]
       )
-      # check if the handler return socket, if not - ignore
-      # TODO: change the warning to exception
-      updated_store = case returned_socket do
-        %Phoenix.Socket{assigns: returned_assigns} ->
-          returned_assigns.drab_store
-        ret ->
-          Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. The store will not be updated.")
-          socket.assigns.drab_store
-      end
-      drab_store_token = Phoenix.Token.sign(socket, "drab_store_token",  updated_store)
 
       # Send a message to browser to run the "after event" callback
       # eg. for enabling the buttons after handling events
       Phoenix.Channel.push(socket, "event", %{
         finished: reply_to,
-        drab_store_token: drab_store_token,
+        drab_store_token: drab_store_token(socket, returned_socket)
       })
     end
     {:noreply, socket}
+  end
+
+  defp drab_store_token(socket, returned_socket) do
+    # check if the handler return socket, if not - ignore
+    # TODO: change the warning to exception
+    updated_store = case returned_socket do
+      %Phoenix.Socket{assigns: returned_assigns} ->
+        returned_assigns.drab_store
+      ret ->
+        Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. The store will not be updated.")
+        socket.assigns.drab_store
+    end
+    Phoenix.Token.sign(socket, "drab_store_token",  updated_store)
   end
 
   defp function_exists?(module_name, function_name) do

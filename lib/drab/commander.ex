@@ -54,9 +54,12 @@ defmodule Drab.Commander do
       end
 
   Callbacks:
+  * `onload` - launched only once after page loaded and connects to the server - exactly the same like `onconnect`, 
+    but launches only once, not after every reconnect
   * `onconnect` - launched every time client browser connects to the server, including reconnects after server 
     crash, network broken etc
-  * `onload` - launched only once after page loaded and connects to the server
+  * `ondisconnect` - launched every time client browser disconnects from the server, it may be a network disconnect,
+    closing the browser, navigate back
 
   ## Modules
 
@@ -105,6 +108,29 @@ defmodule Drab.Commander do
           opts = Enum.into(unquote(options), %{commander: __MODULE__})
           Map.merge(%Drab.Config{}, opts) 
         end
+      end
+
+      # This function is launched from Drab.init
+      # It starts the process which reacts on server die; launching `ondisconnect` callback in this case
+      def __drab_closing_waiter__(socket) do
+        if __drab__().ondisconnect do
+          spawn_link fn ->
+            Process.flag(:trap_exit, true)
+            receive do
+              {:EXIT, _pid, {:shutdown, :closed}} -> 
+                # Launch ondisconnect event
+                apply(__drab__().commander, __drab__().ondisconnect, [socket])
+                exit(:normal)
+              other ->
+                Logger.warn """
+                  Drab Closing Waiter received unknown message: #{inspect(other)}.
+                  Ondisconnect handler will not be launched.
+                  """
+            end
+          end
+        end
+
+        socket
       end
 
     end

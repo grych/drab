@@ -5,6 +5,7 @@ defmodule Drab.Config do
   defstruct commander: nil, 
     onload: nil,
     onconnect: nil,
+    ondisconnect: nil,
     modules: [Drab.Query, Drab.Modal],
     inherit_session: []
 end
