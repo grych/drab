@@ -55,60 +55,91 @@ defmodule Drab do
   use GenServer
 
   @doc false
-  def start_link(socket) do
-    GenServer.start_link(__MODULE__, socket)
+  def start({store, channel_pid, commander}) do
+    GenServer.start(__MODULE__, {store, channel_pid, commander})
+  end
+
+  def start_link({store, channel_pid, commander}) do
+    GenServer.start_link(__MODULE__, {store, channel_pid, commander})
   end
 
   @doc false
-  def init(socket) do
+  def init({store, channel_pid, commander}) do
     # Drab Closing Waiter handles disconnects, when websocket dies
     # TODO: learn about GenServer init. I set up :drab_pid here and in Drab.Channel.join
     # I set up it here because it need to exists before join...???
     # socket_with_my_pid = Phoenix.Socket.assign(socket, :drab_pid, self())
     # commander(socket).__drab_closing_waiter__(socket_with_my_pid)
     # {:ok, socket_with_my_pid}
-    {:ok, socket}
+    # Process.flag(:trap_exit, true)
+    Logger.debug("Drab pid: #{inspect(self())}, channel pid: #{inspect(channel_pid)}")
+    if Process.alive?(channel_pid) do
+      Process.monitor(channel_pid)
+    else
+      Logger.error("Socket died before starting Drab process.")
+      Process.exit(self(), :normal)
+    end
+    {:ok, {store, commander}}
+  end
+
+  def handle_info({:DOWN, _ref, :process, _pid, {_reason, _state}}, {store, commander}) do
+    Logger.debug(store|>inspect)
+    if commander.__drab__().ondisconnect do
+      # TODO: timeout
+      :ok = apply(commander, 
+            commander.__drab__().ondisconnect, 
+            [store])
+    end
+    # TODO: rething the processes strategy
+    Process.exit(self(), :normal)
+    {:noreply, {store, commander}}
   end
 
   @doc false
-  def handle_cast({:onload, socket}, _) do
+  def handle_cast({:onload, socket}, {_store, commander}) do
     # socket is coming from the first request from the client
-    cmdr = commander(socket)
-    onload = drab_config(cmdr).onload
+    onload = drab_config(commander).onload
     returned_socket = if onload do # only if onload exists
-      apply(cmdr, onload, [socket])
+      apply(commander, onload, [socket])
     else
       socket
     end
     Phoenix.Channel.push(socket, "event", %{
       drab_store_token: drab_store_token(socket, returned_socket)
     })
-    {:noreply, returned_socket}
+    #TODO: update store in Drab server
+    {:noreply, {returned_socket.assigns.drab_store, commander}}
   end
 
   @doc false
-  def handle_cast({:onconnect, socket}, _) do
-    cmdr = commander(socket)
-    onconnect = drab_config(cmdr).onconnect
+  def handle_cast({:onconnect, socket}, {_store, commander}) do
+    onconnect = drab_config(commander).onconnect
     returned_socket = if onconnect do
-      apply(cmdr, onconnect, [socket])
+      apply(commander, onconnect, [socket])
     else
       socket
     end
     Phoenix.Channel.push(socket, "event", %{
       drab_store_token: drab_store_token(socket, returned_socket)
     })
-    {:noreply, returned_socket}
+    #TODO: update store in Drab server
+    {:noreply, {returned_socket.assigns.drab_store, commander}}
+  end
+
+  @doc false
+  def handle_cast({:update_store, store}, {_store, commander}) do
+    # Logger.debug("UPDATED, #{inspect(updated_socket)}")
+    {:noreply, {store, commander}}
   end
 
   @doc false
   # any other cast is an event handler
-  def handle_cast({_, socket, payload, event_handler_function, reply_to}, _) do
-    do_handle_cast(socket, event_handler_function, payload, reply_to)
+  def handle_cast({_, socket, payload, event_handler_function, reply_to}, {store, commander}) do
+    do_handle_cast(socket, event_handler_function, payload, reply_to, store, commander)
   end
 
-  defp do_handle_cast(socket, event_handler_function, payload, reply_to) do
-    commander_module = commander(socket)
+  defp do_handle_cast(socket, event_handler_function, payload, reply_to, store, commander) do
+    commander_module = commander
 
     # raise a friendly exception when misspelled the function handler name
     unless function_exists?(commander_module, event_handler_function) do
@@ -124,24 +155,37 @@ defmodule Drab do
         [socket, dom_sender]
       )
 
+      #TODO: check if handler returned real socket, otherwise push will crash
+
       # Send a message to browser to run the "after event" callback
       # eg. for enabling the buttons after handling events
-      Phoenix.Channel.push(socket, "event", %{
+      Phoenix.Channel.push(returned_socket, "event", %{
         finished: reply_to,
         drab_store_token: drab_store_token(socket, returned_socket)
       })
+
+      # Logger.debug("**** DRAB.socket: #{inspect(Drab.get_socket(returned_socket.assigns.drab_pid))}")
+
+      # Drab.update_store(returned_socket.assigns.drab_pid, returned_socket)
+      # GenServer.cast(returned_socket.assigns.drab_pid, {:update_store, returned_socket.assigns.drab_store})
+      Drab.update_store(returned_socket.assigns.drab_pid, returned_socket.assigns.drab_store)
     end
-    {:noreply, socket}
+
+    {:noreply, {store, commander}}
   end
 
   @doc false
-  def get_socket(pid) do
-    GenServer.call(pid, :get_socket)
+  def get_store(pid) do
+    GenServer.call(pid, :get_store)
+  end
+
+  def update_store(pid, new_store) do
+    GenServer.cast(pid, {:update_store, new_store})
   end
 
   @doc false
-  def handle_call(:get_socket, _from, socket) do
-    {:reply, socket, socket}
+  def handle_call(:get_store, _from, store) do
+    {:reply, store, store}
   end
 
   defp drab_store_token(socket, returned_socket) do
@@ -151,7 +195,7 @@ defmodule Drab do
       %Phoenix.Socket{assigns: returned_assigns} ->
         returned_assigns.drab_store
       ret ->
-        Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. The store will not be updated.")
+        Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. Drab Store will not be updated.")
         socket.assigns.drab_store
     end
     Phoenix.Token.sign(socket, "drab_store_token",  updated_store)
@@ -196,7 +240,7 @@ defmodule Drab do
 
   # returns the commander name for the given controller (assigned in token)
   @doc false
-  def commander(socket) do
+  def get_commander(socket) do
     # Logger.debug "**** ASSIGNS: #{inspect(socket.assigns)}"
     controller = socket.assigns.controller
     controller.__drab__()[:commander]

@@ -110,33 +110,6 @@ defmodule Drab.Commander do
         end
       end
 
-      # This function is launched from Drab.init
-      # It starts the process which reacts on server die; launching `ondisconnect` callback in this case
-      def __drab_closing_waiter__(socket) do
-        if __drab__().ondisconnect do
-          # Logger.debug("Closing waiter: #{socket|>inspect}")
-          socket_for_this_moment = Drab.get_socket(socket.assigns.drab_pid)
-          Logger.debug("Socket get from Drab in closing waiter: #{socket_for_this_moment |> inspect}")
-          spawn_link fn ->
-            Process.flag(:trap_exit, true)
-            receive do
-              {:EXIT, _pid, {:shutdown, :closed}} -> 
-              # {:EXIT, _pid, _reason} -> 
-                # Launch ondisconnect event
-                apply(__drab__().commander, __drab__().ondisconnect, [socket])
-                exit(:normal)
-              other ->
-                Logger.warn """
-                  Drab Closing Waiter received unknown message: #{inspect(other)}.
-                  Ondisconnect handler will not be launched.
-                  """
-            end
-          end
-        else
-          socket
-        end
-      end
-
     end
   end
 
