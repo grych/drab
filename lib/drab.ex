@@ -65,14 +65,7 @@ defmodule Drab do
 
   @doc false
   def init({store, channel_pid, commander}) do
-    # Drab Closing Waiter handles disconnects, when websocket dies
-    # TODO: learn about GenServer init. I set up :drab_pid here and in Drab.Channel.join
-    # I set up it here because it need to exists before join...???
-    # socket_with_my_pid = Phoenix.Socket.assign(socket, :drab_pid, self())
-    # commander(socket).__drab_closing_waiter__(socket_with_my_pid)
-    # {:ok, socket_with_my_pid}
-    # Process.flag(:trap_exit, true)
-    Logger.debug("Drab pid: #{inspect(self())}, channel pid: #{inspect(channel_pid)}")
+    # Logger.debug("Drab pid: #{inspect(self())}, channel pid: #{inspect(channel_pid)}")
     if Process.alive?(channel_pid) do
       Process.monitor(channel_pid)
     else
@@ -82,12 +75,13 @@ defmodule Drab do
     {:ok, {store, commander}}
   end
 
+  @doc false
   def handle_info({:DOWN, _ref, :process, _pid, {_reason, _state}}, {store, commander}) do
-    Logger.debug(store|>inspect)
+    # Logger.debug(store|>inspect)
     if commander.__drab__().ondisconnect do
       # TODO: timeout
       :ok = apply(commander, 
-            commander.__drab__().ondisconnect, 
+            drab_config(commander).ondisconnect, 
             [store])
     end
     # TODO: rething the processes strategy
@@ -244,6 +238,12 @@ defmodule Drab do
     # Logger.debug "**** ASSIGNS: #{inspect(socket.assigns)}"
     controller = socket.assigns.controller
     controller.__drab__()[:commander]
+  end
+
+  # returns the drab_pid from socket
+  @doc false
+  def pid(socket) do
+    socket.assigns.drab_pid
   end
 
   # if module is commander or controller with drab enabled, it has __drab__/0 function with Drab configuration

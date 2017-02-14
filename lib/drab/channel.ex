@@ -11,8 +11,6 @@ defmodule Drab.Channel do
     {:ok, pid} = Drab.start({%{}, self(), Drab.get_commander(socket)})
     socket_with_pid = assign(socket_with_path, :drab_pid, pid)
 
-    # Drab.commander(socket).__drab_closing_waiter__(socket_with_pid)
-
     {:ok, socket_with_pid}
   end
 

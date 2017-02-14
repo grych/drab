@@ -1,11 +1,11 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.2.4"
+  @version "0.3.0"
 
   def project do
     [app: :drab,
      version: @version,
-     elixir: "~> 1.3",
+     elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
