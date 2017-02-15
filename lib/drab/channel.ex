@@ -58,15 +58,11 @@ defmodule Drab.Channel do
   end   
 
   defp verify_and_cast(message, params, socket, drab_store_token) do
-    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
-      {:ok, drab_store} -> 
-        socket_with_store = assign(socket, :drab_store, drab_store)
-        p = [message, socket_with_store] ++ params
-        GenServer.cast(socket.assigns.drab_pid, List.to_tuple(p))
-        {:noreply, socket_with_store}
-      {:error, reason} -> 
-        raise "Can't verify the token: #{inspect(reason)}" # let it die
-    end    
+    drab_store = Drab.detokenize_store(socket, drab_store_token) 
+    socket_with_store = assign(socket, :drab_store, drab_store)
+    p = [message, socket_with_store] ++ params
+    GenServer.cast(socket.assigns.drab_pid, List.to_tuple(p))
+    {:noreply, socket_with_store}
   end
 
   defp sender(socket, sender_encrypted) do

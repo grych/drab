@@ -125,6 +125,11 @@ defmodule Drab do
     do_handle_cast(socket, event_handler_function, payload, reply_to, store, commander)
   end
 
+  @doc false
+  def handle_call(:get_store, _from, store) do
+    {:reply, store, store}
+  end
+
   defp do_handle_cast(socket, event_handler_function, payload, reply_to, store, commander) do
     commander_module = commander
 
@@ -143,18 +148,11 @@ defmodule Drab do
       )
 
       #TODO: check if handler returned real socket, otherwise push will crash
-
-      # Send a message to browser to run the "after event" callback
-      # eg. for enabling the buttons after handling events
       Phoenix.Channel.push(returned_socket, "event", %{
         finished: reply_to,
         drab_store_token: drab_store_token(socket, returned_socket)
       })
 
-      # Logger.debug("**** DRAB.socket: #{inspect(Drab.get_socket(returned_socket.assigns.drab_pid))}")
-
-      # Drab.update_store(returned_socket.assigns.drab_pid, returned_socket)
-      # GenServer.cast(returned_socket.assigns.drab_pid, {:update_store, returned_socket.assigns.drab_store})
       Drab.update_store(returned_socket.assigns.drab_pid, returned_socket.assigns.drab_store)
     end
 
@@ -171,8 +169,18 @@ defmodule Drab do
   end
 
   @doc false
-  def handle_call(:get_store, _from, store) do
-    {:reply, store, store}
+  def tokenize_store(socket, store) do
+    Phoenix.Token.sign(socket, "drab_store_token",  store)
+  end
+ 
+  @doc false
+  def detokenize_store(socket, drab_store_token) do
+    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
+      {:ok, drab_store} -> 
+        drab_store
+      {:error, reason} -> 
+        raise "Can't verify the token: #{inspect(reason)}" # let it die    
+    end
   end
 
   defp drab_store_token(socket, returned_socket) do
@@ -185,7 +193,7 @@ defmodule Drab do
         Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. Drab Store will not be updated.")
         socket.assigns.drab_store
     end
-    Phoenix.Token.sign(socket, "drab_store_token",  updated_store)
+    tokenize_store(socket, updated_store)
   end
 
   defp function_exists?(module_name, function_name) do

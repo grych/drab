@@ -33,9 +33,8 @@ defmodule Drab.Client do
       store = access_store 
         |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end) 
         |> Enum.into(%{})
-      # Logger.debug "SESSION: #{inspect store}"
-      # store = Phoenix.Token.sign(conn, "controller_and_action", store)
-      store_token = Phoenix.Token.sign(conn, "drab_store_token",  store)
+
+      store_token = Drab.tokenize_store(conn, store)
 
       bindings = [
         controller_and_action: controller_and_action,
