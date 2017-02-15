@@ -82,35 +82,20 @@ defmodule Drab do
     {:noreply, state}
   end
 
+
   @doc false
-  def handle_cast({:onload, socket}, {_store, commander}) do
+  def handle_cast({:onload, socket}, {store, commander}) do
     # socket is coming from the first request from the client
     onload = drab_config(commander).onload
-    returned_socket = if onload do # only if onload exists
-      apply(commander, onload, [socket])
-    else
-      socket
-    end
-    Phoenix.Channel.push(socket, "event", %{
-      drab_store_token: drab_store_token(socket, returned_socket)
-    })
-    #TODO: update store in Drab server
-    {:noreply, {returned_socket.assigns.drab_store, commander}}
+    handle_callback(socket, commander, onload) #returns socket
+    {:noreply, {store, commander}}
   end
 
   @doc false
-  def handle_cast({:onconnect, socket}, {_store, commander}) do
+  def handle_cast({:onconnect, socket}, {store, commander}) do
     onconnect = drab_config(commander).onconnect
-    returned_socket = if onconnect do
-      apply(commander, onconnect, [socket])
-    else
-      socket
-    end
-    Phoenix.Channel.push(socket, "event", %{
-      drab_store_token: drab_store_token(socket, returned_socket)
-    })
-    #TODO: update store in Drab server
-    {:noreply, {returned_socket.assigns.drab_store, commander}}
+    handle_callback(socket, commander, onconnect) #returns socket
+    {:noreply, {store, commander}}
   end
 
   @doc false
@@ -122,15 +107,25 @@ defmodule Drab do
   @doc false
   # any other cast is an event handler
   def handle_cast({_, socket, payload, event_handler_function, reply_to}, {store, commander}) do
-    do_handle_cast(socket, event_handler_function, payload, reply_to, store, commander)
+    handle_event(socket, event_handler_function, payload, reply_to, store, commander)
   end
+
 
   @doc false
   def handle_call(:get_store, _from, store) do
     {:reply, store, store}
   end
 
-  defp do_handle_cast(socket, event_handler_function, payload, reply_to, store, commander) do
+
+  defp handle_callback(socket, commander, callback) do
+    if callback do
+      apply(commander, callback, [socket])
+    else 
+      socket
+    end
+  end
+
+  defp handle_event(socket, event_handler_function, payload, reply_to, store, commander) do
     commander_module = commander
 
     # raise a friendly exception when misspelled the function handler name
@@ -149,21 +144,18 @@ defmodule Drab do
 
       #TODO: check if handler returned real socket, otherwise push will crash
       Phoenix.Channel.push(returned_socket, "event", %{
-        finished: reply_to,
-        drab_store_token: drab_store_token(socket, returned_socket)
+        finished: reply_to
+        # drab_store_token: drab_store_token(socket, returned_socket)
       })
 
-      Drab.update_store(returned_socket.assigns.drab_pid, returned_socket.assigns.drab_store)
+      # Drab.update_store(returned_socket.assigns.drab_pid, returned_socket.assigns.drab_store)
     end
 
     {:noreply, {store, commander}}
   end
 
-  @doc false
-  def get_store(pid) do
-    GenServer.call(pid, :get_store)
-  end
 
+  @doc false
   def update_store(pid, new_store) do
     GenServer.cast(pid, {:update_store, new_store})
   end
@@ -183,18 +175,18 @@ defmodule Drab do
     end
   end
 
-  defp drab_store_token(socket, returned_socket) do
-    # check if the handler return socket, if not - ignore
-    # TODO: change the warning to exception
-    updated_store = case returned_socket do
-      %Phoenix.Socket{assigns: returned_assigns} ->
-        returned_assigns.drab_store
-      ret ->
-        Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. Drab Store will not be updated.")
-        socket.assigns.drab_store
-    end
-    tokenize_store(socket, updated_store)
-  end
+  # defp drab_store_token(socket, returned_socket) do
+  #   # check if the handler return socket, if not - ignore
+  #   # TODO: change the warning to exception
+  #   updated_store = case returned_socket do
+  #     %Phoenix.Socket{assigns: returned_assigns} ->
+  #       returned_assigns.drab_store
+  #     ret ->
+  #       Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. Drab Store will not be updated.")
+  #       socket.assigns.drab_store
+  #   end
+  #   tokenize_store(socket, updated_store)
+  # end
 
   defp function_exists?(module_name, function_name) do
     module_name.__info__(:functions) 
@@ -236,7 +228,6 @@ defmodule Drab do
   # returns the commander name for the given controller (assigned in token)
   @doc false
   def get_commander(socket) do
-    # Logger.debug "**** ASSIGNS: #{inspect(socket.assigns)}"
     controller = socket.assigns.controller
     controller.__drab__()[:commander]
   end

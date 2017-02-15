@@ -39,30 +39,28 @@ defmodule Drab.Channel do
     {:noreply, socket}
   end
 
-  def handle_in("onload", %{"drab_store_token" => drab_store_token}, socket) do
-    verify_and_cast(:onload, [], socket, drab_store_token)
+  def handle_in("onload", _, socket) do
+    verify_and_cast(:onload, [], socket)
   end
 
-  def handle_in("onconnect", %{"drab_store_token" => drab_store_token}, socket) do
-    verify_and_cast(:onconnect, [], socket, drab_store_token)
+  def handle_in("onconnect", _, socket) do
+    verify_and_cast(:onconnect, [], socket)
   end
 
   def handle_in("event", %{
       "event" => event_name, 
       "payload" => payload, 
       "event_handler_function" => event_handler_function,
-      "reply_to" => reply_to,
-      "drab_store_token" => drab_store_token}, socket) do
+      "reply_to" => reply_to
+      }, socket) do
     # event_name is currently not used (0.2.0)
-    verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket, drab_store_token)
+    verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket)
   end   
 
-  defp verify_and_cast(message, params, socket, drab_store_token) do
-    drab_store = Drab.detokenize_store(socket, drab_store_token) 
-    socket_with_store = assign(socket, :drab_store, drab_store)
-    p = [message, socket_with_store] ++ params
+  defp verify_and_cast(message, params, socket) do
+    p = [message, socket] ++ params
     GenServer.cast(socket.assigns.drab_pid, List.to_tuple(p))
-    {:noreply, socket_with_store}
+    {:noreply, socket}
   end
 
   defp sender(socket, sender_encrypted) do

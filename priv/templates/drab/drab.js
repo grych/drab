@@ -58,7 +58,7 @@
               delete drab.event_reply_table[message.finished]
             }
             // update the store
-            drab.drab_store_token = message.drab_store_token
+            // drab.drab_store_token = message.drab_store_token
           })
         })
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
@@ -87,8 +87,7 @@
                       event: event_name, 
                       event_handler_function: event_handler, 
                       payload: payload, 
-                      reply_to: reply_to,
-                      drab_store_token: Drab.drab_store_token
+                      reply_to: reply_to
                     }
       this.channel.push("event", message)
     },

@@ -33,6 +33,7 @@ defmodule Drab.Client do
       store = access_store 
         |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end) 
         |> Enum.into(%{})
+      Logger.debug("**** #{inspect store}")
 
       store_token = Drab.tokenize_store(conn, store)
 

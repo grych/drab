@@ -82,7 +82,7 @@ defmodule Drab.Core do
       uid = get_store(socket, :user_id)
   """
   def get_store(socket, key) do
-    socket.assigns.drab_store[key]
+    store(socket)[key]
   end
 
   @doc """
@@ -100,7 +100,15 @@ defmodule Drab.Core do
       put_store(socket, :counter, 1)
   """
   def put_store(socket, key, value) do
-    store = socket.assigns.drab_store
-    Phoenix.Socket.assign(socket, :drab_store, Map.merge(store, %{key => value}))
+    store = store(socket) |> Map.merge(%{key => value})
+    execjs(socket, "Drab.drab_store_token = \"#{Drab.tokenize_store(socket, store)}\"")
+    # store the store in Drab server, to have it on terminate
+    Drab.update_store(socket.assigns.drab_pid, store)
+    socket
+  end
+
+  defp store(socket) do
+    store_token = execjs(socket, "Drab.drab_store_token")
+    Drab.detokenize_store(socket, store_token)    
   end
 end
