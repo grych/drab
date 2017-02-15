@@ -1,3 +1,8 @@
+## 0.2.5
+Changes:
+* handling disconnects (ondisconnect callback)
+* keep Store in a permament location (browser store) on demand
+
 ## 0.2.4
 Fixed:
 * not working in IE11 (#5)
