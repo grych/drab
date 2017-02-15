@@ -5,7 +5,7 @@ defmodule Drab.Mixfile do
   def project do
     [app: :drab,
      version: @version,
-     elixir: "~> 1.4",
+     elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
