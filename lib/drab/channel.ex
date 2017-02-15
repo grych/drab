@@ -8,7 +8,7 @@ defmodule Drab.Channel do
     # socket already contains controller and action
     socket_with_path = socket |> assign(:url_path, url_path)
 
-    {:ok, pid} = Drab.start({%{}, self(), Drab.get_commander(socket)})
+    {:ok, pid} = Drab.start_link({%{}, Drab.get_commander(socket)})
     socket_with_pid = assign(socket_with_path, :drab_pid, pid)
 
     {:ok, socket_with_pid}

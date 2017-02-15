@@ -42,13 +42,19 @@ defmodule Drab.Commander do
   Callbacks must be specified in `use Drab.Commander` clause:
 
       defmodule DrabExample.PageCommander do
-        use Drab.Commander, onload: :page_loaded, onconnect: :connected
+        use Drab.Commander, onload: :page_loaded, onconnect: :connected, ondisconnect: :dosconnected
 
         def page_loaded(socket) do
           ...
         end
 
         def connected(socket) do
+          ...
+        end
+
+        def connected(store) do
+          # notice that this callback receives store, not socket
+          # this is because socket is not available anymore (Channel is closed)
           ...
         end
       end
@@ -59,7 +65,7 @@ defmodule Drab.Commander do
   * `onconnect` - launched every time client browser connects to the server, including reconnects after server 
     crash, network broken etc
   * `ondisconnect` - launched every time client browser disconnects from the server, it may be a network disconnect,
-    closing the browser, navigate back
+    closing the browser, navigate back. Disconnect callback receives Drab Store as an argument
 
   ## Modules
 

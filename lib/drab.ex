@@ -55,38 +55,31 @@ defmodule Drab do
   use GenServer
 
   @doc false
-  def start({store, channel_pid, commander}) do
-    GenServer.start(__MODULE__, {store, channel_pid, commander})
-  end
-
-  def start_link({store, channel_pid, commander}) do
-    GenServer.start_link(__MODULE__, {store, channel_pid, commander})
+  def start_link({store, commander}) do
+    GenServer.start_link(__MODULE__, {store, commander})
   end
 
   @doc false
-  def init({store, channel_pid, commander}) do
-    # Logger.debug("Drab pid: #{inspect(self())}, channel pid: #{inspect(channel_pid)}")
-    if Process.alive?(channel_pid) do
-      Process.monitor(channel_pid)
-    else
-      Logger.error("Socket died before starting Drab process.")
-      Process.exit(self(), :normal)
-    end
+  def init({store, commander}) do
+    Process.flag(:trap_exit, true)
     {:ok, {store, commander}}
   end
 
   @doc false
-  def handle_info({:DOWN, _ref, :process, _pid, {_reason, _state}}, {store, commander}) do
-    # Logger.debug(store|>inspect)
+  def terminate(_reason, {store, commander}) do
     if commander.__drab__().ondisconnect do
       # TODO: timeout
       :ok = apply(commander, 
             drab_config(commander).ondisconnect, 
             [store])
     end
-    # TODO: rething the processes strategy
-    Process.exit(self(), :normal)
     {:noreply, {store, commander}}
+  end
+
+  @doc false
+  def handle_info({:EXIT, pid, :normal}, state) when pid != self() do
+    # ignore exits of the subprocesses
+    {:noreply, state}
   end
 
   @doc false
