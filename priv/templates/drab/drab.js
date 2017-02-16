@@ -11,11 +11,12 @@
   }
   
   window.Drab = {
-    run: function(drab_return_token, drab_store_token) {
+    run: function(drab_return_token, inherited_drab_store_token) {
       this.Socket = require("phoenix").Socket
 
       this.drab_return_token = drab_return_token
-      this.drab_store_token = drab_store_token
+      this.inherited_drab_store_token = inherited_drab_store_token
+      // this.set_drab_store_token(drab_store_token)
       this.self = this
       this.myid = uuid()
       this.onload_launched = false
@@ -103,6 +104,12 @@
     },
     on_load: function(f) {
       this.load.push(f)
+    },
+    set_drab_store_token: function(token) {
+      <%= Drab.Template.render_template("drab.store.#{Drab.config.drab_store_storage |> Atom.to_string}.set.js", []) %>
+    },
+    get_drab_store_token: function() {
+      <%= Drab.Template.render_template("drab.store.#{Drab.config.drab_store_storage |> Atom.to_string}.get.js", []) %>
     }
   }
 
@@ -112,5 +119,5 @@
     end)
   %>
 
-  Drab.run('<%= controller_and_action %>', '<%= drab_store_token %>')
+  Drab.run('<%= controller_and_action %>', '<%= inherited_drab_store_token %>')
 })();

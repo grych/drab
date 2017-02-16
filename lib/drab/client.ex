@@ -33,15 +33,15 @@ defmodule Drab.Client do
       store = access_store 
         |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end) 
         |> Enum.into(%{})
-      Logger.debug("**** #{inspect store}")
+      # Logger.debug("**** #{inspect store}")
 
-      store_token = Drab.tokenize_store(conn, store)
+      store_token = Drab.Core.tokenize_store(conn, store)
 
       bindings = [
         controller_and_action: controller_and_action,
         commander: commander,
         templates: templates,
-        drab_store_token: store_token
+        inherited_drab_store_token: store_token
       ]
 
       js = render_template("drab.js", bindings)

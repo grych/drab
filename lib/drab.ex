@@ -85,7 +85,9 @@ defmodule Drab do
 
   @doc false
   def handle_cast({:onload, socket}, {store, commander}) do
-    # socket is coming from the first request from the client
+    # update the Store with values taken from session
+    Drab.Core.inherited_store(socket) |> Enum.each(fn({k, v}) -> Drab.Core.put_store(socket, k, v) end)
+
     onload = drab_config(commander).onload
     handle_callback(socket, commander, onload) #returns socket
     {:noreply, {store, commander}}
@@ -158,21 +160,6 @@ defmodule Drab do
   @doc false
   def update_store(pid, new_store) do
     GenServer.cast(pid, {:update_store, new_store})
-  end
-
-  @doc false
-  def tokenize_store(socket, store) do
-    Phoenix.Token.sign(socket, "drab_store_token",  store)
-  end
- 
-  @doc false
-  def detokenize_store(socket, drab_store_token) do
-    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
-      {:ok, drab_store} -> 
-        drab_store
-      {:error, reason} -> 
-        raise "Can't verify the token: #{inspect(reason)}" # let it die    
-    end
   end
 
   # defp drab_store_token(socket, returned_socket) do
@@ -259,13 +246,17 @@ defmodule Drab do
   * `disable_controls_when_disconnected` (default: `true`) - disables control when there is no connectivity
     between the browser and the server
   * `socket` (default: `"/drab/socket"`) - path to Drab socket
+  * `drab_store_storage` (default: :session_storage) - where to keep the Drab Strore, :memory, :local_storage or 
+    :session_storage; data in memory is kept to the next page load, session storage persist until browser is
+    closed, and local storage is kept forever
   """
   def config() do
     %{
       disable_controls_while_processing: Application.get_env(:drab, :disable_controls_while_processing, true),
       events_to_disable_while_processing: Application.get_env(:drab, :events_to_disable_while_processing, ["click"]),
       disable_controls_when_disconnected: Application.get_env(:drab, :disable_controls_when_disconnected, true),
-      socket: Application.get_env(:drab, :socket, "/drab/socket")
+      socket: Application.get_env(:drab, :socket, "/drab/socket"),
+      drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage)
     }
   end
 end

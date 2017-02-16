@@ -85,6 +85,8 @@ defmodule Drab.Commander do
   session map. Only this keys will be available to `Drab.Core.get_store/2`
 
       use Drab.Commander, inherit_session: [:user_id]
+  
+  This Drab Store entry is read-only and will be rewritten after the next page load.
 
   ## Generate the Commander
 

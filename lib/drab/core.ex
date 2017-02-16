@@ -95,20 +95,42 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Returns the socket with the store key => value pair assigned. 
+  Saves the key => value in the Store. Returns unchanged socket. 
 
       put_store(socket, :counter, 1)
   """
   def put_store(socket, key, value) do
     store = store(socket) |> Map.merge(%{key => value})
-    execjs(socket, "Drab.drab_store_token = \"#{Drab.tokenize_store(socket, store)}\"")
+    # execjs(socket, "Drab.drab_store_token = \"#{tokenize_store(socket, store)}\"")
+    execjs(socket, "Drab.set_drab_store_token(\"#{tokenize_store(socket, store)}\")")
     # store the store in Drab server, to have it on terminate
     Drab.update_store(socket.assigns.drab_pid, store)
     socket
   end
 
   defp store(socket) do
-    store_token = execjs(socket, "Drab.drab_store_token")
-    Drab.detokenize_store(socket, store_token)    
+    store_token = execjs(socket, "Drab.get_drab_store_token()")
+    # Logger.debug("********************** #{inspect store_token}")
+    detokenize_store(socket, store_token)
+  end
+
+  def inherited_store(socket) do
+    store_token = execjs(socket, "Drab.inherited_drab_store_token")
+    detokenize_store(socket, store_token)
+  end
+
+  def tokenize_store(socket, store) do
+    Phoenix.Token.sign(socket, "drab_store_token",  store)
+  end
+ 
+  defp detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
+
+  defp detokenize_store(socket, drab_store_token) do
+    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
+      {:ok, drab_store} -> 
+        drab_store
+      {:error, reason} -> 
+        raise "Can't verify the token: #{inspect(reason)}" # let it die    
+    end
   end
 end

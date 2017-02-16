@@ -498,7 +498,7 @@ defmodule Drab.Query do
   end
 
   defp escape_value(value) when is_boolean(value),  do: "#{inspect(value)}"
-  defp escape_value(value) when is_nil(value),      do: ""
+  defp escape_value(value) when is_nil(value),      do: "\"\""
   defp escape_value(value),                         do: "#{Drab.Core.encode_js(value)}"
 
   defp wrong_query!(selector, method, arguments \\ nil) do
