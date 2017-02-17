@@ -82,7 +82,9 @@ defmodule Drab.Core do
       uid = get_store(socket, :user_id)
   """
   def get_store(socket, key) do
-    store(socket)[key]
+    store = Drab.get_store(socket.assigns.drab_pid)
+    store[key]
+    # store(socket)[key]
   end
 
   @doc """
@@ -122,7 +124,8 @@ defmodule Drab.Core do
   You must explicit which session keys you want to access in `:access_session` option in `use Drab.Commander`.
   """
   def get_session(socket, key) do
-    session(socket)[key]
+    Drab.get_session(socket.assigns.drab_pid)[key]
+    # session(socket)[key]
   end
 
   @doc """
@@ -145,6 +148,7 @@ defmodule Drab.Core do
   def store(socket) do
     store_token = execjs(socket, "Drab.get_drab_store_token()")
     detokenize_store(socket, store_token)
+    # GenServer.call(socket.assigns.drab_pid, :get_store)
   end
 
   @doc false

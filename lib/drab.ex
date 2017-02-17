@@ -82,26 +82,21 @@ defmodule Drab do
     {:noreply, state}
   end
 
-
   @doc false
-  def handle_cast({:onload, socket}, {store, session, commander}) do
-    # update the Store with values taken from session
-    # Drab.Core.inherited_store(socket) |> Enum.each(fn({k, v}) -> Drab.Core.put_store(socket, k, v) end)
-    # Drab.Core.put_store(socket, :something, :dupa)
+  def handle_cast({:onconnect, socket}, {store, session, commander}) do
+    tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end), 
+             Task.async(fn -> Drab.Core.save_store(socket, Drab.Core.store(socket)) end)]
+    Enum.each(tasks, fn(task) -> Task.await(task) end)
 
-    # save the store and session in Drab server
-    Drab.Core.save_store(socket, Drab.Core.store(socket))
-    Drab.Core.save_session(socket, Drab.Core.session(socket))
-
-    onload = drab_config(commander).onload
-    handle_callback(socket, commander, onload) #returns socket
+    onconnect = drab_config(commander).onconnect
+    handle_callback(socket, commander, onconnect) #returns socket
     {:noreply, {store, session, commander}}
   end
 
   @doc false
-  def handle_cast({:onconnect, socket}, {store, session, commander}) do
-    onconnect = drab_config(commander).onconnect
-    handle_callback(socket, commander, onconnect) #returns socket
+  def handle_cast({:onload, socket}, {store, session, commander}) do
+    onload = drab_config(commander).onload
+    handle_callback(socket, commander, onload) #returns socket
     {:noreply, {store, session, commander}}
   end
 
@@ -123,17 +118,24 @@ defmodule Drab do
 
 
   @doc false
-  def handle_call(:get_store, _from, store) do
-    {:reply, store, store}
+  def handle_call(:get_store, _from, {store, session, commander}) do
+    {:reply, store, {store, session, commander}}
+  end
+
+  @doc false
+  def handle_call(:get_session, _from, {store, session, commander}) do
+    {:reply, session, {store, session, commander}}
   end
 
 
   defp handle_callback(socket, commander, callback) do
     if callback do
-      apply(commander, callback, [socket])
-    else 
-      socket
+      # TODO: rethink the subprocess strategies - now it is just spawn_link
+      spawn_link fn -> 
+        apply(commander, callback, [socket])
+      end
     end
+    socket
   end
 
   defp handle_event(socket, event_handler_function, payload, reply_to, store, session, commander) do
@@ -165,10 +167,19 @@ defmodule Drab do
     {:noreply, {store, session, commander}}
   end
 
+  @doc false
+  def get_store(pid) do
+    GenServer.call(pid, :get_store)
+  end
 
   @doc false
   def update_store(pid, new_store) do
     GenServer.cast(pid, {:update_store, new_store})
+  end
+
+  @doc false
+  def get_session(pid) do
+    GenServer.call(pid, :get_session)
   end
 
   @doc false
