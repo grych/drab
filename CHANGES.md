@@ -2,6 +2,7 @@
 Changes:
 * handling disconnects (ondisconnect callback)
 * keep Store in a permament location (browser store) on demand
+* access to Plug Session with `Drab.Core.get_session/2`
 
 ## 0.2.4
 Fixed:

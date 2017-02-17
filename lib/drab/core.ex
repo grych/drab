@@ -139,7 +139,6 @@ defmodule Drab.Core do
   @doc false
   def store(socket) do
     store_token = execjs(socket, "Drab.get_drab_store_token()")
-    # Logger.debug("********************** #{inspect store_token}")
     detokenize_store(socket, store_token)
   end
 
