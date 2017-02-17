@@ -55,25 +55,25 @@ defmodule Drab do
   use GenServer
 
   @doc false
-  def start_link({store, commander}) do
-    GenServer.start_link(__MODULE__, {store, commander})
+  def start_link({store, session, commander}) do
+    GenServer.start_link(__MODULE__, {store, session, commander})
   end
 
   @doc false
-  def init({store, commander}) do
+  def init({store, session, commander}) do
     Process.flag(:trap_exit, true)
-    {:ok, {store, commander}}
+    {:ok, {store, session, commander}}
   end
 
   @doc false
-  def terminate(_reason, {store, commander}) do
+  def terminate(_reason, {store, session, commander}) do
     if commander.__drab__().ondisconnect do
       # TODO: timeout
       :ok = apply(commander, 
             drab_config(commander).ondisconnect, 
-            [store])
+            [store, session])
     end
-    {:noreply, {store, commander}}
+    {:noreply, {store, session, commander}}
   end
 
   @doc false
@@ -84,36 +84,41 @@ defmodule Drab do
 
 
   @doc false
-  def handle_cast({:onload, socket}, {store, commander}) do
+  def handle_cast({:onload, socket}, {store, session, commander}) do
     # update the Store with values taken from session
     # Drab.Core.inherited_store(socket) |> Enum.each(fn({k, v}) -> Drab.Core.put_store(socket, k, v) end)
     # Drab.Core.put_store(socket, :something, :dupa)
 
-    # save the store in Drab server
+    # save the store and session in Drab server
     Drab.Core.save_store(socket, Drab.Core.store(socket))
+    Drab.Core.save_session(socket, Drab.Core.session(socket))
 
     onload = drab_config(commander).onload
     handle_callback(socket, commander, onload) #returns socket
-    {:noreply, {store, commander}}
+    {:noreply, {store, session, commander}}
   end
 
   @doc false
-  def handle_cast({:onconnect, socket}, {store, commander}) do
+  def handle_cast({:onconnect, socket}, {store, session, commander}) do
     onconnect = drab_config(commander).onconnect
     handle_callback(socket, commander, onconnect) #returns socket
-    {:noreply, {store, commander}}
+    {:noreply, {store, session, commander}}
   end
 
   @doc false
-  def handle_cast({:update_store, store}, {_store, commander}) do
-    # Logger.debug("UPDATED, #{inspect(updated_socket)}")
-    {:noreply, {store, commander}}
+  def handle_cast({:update_store, store}, {_store, session, commander}) do
+    {:noreply, {store, session, commander}}
+  end
+
+  @doc false
+  def handle_cast({:update_session, session}, {store, _session, commander}) do
+    {:noreply, {store, session, commander}}
   end
 
   @doc false
   # any other cast is an event handler
-  def handle_cast({_, socket, payload, event_handler_function, reply_to}, {store, commander}) do
-    handle_event(socket, event_handler_function, payload, reply_to, store, commander)
+  def handle_cast({_, socket, payload, event_handler_function, reply_to}, {store, session, commander}) do
+    handle_event(socket, event_handler_function, payload, reply_to, store, session, commander)
   end
 
 
@@ -131,7 +136,7 @@ defmodule Drab do
     end
   end
 
-  defp handle_event(socket, event_handler_function, payload, reply_to, store, commander) do
+  defp handle_event(socket, event_handler_function, payload, reply_to, store, session, commander) do
     commander_module = commander
 
     # raise a friendly exception when misspelled the function handler name
@@ -157,13 +162,18 @@ defmodule Drab do
       # Drab.update_store(returned_socket.assigns.drab_pid, returned_socket.assigns.drab_store)
     end
 
-    {:noreply, {store, commander}}
+    {:noreply, {store, session, commander}}
   end
 
 
   @doc false
   def update_store(pid, new_store) do
     GenServer.cast(pid, {:update_store, new_store})
+  end
+
+  @doc false
+  def update_session(pid, new_session) do
+    GenServer.cast(pid, {:update_session, new_session})
   end
 
   # defp drab_store_token(socket, returned_socket) do

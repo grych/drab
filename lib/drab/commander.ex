@@ -52,8 +52,8 @@ defmodule Drab.Commander do
           ...
         end
 
-        def connected(store) do
-          # notice that this callback receives store, not socket
+        def connected(store, session) do
+          # notice that this callback receives store and session, not socket
           # this is because socket is not available anymore (Channel is closed)
           ...
         end

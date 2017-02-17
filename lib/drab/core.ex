@@ -137,6 +137,11 @@ defmodule Drab.Core do
   end
 
   @doc false
+  def save_session(socket, session) do
+    Drab.update_session(socket.assigns.drab_pid, session)
+  end
+
+  @doc false
   def store(socket) do
     store_token = execjs(socket, "Drab.get_drab_store_token()")
     detokenize_store(socket, store_token)
