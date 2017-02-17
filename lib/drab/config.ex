@@ -7,5 +7,5 @@ defmodule Drab.Config do
     onconnect: nil,
     ondisconnect: nil,
     modules: [Drab.Query, Drab.Modal],
-    inherit_session: []
+    access_session: []
 end

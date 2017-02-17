@@ -86,7 +86,11 @@ defmodule Drab do
   @doc false
   def handle_cast({:onload, socket}, {store, commander}) do
     # update the Store with values taken from session
-    Drab.Core.inherited_store(socket) |> Enum.each(fn({k, v}) -> Drab.Core.put_store(socket, k, v) end)
+    # Drab.Core.inherited_store(socket) |> Enum.each(fn({k, v}) -> Drab.Core.put_store(socket, k, v) end)
+    # Drab.Core.put_store(socket, :something, :dupa)
+
+    # save the store in Drab server
+    Drab.Core.save_store(socket, Drab.Core.store(socket))
 
     onload = drab_config(commander).onload
     handle_callback(socket, commander, onload) #returns socket

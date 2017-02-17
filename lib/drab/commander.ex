@@ -80,13 +80,14 @@ defmodule Drab.Commander do
 
   Every module has its corresponding JS template, which is loaded only when module is enabled.
 
-  ## Store
+  ## Session Access
   Drab may allow an access to specified Plug Session values. For this, you must whitelist the keys of the 
-  session map. Only this keys will be available to `Drab.Core.get_store/2`
+  session map. Only this keys will be available to `Drab.Core.get_session/2`
 
-      use Drab.Commander, inherit_session: [:user_id]
+      use Drab.Commander, access_session: [:user_id]
   
-  This Drab Store entry is read-only and will be rewritten after the next page load.
+  Keys are whitelisted due to security reasons. Session token is store on the client-side and it is signed, but
+  not encrypted.
 
   ## Generate the Commander
 

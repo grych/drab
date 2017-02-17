@@ -11,11 +11,11 @@
   }
   
   window.Drab = {
-    run: function(drab_return_token, inherited_drab_store_token) {
+    run: function(drab_return_token, drab_session_token) {
       this.Socket = require("phoenix").Socket
 
       this.drab_return_token = drab_return_token
-      this.inherited_drab_store_token = inherited_drab_store_token
+      this.drab_session_token = drab_session_token
       // this.set_drab_store_token(drab_store_token)
       this.self = this
       this.myid = uuid()
@@ -119,5 +119,5 @@
     end)
   %>
 
-  Drab.run('<%= controller_and_action %>', '<%= inherited_drab_store_token %>')
+  Drab.run('<%= controller_and_action %>', '<%= drab_session_token %>')
 })();

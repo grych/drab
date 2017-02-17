@@ -101,21 +101,51 @@ defmodule Drab.Core do
   """
   def put_store(socket, key, value) do
     store = store(socket) |> Map.merge(%{key => value})
-    # execjs(socket, "Drab.drab_store_token = \"#{tokenize_store(socket, store)}\"")
     execjs(socket, "Drab.set_drab_store_token(\"#{tokenize_store(socket, store)}\")")
+
     # store the store in Drab server, to have it on terminate
-    Drab.update_store(socket.assigns.drab_pid, store)
+    save_store(socket, store)
+
     socket
   end
 
-  defp store(socket) do
+  @doc false
+  def save_store(socket, store) do
+    Drab.update_store(socket.assigns.drab_pid, store)
+  end
+
+  @doc """
+  Returns the value of the Plug Session represented by the given key.
+
+      counter = get_session(socket, :userid)
+
+  You must explicit which session keys you want to access in `:access_session` option in `use Drab.Commander`.
+  """
+  def get_session(socket, key) do
+    session(socket)[key]
+  end
+
+  @doc """
+  Returns the value of the Plug Session represented by the given key or `default` when key not found
+
+      counter = get_session(socket, :userid, 0)
+
+  You must explicit which session keys you want to access in `:access_session` option in `use Drab.Commander`.
+  """
+  def get_session(socket, key, default) do
+    get_session(socket, key) || default
+  end
+
+  @doc false
+  def store(socket) do
     store_token = execjs(socket, "Drab.get_drab_store_token()")
     # Logger.debug("********************** #{inspect store_token}")
     detokenize_store(socket, store_token)
   end
 
-  def inherited_store(socket) do
-    store_token = execjs(socket, "Drab.inherited_drab_store_token")
+  @doc false
+  def session(socket) do
+    store_token = execjs(socket, "Drab.drab_session_token")
     detokenize_store(socket, store_token)
   end
 

@@ -29,7 +29,7 @@ defmodule Drab.Client do
       modules = [Drab.Core | commander.__drab__().modules] # Drab.Core is included by default
       templates = Enum.map(modules, fn x -> "#{Module.split(x) |> Enum.join(".") |> String.downcase()}.js" end)
 
-      access_store = commander.__drab__().inherit_session
+      access_store = commander.__drab__().access_session
       store = access_store 
         |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end) 
         |> Enum.into(%{})
@@ -41,7 +41,7 @@ defmodule Drab.Client do
         controller_and_action: controller_and_action,
         commander: commander,
         templates: templates,
-        inherited_drab_store_token: store_token
+        drab_session_token: store_token
       ]
 
       js = render_template("drab.js", bindings)
