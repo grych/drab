@@ -271,8 +271,8 @@ defmodule Drab do
   * `disable_controls_when_disconnected` (default: `true`) - disables control when there is no connectivity
     between the browser and the server
   * `socket` (default: `"/drab/socket"`) - path to Drab socket
-  * `drab_store_storage` (default: :session_storage) - where to keep the Drab Strore, :memory, :local_storage or 
-    :session_storage; data in memory is kept to the next page load, session storage persist until browser is
+  * `drab_store_storage` (default: :session_storage) - where to keep the Drab Store - :memory, :local_storage or 
+    :session_storage; data in memory is kept to the next page load, session storage persist until browser (or a tab) is
     closed, and local storage is kept forever
   """
   def config() do
