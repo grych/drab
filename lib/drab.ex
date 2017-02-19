@@ -45,7 +45,7 @@ defmodule Drab do
 
   ## Modules
 
-  Drab is modular. You my choose which modules to use in the specific Commander by using `:module` option
+  Drab is modular. You may choose which modules to use in the specific Commander by using `:module` option
   in `use Drab.Commander` directive. By default, `Drab.Query` and `Drab.Modal` are loaded, but you may override it using 
   options with `use Drab.Commander` directive.
 
