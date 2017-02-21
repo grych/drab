@@ -64,7 +64,6 @@ defmodule Drab.Channel do
   end
 
   defp sender(socket, sender_encrypted) do
-    {:ok, sender_decrypted} = Phoenix.Token.verify(socket, "sender", sender_encrypted)
-    sender_decrypted |> :erlang.binary_to_term
+    Drab.detokenize_pid(socket, sender_encrypted)
   end
 end

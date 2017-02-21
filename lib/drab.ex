@@ -155,16 +155,24 @@ defmodule Drab do
         [socket, dom_sender]
       )
 
-      #TODO: check if handler returned real socket, otherwise push will crash
-      Phoenix.Channel.push(returned_socket, "event", %{
-        finished: reply_to
-        # drab_store_token: drab_store_token(socket, returned_socket)
-      })
-
-      # Drab.update_store(returned_socket.assigns.drab_pid, returned_socket.assigns.drab_store)
+      push_reply(returned_socket, reply_to, commander_module, event_handler_function)
     end
 
     {:noreply, {store, session, commander}}
+  end
+
+  defp push_reply(%{__struct__: Phoenix.Socket} = socket, reply_to, _, _) when is_map(socket) do
+    Phoenix.Channel.push(socket, "event", %{
+      finished: reply_to
+    })
+  end
+
+  defp push_reply(arg, _, commander_module, event_handler_function) do
+    raise """
+    Event handler (#{commander_module}.#{event_handler_function}) should return Phoenix.Socket.
+    It actually returned: 
+    #{inspect(arg)}
+    """    
   end
 
   @doc false
@@ -227,14 +235,24 @@ defmodule Drab do
   end
 
   defp do_push_or_broadcast(socket, pid, message, options, function) do
-    m = options |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, pid)})
+    m = options |> Enum.into(%{}) |> Map.merge(%{sender: tokenize_pid(socket, pid)})
     function.(socket, message,  m)
   end
 
-  @doc false
-  def tokenize(socket, pid) do
+  @doc """
+  Returns token made created from PID. See also `Drab.detokenize_pid/2`
+  """
+  def tokenize_pid(socket, pid) do
     myself = :erlang.term_to_binary(pid)
     Phoenix.Token.sign(socket, "sender", myself)
+  end
+ 
+  @doc """
+  Returns PID decrypted from token. See also `Drab.tokenize_pid/2`
+  """
+  def detokenize_pid(socket, token) do
+    {:ok, detokenized_pid} = Phoenix.Token.verify(socket, "sender", token)
+    detokenized_pid |> :erlang.binary_to_term
   end
 
   # returns the commander name for the given controller (assigned in token)

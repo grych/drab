@@ -492,8 +492,10 @@ defmodule Drab.Query do
     """
   end
   defp build_js(selector, method_javascripted, type) when type in ~w(update insert delete execute)a do
+    # TODO: set_event_handlers should operate only on changed object
     """
-    $('#{selector}').#{method_javascripted}.toArray().length
+    $('#{selector}').#{method_javascripted}
+    Drab.set_event_handlers()
     """
   end
 

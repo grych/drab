@@ -1,10 +1,26 @@
 ## 0.2.6
 Changes:
 * extract Drab Store and Session to standalone module (loaded by default)
+* add event to the dom_sender
+* add throttle event:
+export function throttle(f, delay){
+  var timer = null
+  return function(){
+    let context = this, args = arguments
+    clearTimeout(timer)
+    timer = window.setTimeout(() => {
+      f.apply(context, args)
+    },
+    delay || 500)
+  }
+}
+* reload drab events in JS after insert or update
+* assigns with __
+
 
 ## 0.3.0
 Changes:
-* event handler continue to work after disconnect (is it a really good idea?)
+* wait_for functionality
 
 ## 0.4.0
 Changes:

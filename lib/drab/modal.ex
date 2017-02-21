@@ -73,7 +73,6 @@ defmodule Drab.Modal do
       |> delete("#_drab_modal")
       |> insert(html, append: "body")
 
-    # Phoenix.Channel.push(socket, "modal",  %{sender: tokenize(socket, self())})
     Drab.push_and_wait_for_response(socket, self(), "modal", timeout: options[:timeout])
   end
 

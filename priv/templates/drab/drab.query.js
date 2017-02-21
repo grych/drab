@@ -8,42 +8,28 @@ Drab.disable_drab_objects = function(disable) {
   <% end %>
 }
 
-Drab.on_load(function(drab) {
-  drab.disable_drab_objects(true)
-})
-
-Drab.on_disconnect(function(drab) {
-  drab.disable_drab_objects(true)
-})
-
-Drab.on_connect(function(resp, drab) {
-  function payload(who) {
-    setid(who)
-    return {
-      // by default, we pass back some sender attributes
-      id:     who.attr("id"),
-      name:   who.attr("name"),
-      class:  who.attr("class"),
-      text:   who.text(),
-      html:   who.html(),
-      val:    who.val(),
-      data:   who.data(),
-      drab_id: who.attr("drab-id")
-    }
+function payload(who) {
+  setid(who)
+  return {
+    // by default, we pass back some sender attributes
+    id:     who.attr("id"),
+    name:   who.attr("name"),
+    class:  who.attr("class"),
+    text:   who.text(),
+    html:   who.html(),
+    val:    who.val(),
+    data:   who.data(),
+    drab_id: who.attr("drab-id")
   }
+}
 
-  function setid(whom) {
-    whom.attr("drab-id", uuid())
-  }
+function setid(whom) {
+  whom.attr("drab-id", uuid())
+}
 
+Drab.set_event_handlers = function() {
   // set up the controls with drab handlers
   // first serve the shortcut controls by adding the longcut attrbutes
-  // for (var ev of EVENTS) {
-  //   $(`[drab-${ev}]`).each(function() {
-  //     $(this).attr("drab-event", ev) 
-  //     $(this).attr("drab-handler", $(this).attr(`drab-${ev}`))
-  //   })
-  // }
   EVENTS.forEach(function(ev) {
     $("[drab-" + ev + "]").each(function() {
       $(this).attr("drab-event", ev) 
@@ -64,7 +50,7 @@ Drab.on_connect(function(resp, drab) {
           }
         <% end %>
         // send the message back to the server
-        drab.launch_event(
+        Drab.launch_event(
           ev, 
           t.attr("drab-handler"), 
           payload(t)
@@ -76,12 +62,24 @@ Drab.on_connect(function(resp, drab) {
             }
           <% end %>
           )
-        // drab.channel.push("event", {event: ev, payload: payload($(this))})
+        // Drab.channel.push("event", {event: ev, payload: payload($(this))})
       })
     } else {
       console.log("Drab Error: drab-event definded without drab-handler", $(this))
     }
-  })
+  })  
+}
+
+Drab.on_load(function(drab) {
+  drab.disable_drab_objects(true)
+})
+
+Drab.on_disconnect(function(drab) {
+  drab.disable_drab_objects(true)
+})
+
+Drab.on_connect(function(resp, drab) {
+  drab.set_event_handlers()
 
   // re-enable drab controls
   drab.disable_drab_objects(false)

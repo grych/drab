@@ -35,7 +35,6 @@ defmodule Drab.Core do
   Synchronously executes the given javascript on the client side and returns value.
   """
   def execjs(socket, js) do
-    # Phoenix.Channel.push(socket, "execjs",  %{js: js, sender: tokenize(socket, self())})
     Drab.push(socket, self(), "execjs", js: js)
 
     receive do
@@ -49,7 +48,6 @@ defmodule Drab.Core do
   Asynchronously broadcasts given javascript to all browsers displaying current page.
   """
   def broadcastjs(socket, js) do
-    # Phoenix.Channel.broadcast(socket, "broadcastjs",  %{js: js, sender: tokenize(socket, self())})
     Drab.broadcast(socket, self(), "broadcastjs", js: js)
     socket
   end
