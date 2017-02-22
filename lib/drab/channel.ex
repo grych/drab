@@ -14,6 +14,11 @@ defmodule Drab.Channel do
     {:ok, socket_with_pid}
   end
 
+  # def join("mychannel:whatever", _, socket) do
+  #   Logger.debug("JOINED to mychannel")
+  #   {:ok, socket}
+  # end
+
   def handle_in("execjs", %{"ok" => [sender_encrypted, reply]}, socket) do
     # sender contains PID of the process which sent the query
     # sender is waiting for the result

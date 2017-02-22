@@ -33,9 +33,9 @@
         fx(drab)
       })
 
-      var socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
-      socket.connect()
-      this.channel = socket.channel("drab:" + this.path, {})
+      this.socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
+      this.socket.connect()
+      this.channel = this.socket.channel("drab:" + this.path, {})
       
       this.channel.join()
         .receive("error", function(resp) { 
@@ -64,7 +64,7 @@
         })
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
-      socket.onClose(function(event) {
+      this.socket.onClose(function(event) {
         // on_disconnect
         // for(var f of drab.disconnected) {
           // f(drab)
