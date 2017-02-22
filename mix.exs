@@ -30,7 +30,7 @@ defmodule Drab.Mixfile do
 
   defp description() do
     """
-    Plugin to the Phoenix Framework to query and manipulate browser DOM objects directly from Elixir.
+    Plugin to the Phoenix Framework to query and manipulate User Interface in browser directly from Elixir.
     """
   end
 
