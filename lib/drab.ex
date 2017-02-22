@@ -54,26 +54,28 @@ defmodule Drab do
 
   use GenServer
 
+  defstruct store: nil, session: nil, commander: nil
+
   @doc false
-  def start_link({store, session, commander}) do
-    GenServer.start_link(__MODULE__, {store, session, commander})
+  def start_link(state) do
+    GenServer.start_link(__MODULE__, state)
   end
 
   @doc false
-  def init({store, session, commander}) do
+  def init(state) do
     Process.flag(:trap_exit, true)
-    {:ok, {store, session, commander}}
+    {:ok, state}
   end
 
   @doc false
-  def terminate(_reason, {store, session, commander}) do
+  def terminate(_reason, %Drab{store: store, session: session, commander: commander} = state) do
     if commander.__drab__().ondisconnect do
       # TODO: timeout
       :ok = apply(commander, 
-            drab_config(commander).ondisconnect, 
+            commander_config(commander).ondisconnect, 
             [store, session])
     end
-    {:noreply, {store, session, commander}}
+    {:noreply, state}
   end
 
   @doc false
@@ -83,48 +85,48 @@ defmodule Drab do
   end
 
   @doc false
-  def handle_cast({:onconnect, socket}, {store, session, commander}) do
+  def handle_cast({:onconnect, socket}, %Drab{commander: commander} = state) do
     tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end), 
              Task.async(fn -> Drab.Core.save_store(socket, Drab.Core.store(socket)) end)]
     Enum.each(tasks, fn(task) -> Task.await(task) end)
 
-    onconnect = drab_config(commander).onconnect
+    onconnect = commander_config(commander).onconnect
     handle_callback(socket, commander, onconnect) #returns socket
-    {:noreply, {store, session, commander}}
+    {:noreply, state}
   end
 
   @doc false
-  def handle_cast({:onload, socket}, {store, session, commander}) do
-    onload = drab_config(commander).onload
+  def handle_cast({:onload, socket}, %Drab{commander: commander} = state) do
+    onload = commander_config(commander).onload
     handle_callback(socket, commander, onload) #returns socket
-    {:noreply, {store, session, commander}}
+    {:noreply, state}
   end
 
   @doc false
-  def handle_cast({:update_store, store}, {_store, session, commander}) do
-    {:noreply, {store, session, commander}}
+  def handle_cast({:update_store, store}, %Drab{session: session, commander: commander}) do
+    {:noreply, %Drab{store: store, session: session, commander: commander}}
   end
 
   @doc false
-  def handle_cast({:update_session, session}, {store, _session, commander}) do
-    {:noreply, {store, session, commander}}
+  def handle_cast({:update_session, session}, %Drab{store: store, commander: commander}) do
+    {:noreply, %Drab{store: store, session: session, commander: commander}}
   end
 
   @doc false
   # any other cast is an event handler
-  def handle_cast({_, socket, payload, event_handler_function, reply_to}, {store, session, commander}) do
-    handle_event(socket, event_handler_function, payload, reply_to, store, session, commander)
+  def handle_cast({_, socket, payload, event_handler_function, reply_to}, state) do
+    handle_event(socket, event_handler_function, payload, reply_to, state)
   end
 
 
   @doc false
-  def handle_call(:get_store, _from, {store, session, commander}) do
-    {:reply, store, {store, session, commander}}
+  def handle_call(:get_store, _from, %Drab{store: store} = state) do
+    {:reply, store, state}
   end
 
   @doc false
-  def handle_call(:get_session, _from, {store, session, commander}) do
-    {:reply, session, {store, session, commander}}
+  def handle_call(:get_session, _from, %Drab{session: session} = state) do
+    {:reply, session, state}
   end
 
 
@@ -138,9 +140,7 @@ defmodule Drab do
     socket
   end
 
-  defp handle_event(socket, event_handler_function, payload, reply_to, store, session, commander) do
-    commander_module = commander
-
+  defp handle_event(socket, event_handler_function, payload, reply_to, %Drab{commander: commander_module} = state) do
     # raise a friendly exception when misspelled the function handler name
     unless function_exists?(commander_module, event_handler_function) do
       raise "Drab can't find the event handler function \"#{commander_module}.#{event_handler_function}/2\"."
@@ -158,7 +158,7 @@ defmodule Drab do
       push_reply(returned_socket, reply_to, commander_module, event_handler_function)
     end
 
-    {:noreply, {store, session, commander}}
+    {:noreply, state}
   end
 
   defp push_reply(%{__struct__: Phoenix.Socket} = socket, reply_to, _, _) when is_map(socket) do
@@ -194,19 +194,6 @@ defmodule Drab do
   def update_session(pid, new_session) do
     GenServer.cast(pid, {:update_session, new_session})
   end
-
-  # defp drab_store_token(socket, returned_socket) do
-  #   # check if the handler return socket, if not - ignore
-  #   # TODO: change the warning to exception
-  #   updated_store = case returned_socket do
-  #     %Phoenix.Socket{assigns: returned_assigns} ->
-  #       returned_assigns.drab_store
-  #     ret ->
-  #       Logger.warn("Event Handler should return `socket`. It returned: `#{inspect(ret)}` instead. Drab Store will not be updated.")
-  #       socket.assigns.drab_store
-  #   end
-  #   tokenize_store(socket, updated_store)
-  # end
 
   defp function_exists?(module_name, function_name) do
     module_name.__info__(:functions) 
@@ -269,7 +256,7 @@ defmodule Drab do
   end
 
   # if module is commander or controller with drab enabled, it has __drab__/0 function with Drab configuration
-  defp drab_config(module) do
+  defp commander_config(module) do
     module.__drab__()
   end
 

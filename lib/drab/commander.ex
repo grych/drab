@@ -19,23 +19,13 @@ defmodule Drab.Commander do
   Remember the difference: `controller` renders the page while `commander` works on the live page.
 
   ## Event handler functions
+  Event handler is the function which process on request which comes from the browser. Most basically it is
+  done by running JS method `Drab.launch_event()`. See `Drab.Core` for this method description.
 
   The event handler function receives two parameters:
-  * `socket` - a websocket used to communicate back to the page by `Drab.Query` functions
-  * `dom_sender` - a map contains information of the object which sent the event; `dom_sender` map keys are binary strings
-
-  The `dom_sender` map:
-
-      %{
-        "id"    => "sender object ID attribute",
-        "name"  => "sender object 'name' attribute",
-        "class" => "sender object 'class' attribute",
-        "text"  => "sender node 'text'",
-        "html"  => "sender node 'html', result of running .html() on the node",
-        "val"   => "sender object value",
-        "data"  => "a map with sender object 'data-xxxx' attributes, where 'xxxx' are the keys",
-        "drab_id" => "internal"
-      }
+  * `socket` - the websocket used to communicate back to the page by `Drab.Query` functions
+  * `argument` - an argument used in JS Drab.launch_event() method; when using Drab.Query module it is
+    the `dom_sender` map (see `Drab.Query` for full description)
 
   ## Callbacks 
 
@@ -103,7 +93,7 @@ defmodule Drab.Commander do
       import Drab.Core
 
       unquote do
-        opts = Map.merge(%Drab.Config{}, Enum.into(options, %{}))
+        opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
         opts.modules |> Enum.map(fn module -> 
           quote do
             import unquote(module)
@@ -115,7 +105,7 @@ defmodule Drab.Commander do
       unless Module.defines?(__MODULE__, {:__drab__, 0}) do
         def __drab__() do
           opts = Enum.into(unquote(options), %{commander: __MODULE__})
-          Map.merge(%Drab.Config{}, opts) 
+          Map.merge(%Drab.Commander.Config{}, opts) 
         end
       end
 

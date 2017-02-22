@@ -8,7 +8,7 @@ defmodule Drab.Channel do
     # socket already contains controller and action
     socket_with_path = socket |> assign(:url_path, url_path)
 
-    {:ok, pid} = Drab.start_link({%{}, %{}, Drab.get_commander(socket)})
+    {:ok, pid} = Drab.start_link(%Drab{store: %{}, session: %{}, commander: Drab.get_commander(socket)})
     socket_with_pid = assign(socket_with_path, :drab_pid, pid)
 
     {:ok, socket_with_pid}
@@ -53,7 +53,7 @@ defmodule Drab.Channel do
       "event_handler_function" => event_handler_function,
       "reply_to" => reply_to
       }, socket) do
-    # event_name is currently not used (0.2.0)
+    # event is currently not used (0.2.0)
     verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket)
   end   
 

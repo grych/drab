@@ -18,16 +18,24 @@ defmodule Drab.Core do
   There is the Javascript method `Drab.launch_event()` in global `Drab` object, which allows you to run the Elixir
   function defined in the Commander. 
 
-      Drab.launch_event(event_name, function_name, arguments_map)
+      Drab.launch_event(event_name, function_name, argument)
 
   Arguments:
   * event_name(string) - name of the even which runs the function
   * function_name(string) - function name in corresponding Commander module
-  * arguments_map(key/value object) - any arguments you want to pass to the Commander function
+  * argument(anything) - any argument you want to pass to the Commander function
 
   Returns:
   * no return, does not wait for any answer
 
+  Example:
+
+      <button onclick="Drab.launch_event('click', 'clicked', {click: 'clickety-click'});">
+        Clickme
+      </button>
+
+  The code above runs function named `clicked` in the corresponding Commander, with 
+  the argument `%{"click" => "clickety-click}"`
   """
   require Logger
 

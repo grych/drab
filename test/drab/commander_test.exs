@@ -7,7 +7,7 @@ defmodule Drab.CommanderTest do
   end
 
   test "__drab__/0 should return the valid config" do
-    assert TestCommander.__drab__() == %Drab.Config{commander: Drab.CommanderTest.TestCommander,
+    assert TestCommander.__drab__() == %Drab.Commander.Config{commander: Drab.CommanderTest.TestCommander,
                                                     onload:    :onload_function,
                                                     modules: [Drab.Query]}
   end

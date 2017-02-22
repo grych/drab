@@ -1,3 +1,10 @@
+## 0.2.6
+Changes:
+* reload drab events in JS after each insert or update
+* added event object with specified properties to the dom_sender
+* added `debounce` function as an option to the event handler
+* renamed Drab.Config to Drab.Commander.Config
+
 ## 0.2.5
 Changes:
 * handling disconnects (ondisconnect callback)

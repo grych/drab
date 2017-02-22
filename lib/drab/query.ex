@@ -7,6 +7,7 @@ defmodule Drab.Query do
   @insert_methods        ~w(before after prepend append)a
   @broadcast             &Drab.Core.broadcastjs/2
   @no_broadcast          &Drab.Core.execjs/2
+  @html_modifiers        ~r/html|append|before|after|insertAfter|insertBefore|htmlPrefilter|prepend|replaceWidth|wrap/i
 
   @moduledoc """
   Drab module which provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
@@ -52,6 +53,32 @@ defmodule Drab.Query do
 
   Normally Drab operates on the user interface of the browser which generared the event, but it is possible to broadcast
   the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query` module.
+
+  ## Event handler functions
+
+  The event handler function receives two parameters:
+  * `socket`     - the websocket used to communicate back to the page by `Drab.Query` functions
+  * `dom_sender` - a map contains information of the object which sent the event; keys are binary strings
+
+  The `dom_sender` map:
+
+      %{
+        "id"      => "sender object ID attribute",
+        "name"    => "sender object 'name' attribute",
+        "class"   => "sender object 'class' attribute",
+        "text"    => "sender node 'text'",
+        "html"    => "sender node 'html', result of running .html() on the node",
+        "val"     => "sender object value",
+        "data"    => "a map with sender object 'data-xxxx' attributes, where 'xxxx' are the keys",
+        "event"   => "a map with choosen properties of `event` object"
+        "drab_id" => "internal"
+      }
+
+  Example:
+
+      def button_clicked(socket, dom_sender) do
+        socket |> update(:text, set: "clicked", on: this(dom_sender))
+      end
 
   """
 
@@ -492,10 +519,16 @@ defmodule Drab.Query do
     """
   end
   defp build_js(selector, method_javascripted, type) when type in ~w(update insert delete execute)a do
-    # TODO: set_event_handlers should operate only on changed object
+    # update events only when running .html() method
+    update_events = if Regex.match?(@html_modifiers, method_javascripted) do
+    # update_events = if true do
+      "Drab.set_event_handlers('#{selector}')"
+    else 
+      ""
+    end
     """
     $('#{selector}').#{method_javascripted}
-    Drab.set_event_handlers()
+    #{update_events}
     """
   end
 
