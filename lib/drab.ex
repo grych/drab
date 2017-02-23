@@ -208,7 +208,7 @@ defmodule Drab do
           if event_handler_function in handlers, do: false, else: callback_name
         _ -> false
       end
-    end) |> Enum.filter(&(&1))
+    end) |> Enum.filter(&(&1)) |> Enum.reverse # as they are coming in reverse order
   end
 
   @doc false
