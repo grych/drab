@@ -16,7 +16,7 @@ defmodule Drab.QueryTest do
     dom_sender = %{ "drab_id" => "there is a DRAB_ID, but not actual id"}
     assert_raise RuntimeError, ~r"Try to use Drab.Query.this!/1 on DOM object without an ID:", fn -> 
       Drab.Query.this!(dom_sender)
-    end
+    end 
   end
 
   test "select/2 should raise on non-existing method" do

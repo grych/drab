@@ -10,5 +10,5 @@ defmodule Drab.TemplateTest do
       [title: "TITLE", class: "CLASS", body: "BODY", buttons: "buttons html"]), "TITLE")
   end
 
-
+ 
 end
