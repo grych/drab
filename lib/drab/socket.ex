@@ -6,7 +6,7 @@ defmodule Drab.Socket do
 
   ## Channels
   channel "drab:*", Drab.Channel
-  # channel "mychannel:*", Drab.Channel
+  # channel "mychannel:*", DrabPoc.Channel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket

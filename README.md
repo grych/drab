@@ -50,7 +50,7 @@ end
 
 ```elixir
 def deps do
-  [{:drab, "~> 0.2"}]
+  [{:drab, "~> 0.3"}]
 end
 ```
 
@@ -143,7 +143,9 @@ end
 
 ```elixir
 defmodule DrabExample.PageCommander do
-  use Drab.Commander, onload: :page_loaded
+  use Drab.Commander
+
+  onload :page_loaded
 
   # Drab Callbacks
   def page_loaded(socket) do

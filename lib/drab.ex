@@ -23,7 +23,9 @@ defmodule Drab do
   enabled Drab should have the corresponding commander.
 
       defmodule DrabExample.PageCommander do
-        use Drab.Commander, onload: :page_loaded
+        use Drab.Commander
+
+        onload :page_loaded
 
         # Drab Callbacks
         def page_loaded(socket) do
@@ -141,38 +143,72 @@ defmodule Drab do
   end
 
   defp handle_event(socket, event_handler_function, payload, reply_to, %Drab{commander: commander_module} = state) do
-    # raise a friendly exception when misspelled the function handler name
-    unless function_exists?(commander_module, event_handler_function) do
-      raise "Drab can't find the event handler function \"#{commander_module}.#{event_handler_function}/2\"."
-    end
-
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
-      dom_sender = Map.delete(payload, "event_handler_function")
-      returned_socket = apply(
-        commander_module, 
-        String.to_existing_atom(event_handler_function), 
-        [socket, dom_sender]
-      )
+      event_handler = String.to_existing_atom(event_handler_function)
+      dom_sender = Map.delete(payload, "event_handler_function")  
+      commander_cfg = commander_config(commander_module)    
 
-      push_reply(returned_socket, reply_to, commander_module, event_handler_function)
+      # run before_handlers first
+      returns_from_befores = Enum.map(callbacks_for(event_handler, commander_cfg.before_handler), 
+        fn callback_handler ->
+          apply(commander_module, callback_handler, [socket, dom_sender])
+        end)
+
+      # if ANY of them fail (return false or nil), do not proceed
+      unless Enum.any?(returns_from_befores, &(!&1)) do
+        # run actuall event handler
+        returned_from_handler = apply(commander_module, event_handler, [socket, dom_sender])
+        Enum.map(callbacks_for(event_handler, commander_cfg.after_handler), 
+          fn callback_handler ->
+            apply(commander_module, callback_handler, [socket, dom_sender, returned_from_handler])
+          end)
+      end
+
+      push_reply(socket, reply_to, commander_module, event_handler_function)
     end
 
     {:noreply, state}
   end
 
-  defp push_reply(%{__struct__: Phoenix.Socket} = socket, reply_to, _, _) when is_map(socket) do
+  # defp check_handler_existence!(commander_module, callback_handler) do
+  #   unless function_exists?(commander_module, Atom.to_string(callback_handler)) do
+  #     raise "Drab can't find handler callback: \"#{commander_module}.#{callback_handler}/2\"."
+  #   end    
+  # end
+
+  defp push_reply(socket, reply_to, _, _) do
     Phoenix.Channel.push(socket, "event", %{
       finished: reply_to
     })
   end
 
-  defp push_reply(arg, _, commander_module, event_handler_function) do
-    raise """
-    Event handler (#{commander_module}.#{event_handler_function}) should return Phoenix.Socket.
-    It actually returned: 
-    #{inspect(arg)}
-    """    
+  # defp push_reply(arg, _, commander_module, event_handler_function) do
+  #   raise """
+  #   Event handler (#{commander_module}.#{event_handler_function}) should return Phoenix.Socket.
+  #   It actually returned: 
+  #   #{inspect(arg)}
+  #   """    
+  # end
+
+  @doc false
+  # Returns the list of callbacks (before_handler, after_handler) defined in handler_config
+  def callbacks_for(_, []) do
+    []
+  end
+
+  def callbacks_for(event_handler_function, handler_config) do
+    #:uppercase, [{:run_before_each, []}, {:run_before_uppercase, [only: [:uppercase]]}]
+    Enum.map(handler_config, fn {callback_name, callback_filter} -> 
+      case callback_filter do
+        [] -> callback_name
+        [only: handlers] -> 
+          if event_handler_function in handlers, do: callback_name, else: false
+        [except: handlers] -> 
+          if event_handler_function in handlers, do: false, else: callback_name
+        _ -> false
+      end
+    end) |> Enum.filter(&(&1))
   end
 
   @doc false
@@ -195,7 +231,8 @@ defmodule Drab do
     GenServer.cast(pid, {:update_session, new_session})
   end
 
-  defp function_exists?(module_name, function_name) do
+  @doc false
+  def function_exists?(module_name, function_name) do
     module_name.__info__(:functions) 
       |> Enum.map(fn {f, _} -> Atom.to_string(f) end)
       |> Enum.member?(function_name)

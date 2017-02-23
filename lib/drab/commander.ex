@@ -29,10 +29,18 @@ defmodule Drab.Commander do
 
   ## Callbacks 
 
-  Callbacks must be specified in `use Drab.Commander` clause:
+  Callbacks are an automatic events which are launched by the system. They are defined by the macro in the 
+  Commander module:
 
       defmodule DrabExample.PageCommander do
-        use Drab.Commander, onload: :page_loaded, onconnect: :connected, ondisconnect: :dosconnected
+        use Drab.Commander 
+
+        onload :page_loaded
+        onconnect :connected
+        ondisconnect :dosconnected
+
+        before_handler :check_status
+        after_handler  :clean_up, only: [:perform_long_process]
 
         def page_loaded(socket) do
           ...
@@ -47,15 +55,42 @@ defmodule Drab.Commander do
           # this is because socket is not available anymore (Channel is closed)
           ...
         end
+
+        def check_status(socket, dom_sender) do
+          # return false or nil to prevent event handler to be launched
+        end
+
+        def clean_up(socket, dom_sender, handler_return_value) do
+          # this callback gets return value of the corresponding event handler
+        end
       end
 
-  Callbacks:
-  * `onload` - launched only once after page loaded and connects to the server - exactly the same like `onconnect`, 
-    but launches only once, not after every reconnect
-  * `onconnect` - launched every time client browser connects to the server, including reconnects after server 
-    crash, network broken etc
-  * `ondisconnect` - launched every time client browser disconnects from the server, it may be a network disconnect,
-    closing the browser, navigate back. Disconnect callback receives Drab Store as an argument
+  #### `onconnect`
+  Launched every time client browser connects to the server, including reconnects after server 
+  crash, network broken etc
+
+
+  #### `onload`
+  Launched only once after page loaded and connects to the server - exactly the same like `onconnect`, 
+  but launches only once, not after every reconnect
+
+  #### `ondisconnect` 
+  Launched every time client browser disconnects from the server, it may be a network disconnect,
+  closing the browser, navigate back. Disconnect callback receives Drab Store as an argument
+
+  #### `before_handler` 
+  Runs before the event handler. If any of before callbacks return `false` or `nil`, corresponding event
+  will not be launched. If there are more callbacks for specified event handler function, all are processed
+  in order or appearance, then system checks if any of them returned false
+
+  Can be filtered by `:only` or `:except` options:
+
+      before_handler :check_status, except: [:set_status]
+      before_handler :check_status, only:   [:update_db]
+
+  #### `after_handler` 
+  Runs after the event handler. Gets return value of the event handler function as a third argument.
+  Can be filtered by `:only` or `:except` options, analogically to `before_handler`
 
   ## Modules
 
@@ -66,18 +101,9 @@ defmodule Drab.Commander do
 
       use Drab.Commander, modules: [Drab.Query]
 
-  will enable only `Drab.Core` and `Drab.Query`.
+  will override default modules, so only `Drab.Core` and `Drab.Query` will be available.
 
   Every module has its corresponding JS template, which is loaded only when module is enabled.
-
-  ## Session Access
-  Drab may allow an access to specified Plug Session values. For this, you must whitelist the keys of the 
-  session map. Only this keys will be available to `Drab.Core.get_session/2`
-
-      use Drab.Commander, access_session: [:user_id]
-  
-  Keys are whitelisted due to security reasons. Session token is store on the client-side and it is signed, but
-  not encrypted.
 
   ## Generate the Commander
 
@@ -89,8 +115,19 @@ defmodule Drab.Commander do
   """
 
   defmacro __using__(options) do
-    quote do      
+    quote do
+      import unquote(__MODULE__)
       import Drab.Core
+
+      o = Enum.into(unquote(options) || [], %{commander: __MODULE__})
+      Enum.each([:onload, :onconnect, :ondisconnect, :access_session], fn macro_name -> 
+        if o[macro_name] do
+          IO.warn("""
+            Defining #{macro_name} handler in the use statement has been depreciated. Please use corresponding macro instead.
+            """, Macro.Env.stacktrace(__ENV__))
+        end
+      end)
+      @options Map.merge(%Drab.Commander.Config{}, o) 
 
       unquote do
         opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
@@ -101,15 +138,97 @@ defmodule Drab.Commander do
         end)
       end
 
-      # Module.put_attribute(__MODULE__, :__drab_opts__, unquote(options))
-      unless Module.defines?(__MODULE__, {:__drab__, 0}) do
-        def __drab__() do
-          opts = Enum.into(unquote(options), %{commander: __MODULE__})
-          Map.merge(%Drab.Commander.Config{}, opts) 
-        end
-      end
-
+      @before_compile unquote(__MODULE__)
     end
   end
+
+  defmacro __before_compile__(_env) do
+    quote do
+      def __drab__() do
+        @options
+      end
+    end
+  end
+
+  Enum.each([:onload, :onconnect, :ondisconnect], fn macro_name -> 
+    @doc """
+    Sets up the callback for #{macro_name}. Receives handler function name as an atom.
+
+        #{macro_name} :event_handler_function
+
+    See `Drab.Commander` summary for details.
+    """
+    defmacro unquote(macro_name)(event_handler) when is_atom(event_handler) do
+      m = unquote(macro_name)
+      quote bind_quoted: [m: m], unquote: true do
+        Map.get(@options, m) && raise CompileError, description: "Only one `#{inspect m}` definition is allowed"
+        @options Map.put(@options, m, unquote(event_handler))
+      end
+    end
+
+    defmacro unquote(macro_name)(unknown_argument) do
+      raise CompileError, description: """
+        Only atom is allowed in `#{unquote(macro_name)}`. Given: #{inspect unknown_argument}
+        """
+    end
+  end)
+
+  @doc """
+  Drab may allow an access to specified Plug Session values. For this, you must whitelist the keys of the 
+  session map. Only this keys will be available to `Drab.Core.get_session/2`
+
+      defmodule MyApp.MyCommander do
+        user Drab.Commander
+
+        access_session [:user_id, :counter]
+      end
+  
+  Keys are whitelisted due to security reasons. Session token is stored on the client-side and it is signed, but
+  not encrypted.
+  """
+  defmacro access_session(session_keys) when is_list(session_keys) do
+    quote do
+      access_sessions = Map.get(@options, :access_session)
+      @options Map.put(@options, :access_session, access_sessions ++ unquote(session_keys))
+    end
+  end
+
+  defmacro access_session(session_key) when is_atom(session_key) do
+    quote do
+      access_sessions = Map.get(@options, :access_session)
+      @options Map.put(@options, :access_session, [unquote(session_key) | access_sessions])
+    end
+  end
+
+  defmacro access_session(unknown_argument) do
+    raise CompileError, description: """
+      Only atom or list are allowed in `access_session`. Given: #{inspect unknown_argument}
+      """
+  end
+
+  Enum.each([:before_handler, :after_handler], fn macro_name -> 
+    @doc """
+    Sets up the callback for #{macro_name}. Receives handler function name as an atom and options.
+
+        #{macro_name} :event_handler_function
+
+    See `Drab.Commander` summary for details.
+    """
+    defmacro unquote(macro_name)(event_handler, filter \\ [])
+
+    defmacro unquote(macro_name)(event_handler, filter) when is_atom(event_handler) do
+      m = unquote(macro_name)
+      quote bind_quoted: [m: m], unquote: true do
+        handlers = Map.get(@options, m)
+        @options Map.put(@options, m, [{unquote(event_handler), unquote(filter)} | handlers])
+      end
+    end
+
+    defmacro unquote(macro_name)(unknown_argument, _filter) do
+      raise CompileError, description: """
+        Only atom is allowed in `#{unquote(macro_name)}`. Given: #{inspect unknown_argument}
+        """
+    end
+  end)
 
 end

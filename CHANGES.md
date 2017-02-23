@@ -1,3 +1,9 @@
+## 0.3.0
+Changes:
+* move Commander setup to macros instead of use options
+* before_handler callback (to run before each handler); stop processing when return false or nil
+* after_handler, getting the return value of handler
+
 ## 0.2.6
 Changes:
 * reload drab events in JS after each insert or update
