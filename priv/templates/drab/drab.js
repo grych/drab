@@ -74,12 +74,16 @@
         })
       })
     },
+    launch_event: function(event_name, event_handler, payload, execute_after) {
+      console.log("launch_event has been depreciated. Please use run_handler instead")
+      this.run_handler(event_name, event_handler, payload, execute_after)
+    },
     // 
     //   string - event name
     //   event_handler -  string - function name in Phoenix Commander
     //   payload: object - will be passed as the second argument to the Event Handler
     //   execute_after - callback to function executes after event finish
-    launch_event: function(event_name, event_handler, payload, execute_after) {
+    run_handler: function(event_name, event_handler, payload, execute_after) {
       var reply_to = uuid()
       if(execute_after) {
         Drab.event_reply_table[reply_to] = execute_after

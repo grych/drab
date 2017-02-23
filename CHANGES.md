@@ -3,6 +3,7 @@ Changes:
 * move Commander setup to macros instead of use options
 * before_handler callback (to run before each handler); stop processing when return false or nil
 * after_handler, getting the return value of handler
+* renamed launch_event() to run_handler()
 
 ## 0.2.6
 Changes:

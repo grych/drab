@@ -20,11 +20,11 @@ defmodule Drab.Commander do
 
   ## Event handler functions
   Event handler is the function which process on request which comes from the browser. Most basically it is
-  done by running JS method `Drab.launch_event()`. See `Drab.Core` for this method description.
+  done by running JS method `Drab.run_handler()`. See `Drab.Core` for this method description.
 
   The event handler function receives two parameters:
   * `socket` - the websocket used to communicate back to the page by `Drab.Query` functions
-  * `argument` - an argument used in JS Drab.launch_event() method; when using Drab.Query module it is
+  * `argument` - an argument used in JS Drab.run_handler() method; when using Drab.Query module it is
     the `dom_sender` map (see `Drab.Query` for full description)
 
   ## Callbacks 
