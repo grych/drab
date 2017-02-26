@@ -8,6 +8,7 @@ defmodule Drab.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     elixirc_paths: elixirc_paths(Mix.env),
      deps: deps(),
      description: description(),
      package: package()
@@ -19,6 +20,9 @@ defmodule Drab.Mixfile do
       applications: [:logger],
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_),     do: ["lib"]
 
   defp deps do
     [
@@ -43,8 +47,7 @@ defmodule Drab.Mixfile do
       links: %{
         "GitHub" => "https://github.com/grych/drab", 
         "Docs with Examples" => "https://tg.pl/drab/docs", 
-        "Home" => "https://tg.pl/drab",
-        "Docs" => "https://hexdocs.pm/drab"
+        "Home" => "https://tg.pl/drab"
       }
     ]
   end

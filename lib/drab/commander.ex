@@ -220,7 +220,7 @@ defmodule Drab.Commander do
       m = unquote(macro_name)
       quote bind_quoted: [m: m], unquote: true do
         handlers = Map.get(@options, m)
-        @options Map.put(@options, m, [{unquote(event_handler), unquote(filter)} | handlers])
+        @options Map.put(@options, m, handlers ++ [{unquote(event_handler), unquote(filter)}] )
       end
     end
 

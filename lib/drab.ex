@@ -208,7 +208,7 @@ defmodule Drab do
           if event_handler_function in handlers, do: false, else: callback_name
         _ -> false
       end
-    end) |> Enum.filter(&(&1)) |> Enum.reverse # as they are coming in reverse order
+    end) |> Enum.filter(&(&1))
   end
 
   @doc false
@@ -250,17 +250,20 @@ defmodule Drab do
 
   @doc false
   def push(socket, pid, message, options \\ []) do
-    do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.push/3)
+    # allow to use different push/broadcast function in options, to be used in tests
+    f = options[:push_or_broadcast_function]  || &Phoenix.Channel.push/3
+    do_push_or_broadcast(socket, pid, message, options, f)
   end
 
   @doc false
   def broadcast(socket, pid, message, options \\ []) do
-    do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.broadcast/3)
+    f = options[:push_or_broadcast_function] || &Phoenix.Channel.broadcast/3
+    do_push_or_broadcast(socket, pid, message, options, f)
   end
 
   defp do_push_or_broadcast(socket, pid, message, options, function) do
     m = options |> Enum.into(%{}) |> Map.merge(%{sender: tokenize_pid(socket, pid)})
-    function.(socket, message,  m)
+    function.(socket, message,  m)    
   end
 
   @doc """
