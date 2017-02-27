@@ -16,6 +16,5 @@ Changes:
 * timeout for Drab.Query and Drab.Modal functions
 * specify on which pages drab broadcasts, with wildcard
 * dependencies for modules (for ex. Modal depends on Query)
-* handling event handler crashes without disconnect the whole socket (spawn instead of spawn_link)
 * extract Drab Store and Session to standalone module (loaded by default)
 * group JS commands to be launched in one step

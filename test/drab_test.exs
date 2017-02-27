@@ -8,6 +8,7 @@ defmodule DrabTest do
     assert Drab.config[:disable_controls_when_disconnected] == true
     assert Drab.config[:socket] == "/drab/socket"
     assert Drab.config[:drab_store_storage] == :session_storage
+    assert Drab.config[:additional_channels] == []
   end
 
   describe "helpers" do

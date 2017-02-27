@@ -6,7 +6,20 @@ defmodule Drab.Socket do
 
   ## Channels
   channel "drab:*", Drab.Channel
-  # channel "mychannel:*", DrabPoc.Channel
+  IO.puts "       ADD CHANNELS #{inspect Drab.config.additional_channels}"
+  Drab.config.additional_channels |> Enum.map(fn {name, module} ->
+    IO.puts "XXXXXx"
+    IO.puts name
+    IO.puts inspect(module)
+    case name do
+      "drab:" <> _ ->
+        Logger.error """
+        Channel name #{name} is restricted. This config entry `additional_channels` will be ignored.
+        """
+      _ ->
+        channel name, module
+    end
+  end)
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
