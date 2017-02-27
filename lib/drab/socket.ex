@@ -1,5 +1,8 @@
 defmodule Drab.Socket do
+  # @external_resouce Mix.Project.config[:config_path]
+  @external_resource "/Users/grych/Dropbox/elixir/phoenix/drabrella/apps/drab_poc/config/config.exs"
   @moduledoc false
+  IO.puts Mix.Project.config[:config_path]
 
   use Phoenix.Socket
   require Logger
@@ -14,7 +17,7 @@ defmodule Drab.Socket do
     case name do
       "drab:" <> _ ->
         Logger.error """
-        Channel name #{name} is restricted. This config entry `additional_channels` will be ignored.
+        Channel name #{name} is restricted. This config entry for `additional_channels` will be ignored.
         """
       _ ->
         channel name, module
