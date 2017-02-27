@@ -51,16 +51,7 @@ defmodule Drab.Core do
     # TODO: timeout
     end
   end
-  @doc false
-  def execjs(socket, js, push_or_broadcast_function) do
-    Drab.push(socket, self(), "execjs", js: js, push_or_broadcast_function: push_or_broadcast_function)
 
-    receive do
-      {:got_results_from_client, reply} ->
-        reply
-    # TODO: timeout
-    end    
-  end
   @doc """
   Asynchronously broadcasts given javascript to all browsers displaying current page.
   """

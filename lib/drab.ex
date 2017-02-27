@@ -251,14 +251,16 @@ defmodule Drab do
   @doc false
   def push(socket, pid, message, options \\ []) do
     # allow to use different push/broadcast function in options, to be used in tests
-    f = options[:push_or_broadcast_function]  || &Phoenix.Channel.push/3
-    do_push_or_broadcast(socket, pid, message, options, f)
+    # f = options[:push_or_broadcast_function]  || &Phoenix.Channel.push/3
+    # do_push_or_broadcast(socket, pid, message, options, f)
+    do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.push/3)
   end
 
   @doc false
   def broadcast(socket, pid, message, options \\ []) do
-    f = options[:push_or_broadcast_function] || &Phoenix.Channel.broadcast/3
-    do_push_or_broadcast(socket, pid, message, options, f)
+    # f = options[:push_or_broadcast_function] || &Phoenix.Channel.broadcast/3
+    # do_push_or_broadcast(socket, pid, message, options, f)
+    do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.broadcast/3)
   end
 
   defp do_push_or_broadcast(socket, pid, message, options, function) do

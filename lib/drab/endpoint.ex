@@ -1,6 +1,4 @@
 defmodule Drab.Endpoint do
-  # use Phoenix.Endpoint, otp_app: :drab
-
   @moduledoc ~S"""
   To enable drab, use the following clause in your projects `lib/endpoint.ex`:
 
