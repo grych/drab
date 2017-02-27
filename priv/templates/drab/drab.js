@@ -33,9 +33,9 @@
         fx(drab)
       })
 
-      this.socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
-      this.socket.connect()
-      this.channel = this.socket.channel("drab:" + this.path, {})
+      var socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
+      socket.connect()
+      this.channel = socket.channel("drab:" + this.path, {})
       
       this.channel.join()
         .receive("error", function(resp) { 
@@ -64,7 +64,7 @@
         })
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
-      this.socket.onClose(function(event) {
+      socket.onClose(function(event) {
         // on_disconnect
         // for(var f of drab.disconnected) {
           // f(drab)
@@ -74,16 +74,12 @@
         })
       })
     },
-    launch_event: function(event_name, event_handler, payload, execute_after) {
-      console.log("launch_event has been depreciated. Please use run_handler instead")
-      this.run_handler(event_name, event_handler, payload, execute_after)
-    },
     // 
     //   string - event name
     //   event_handler -  string - function name in Phoenix Commander
     //   payload: object - will be passed as the second argument to the Event Handler
     //   execute_after - callback to function executes after event finish
-    run_handler: function(event_name, event_handler, payload, execute_after) {
+    launch_event: function(event_name, event_handler, payload, execute_after) {
       var reply_to = uuid()
       if(execute_after) {
         Drab.event_reply_table[reply_to] = execute_after

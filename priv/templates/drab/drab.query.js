@@ -97,7 +97,7 @@ Drab.set_event_handlers = function(obj) {
         <% end %>
         // console.log(event)
         // send the message back to the server
-        Drab.run_handler(
+        Drab.launch_event(
           event_name, 
           t.attr("drab-handler"), 
           payload(t, event)
