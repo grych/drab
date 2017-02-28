@@ -1,5 +1,6 @@
 ## 0.3.0
 Changes:
+* depreciated `Drab.Endpoint`; Drab now injects in the `UserSocket` with `use Drab.Socket` (#8)
 * move Commander setup to macros instead of use options
 * before_handler callback (to run before each handler); stop processing when return false or nil
 * after_handler, getting the return value of handler

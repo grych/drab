@@ -1,8 +1,7 @@
 ## 0.3.0
 Changes:
 * waiter functionality
-* display information when handler die (like error 500 page), different for prod and dev
-* allow user to create own channels in config.exs (#8), can't start with "/"
+* display information when handler die (like error 500 page), different for prod and dev (Drab.Core)
 
 ## 0.4.0
 Changes:

@@ -100,10 +100,10 @@ $ npm install && node_modules/brunch/bin/brunch build
 <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
 ```
     
-  6. Initialize Drab websockets by adding the following to `lib/endpoint.ex`:
+  6. Initialize Drab sockets by adding the following to `web/channels/user_socket.ex`:
 
 ```elixir
-use Drab.Endpoint
+use Drab.Socket
 ```
 
 Congratullations! You have installed Drab and you can proceed with your own Commanders.

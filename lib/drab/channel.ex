@@ -4,7 +4,7 @@ defmodule Drab.Channel do
 
   use Phoenix.Channel
 
-  def join("drab:" <> url_path, _, socket) do
+  def join("__drab:" <> url_path, _, socket) do
     # socket already contains controller and action
     socket_with_path = socket |> assign(:url_path, url_path)
 

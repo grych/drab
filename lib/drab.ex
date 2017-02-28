@@ -317,7 +317,7 @@ defmodule Drab do
     waiting for server response
   * `disable_controls_when_disconnected` (default: `true`) - disables control when there is no connectivity
     between the browser and the server
-  * `socket` (default: `"/drab/socket"`) - path to Drab socket
+  * `socket` (default: `"/socket"`) - path to the socket where Drab operates
   * `drab_store_storage` (default: :session_storage) - where to keep the Drab Store - :memory, :local_storage or 
     :session_storage; data in memory is kept to the next page load, session storage persist until browser (or a tab) is
     closed, and local storage is kept forever
@@ -327,9 +327,8 @@ defmodule Drab do
       disable_controls_while_processing: Application.get_env(:drab, :disable_controls_while_processing, true),
       events_to_disable_while_processing: Application.get_env(:drab, :events_to_disable_while_processing, ["click"]),
       disable_controls_when_disconnected: Application.get_env(:drab, :disable_controls_when_disconnected, true),
-      socket: Application.get_env(:drab, :socket, "/drab/socket"),
-      drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage),
-      additional_channels: Application.get_env(:drab, :additional_channels, [])
+      socket: Application.get_env(:drab, :socket, "/socket"),
+      drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage)
     }
   end
 end

@@ -35,7 +35,7 @@
 
       this.socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
       this.socket.connect()
-      this.channel = this.socket.channel("drab:" + this.path, {})
+      this.channel = this.socket.channel("__drab:" + this.path, {})
       
       this.channel.join()
         .receive("error", function(resp) { 
