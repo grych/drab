@@ -5,6 +5,7 @@ Changes:
 
 ## 0.4.0
 Changes:
+* Drab.Query.select returns a list of [id: value] instead of [value]
 
 ## Future
 Changes:

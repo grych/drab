@@ -21,8 +21,8 @@ defmodule Drab.Client do
   Optional argument may be a list of parameters which will be added to assigns to the socket.
   Example of `layout/app.html.eex`:
 
-    <%= Drab.Client.js(@conn) %>
-    <%= Drab.Client.js(@conn, user_id: 4, any_other: "test") %>
+      <%= Drab.Client.js(@conn) %>
+      <%= Drab.Client.js(@conn, user_id: 4, any_other: "test") %>
   """
   def js(conn, assigns \\ []) do
     controller = Phoenix.Controller.controller_module(conn)

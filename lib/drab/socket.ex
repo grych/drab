@@ -16,6 +16,10 @@ defmodule Drab.Socket do
       config :drab, 
         socket: "/my/socket"
 
+  You may create your own channels inside a Drab Socket, but you can't provide your own `connect` callback.
+  Drab Client (on JS side) always connects at the page load and Drab's built-in `connect` callback will intercept
+  this call. If you want to pass the parameters to the Channel, you may do it in `Drab.Client.js`, they 
+  will appear in Socket's assigns.
   """
 
   defmacro __using__(_options) do
@@ -24,8 +28,10 @@ defmodule Drab.Socket do
 
       def connect(%{"__drab_return" => controller_and_action_token}, socket) do
         case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token) do
-          {:ok, [__controller: controller, __action: action, __assigns: assigns] = controller_and_action} -> 
-            {:ok , socket 
+          {:ok, [__controller: controller, __action: action, __assigns: assigns] = controller_and_action} ->
+            own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
+            socket_plus_external_assings = %Phoenix.Socket{socket | assigns: own_plus_external_assigns}
+            {:ok , socket_plus_external_assings 
                     |> assign(:__controller, controller)
                     |> assign(:__action, action)
 
