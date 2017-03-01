@@ -2,6 +2,8 @@
 Changes:
 * waiter functionality
 * display information when handler die (like error 500 page), different for prod and dev (Drab.Core)
+* explain more how socket works in the documentation
+* Drab.Socket steels all `connect` callbacks. Bad Drab
 
 ## 0.4.0
 Changes:
