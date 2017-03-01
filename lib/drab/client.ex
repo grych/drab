@@ -23,6 +23,9 @@ defmodule Drab.Client do
 
       <%= Drab.Client.js(@conn) %>
       <%= Drab.Client.js(@conn, user_id: 4, any_other: "test") %>
+
+  Please remember that your parameters are passed to the browser as Phoenix Token. Token is signed, 
+  but not ciphered. Do not put any secret data in it.
   """
   def js(conn, assigns \\ []) do
     controller = Phoenix.Controller.controller_module(conn)
