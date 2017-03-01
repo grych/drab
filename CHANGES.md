@@ -2,9 +2,11 @@
 Changes:
 * depreciated `Drab.Endpoint`; Drab now injects in the `UserSocket` with `use Drab.Socket` (#8)
 * move Commander setup to macros instead of use options
+* renamed JS `launch_event()` to `run_handler()`
+
+New features:
 * before_handler callback (to run before each handler); stop processing when return false or nil
 * after_handler, getting the return value of handler
-* renamed JS `launch_event()` to `run_handler()`
 
 ## 0.2.6
 Changes:

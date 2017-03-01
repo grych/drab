@@ -87,6 +87,16 @@ defmodule Drab do
   end
 
   @doc false
+  def handle_info({:EXIT, pid, {reason, stack}}, state) when pid != self() do
+    # ignore exits of the subprocesses
+    Logger.error """
+    Drab Process #{inspect(pid)} died because of #{inspect(reason)}
+    #{inspect(stack)}
+    """
+    {:noreply, state}
+  end
+
+  @doc false
   def handle_cast({:onconnect, socket}, %Drab{commander: commander} = state) do
     tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end), 
              Task.async(fn -> Drab.Core.save_store(socket, Drab.Core.store(socket)) end)]
@@ -287,14 +297,14 @@ defmodule Drab do
   # returns the commander name for the given controller (assigned in token)
   @doc false
   def get_commander(socket) do
-    controller = socket.assigns.controller
+    controller = socket.assigns.__controller
     controller.__drab__()[:commander]
   end
 
   # returns the drab_pid from socket
   @doc false
   def pid(socket) do
-    socket.assigns.drab_pid
+    socket.assigns.__drab_pid
   end
 
   # if module is commander or controller with drab enabled, it has __drab__/0 function with Drab configuration

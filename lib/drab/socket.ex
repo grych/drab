@@ -10,7 +10,8 @@ defmodule Drab.Socket do
 
   This creates a channel "__drab:*" used by all Drab operations.
 
-  By default, Drab uses auto-generated socket with "/socket" path. In case of using different path, use config:
+  Drab uses the socket which is defined in your application `Endpoint` (default `lib/endpoint.ex`)
+  By default, Drab uses "/socket" as a path. In case of using different one, configure it with:
 
       config :drab, 
         socket: "/my/socket"
@@ -21,13 +22,13 @@ defmodule Drab.Socket do
     quote do
       channel "__drab:*", Drab.Channel
 
-      def connect(%{"drab_return" => controller_and_action_token}, socket) do
+      def connect(%{"__drab_return" => controller_and_action_token}, socket) do
         case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token) do
-          {:ok, controller_and_action} -> 
-            [controller, action] = String.split(controller_and_action, "#")
+          {:ok, [__controller: controller, __action: action, __assigns: assigns] = controller_and_action} -> 
             {:ok , socket 
-                    |> assign(:controller, String.to_existing_atom(controller))
-                    |> assign(:action, String.to_existing_atom(action))
+                    |> assign(:__controller, controller)
+                    |> assign(:__action, action)
+
             }
           {:error, _reason} -> :error
         end
