@@ -32,7 +32,7 @@ defmodule Drab.Channel do
         :got_results_from_client, 
         { 
           reply["button_clicked"] |> String.to_existing_atom, 
-          reply["params"]
+          reply["params"] |> Map.delete("__drab_modal_hidden_input")
         }
       })
 

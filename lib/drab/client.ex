@@ -26,6 +26,12 @@ defmodule Drab.Client do
 
   Please remember that your parameters are passed to the browser as Phoenix Token. Token is signed, 
   but not ciphered. Do not put any secret data in it.
+
+  On the browser side, there is a global object `Drab`, which you may use to create your own channels
+  inside Drab Socket:
+
+      ch = Drab.socket.channel("mychannel:whatever")
+      ch.join()
   """
   def js(conn, assigns \\ []) do
     controller = Phoenix.Controller.controller_module(conn)

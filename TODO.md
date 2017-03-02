@@ -2,12 +2,11 @@
 Changes:
 * waiter functionality
 * display information when handler die (like error 500 page), different for prod and dev (Drab.Core)
-* explain more how socket works in the documentation
-* Drab.Socket steels all `connect` callbacks. Bad Drab
+* select(:val) returns first value instead of the list
+* Drab.Query.select(:vals) returns a map of of %{name|id|undefined_XX: value} instead of [value] 
 
 ## 0.4.0
 Changes:
-* Drab.Query.select returns a list of [id: value] instead of [value]
 
 ## Future
 Changes:
@@ -22,3 +21,6 @@ Changes:
 * group JS commands to be launched in one step
 * render templates, views in commanders
 * render Drab templates in a compile-time
+
+## Bugs or features?
+* Drab.Socket steels all `connect` callbacks. Bad Drab

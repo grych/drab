@@ -10,16 +10,17 @@ defmodule Drab.Socket do
 
   This creates a channel "__drab:*" used by all Drab operations.
 
+  You may create your own channels inside a Drab Socket, but you *can't provide your own `connect` callback*.
+  Drab Client (on JS side) always connects at the page load and Drab's built-in `connect` callback will intercept
+  this call. If you want to pass the parameters to the Channel, you may do it in `Drab.Client.js`, they 
+  will appear in Socket's assigns. Please visit `Drab.Client` to learn more.
+
   Drab uses the socket which is defined in your application `Endpoint` (default `lib/endpoint.ex`)
   By default, Drab uses "/socket" as a path. In case of using different one, configure it with:
 
       config :drab, 
         socket: "/my/socket"
 
-  You may create your own channels inside a Drab Socket, but you can't provide your own `connect` callback.
-  Drab Client (on JS side) always connects at the page load and Drab's built-in `connect` callback will intercept
-  this call. If you want to pass the parameters to the Channel, you may do it in `Drab.Client.js`, they 
-  will appear in Socket's assigns.
   """
 
   defmacro __using__(_options) do

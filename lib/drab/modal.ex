@@ -24,7 +24,8 @@ defmodule Drab.Modal do
   * clicked_button is an atom of `:ok` or `:cancel`. Notice that pressing `esc` or closing the modal window will 
     return :cancel, while pressing `enter` returns :ok
   * params: Map `%{name|id => value}` of all inputs, selects, etc which are in the alert box body. Uses `name` 
-    attribute as a key (or `id` when there is no `name`, or `undefined`).
+    attribute as a key, or `id`, when there is no `name`, or `__undefined_[number]`, when neither `id` or `name` are
+    specified.
 
   Examples:
 

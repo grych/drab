@@ -1,12 +1,38 @@
 ## 0.3.0
-Changes:
-* depreciated `Drab.Endpoint`; Drab now injects in the `UserSocket` with `use Drab.Socket` (#8)
-* move Commander setup to macros instead of use options
+API Changes and Depreciations:
+* depreciated `Drab.Endpoint`; Drab now injects in the `UserSocket` with `use Drab.Socket` (#8). Now 
+it is possible to share Drab socket with your code (create your channels)
+
+* moved Commander setup to macros instead of use options
+
+    use Drab.Commander
+    onload :page_loaded
+    access_session :userid
+
 * renamed JS `launch_event()` to `run_handler()`
 
 New features:
-* before_handler callback (to run before each handler); stop processing when return false or nil
-* after_handler, getting the return value of handler
+* `before_handler` callback (to run before each handler); do not process the even handler if
+  `before_handler` returns nil or false
+
+    before_handler :check_login, except: [:log_in]
+    def check_login(socket, _dom_sender) do
+      get_session(socket, :userid)
+    end
+
+* after_handler, getting the return value of handler as an argument
+
+    after_handler :clean_up
+    def clean_up(_socket, _dom_sender, handler_return) do
+      # some clieanup
+    end
+
+* `Drab.Query.select(:all)` - returns a map of return values of all known jQuery methods
+
+    socket |> select(:all, from: "span")
+    %{"first_span" => %{"height" => 16, "html" => "First span with class qs_2", "innerHeight" => 20, ...
+
+
 
 ## 0.2.6
 Changes:

@@ -2,7 +2,7 @@ defmodule Drab.Query do
   require Logger
 
   @methods               ~w(html text val width height innerWidth innerHeight outerWidth outerHeight position
-                            offset scrollLeft scrollTop)a
+                            offset scrollLeft scrollTop all)a
   @methods_with_argument ~w(attr prop css data)a
   @insert_methods        ~w(before after prepend append)a
   @broadcast             &Drab.Core.broadcastjs/2
@@ -120,6 +120,7 @@ defmodule Drab.Query do
 
   @doc """
   Returns an array of values get by executing jQuery `method` on selected DOM object or objects. 
+  Returns a Map of `%{ method => returns_of_methods}`, when the method is `:all`. 
 
   In case the method requires an argument (like `attr()`), it should be given as key/value 
   pair: method_name: "argument".
@@ -133,8 +134,11 @@ defmodule Drab.Query do
 
   Examples:
       name = socket |> select(:val, from: "#name") |> List.first
-      font = socket |> select(css: "font", from: "#name") |> List.first()
+      # "Stefan"
+      font = socket |> select(css: "font", from: "#name")
+      # ["normal normal normal normal 14px / 20px \\"Helvetica Neue\\", Helvetica, Arial, sans-serif"]
       button_ids = socket |> select(data: "button_id", from: "button")
+      # [1, 2, 3]
 
   The first example above translates to javascript:
 
@@ -152,6 +156,17 @@ defmodule Drab.Query do
   There is a shortcut to receive a list of classes from the selectors:
 
       classes = socket |> select(:classes, from: ".btn")
+
+  ## :all
+  In case when method is `:all`, executes all known methods on the given selector. Returns 
+  Map `%{name|id => medthod_return_value}`. Uses `name` attribute as a key, or `id`, 
+  when there is no `name`, or `__undefined_[number]`, when neither `id` or `name` are
+  specified.
+
+      socket |> select(:all, from: "span")
+      %{"first_span" => %{"height" => 16, "html" => "First span with class qs_2", "innerHeight" => 20, ...
+
+  Additionally, `id` and `name` attributes are included into a Map.
   """
   def select(socket, options)
   def select(socket, [{method, argument}, from: selector]) when method in @methods_with_argument do
@@ -511,6 +526,21 @@ defmodule Drab.Query do
   end
 
   # TODO: move it to templates
+
+  defp build_js(selector, "all()", :select) do
+    #val: $(this).val(), html: $(this).html(), text: $(this).text()
+    methods = Enum.map(@methods -- [:all], fn m -> "#{m}: $(this).#{m}()" end) |> Enum.join(", ")
+    """
+    var vals = {}
+    var i = 0
+    $('#{selector}').map(function() {
+      var key = $(this).attr("name") || $(this).attr("id") || "__undefined_" + i++
+      vals[key] = {#{methods}, id: $(this).attr('id'), name: $(this).attr('name')}
+    })
+    vals
+    """
+  end
+
   defp build_js(selector, method_javascripted, :select) do
     """
     $('#{selector}').map(function() {
@@ -518,10 +548,10 @@ defmodule Drab.Query do
     }).toArray()
     """
   end
+
   defp build_js(selector, method_javascripted, type) when type in ~w(update insert delete execute)a do
     # update events only when running .html() method
     update_events = if Regex.match?(@html_modifiers, method_javascripted) do
-    # update_events = if true do
       "Drab.set_event_handlers('#{selector}')"
     else 
       ""
