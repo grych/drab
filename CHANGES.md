@@ -5,9 +5,11 @@ it is possible to share Drab socket with your code (create your channels)
 
 * moved Commander setup to macros instead of use options
 
-      use Drab.Commander
-      onload :page_loaded
-      access_session :userid
+````
+use Drab.Commander
+onload :page_loaded
+access_session :userid
+````
 
 * renamed JS `launch_event()` to `run_handler()`
 
