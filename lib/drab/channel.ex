@@ -57,8 +57,8 @@ defmodule Drab.Channel do
     verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket)
   end   
 
-  defp verify_and_cast(message, params, socket) do
-    p = [message, socket] ++ params
+  defp verify_and_cast(event_name, params, socket) do
+    p = [event_name, socket] ++ params
     GenServer.cast(socket.assigns.__drab_pid, List.to_tuple(p))
     {:noreply, socket}
   end

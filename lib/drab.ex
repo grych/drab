@@ -126,8 +126,8 @@ defmodule Drab do
 
   @doc false
   # any other cast is an event handler
-  def handle_cast({_, socket, payload, event_handler_function, reply_to}, state) do
-    handle_event(socket, event_handler_function, payload, reply_to, state)
+  def handle_cast({event_name, socket, payload, event_handler_function, reply_to}, state) do
+    handle_event(socket, event_name, event_handler_function, payload, reply_to, state)
   end
 
 
@@ -152,7 +152,7 @@ defmodule Drab do
     socket
   end
 
-  defp handle_event(socket, event_handler_function, payload, reply_to, %Drab{commander: commander_module} = state) do
+  defp handle_event(socket, _event_name, event_handler_function, payload, reply_to, %Drab{commander: commander_module} = state) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
       event_handler = String.to_existing_atom(event_handler_function)
