@@ -158,7 +158,7 @@ defmodule Drab do
       check_handler_existence!(commander_module, event_handler_function)
 
       event_handler = String.to_existing_atom(event_handler_function)
-      dom_sender = Map.delete(payload, "event_handler_function")  
+      dom_sender = Map.delete(payload, "event_handler_function")
       commander_cfg = commander_config(commander_module)    
 
       # run before_handlers first
