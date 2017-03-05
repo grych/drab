@@ -39,6 +39,14 @@ defmodule Drab.Channel do
     {:noreply, socket}
   end
 
+  def handle_in("waiter", %{"drab_waiter_token" => waiter_token}, socket) do
+    {pid, ref} = Drab.Waiter.detokenize_waiter(socket, waiter_token)
+
+    send(pid, {:waiter, ref})
+
+    {:noreply, socket}
+  end
+
   def handle_in("onload", _, socket) do
     verify_and_cast(:onload, [], socket)
   end

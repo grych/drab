@@ -19,7 +19,7 @@ Drab.on_connect(function(resp, drab) {
         params: vals
       }
     ]      
-    drab.channel.push("modal", {ok: query_output})        
+    drab.channel.push("modal", {ok: query_output})
     $(MODAL).modal('hide')
   }
 

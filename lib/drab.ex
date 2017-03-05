@@ -155,6 +155,8 @@ defmodule Drab do
   defp handle_event(socket, _event_name, event_handler_function, payload, reply_to, %Drab{commander: commander_module} = state) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
+      check_handler_existence!(commander_module, event_handler_function)
+
       event_handler = String.to_existing_atom(event_handler_function)
       dom_sender = Map.delete(payload, "event_handler_function")  
       commander_cfg = commander_config(commander_module)    
@@ -181,11 +183,11 @@ defmodule Drab do
     {:noreply, state}
   end
 
-  # defp check_handler_existence!(commander_module, callback_handler) do
-  #   unless function_exists?(commander_module, Atom.to_string(callback_handler)) do
-  #     raise "Drab can't find handler callback: \"#{commander_module}.#{callback_handler}/2\"."
-  #   end    
-  # end
+  defp check_handler_existence!(commander_module, handler) do
+    unless function_exists?(commander_module, handler) do
+      raise "Drab can't find the handler: \"#{commander_module}.#{handler}/2\"."
+    end    
+  end
 
   defp push_reply(socket, reply_to, _, _) do
     Phoenix.Channel.push(socket, "event", %{
