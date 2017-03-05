@@ -32,7 +32,7 @@ defmodule Drab.Controller do
           commander = controller_path |> List.last() |> String.replace("Controller", "Commander")
           module = controller_path |> List.replace_at(-1, commander) |> Module.concat
 
-          Enum.into(@__drab_opts__, %{commander: module})
+          Enum.into(@__drab_opts__, %{commander: module, controller: __MODULE__})
         end
       end
     end

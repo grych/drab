@@ -1,6 +1,12 @@
 defmodule Drab.Waiter do
   require Logger
 
+  @moduledoc """
+  Enables Drab Waiter functionality - a possibility to wait for browser events in the Commander handler function.
+
+  Requires Drab.Query.
+  """
+
   defmacro waiter(socket, do: block) do
     quote do
       {:ok, var!(buffer, Drab.Waiter)} = start_buffer(%{:timeout => {:infinity, nil}})
@@ -43,18 +49,24 @@ defmodule Drab.Waiter do
     end
   end
 
+  @doc false
   def start_buffer(state), do: Agent.start_link(fn -> state end)
 
+  @doc false
   def stop_buffer(buff), do: Agent.stop(buff)
 
+  @doc false
   def put_buffer(buff, key, value), do: Agent.update(buff, fn state -> Map.put(state, key, value) end)
 
+  @doc false
   def get_buffer(buff), do: Agent.get(buff, &(&1)) 
 
+  @doc false
   def tokenize_waiter(socket, pid, ref) do
     Phoenix.Token.sign(socket, "drab_waiter_token",  {pid, ref})
   end
 
+  @doc false
   def detokenize_waiter(socket, token) do
     {:ok, {pid, ref}} = Phoenix.Token.verify(socket, "drab_waiter_token", token)
     {pid, ref}

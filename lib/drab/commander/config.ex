@@ -1,7 +1,7 @@
 defmodule Drab.Commander.Config do
   @moduledoc false
 
-  defstruct commander: nil, 
+  defstruct commander: nil,
     onload: nil,
     onconnect: nil,
     ondisconnect: nil,

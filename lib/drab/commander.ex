@@ -127,7 +127,7 @@ defmodule Drab.Commander do
             """, Macro.Env.stacktrace(__ENV__))
         end
       end)
-      @options Map.merge(%Drab.Commander.Config{}, o) 
+      @options Map.merge(%Drab.Commander.Config{}, o)
 
       unquote do
         opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
