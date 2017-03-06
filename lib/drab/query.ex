@@ -2,7 +2,7 @@ defmodule Drab.Query do
   require Logger
 
   @methods               ~w(html text val width height innerWidth innerHeight outerWidth outerHeight position
-                            offset scrollLeft scrollTop all)a
+                            offset scrollLeft scrollTop)a
   @methods_with_argument ~w(attr prop css data)a
   @insert_methods        ~w(before after prepend append)a
   @broadcast             &Drab.Core.broadcastjs/2
@@ -178,7 +178,7 @@ defmodule Drab.Query do
 
   @doc "See `Drab.Query.select/2`"
   def select(socket, method, options)
-  def select(socket, method, from: selector) when method in @methods do
+  def select(socket, method, from: selector) when method in @methods or method == :all do
     do_query(socket, selector, jquery_method(method), :select, @no_broadcast)
   end
   def select(socket, :classes, from: selector) do
