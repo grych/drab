@@ -1,11 +1,12 @@
 ## 0.3.0
 ### API Changes and Depreciations:
+
 * depreciated `Drab.Endpoint`; Drab now injects in the `UserSocket` with `use Drab.Socket` (#8). Now 
-it is possible to share Drab socket with your code (create your channels)
+  it is possible to share Drab socket with your code (create your channels)
 
 * moved Commander setup to macros instead of use options
 
-````
+````elixir
 use Drab.Commander
 onload :page_loaded
 access_session :userid
@@ -14,17 +15,35 @@ access_session :userid
 * renamed JS `launch_event()` to `run_handler()`
 
 ### New features:
-* `before_handler` callback (to run before each handler); do not process the even handler if
-  `before_handler` returns nil or false
 
+* `Drab.Waiter` module adds ability to wait for an user response in your function, so you can have a reply 
+  and continue processing.
+
+````elixir
+return = waiter(socket) do
+  on "selector1", "event_name1", fn (sender) ->
+    # run when this event is triggered on selector1
+  end
+  on "selector2", "event_name2", fn (sender) ->
+    # run when that event is triggered on selector2
+  end
+  on_timeout 5000, fn -> 
+    # run after timeout, default: infinity
+  end
+end
 ````
+
+* `before_handler` callback (to run before each handler); do not process the even handler if `before_handler` 
+  returns nil or false
+
+````elixir
 before_handler :check_login, except: [:log_in]
 def check_login(socket, _dom_sender) do
   get_session(socket, :userid)
 end
 ````
 
-* after_handler, getting the return value of handler as an argument
+* `after_handler`, getting the return value of handler as an argument
 
 ````
 after_handler :clean_up
@@ -35,11 +54,10 @@ end
 
 * `Drab.Query.select(:all)` - returns a map of return values of all known jQuery methods
 
-````
+````elixir
 socket |> select(:all, from: "span")
 %{"first_span" => %{"height" => 16, "html" => "First span with class qs_2", "innerHeight" => 20, ...
 ````
-
 
 ## 0.2.6
 Changes:
