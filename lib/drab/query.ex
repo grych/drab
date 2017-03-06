@@ -525,7 +525,7 @@ defmodule Drab.Query do
     "#{method}(#{escape_value(attribute)}, #{escape_value(value)})"
   end
 
-  # TODO: move it to templates
+  #TODO: move it to templates
 
   defp build_js(selector, "all()", :select) do
     #val: $(this).val(), html: $(this).html(), text: $(this).text()
@@ -567,7 +567,7 @@ defmodule Drab.Query do
   defp escape_value(value),                         do: "#{Drab.Core.encode_js(value)}"
 
   defp wrong_query!(selector, method, arguments \\ nil) do
-    raise """
+    raise ArgumentError, """
     Drab does not recognize your query:
       selector:  #{inspect(selector)}
       method:    #{inspect(method)}
