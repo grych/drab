@@ -1,6 +1,18 @@
 ## 0.3.0
 ### API Changes and Depreciations:
 
+* Drab.Query API changed: now select(:val) returns first value instead of the list, but all jQuery methods
+  have corresponding plural methods, which return a Map of `%{name|id|__undefined_XX: value}`
+
+````elixir
+### <span name="first_span" class="qs_2 small-border">First span with class qs_2</span>
+### <span id="second_span" class="qs_2 small-border">Second span with class qs_2</span>
+socket |> select(:html, from: ".qs_2")
+# "First span with class qs_2"
+socket |> select(:htmls, from: ".qs_2")
+# %{"first_span" => "First span with class qs_2", "second_span" => "Second span with class qs_2"}
+````
+
 * depreciated `Drab.Endpoint`; Drab now injects in the `UserSocket` with `use Drab.Socket` (#8). Now 
   it is possible to share Drab socket with your code (create your channels)
 

@@ -1,15 +1,13 @@
 ## 0.3.0
 Changes:
 * display information when handler die (like error 500 page), different for prod and dev (Drab.Core)
-* select(:val) returns first value instead of the list
-* Drab.Query.select(:vals) returns a map of of %{name|id|undefined_XX: value} instead of [value] 
 
 ## 0.4.0
 Changes:
 
 ## Future
 Changes:
-* handler functions should die when Drab dies (hudge tree with Drab on top), some function may wait for message
+* rewrite Drab.Query - use meta, Luke!
 * tests, tests, tests
 * benchmarks
 * debuggin console
