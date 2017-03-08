@@ -32,9 +32,9 @@ defmodule Drab.Query do
     pair will launch the method named as the key with arguments taken from its value, so `text: "some"` becomes
     `.text("some")`.
 
-  Object manipulation (`update/2`, `insert/2`, `delete/2`, `execute/2`) socket. 
-  Query `select/2` returns list of found DOM object properties (list of htmls, values etc) or empty list when nothing 
-  found.
+  Object manipulation (`update/2`, `insert/2`, `delete/2`, `execute/2`) functions return socket. 
+  Query `select/2` returns either a found value (when using singular version of jQuery method, eg `:html`), or
+  a Map of %{name|id|__undefined_XX: value}, when using plural - like `:htmls`.
 
   Select queries always refers to the page on which the event were launched. Data manipulation queries (`update/2`, 
   `insert/2`, `delete/2`, `execute/2`) changes DOM objects on this page as well, but they have a broadcast versions:
@@ -122,8 +122,12 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Returns an array of values get by executing jQuery `method` on selected DOM object or objects. 
-  Returns a Map of `%{ method => returns_of_methods}`, when the method is `:all`. 
+  Returns a value get by executing jQuery `method` on selected DOM object, or
+  a Map of %{name|id|__undefined_[INCREMENT]: value} when `method` name is plural, or a Map of 
+  `%{ method => returns_of_methods}`, when the method is `:all`. 
+
+  Plural version uses `name` attribute as a key, or `id`,  when there is no `name`, 
+  or `__undefined_[INCREMENT]`, when neither `id` or `name` are specified.
 
   In case the method requires an argument (like `attr()`), it should be given as key/value 
   pair: method_name: "argument".
@@ -136,18 +140,14 @@ defmodule Drab.Query do
   * data: "att" - get "data-att" attribute
 
   Examples:
-      name = socket |> select(:val, from: "#name") |> List.first
+      name = socket |> select(:val, from: "#name")
       # "Stefan"
+      name = socket |> select(:vals, from: "#name")
+      # %{"name" => "Stefan"}
       font = socket |> select(css: "font", from: "#name")
-      # ["normal normal normal normal 14px / 20px \\"Helvetica Neue\\", Helvetica, Arial, sans-serif"]
-      button_ids = socket |> select(data: "button_id", from: "button")
-      # [1, 2, 3]
-
-  The first example above translates to javascript:
-
-      $('name').map(function() {
-        return $(this).val()
-      }).toArray()
+      # "normal normal normal normal 14px / 20px \\"Helvetica Neue\\", Helvetica, Arial, sans-serif"
+      button_ids = socket |> select(datas: "button_id", from: "button")
+      # %{"button1" => 1, "button2" => 2}
 
   Available jQuery methods: 
       html text val 
@@ -156,11 +156,16 @@ defmodule Drab.Query do
       position offset scrollLeft scrollTop
       attr: val prop: val css: val data: val
 
+  Available jQuery *plural* methods: 
+      htmls texts vals 
+      widths heights
+      innerWidths innerHeights outerWidths outerHeights 
+      positions offsets scrollLefts scrollTops
+      attrs: val props: val csss: val datas: val
+
   ## :all
   In case when method is `:all`, executes all known methods on the given selector. Returns 
-  Map `%{name|id => medthod_return_value}`. Uses `name` attribute as a key, or `id`, 
-  when there is no `name`, or `__undefined_[number]`, when neither `id` or `name` are
-  specified.
+  Map `%{name|id => medthod_return_value}`. The Map key are generated in the same way as those with plural methods.
 
       socket |> select(:all, from: "span")
       %{"first_span" => %{"height" => 16, "html" => "First span with class qs_2", "innerHeight" => 20, ...

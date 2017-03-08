@@ -110,13 +110,16 @@ Congratullations! You have installed Drab and you can proceed with your own Comm
 
 ## Usage
 
-All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. Think about it as a controller for the live pages. Commanders are similar to Phoenix controllers and should be placed in `web/commanders` directory.
+All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. 
+Think about it as a controller for the live pages. Commanders should be placed in `web/commanders` directory.
 
-To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your application controller. 
+To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your application 
+controller. 
 
 Remember the difference: `controller` renders the page while `commander` works on the live page.
 
-  1. Generate the page Commander. Commander name should correspond to controller, so PageController should have PageCommander:
+  1. Generate the page Commander. Commander name should correspond to controller, so PageController should have 
+  PageCommander:
 
 ```bash
 $ mix drab.gen.commander Page
@@ -126,7 +129,8 @@ Add the following line to your Example.PageController:
     use Drab.Controller 
 ```
 
-  2. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
+  2. As described in the previous task, add `Drab.Controller` to your page Controller 
+  (eg. `web/controllers/page_controller.ex` in the default app):
 
 ```elixir
 defmodule DrabExample.PageController do
@@ -139,7 +143,8 @@ defmodule DrabExample.PageController do
 end    
 ```
 
-  3. Edit the commander file `web/commanders/page_commander.ex` and add some real action - the `onload` callback which fires when the browser connects to Drab.
+  3. Edit the commander file `web/commanders/page_commander.ex` and add some real action - the `onload` callback 
+  which fires when the browser connects to Drab.
 
 ```elixir
 defmodule DrabExample.PageCommander do
@@ -158,7 +163,8 @@ defmodule DrabExample.PageCommander do
 end
 ```
 
-Function `update/3` (shorthand for `Drab.Query.update/3`) with `:html` parameter sets the HTML of DOM object, analogically to `$().html()` on the client side.
+Function `update/3` (shorthand for `Drab.Query.update/3`) with `:html` parameter sets the HTML of DOM object, 
+analogically to `$().html()` on the client side.
 
 Finally! Run the phoenix server and enjoy working on the Dark Side of the web.
 
@@ -166,7 +172,10 @@ Finally! Run the phoenix server and enjoy working on the Dark Side of the web.
 
 ## Drab Events
 
-* Client-side: assign the events directly in HTML, using `drab-event=event_name` and `drab-handler='event_handler'` combination of attributes, when `event_name` is the JS event name and `event_handler` is the function name in the Commander. This function will be fired on event. There is also a shorthand for this: `drab-[event_name]=event_handler` (currently: click, change, keyup, keydown are defined). Example:
+* Client-side: assign the events directly in HTML, using `drab-event=event_name` and `drab-handler='event_handler'` 
+combination of attributes, when `event_name` is the JS event name and `event_handler` is the function name 
+in the Commander. This function will be fired on event. There is also a shorthand for this: 
+`drab-[event_name]=event_handler` (currently: click, change, keyup, keydown are defined). Example:
 
 ```html
 <button drab-click='button_clicked'>Clickme!</button>

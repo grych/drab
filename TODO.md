@@ -7,6 +7,9 @@ Changes:
 
 ## Future
 Changes:
+* Waiter must be closed, somehow, when system exits
+* when Drab process is getting killed, kill does not propagate to some childred, like sentix_loop in drab_poc
+* *** use GenServer, Luke!
 * rewrite Drab.Query - use meta, Luke!
 * tests, tests, tests
 * benchmarks

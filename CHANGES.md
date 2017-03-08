@@ -1,8 +1,8 @@
 ## 0.3.0
 ### API Changes and Depreciations:
 
-* Drab.Query API changed: now select(:val) returns first value instead of the list, but all jQuery methods
-  have corresponding plural methods, which return a Map of `%{name|id|__undefined_XX: value}`
+* Drab.Query.select API changed: now `select(:val)` returns first value instead of the list, but all jQuery methods
+  have corresponding plural methods, which return a Map of `%{name|id|__undefined_XX => value}`
 
 ````elixir
 ### <span name="first_span" class="qs_2 small-border">First span with class qs_2</span>
