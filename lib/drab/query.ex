@@ -3,7 +3,10 @@ defmodule Drab.Query do
 
   @methods               ~w(html text val width height innerWidth innerHeight outerWidth outerHeight position
                             offset scrollLeft scrollTop)a
-  @methods_with_argument ~w(attr prop css data)a
+  @methods_plural        ~w(htmls texts vals widths heights innerWidths innerHeights outerWidths outerHeights positions
+                            offsets scrollLefts scrollTops)a
+  @methods_with_argument         ~w(attr prop css data)a
+  @methods_with_argument_plural  ~w(attrs props csses datas)a
   @insert_methods        ~w(before after prepend append)a
   @broadcast             &Drab.Core.broadcastjs/2
   @no_broadcast          &Drab.Core.execjs/2
@@ -29,7 +32,7 @@ defmodule Drab.Query do
     pair will launch the method named as the key with arguments taken from its value, so `text: "some"` becomes
     `.text("some")`.
 
-  Object manipulation (`update/2`, `insert/2`, `delete/2`, `execute/2`) returns tuple {:ok, number_of_objects_affected}. 
+  Object manipulation (`update/2`, `insert/2`, `delete/2`, `execute/2`) socket. 
   Query `select/2` returns list of found DOM object properties (list of htmls, values etc) or empty list when nothing 
   found.
 
@@ -153,10 +156,6 @@ defmodule Drab.Query do
       position offset scrollLeft scrollTop
       attr: val prop: val css: val data: val
 
-  There is a shortcut to receive a list of classes from the selectors:
-
-      classes = socket |> select(:classes, from: ".btn")
-
   ## :all
   In case when method is `:all`, executes all known methods on the given selector. Returns 
   Map `%{name|id => medthod_return_value}`. Uses `name` attribute as a key, or `id`, 
@@ -169,7 +168,8 @@ defmodule Drab.Query do
   Additionally, `id` and `name` attributes are included into a Map.
   """
   def select(socket, options)
-  def select(socket, [{method, argument}, from: selector]) when method in @methods_with_argument do
+  def select(socket, [{method, argument}, from: selector]) 
+  when method in @methods_with_argument or method in @methods_with_argument_plural do
     do_query(socket, selector, jquery_method(method, argument), :select, @no_broadcast)
   end
   def select(_socket, [{method, argument}, from: selector]) do
@@ -178,11 +178,8 @@ defmodule Drab.Query do
 
   @doc "See `Drab.Query.select/2`"
   def select(socket, method, options)
-  def select(socket, method, from: selector) when method in @methods or method == :all do
+  def select(socket, method, from: selector) when method in @methods or method == :all or method in @methods_plural do
     do_query(socket, selector, jquery_method(method), :select, @no_broadcast)
-  end
-  def select(socket, :classes, from: selector) do
-    socket |> select(attr: "class", from: selector) |>  Enum.map(&String.split/1)
   end
   def select(_socket, method, from: selector) do
     wrong_query! selector, method 
@@ -291,13 +288,14 @@ defmodule Drab.Query do
     do_update(socket, broadcast, attr: "class", set: value, on: selector)
   end
   defp do_update(socket, broadcast, :class, toggle: value, on: selector) do
-    {:ok, do_query(socket, selector, "toggleClass(\"#{value}\")", :update, broadcast)}    
+    {:ok, do_query(socket, selector, {:toggleClass, "(\"#{value}\")"}, :update, broadcast)}    
   end
   defp do_update(socket, broadcast, :class, set: values, on: selector) when is_list(values) do
     # switch classes: updates the attr: "class" string with replacement of class, if it is on the list
-    c = socket |> select(:classes, from: selector)
+    c = socket |> select(attrs: "class", from: selector)
     one_element_selector_only!(c, selector)
-    classes = c |> List.first()
+
+    classes = Map.values(c) |> Enum.map(&String.split/1) |> List.first()
     replaced = Enum.map(classes, fn c -> 
       if c in values do 
         next_in_list(values, c) 
@@ -318,16 +316,15 @@ defmodule Drab.Query do
 
   # returns next value of the given list (cycle) or the first element of the list
   defp next_value(socket, values, method, selector) when is_list(values) do
-    v = socket |> select(method, from: selector)
+    v = socket |> select(plural(method), from: selector)
     one_element_selector_only!(v, selector)
-    next_in_list(values, v |> List.first())
+    next_in_list(values, Map.values(v) |> List.first())
   end
   defp next_value(_socket, value, _method, _selector), do: value
-
   defp next_value(socket, values, method, argument, selector) when is_list(values) do
-    v = socket |> select([{method, argument}, from: selector]) 
+    v = socket |> select([{plural(method), argument}, from: selector]) 
     one_element_selector_only!(v, selector)
-    next_in_list(values, v |> List.first())
+    next_in_list(values, Map.values(v) |> List.first())
   end
   defp next_value(_socket, value, _method, _argument, _selector), do: value
 
@@ -516,18 +513,18 @@ defmodule Drab.Query do
   end
 
   defp jquery_method(method) do
-    "#{method}()"
+    {method, "()"}
   end
   defp jquery_method(method, value) do
-    "#{method}(#{escape_value(value)})"
+    {method, "(#{escape_value(value)})"}
   end
   defp jquery_method(method, attribute, value) do
-    "#{method}(#{escape_value(attribute)}, #{escape_value(value)})"
+    {method, "(#{escape_value(attribute)}, #{escape_value(value)})"}
   end
 
   #TODO: move it to templates
 
-  defp build_js(selector, "all()", :select) do
+  defp build_js(selector, {:all, "()"}, :select) do
     #val: $(this).val(), html: $(this).html(), text: $(this).text()
     methods = Enum.map(@methods -- [:all], fn m -> "#{m}: $(this).#{m}()" end) |> Enum.join(", ")
     """
@@ -541,15 +538,52 @@ defmodule Drab.Query do
     """
   end
 
-  defp build_js(selector, method_javascripted, :select) do
+  defp build_js(selector, {method, arguments}, :select) when method in @methods or method in @methods_with_argument do
+    method_javascripted = Atom.to_string(method) <> arguments
     """
-    $('#{selector}').map(function() {
-      return $(this).#{method_javascripted}
-    }).toArray()
+    $('#{selector}').#{method_javascripted}
     """
   end
 
-  defp build_js(selector, method_javascripted, type) when type in ~w(update insert delete execute)a do
+  defp build_js(selector, {method, arguments}, :select) 
+  when method in @methods_plural or method in @methods_with_argument_plural do
+    method_javascripted = Atom.to_string(singular(method)) <> arguments
+    # """
+    # $('#{selector}').map(function() {
+    #   return $(this).#{method_javascripted}
+    # }).toArray()
+    # """
+    """
+    var vals = {}
+    var i = 0
+    $('#{selector}').map(function() {
+      var key = $(this).attr("name") || $(this).attr("id") || "__undefined_" + i++
+      vals[key] = $(this).#{method_javascripted}
+    })
+    vals
+    """
+  end
+
+  defp build_js(selector, {method, arguments}, :select) do
+    method_javascripted = Atom.to_string(method) <> arguments
+    # """
+    # $('#{selector}').map(function() {
+    #   return $(this).#{method_javascripted}
+    # }).toArray()
+    # """
+    """
+    var vals = {}
+    var i = 0
+    $('#{selector}').map(function() {
+      var key = $(this).attr("name") || $(this).attr("id") || "__undefined_" + i++
+      vals[key] = $(this).#{method_javascripted}
+    })
+    vals
+    """
+  end
+
+  defp build_js(selector, {method, arguments}, type) when type in ~w(update insert delete execute)a do
+    method_javascripted = Atom.to_string(method) <> arguments
     # update events only when running .html() method
     update_events = if Regex.match?(@html_modifiers, method_javascripted) do
       "Drab.set_event_handlers('#{selector}')"
@@ -560,6 +594,14 @@ defmodule Drab.Query do
     $('#{selector}').#{method_javascripted}
     #{update_events}
     """
+  end
+
+  defp singular(method) do
+    # returns singular version of plural atom
+    List.zip([@methods_plural ++ @methods_with_argument_plural, @methods ++ @methods_with_argument])[method] || method
+  end
+  defp plural(method) do
+    List.zip([@methods ++ @methods_with_argument, @methods_plural ++ @methods_with_argument_plural])[method] || method
   end
 
   defp escape_value(value) when is_boolean(value),  do: "#{inspect(value)}"
