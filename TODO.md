@@ -9,6 +9,7 @@ Changes:
 
 ## Future
 Changes:
+* handler functions should die when Drab dies (hudge tree with Drab on top), some function may wait for message
 * tests, tests, tests
 * benchmarks
 * debuggin console
@@ -20,7 +21,7 @@ Changes:
 * group JS commands to be launched in one step
 * render templates, views in commanders (accutally it can already be done, must thing about some helpers)
 * render Drab templates in a compile-time
-* compress Drab templates
+* compress Drab templates (js)
 
 ## Bugs or features?
 * Drab.Socket steels all `connect` callbacks. Bad Drab
