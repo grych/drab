@@ -200,7 +200,7 @@ defmodule Drab do
     end    
   end
 
-  defp failed(e, socket) do
+  defp failed(e, _socket) do
     error = """
     Drab Handler failed with the following exception:
     #{Exception.format_banner(:error, e)}

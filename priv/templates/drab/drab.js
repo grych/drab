@@ -33,7 +33,7 @@
         fx(drab)
       })
 
-      this.socket = new this.Socket("<%= Drab.config.socket %>", {params: {__drab_return: drab_return_token}})
+      this.socket = new this.Socket("<%= Drab.config.socket %>", {params: {drab_return: drab_return_token}})
       this.socket.connect()
       this.channel = this.socket.channel("__drab:" + this.path, {})
       
