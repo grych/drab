@@ -1,4 +1,4 @@
-## 0.3.0
+## 0.3.1
 Changes:
 * display information when handler die (like error 500 page), different for prod and dev (Drab.Core)
 
@@ -7,7 +7,7 @@ Changes:
 
 ## Future
 Changes:
-* Waiter must be closed, somehow, when system exits
+* Waiter must be closed, somehow, when Drab exits
 * when Drab process is getting killed, kill does not propagate to some childred, like sentix_loop in drab_poc
 * *** use GenServer, Luke!
 * rewrite Drab.Query - use meta, Luke!
@@ -25,4 +25,4 @@ Changes:
 * compress Drab templates (js)
 
 ## Bugs or features?
-* Drab.Socket steels all `connect` callbacks. Bad Drab
+* Drab.Socket steals all `connect` callbacks. Bad Drab

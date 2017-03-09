@@ -18,7 +18,7 @@ defmodule Drab.Modal do
   * class - additional classes to .modal-dialog, ex. modal-lg, modal-sm, modal-xs
   * buttons - list of name/text of the buttons (:ok, :cancel are only available names by default; you need to create a 
     template if you want more buttons), eq. [ok: "Yes", cancel: "No"]
-  * timeout - in seconds - after this time modal window will close and the function return {:cancel, _}
+  * timeout - in milliseconds - after this time modal window will close and the function will return {:cancel, _}
 
   Returns a tuple {clicked_button, params}, where:
   * clicked_button is an atom of `:ok` or `:cancel`. Notice that pressing `esc` or closing the modal window will 

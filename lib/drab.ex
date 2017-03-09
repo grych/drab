@@ -56,7 +56,7 @@ defmodule Drab do
 
   use GenServer
 
-  defstruct store: nil, session: nil, commander: nil
+  defstruct store: nil, session: nil, commander: nil, socket: nil
 
   @doc false
   def start_link(state) do
@@ -88,10 +88,10 @@ defmodule Drab do
 
   @doc false
   def handle_info({:EXIT, pid, {reason, stack}}, state) when pid != self() do
-    # ignore exits of the subprocesses
+    # subprocess died
     Logger.error """
     Drab Process #{inspect(pid)} died because of #{inspect(reason)}
-    #{inspect(stack)}
+    #{Exception.format_stacktrace(stack)}
     """
     {:noreply, state}
   end
@@ -145,8 +145,12 @@ defmodule Drab do
   defp handle_callback(socket, commander, callback) do
     if callback do
       # TODO: rethink the subprocess strategies - now it is just spawn_link
-      spawn_link fn -> 
-        apply(commander, callback, [socket])
+      spawn_link fn ->
+        try do 
+          apply(commander, callback, [socket])
+        rescue e ->
+          failed(e, socket)
+        end
       end
     end
     socket
@@ -155,29 +159,36 @@ defmodule Drab do
   defp handle_event(socket, _event_name, event_handler_function, payload, reply_to, %Drab{commander: commander_module} = state) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
-      check_handler_existence!(commander_module, event_handler_function)
+      try do
+        check_handler_existence!(commander_module, event_handler_function)
 
-      event_handler = String.to_existing_atom(event_handler_function)
-      dom_sender = Map.delete(payload, "event_handler_function")
-      commander_cfg = commander_config(commander_module)    
+        event_handler = String.to_existing_atom(event_handler_function)
+        dom_sender = Map.delete(payload, "event_handler_function")
+        commander_cfg = commander_config(commander_module)    
 
-      # run before_handlers first
-      returns_from_befores = Enum.map(callbacks_for(event_handler, commander_cfg.before_handler), 
-        fn callback_handler ->
-          apply(commander_module, callback_handler, [socket, dom_sender])
-        end)
-
-      # if ANY of them fail (return false or nil), do not proceed
-      unless Enum.any?(returns_from_befores, &(!&1)) do
-        # run actuall event handler
-        returned_from_handler = apply(commander_module, event_handler, [socket, dom_sender])
-        Enum.map(callbacks_for(event_handler, commander_cfg.after_handler), 
+        # run before_handlers first
+        returns_from_befores = Enum.map(callbacks_for(event_handler, commander_cfg.before_handler), 
           fn callback_handler ->
-            apply(commander_module, callback_handler, [socket, dom_sender, returned_from_handler])
+            apply(commander_module, callback_handler, [socket, dom_sender])
           end)
-      end
 
-      push_reply(socket, reply_to, commander_module, event_handler_function)
+        # if ANY of them fail (return false or nil), do not proceed
+        unless Enum.any?(returns_from_befores, &(!&1)) do
+          # run actuall event handler
+          returned_from_handler = apply(commander_module, event_handler, [socket, dom_sender])
+
+          Enum.map(callbacks_for(event_handler, commander_cfg.after_handler), 
+            fn callback_handler ->
+              apply(commander_module, callback_handler, [socket, dom_sender, returned_from_handler])
+            end)
+        end
+      
+      rescue e ->
+        failed(e, socket)
+      after
+        # push reply to the browser
+        push_reply(socket, reply_to, commander_module, event_handler_function)
+      end
     end
 
     {:noreply, state}
@@ -187,6 +198,16 @@ defmodule Drab do
     unless function_exists?(commander_module, handler) do
       raise "Drab can't find the handler: \"#{commander_module}.#{handler}/2\"."
     end    
+  end
+
+  defp failed(e, socket) do
+    error = """
+    Drab Handler failed with the following exception:
+    #{Exception.format_banner(:error, e)}
+    #{Exception.format_stacktrace(System.stacktrace())}
+    """
+    # Drab.Core.execjs socket, "alert(#{Poison.encode!(error)})"
+    Logger.error error
   end
 
   defp push_reply(socket, reply_to, _, _) do

@@ -47,7 +47,7 @@ Drab.on_connect(function(resp, drab) {
       }
       drab.modal_timeout_function = setTimeout(function() {
         modal_button_clicked(message, "cancel")
-      }, 1000 * message.timeout)
+      }, message.timeout)
     }
     // set focus on form
     $modal.on("shown.bs.modal", function() {
