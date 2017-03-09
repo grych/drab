@@ -27,7 +27,7 @@ defmodule Drab.Socket do
     quote do
       channel "__drab:*", Drab.Channel
 
-      def connect(%{"drab_return" => controller_and_action_token}, socket) do
+      def connect(%{"__drab_return" => controller_and_action_token}, socket) do
         case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token) do
           {:ok, [__controller: controller, __action: action, __assigns: assigns] = controller_and_action} ->
             own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
@@ -39,6 +39,10 @@ defmodule Drab.Socket do
             }
           {:error, _reason} -> :error
         end
+      end
+      def connect(%{"drab_return" => _controller_and_action_token}, socket) do
+        # depreciated
+        {:ok, socket}
       end
 
     end
