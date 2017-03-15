@@ -4,6 +4,9 @@
 
 Drab - Access the browser User Interface from the Server Side. No Javascript programming needed anymore!
 
+Drab extends Phoenix Framework to "remote control" UI on the browser live. The idea is to move all User Interface
+login to the server-side, to eliminate Javascript on the client and Ajax calls.
+
 ## Teaser
 
 * Client side:
@@ -41,6 +44,14 @@ end
 ## Warning: this software is still experimental!
 
 ### See [Demo Page](https://tg.pl/drab) for live demo and description.
+
+### Prerequisites
+
+  1. Erlang ~> 19
+
+  2. Elixir ~> 1.3
+
+  3. Phoenix ~> 1.2
 
 ## Installation
 
@@ -168,7 +179,7 @@ analogically to `$().html()` on the client side.
 
 Finally! Run the phoenix server and enjoy working on the Dark Side of the web.
 
-### The code above is available for download [here](https://github.com/grych/drab-example)
+### All above is available for download [here](https://github.com/grych/drab-example)
 
 ## Drab Events
 
