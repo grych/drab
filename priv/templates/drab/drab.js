@@ -93,7 +93,7 @@
       this.channel.push("event", message)
     },
     launch_event: function(event_name, event_handler, payload, execute_after) {
-      console.log("WARNING: launch_event() is depreciated. Please use run_handler() instrad.")
+      console.log("WARNING: launch_event() is depreciated. Please use run_handler() instead.")
       Drab.run_handler(event_name, event_handler, payload, execute_after)
     },
     connected: [],

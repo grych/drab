@@ -34,7 +34,7 @@ defmodule Drab.Query do
 
   Object manipulation (`update/2`, `insert/2`, `delete/2`, `execute/2`) functions return socket. 
   Query `select/2` returns either a found value (when using singular version of jQuery method, eg `:html`), or
-  a Map of %{name|id|__undefined_XX: value}, when using plural - like `:htmls`.
+  a Map of %{name|id|__undefined_XX => value}, when using plural - like `:htmls`.
 
   Select queries always refers to the page on which the event were launched. Data manipulation queries (`update/2`, 
   `insert/2`, `delete/2`, `execute/2`) changes DOM objects on this page as well, but they have a broadcast versions:

@@ -41,7 +41,7 @@ defmodule Drab.Socket do
         end
       end
       def connect(%{"drab_return" => _controller_and_action_token}, socket) do
-        # depreciated
+        # TODO: depreciated "drab_return", --> to be removed
         {:ok, socket}
       end
 

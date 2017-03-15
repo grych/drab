@@ -6,10 +6,11 @@ Changes:
 ## 0.4.0
 Changes:
 
+## Bugs:
+* Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
+
 ## Future
 Changes:
-* Waiter must be closed, somehow, when Drab exits
-* when Drab process is getting killed, kill does not propagate to some childred, like sentix_loop in drab_poc
 * *** use GenServer, Luke!
 * rewrite Drab.Query - use meta, Luke!
 * tests, tests, tests

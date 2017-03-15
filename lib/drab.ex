@@ -45,6 +45,30 @@ defmodule Drab do
   Drab treats browser page as a database, allows you to read and change the data there. Please refer to `Drab.Query` documentation to 
   find out how `Drab.Query.select/2` or `Drab.Query.update/2` works.
 
+  ## Debugging Drab in IEx
+
+  When started with iex (`iex -S mix phoenix.server`) Drab shows the helpful message on how to debug its functions:
+
+      Started Drab for /drab, handling events in DrabPoc.PageCommander
+        You may debug Drab functions in IEx by copy/paste the following:
+        socket = GenServer.call(pid("0.634.0"), :get_socket)
+      Examples:
+        Drab.Query.select(socket, :htmls, from: "h4")
+        Drab.Core.execjs(socket, "alert('hello from IEx!')")
+
+  All you need to do is to copy/paste the line with `socket = ...` and now you can run Drab function directly
+  from IEx, observing the results on the running browser in the realtime.
+
+
+  ## Handling Exceptions
+
+  Drab intercepts all exceptions from event handler function and let it die, but before it presents the error message 
+  in the logs, and, for development environment, on the page. For production, it shows just an alert with 
+  the generic error. 
+
+  By default it is just an alert(), but you can easly override it by creating the template in the
+  `priv/templates/drab/drab.handler_error.prod.js` folder with your own javascript presenting the message.
+
   ## Modules
 
   Drab is modular. You may choose which modules to use in the specific Commander by using `:module` option
@@ -87,6 +111,12 @@ defmodule Drab do
   end
 
   @doc false
+  def handle_info({:EXIT, pid, :killed}, state) when pid != self() do
+    failed(state.socket, %RuntimeError{message: "Drab Process #{inspect(pid)} has been killed."})
+    {:noreply, state}
+  end
+
+  @doc false
   def handle_info({:EXIT, pid, {reason, stack}}, state) when pid != self() do
     # subprocess died
     Logger.error """
@@ -115,13 +145,13 @@ defmodule Drab do
   end
 
   @doc false
-  def handle_cast({:update_store, store}, %Drab{session: session, commander: commander}) do
-    {:noreply, %Drab{store: store, session: session, commander: commander}}
+  def handle_cast({:update_store, store}, %Drab{session: session, commander: commander, socket: socket}) do
+    {:noreply, %Drab{store: store, session: session, commander: commander, socket: socket}}
   end
 
   @doc false
-  def handle_cast({:update_session, session}, %Drab{store: store, commander: commander}) do
-    {:noreply, %Drab{store: store, session: session, commander: commander}}
+  def handle_cast({:update_session, session}, %Drab{store: store, commander: commander, socket: socket}) do
+    {:noreply, %Drab{store: store, session: session, commander: commander, socket: socket}}
   end
 
   @doc false
@@ -130,6 +160,10 @@ defmodule Drab do
     handle_event(socket, event_name, event_handler_function, payload, reply_to, state)
   end
 
+  @doc false
+  def handle_cast({:update_socket, socket}, %Drab{store: store, commander: commander, session: session}) do
+    {:noreply, %Drab{store: store, session: session, commander: commander, socket: socket}}
+  end
 
   @doc false
   def handle_call(:get_store, _from, %Drab{store: store} = state) do
@@ -141,6 +175,10 @@ defmodule Drab do
     {:reply, session, state}
   end
 
+  @doc false
+  def handle_call(:get_socket, _from, %Drab{socket: socket} = state) do
+    {:reply, socket, state}
+  end
 
   defp handle_callback(socket, commander, callback) do
     if callback do
@@ -149,7 +187,7 @@ defmodule Drab do
         try do 
           apply(commander, callback, [socket])
         rescue e ->
-          failed(e, socket)
+          failed(socket, e)
         end
       end
     end
@@ -184,9 +222,9 @@ defmodule Drab do
         end
       
       rescue e ->
-        failed(e, socket)
+        failed(socket, e)
       after
-        # push reply to the browser
+        # push reply to the browser, to re-enable controls
         push_reply(socket, reply_to, commander_module, event_handler_function)
       end
     end
@@ -200,14 +238,20 @@ defmodule Drab do
     end    
   end
 
-  defp failed(e, _socket) do
+  defp failed(socket, e) do
     error = """
     Drab Handler failed with the following exception:
     #{Exception.format_banner(:error, e)}
     #{Exception.format_stacktrace(System.stacktrace())}
     """
-    # Drab.Core.execjs socket, "alert(#{Poison.encode!(error)})"
     Logger.error error
+
+    if socket do
+      js = Drab.Template.render_template(
+        "drab.handler_error.#{Atom.to_string(Mix.env)}.js", 
+        message: Drab.Core.encode_js(error))
+      Drab.Core.execjs socket, js
+    end
   end
 
   defp push_reply(socket, reply_to, _, _) do

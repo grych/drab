@@ -9,7 +9,8 @@ defmodule Drab.Channel do
     # socket already contains controller and action
     socket_with_path = socket |> assign(:__url_path, url_path)
 
-    {:ok, pid} = Drab.start_link(%Drab{store: %{}, session: %{}, commander: Drab.get_commander(socket)})
+    {:ok, pid} = Drab.start_link(%Drab{store: %{}, session: %{}, 
+      commander: Drab.get_commander(socket)})
 
     # children = [
     #   worker(Drab, [], restart: :transient)
@@ -61,6 +62,23 @@ defmodule Drab.Channel do
   end
 
   def handle_in("onconnect", _, socket) do
+    # for debugging
+    GenServer.cast(socket.assigns.__drab_pid, {:update_socket, socket})
+    if IEx.started? do
+      p = inspect(socket.assigns.__drab_pid)
+      pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
+      Logger.debug """
+
+      Started Drab for #{socket.assigns.__url_path}, handling events in #{inspect(Drab.get_commander(socket))}
+        You may debug Drab functions in IEx by copy/paste the following:
+        socket = GenServer.call(pid("#{pid_string}"), :get_socket)
+      Examples:
+        Drab.Query.select(socket, :htmls, from: "h4")
+        Drab.Core.execjs(socket, "alert('hello from IEx!')")
+        
+      """
+    end
+
     verify_and_cast(:onconnect, [], socket)
   end
 
