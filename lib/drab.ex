@@ -51,10 +51,17 @@ defmodule Drab do
 
       Started Drab for /drab, handling events in DrabPoc.PageCommander
         You may debug Drab functions in IEx by copy/paste the following:
-        socket = GenServer.call(pid("0.634.0"), :get_socket)
-      Examples:
-        Drab.Query.select(socket, :htmls, from: "h4")
-        Drab.Core.execjs(socket, "alert('hello from IEx!')")
+      import Drab.Core
+      import Drab.Query
+      import Drab.Modal
+      import Drab.Waiter
+
+      socket = GenServer.call(pid("0.634.0"), :get_socket)
+
+        Examples:
+      socket |> select(:htmls, from: "h4")
+      socket |> execjs("alert('hello from IEx!')")
+      socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
 
   All you need to do is to copy/paste the line with `socket = ...` and now you can run Drab function directly
   from IEx, observing the results on the running browser in the realtime.

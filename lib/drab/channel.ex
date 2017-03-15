@@ -65,17 +65,21 @@ defmodule Drab.Channel do
     # for debugging
     GenServer.cast(socket.assigns.__drab_pid, {:update_socket, socket})
     if IEx.started? do
+      commander = Drab.get_commander(socket)
+      modules = [Drab.Core] ++ commander.__drab__().modules
       p = inspect(socket.assigns.__drab_pid)
       pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
       Logger.debug """
 
-      Started Drab for #{socket.assigns.__url_path}, handling events in #{inspect(Drab.get_commander(socket))}
+        Started Drab for #{socket.assigns.__url_path}, handling events in #{inspect(commander)}
         You may debug Drab functions in IEx by copy/paste the following:
-        socket = GenServer.call(pid("#{pid_string}"), :get_socket)
-      Examples:
-        Drab.Query.select(socket, :htmls, from: "h4")
-        Drab.Core.execjs(socket, "alert('hello from IEx!')")
-        
+      #{Enum.map(modules, fn module -> "import #{inspect(module)}" end) |> Enum.join("\n")}
+      socket = GenServer.call(pid("#{pid_string}"), :get_socket)
+      
+        Examples:
+      socket |> select(:htmls, from: "h4")
+      socket |> execjs("alert('hello from IEx!')")
+      socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
       """
     end
 

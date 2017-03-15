@@ -7,6 +7,8 @@ Changes:
 Changes:
 
 ## Bugs:
+* Drab.Modal returns some sizzle on the second run, and do not wait, when debugging - all wrong while debugging
+* all debugging function return stuff ater drab.modal, check flush after launching any modal
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
 
 ## Future
