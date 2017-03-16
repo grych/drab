@@ -26,15 +26,17 @@ Drab.on_connect(function(resp, drab) {
   drab.channel.on("modal", function(message) {
     $modal = $(MODAL)
     $(MODAL_FORM).on("submit", function() {
+      $(MODAL).data("clicked", true) // prevents double send
       modal_button_clicked(message, "ok")
       return false // prevent submit
     })
     $(MODAL_BUTTONS).on("click", function() {
-      $(this).data("clicked", true)
+      $(MODAL).data("clicked", true)
       modal_button_clicked(message, $(this).attr("name"))
     })
     $modal.on("hidden.bs.modal", function() {
-      if (!$(MODAL_BUTTON_OK).data("clicked")) {
+      clearTimeout(drab.modal_timeout_function)
+      if (!$(MODAL).data("clicked")) {
         // if it is not an OK button (prevent double send)
         modal_button_clicked(message, "cancel")
       }
@@ -46,10 +48,12 @@ Drab.on_connect(function(resp, drab) {
         clearTimeout(drab.modal_timeout_function)
       }
       drab.modal_timeout_function = setTimeout(function() {
+        $(MODAL).data("clicked", true) // prevents double send
         modal_button_clicked(message, "cancel")
       }, message.timeout)
     }
-    // set focus on form
+
+    // set focus on the form
     $modal.on("shown.bs.modal", function() {
       $(MODAL_FORM + " :input").first().focus()
     })

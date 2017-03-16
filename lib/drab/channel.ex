@@ -71,12 +71,12 @@ defmodule Drab.Channel do
       pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
       Logger.debug """
 
-        Started Drab for #{socket.assigns.__url_path}, handling events in #{inspect(commander)}
-        You may debug Drab functions in IEx by copy/paste the following:
-      #{Enum.map(modules, fn module -> "import #{inspect(module)}" end) |> Enum.join("\n")}
+          Started Drab for #{socket.assigns.__url_path}, handling events in #{inspect(commander)}
+          You may debug Drab functions in IEx by copy/paste the following:
+      #{Enum.map(modules, fn module -> "import #{inspect(module)}" end) |> Enum.join("; ")}
       socket = GenServer.call(pid("#{pid_string}"), :get_socket)
       
-        Examples:
+          Examples:
       socket |> select(:htmls, from: "h4")
       socket |> execjs("alert('hello from IEx!')")
       socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])

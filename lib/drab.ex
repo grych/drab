@@ -49,16 +49,12 @@ defmodule Drab do
 
   When started with iex (`iex -S mix phoenix.server`) Drab shows the helpful message on how to debug its functions:
 
-      Started Drab for /drab, handling events in DrabPoc.PageCommander
-        You may debug Drab functions in IEx by copy/paste the following:
-      import Drab.Core
-      import Drab.Query
-      import Drab.Modal
-      import Drab.Waiter
+          Started Drab for /drab/docs, handling events in DrabPoc.DocsCommander
+          You may debug Drab functions in IEx by copy/paste the following:
+      import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
+      socket = GenServer.call(pid("0.413.0"), :get_socket)
 
-      socket = GenServer.call(pid("0.634.0"), :get_socket)
-
-        Examples:
+          Examples:
       socket |> select(:htmls, from: "h4")
       socket |> execjs("alert('hello from IEx!')")
       socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])

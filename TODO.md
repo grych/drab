@@ -1,19 +1,11 @@
-## 0.3.1
-Changes:
-* display information when handler die (like error 500 page), different for prod and dev (Drab.Core)
-* Drab.socket() returns current socket, so you can test Drab from iex console
-
 ## 0.4.0
 Changes:
 
 ## Bugs:
-* Drab.Modal returns some sizzle on the second run, and do not wait, when debugging - all wrong while debugging
-* all debugging function return stuff ater drab.modal, check flush after launching any modal
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
 
 ## Future
 Changes:
-* *** use GenServer, Luke!
 * rewrite Drab.Query - use meta, Luke!
 * tests, tests, tests
 * benchmarks

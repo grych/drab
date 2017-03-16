@@ -1,4 +1,13 @@
+## 0.3.1
+
+### New features:
+
+* debugging Drab functions directly from `IEx` console
+* display information when handler die, different for prod and dev
+
+
 ## 0.3.0
+
 ### API Changes and Depreciations:
 
 * Drab.Query.select API changed: now `select(:val)` returns first value instead of the list, but all jQuery methods
