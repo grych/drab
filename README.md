@@ -70,11 +70,12 @@ $ mix deps.get
 $ mix compile
 ```
 
-  2. Add `jquery` to `package.json`:
+  2. Add `jquery` and `boostrap` to `package.json`:
 
 ```json
 "dependencies": {
-  "jquery": ">= 3.1.1"
+  "jquery": ">= 3.1.1",
+  "bootstrap": "~3.3.7"
 }
 ```
 
@@ -86,7 +87,8 @@ $ mix compile
 ```javascript
 npm: {globals: {
   $: 'jquery',
-  jQuery: 'jquery'
+  jQuery: 'jquery',
+  bootstrap: 'bootstrap'
 }}
 ```
 
