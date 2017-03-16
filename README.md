@@ -7,8 +7,8 @@
 
 Drab - Access the browser User Interface from the Server Side. No Javascript programming needed anymore!
 
-Drab extends Phoenix Framework to "remote control" UI on the browser live. The idea is to move all User Interface
-login to the server-side, to eliminate Javascript on the client and Ajax calls.
+Drab extends Phoenix Framework to "remote control" UI on the browser, live. The idea is to move all User Interface
+logic to the server-side, to eliminate Javascript and Ajax calls.
 
 ## Teaser
 
