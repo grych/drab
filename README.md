@@ -1,7 +1,9 @@
 # Drab, the Server-side jQuery
 
 [![hex.pm version](https://img.shields.io/hexpm/v/drab.svg)](https://hex.pm/packages/drab)
+[![hex.pm downloads]
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/drab/)
+
 
 Drab - Access the browser User Interface from the Server Side. No Javascript programming needed anymore!
 
