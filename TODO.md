@@ -7,9 +7,9 @@ Changes:
 ## Future
 Changes:
 * rewrite Drab.Query - use meta, Luke!
+* broadcast to all except you
 * tests, tests, tests
 * benchmarks
-* debuggin console
 * timeout for event handlers
 * timeout for Drab.Query and Drab.Modal functions
 * specify on which pages drab broadcasts, with wildcard

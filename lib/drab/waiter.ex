@@ -9,7 +9,7 @@ defmodule Drab.Waiter do
         on "selector1", "event_name", fn (sender) ->
         end
         on "selector2", "event_name", fn (sender) ->
-        end
+        end 
         on_timeout 5000, fn -> end
       end
 
