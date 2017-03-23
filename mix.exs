@@ -24,7 +24,7 @@ defmodule Drab.Mixfile do
 
   def application do
     [mod: {DrabTestApp, []},
-     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext]]
+     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger]]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
@@ -33,8 +33,8 @@ defmodule Drab.Mixfile do
 
   defp deps do
     [{:phoenix, "~> 1.2.1"},
-     {:phoenix_pubsub, "~> 1.0"},
      {:phoenix_html, "~> 2.6"},
+     {:phoenix_pubsub, "~> 1.0"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
