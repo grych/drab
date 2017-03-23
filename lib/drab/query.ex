@@ -114,7 +114,7 @@ defmodule Drab.Query do
   """
   def this!(dom_sender) do
     id = dom_sender["id"]
-    unless id, do: raise """
+    unless id, do: raise ArgumentError, """
     Try to use Drab.Query.this!/1 on DOM object without an ID:
     #{inspect(dom_sender)}
     """ 
