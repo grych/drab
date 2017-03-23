@@ -1,6 +1,3 @@
-Application.put_env(:drab, DrabTestApp.Endpoint, 
-  http: [port: 4000], server: true, secret_key_base: "vsavoubnjesbaoufdous93urabs923")
-
 defmodule DrabTestApp.Endpoint do
   use Phoenix.Endpoint, otp_app: :drab
 
@@ -11,7 +8,7 @@ defmodule DrabTestApp.Endpoint do
   # You should set gzip to true if you are running phoenix.digest
   # when deploying your static files in production.
   plug Plug.Static,
-    at: "/", from: :drab, gzip: false,
+    at: "/", from: "test/support/priv/static", gzip: false,
     only: ~w(css fonts images js favicon.ico robots.txt)
 
   # Code reloading can be explicitly enabled under the
