@@ -1,5 +1,5 @@
 <div id="begin"></div>
-
+<button id="core1_button" drab-click="core1_click">Core1</button>
 <span id="core1_out"></span>
 <br>
 
