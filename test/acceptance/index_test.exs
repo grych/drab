@@ -1,4 +1,4 @@
-defmodule DrabTestApp.UserListTest do
+defmodule DrabTestApp.IndexTest do
   use DrabTestApp.AcceptanceCase, async: true
 
   test "main page", %{session: session} do

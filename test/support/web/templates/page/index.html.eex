@@ -19,3 +19,8 @@ socket |> select(:htmls, from: "h3")
 socket |> execjs("alert('hello from IEx!')")
 socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
 </pre>
+
+<hr>
+
+Test pages: <br>
+<a href="/tests/core">Drab.Core</a><br>

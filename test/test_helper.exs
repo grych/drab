@@ -12,8 +12,10 @@ defmodule DrabTestApp.TestHelper do
   end
 end
 
-Application.put_env(:wallaby, :base_url, DrabTestApp.Endpoint.url)
-Application.put_env(:wallaby, :phantomjs, DrabTestApp.TestHelper.phantomjs_path())
+if Mix.env == :test do
+  Application.put_env(:wallaby, :base_url, DrabTestApp.Endpoint.url)
+  Application.put_env(:wallaby, :phantomjs, DrabTestApp.TestHelper.phantomjs_path())
 
-ExUnit.start()
-{:ok, _} = Application.ensure_all_started(:wallaby)
+  ExUnit.start()
+  {:ok, _} = Application.ensure_all_started(:wallaby)
+end
