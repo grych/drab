@@ -14401,8 +14401,8 @@ channel.join().receive("ok", function (resp) {
 exports.default = socket;
 });
 
-;require.alias("jquery/dist/jquery.js", "jquery");
-require.alias("bootstrap/dist/js/npm.js", "bootstrap");
+;require.alias("bootstrap/dist/js/npm.js", "bootstrap");
+require.alias("jquery/dist/jquery.js", "jquery");
 require.alias("process/browser.js", "process");
 require.alias("phoenix_html/priv/static/phoenix_html.js", "phoenix_html");
 require.alias("phoenix/priv/static/phoenix.js", "phoenix");process = require('process');require.register("___globals___", function(exports, require, module) {

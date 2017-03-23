@@ -1,2 +1,21 @@
-<h3>Drab tests</h3>
+<h3>Drab Tests</h3>
+<p>
+  This application is for debugging and testing Drab.
+</p>
 
+If you started it with <code>iex -S mix phoenix.server</code>, you may debug Drab functions in IEx by following the instruction in the console:
+<pre>
+[debug] 
+    Started Drab for /, handling events in DrabTestApp.PageCommander
+    You may debug Drab functions in IEx by copy/paste the following:
+import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
+socket = GenServer.call(pid("HERE BE PID"), :get_socket)
+</pre>
+
+
+    Examples:
+<pre>
+socket |> select(:htmls, from: "h3")
+socket |> execjs("alert('hello from IEx!')")
+socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
+</pre>
