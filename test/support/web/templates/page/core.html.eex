@@ -1,5 +1,5 @@
-<h3 id="page_loaded_indicator"></h3>
-<button id="core1_button" drab-click="core1_click">Core1</button>
+<div id="begin"></div>
+
 <span id="core1_out"></span>
 <br>
 

@@ -3,7 +3,7 @@ defmodule DrabTestApp.PageCommander do
   onload :page_loaded
 
   def page_loaded(socket) do
-    socket |> Drab.Query.update(:text, set: "Page Loaded", on: "#page_loaded_indicator")
+    socket |> Drab.Query.insert("<h3 id='page_loaded_indicator'>Page Loaded<button id='core1_button' drab-click='core1_click'>Core1</button></h3>", after: "#begin")
   end
 
   ### Drab.Core ###
