@@ -1,4 +1,4 @@
-<h3>Drab Tests</h3>
+<h3 id="header">Drab Tests</h3>
 <p>
   This application is for debugging and testing Drab.
 </p>

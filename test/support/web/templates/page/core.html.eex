@@ -1,5 +1,18 @@
 <div id="begin"></div>
-<button id="core1_button" drab-click="core1_click">Core1</button>
+<div id="test_session_value1"></div>
+<div id="test_session_value2"></div>
+
+<button id="core1_button" drab-click="core1_click">core1</button>
 <span id="core1_out"></span>
+<br>
+
+<button id="core2_button" drab-click="core2_click">core2</button>
+<span id="core2_out"></span>
+<br>
+
+<button id="set_store_button" drab-click="set_store_click">set store</button><br>
+<button id="get_store_button" drab-click="get_store_click">get store</button><br>
+<span id="store1_out"></span>
+
 <br>
 

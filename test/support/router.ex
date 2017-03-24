@@ -16,8 +16,8 @@ defmodule DrabTestApp.Router do
   scope "/", DrabTestApp do
     pipe_through :browser # Use the default browser stack
 
-    get "/", PageController, :index
-    get "/tests/core", PageController, :core
+    get "/", PageController, :index, as: :index
+    get "/tests/core", PageController, :core, as: :core
   end
 
   # Other scopes may use custom stacks.

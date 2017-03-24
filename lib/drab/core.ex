@@ -36,6 +36,37 @@ defmodule Drab.Core do
 
   The code above runs function named `clicked` in the corresponding Commander, with 
   the argument `%{"click" => "clickety-click}"`
+
+  ## Store
+  Analogically to Plug, Drab can store the values in its own session. To avoid confusion with the Plug Session session, 
+  it is called a Store. You can use functions: `put_store/3` and `get_store/2` to read and write the values 
+  in the Store. It works exactly the same way as a "normal", Phoenix session.
+
+  * By default, Drab Store is kept in browser Local Storage. This means it is gone when you close the browser 
+    or the tab. You may set up where to keep the data with drab_store_storage config entry.
+  * Drab Store is not the Plug Session! This is a different entity. Anyway, you have an access 
+    to the Plug Session (details below).
+  * Drab Store is stored on the client side and it is signed, but - as the Plug Session cookie - not ciphered.
+
+  ## Session
+  Although Drab Store is a different entity than Plug Session (used in Controllers), there is a way 
+  to access the Session. First, you need to whitelist the keys you wan to access in `access_session/1` macro 
+  in the Commander (you may give it a list of atoms or a single atom). Whitelisting is due to security: 
+  it is kept in Token, on the client side, and it is signed but not encrypted. 
+
+      defmodule DrabPoc.PageCommander do
+        use Drab.Commander
+
+        onload :page_loaded, 
+        access_session :drab_test
+
+        def page_loaded(socket) do
+          socket 
+          |> update(:val, set: get_session(socket, :drab_test), on: "#show_session_test")
+        end
+      end
+
+  There is not way to update session from Drab. Session is read-only.
   """
   require Logger
 
