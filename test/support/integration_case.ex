@@ -1,6 +1,5 @@
 defmodule DrabTestApp.IntegrationCase do
   use ExUnit.CaseTemplate
-  # use Hound.Helpers
 
   using do
     quote do
@@ -30,4 +29,17 @@ defmodule DrabTestApp.IntegrationCase do
       wait_for_enable(element)
     end
   end
+
+  def click_and_wait(button_id) do
+    button = Hound.Helpers.Page.find_element(:id, button_id)
+    button |> Hound.Helpers.Element.click()
+    button |> wait_for_enable()
+  end
+
+  def standard_click_and_get_test(test_name) do
+    click_and_wait("#{test_name}_button")
+    out = Hound.Helpers.Page.find_element(:id, "#{test_name}_out")
+    assert Hound.Helpers.Element.visible_text(out) == test_name        
+  end
+
 end
