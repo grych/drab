@@ -1,0 +1,16 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<button id="query1_button" drab-click="query1_click">query1</button>
+<span id="query1_out"></span>
+<br>
+
+<div   id="select1_div" class="select_div"><b>text in select1_div</b></div>
+<div name="select2_div" class="select_div">text in select2_div</div>
+<div                    class="select_div">text in select3_div</div>
+<br>
+
+<input type="input"   id="select1_input" class="select_input" value="select1 value">
+<input type="input" name="select2_input" class="select_input" value="select2 value">
+<input type="input"                      class="select_input" value="select3 value">
+<br>

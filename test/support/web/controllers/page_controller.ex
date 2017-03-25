@@ -12,4 +12,8 @@ defmodule DrabTestApp.PageController do
     render conn, "core.html"
   end
 
+  def query(conn, _params) do
+    render conn, "query.html"
+  end
+
 end

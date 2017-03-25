@@ -11,29 +11,33 @@ defmodule DrabTestApp.CoreTest do
     :ok
   end
 
-  test "execjs and broadcast" do
-    # test execjs and broadcastjs
-    standard_click_and_get_test("core1")
-    standard_click_and_get_test("core2")
-  end
+  describe "Drab.Core" do
 
-  test "session" do
-    # this session value should be visible
-    session_value = find_element(:id, "test_session_value1")
-    assert visible_text(session_value) == "test session value 1"
+    test "execjs and broadcast" do
+      # test execjs and broadcastjs
+      standard_click_and_get_test("core1")
+      standard_click_and_get_test("core2")
+    end
 
-    # and this one not, as it is not listed in `access_session`
-    session_value = find_element(:id, "test_session_value2")
-    assert visible_text(session_value) == ""
-  end
+    test "session" do
+      # this session value should be visible
+      session_value = find_element(:id, "test_session_value1")
+      assert visible_text(session_value) == "test session value 1"
 
-  test "store" do
-    # test if the store is set up correctly
-    click_and_wait("set_store_button")
-    click_and_wait("get_store_button")
+      # and this one not, as it is not listed in `access_session`
+      session_value = find_element(:id, "test_session_value2")
+      assert visible_text(session_value) == ""
+    end
 
-    store_value = find_element(:id, "store1_out")
-    assert visible_text(store_value) == "test store value"
+    test "store" do
+      # test if the store is set up correctly
+      click_and_wait("set_store_button")
+      click_and_wait("get_store_button")
+
+      store_value = find_element(:id, "store1_out")
+      assert visible_text(store_value) == "test store value"
+    end
+
   end
 
   ### TODO: find out how to make persistent store test (not working in chromedriver by default, use profiles?)

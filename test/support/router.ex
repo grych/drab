@@ -18,6 +18,7 @@ defmodule DrabTestApp.Router do
 
     get "/", PageController, :index, as: :index
     get "/tests/core", PageController, :core, as: :core
+    get "/tests/query", PageController, :query, as: :query
   end
 
   # Other scopes may use custom stacks.

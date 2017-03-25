@@ -1,5 +1,6 @@
 defmodule DrabTestApp.IntegrationCase do
   use ExUnit.CaseTemplate
+  use Hound.Helpers
 
   using do
     quote do
@@ -22,7 +23,7 @@ defmodule DrabTestApp.IntegrationCase do
   end
 
   def wait_for_enable(element) do
-    if element |> Hound.Helpers.Element.element_enabled? do
+    if element |> element_enabled? do
       :ok
     else 
       Process.sleep 100
@@ -31,15 +32,23 @@ defmodule DrabTestApp.IntegrationCase do
   end
 
   def click_and_wait(button_id) do
-    button = Hound.Helpers.Page.find_element(:id, button_id)
-    button |> Hound.Helpers.Element.click()
+    button = find_element(:id, button_id)
+    button |> click()
     button |> wait_for_enable()
   end
 
   def standard_click_and_get_test(test_name) do
     click_and_wait("#{test_name}_button")
-    out = Hound.Helpers.Page.find_element(:id, "#{test_name}_out")
-    assert Hound.Helpers.Element.visible_text(out) == test_name        
+    out = find_element(:id, "#{test_name}_out")
+    assert visible_text(out) == test_name        
   end
 
+  defp drab_pid() do
+    pid = find_element(:id, "drab_pid") |> visible_text
+    :erlang.list_to_pid('<#{pid}>')
+  end
+
+  def drab_socket() do
+    GenServer.call(drab_pid(), :get_socket)
+  end
 end

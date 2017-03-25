@@ -22,5 +22,6 @@ socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
 
 <hr>
 
-Test pages: <br>
+Pages for Integration Tests: <br>
 <a href="/tests/core">Drab.Core</a><br>
+<a href="/tests/query">Drab.Query</a><br>
