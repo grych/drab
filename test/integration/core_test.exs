@@ -10,22 +10,24 @@ defmodule DrabTestApp.CoreTest do
     find_element(:id, "page_loaded_indicator") # wait for a page to load
   end
 
-  defp click_and_wait(test_name) do
-    button = find_element(:id, "#{test_name}_button")
-
+  defp click_and_wait(button_id) do
+    button = find_element(:id, button_id)
     button |> click()
     button |> wait_for_enable()
+  end
 
+  defp standard_test(test_name) do
+    click_and_wait("#{test_name}_button")
     out = find_element(:id, "#{test_name}_out")
-    assert visible_text(out) == test_name    
+    assert visible_text(out) == test_name        
   end
 
   test "Drab.Core functions" do
     begin()
 
     # test execjs and broadcastjs
-    click_and_wait("core1")
-    click_and_wait("core2")
+    standard_test("core1")
+    standard_test("core2")
 
     # this session value should be visible
     session_value = find_element(:id, "test_session_value1")
@@ -36,13 +38,8 @@ defmodule DrabTestApp.CoreTest do
     assert visible_text(session_value) == ""
 
     # test if the store is set up correctly
-    button = find_element(:id, "set_store_button")
-    button |> click()
-    button |> wait_for_enable()
-
-    button = find_element(:id, "get_store_button")
-    button |> click()
-    button |> wait_for_enable()
+    click_and_wait("set_store_button")
+    click_and_wait("get_store_button")
 
     store_value = find_element(:id, "store1_out")
     assert visible_text(store_value) == "test store value"
