@@ -7,6 +7,24 @@ defmodule DrabTestApp.QueryTest do
     query_url(DrabTestApp.Endpoint, :query)
   end
 
+  defp extended_test(singular, plural, selector) do
+    socket = drab_socket()
+
+    # this test does not check the exact return of jquery method
+    ret = socket |> select(singular, from: selector)
+    assert is_integer(ret)
+
+    nohashed = nohash(selector)
+    %{^nohashed => ret} = socket |> select(plural, from: selector)
+    assert is_integer(ret)
+
+    ret = socket |> select(singular, from: "#nonexiting")
+    assert is_nil(ret)
+
+    ret = socket |> select(plural, from: "#nonexiting")
+    assert ret == %{}
+  end
+
   setup do
     query_index() |> navigate_to()
     find_element(:id, "page_loaded_indicator") # wait for the Drab to initialize
@@ -43,19 +61,14 @@ defmodule DrabTestApp.QueryTest do
     end
 
     test "extended select/3" do
-      # this test does not check the exact return of jquery method
-      socket = drab_socket()
-      ret = socket |> select(:width, from: "#select1_div")
-      # IO.puts ret
+      extended_test(:width, :widths, "#select1_div")
+      extended_test(:height, :heights, "#select1_div")
+      extended_test(:innerWidth, :innerWidths, "#select1_div")
+      extended_test(:innerHeight, :innerHeights, "#select1_div")
+      extended_test(:scrollTop, :scrollTops, "#select1_div")
+      extended_test(:scrollLeft, :scrollLefts, "#select1_div")
 
-# iex(5)> socket |> select(:width, from: "#select1_div")
-# 700
-# iex(6)> socket |> select(:width, from: "#select1_divx")
-# nil
-# iex(7)> socket |> select(:innerWidth, from: "#select1_div")
-# 700
-# iex(8)> socket |> select(:innerWidths, from: "#select1_div")
-# %{"select1_div" => 700}
+
 # iex(9)> socket |> select(:position, from: "#select1_div")   
 # %{"left" => 454, "top" => 121}
 # iex(10)> socket |> select(:offsets, from: "#select1_div") 

@@ -51,4 +51,9 @@ defmodule DrabTestApp.IntegrationCase do
   def drab_socket() do
     GenServer.call(drab_pid(), :get_socket)
   end
+
+  # removes hash from the begin of #selector
+  def nohash(selector) do
+    String.replace_leading(selector, "#", "")
+  end
 end
