@@ -4,6 +4,7 @@
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/drab.svg?style=flat)](https://hex.pm/packages/drab)
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/drab/)
 
+### See [Demo Page](https://tg.pl/drab) for live demo and description.
 
 Drab - Access the browser User Interface from the Server Side. No Javascript programming needed anymore!
 
@@ -45,8 +46,6 @@ end
 ```
 
 ## Warning: this software is still experimental!
-
-### See [Demo Page](https://tg.pl/drab) for live demo and description.
 
 ### Prerequisites
 
