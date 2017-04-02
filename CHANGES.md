@@ -1,3 +1,8 @@
+## 0.3.2
+Bug fixes:
+
+* phoenix version ~> 1.2
+
 ## 0.3.1
 
 ### New features:

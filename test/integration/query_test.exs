@@ -7,24 +7,6 @@ defmodule DrabTestApp.QueryTest do
     query_url(DrabTestApp.Endpoint, :query)
   end
 
-  defp extended_test(singular, plural, selector) do
-    socket = drab_socket()
-
-    # this test does not check the exact return of jquery method
-    ret = socket |> select(singular, from: selector)
-    assert is_integer(ret)
-
-    nohashed = nohash(selector)
-    %{^nohashed => ret} = socket |> select(plural, from: selector)
-    assert is_integer(ret)
-
-    ret = socket |> select(singular, from: "#nonexiting")
-    assert is_nil(ret)
-
-    ret = socket |> select(plural, from: "#nonexiting")
-    assert ret == %{}
-  end
-
   setup do
     query_index() |> navigate_to()
     find_element(:id, "page_loaded_indicator") # wait for the Drab to initialize
@@ -60,13 +42,28 @@ defmodule DrabTestApp.QueryTest do
                         "select2_input" => "select2 value"}
     end
 
-    test "extended select/3" do
-      extended_test(:width, :widths, "#select1_div")
-      extended_test(:height, :heights, "#select1_div")
-      extended_test(:innerWidth, :innerWidths, "#select1_div")
-      extended_test(:innerHeight, :innerHeights, "#select1_div")
-      extended_test(:scrollTop, :scrollTops, "#select1_div")
-      extended_test(:scrollLeft, :scrollLefts, "#select1_div")
+    test "extended select/3 which returns an integer" do
+      tests = [{:width, :widths}, {:height, :heights}, 
+               {:innerWidth, :innerWidths}, {:innerHeight, :innerHeights}, 
+               {:scrollTop, :scrollTops}, {:scrollLeft, :scrollLefts}]
+      for {singular, plural} <- tests do
+        socket = drab_socket()
+        selector = "#select1_div"
+
+        # this test does not check the exact return of jquery method
+        ret = socket |> select(singular, from: selector)
+        assert is_integer(ret)
+
+        nohashed = nohash(selector)
+        %{^nohashed => ret} = socket |> select(plural, from: selector)
+        assert is_integer(ret)
+
+        ret = socket |> select(singular, from: "#nonexiting")
+        assert is_nil(ret)
+
+        ret = socket |> select(plural, from: "#nonexiting")
+        assert ret == %{}
+      end
 
 
 # iex(9)> socket |> select(:position, from: "#select1_div")   
@@ -75,9 +72,6 @@ defmodule DrabTestApp.QueryTest do
 # %{"select1_div" => %{"left" => 454, "top" => 121}}
 # iex(11)> socket |> select(:offset, from: "#select1_div") 
 # %{"left" => 454, "top" => 121}
-# iex(12)> socket |> select(:scrollTop, from: "#select1_div")
-# 0
-
 
     end
 
