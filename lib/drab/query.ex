@@ -161,7 +161,7 @@ defmodule Drab.Query do
       widths heights
       innerWidths innerHeights outerWidths outerHeights 
       positions offsets scrollLefts scrollTops
-      attrs: val props: val csss: val datas: val
+      attrs: val props: val csses: val datas: val
 
   ## :all
   In case when method is `:all`, executes all known methods on the given selector. Returns 
