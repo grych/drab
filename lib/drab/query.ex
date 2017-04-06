@@ -191,7 +191,7 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Sets the DOM object property corresponding to the `method`. 
+  Updates the DOM object corresponding to the jQuery `method`. 
 
   In case when the method requires an argument (like `attr()`), it should be given as key/value pair: 
   method_name: "argument".
@@ -204,7 +204,7 @@ defmodule Drab.Query do
   * attr: attribute - DOM attribute
   * prop: property - DOM property
   * class: class - class name to be replaced by another class
-  * css: updates given css
+  * css: updates a given css
   * data: updates data-* attribute
 
   Examples:
@@ -254,7 +254,6 @@ defmodule Drab.Query do
   """
   def update!(socket, options) do
     do_update(socket, @broadcast, options)
-    # bang function does not return anything
     socket
   end
 
@@ -284,6 +283,9 @@ defmodule Drab.Query do
     wrong_query! selector, method, argument
   end
 
+  defp do_update(_socket, _broadcast, method, set: [], on: _selector) when method in @methods do
+    {:ok, :nothing}
+  end
   defp do_update(socket, broadcast, method, set: values, on: selector) when method in @methods do
     value = next_value(socket, values, method, selector)
     {:ok, do_query(socket, selector, jquery_method(method, value), :update, broadcast)}
@@ -344,7 +346,9 @@ defmodule Drab.Query do
 
   defp one_element_selector_only!(v, selector) do
     # TODO: maybe it would be better to allow multiple-element cycling?
-    if Enum.count(v) != 1, do: raise "Cycle is possible only on one element selector, given: \"#{selector}\""
+    if Enum.count(v) != 1 do 
+      raise ArgumentError, "Cycle is possible only on one element selector, given: \"#{selector}\""
+    end
   end
 
   @doc """
@@ -450,8 +454,8 @@ defmodule Drab.Query do
   defp do_delete(socket, broadcast, [prop: property, from: selector]) do
     {:ok, do_query(socket, selector, jquery_method(:removeProp, property), :delete, broadcast)}
   end
-  defp do_delete(socket, _broadcast, [attr: attribute, from: selector]) do
-    delete(socket, [prop: attribute, from: selector])
+  defp do_delete(socket, broadcast, [attr: attribute, from: selector]) do
+    {:ok, do_query(socket, selector, jquery_method(:removeAttr, attribute), :delete, broadcast)}
   end
   defp do_delete(_socket, _broadcast, [{method, argument}, from: selector]) do
     wrong_query! selector, method, argument

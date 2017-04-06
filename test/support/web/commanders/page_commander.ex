@@ -32,4 +32,9 @@ defmodule DrabTestApp.PageCommander do
   def get_store_click(socket, _sender) do
     socket |> Drab.Query.update(:text, set: get_store(socket, :test_store_value), on: "#store1_out")
   end
+
+  def modal1_clicked(socket, _sender) do
+    ret = socket |> alert("Title", "Message")
+    socket |> update(:text, set: inspect(ret), on: "#modal1_out") 
+  end
 end
