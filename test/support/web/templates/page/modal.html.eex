@@ -1,0 +1,5 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<button id="modal1_button" drab-event='click', drab-handler='modal1_clicked'>Modal1</button>
+<div id="modal1_out"></div>
