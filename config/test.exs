@@ -17,3 +17,6 @@ config :hound, driver: "chrome_driver"
 
 # config :drab, 
 #   drab_store_storage: :local_storage
+
+config :drab, 
+  templates_path: "test/support/priv/templates/drab"

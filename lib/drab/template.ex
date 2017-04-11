@@ -11,15 +11,19 @@ defmodule Drab.Template do
 
   defp full_path(filename) do
     sources = Enum.map(paths(), &(priv_dir(&1))) |> Enum.map(&(Path.join(&1, filename)))
-    Enum.find(sources, &(File.exists?(&1))) || raise "Can't find the template #{filename} in priv/templates"
+    Enum.find(sources, &(File.exists?(&1))) || 
+      raise "Can't find the template `#{filename}` in `#{user_templates()}`"
   end
 
   defp priv_dir(app) when is_atom(app) do
     Application.app_dir(app) |> Path.join(@drab_templates)
   end
   defp priv_dir(path) when is_binary(path) do
-    Path.join(path, @drab_templates)
+    # Path.join(path, @drab_templates)
+    Path.join(".", path)
   end
 
-  defp paths(), do: [".", :drab]
+  defp paths(), do: [user_templates(), :drab]
+
+  defp user_templates(), do: Drab.config.templates_path
 end

@@ -19,6 +19,7 @@ Changes:
 * render templates, views in commanders (accutally it can already be done, must thing about some helpers)
 * render Drab templates in a compile-time
 * compress Drab templates (js)
+* before_handler, only: should take a list or atom (currently list only)
 
 ## Bugs or features?
 * Drab.Socket steals all `connect` callbacks. Bad Drab

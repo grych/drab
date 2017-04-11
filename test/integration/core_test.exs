@@ -1,5 +1,6 @@
 defmodule DrabTestApp.CoreTest do
   use DrabTestApp.IntegrationCase
+  import Drab.Core
 
   defp core_index do
     core_url(DrabTestApp.Endpoint, :core)
@@ -8,7 +9,7 @@ defmodule DrabTestApp.CoreTest do
   setup do
     core_index() |> navigate_to()
     find_element(:id, "page_loaded_indicator") # wait for a page to load
-    :ok
+    [socket: drab_socket()]
   end
 
   describe "Drab.Core" do
@@ -38,6 +39,51 @@ defmodule DrabTestApp.CoreTest do
       assert visible_text(store_value) == "test store value"
     end
 
+  end
+
+  describe "Drab.Core callbacks" do
+    test "before all should set the store", context do
+      socket = context[:socket]
+      click_and_wait("core1_button")
+      
+      assert get_store(socket, :set_in_before_all) == :before
+    end
+
+    test "after all should get the handler return value", context do
+      click_and_wait("core1_button")
+
+      assert get_store(context[:socket], :set_in_after_all) == 42
+    end
+
+    test "before handler which returns false should stop processing", context do
+      click_and_wait("core3_button")
+
+      assert get_store(context[:socket], :should_never_be_assigned) == nil
+      assert find_element(:id, "core3_out") |> visible_text() == "" 
+    end
+
+    test "after handler `except` test 1", context do
+      click_and_wait("core1_button")
+      assert get_store(context[:socket], :shouldnt_be_set_in_core3) == true
+    end
+
+    test "after handler `except` test 2", context do
+      click_and_wait("core2_button")
+      assert get_store(context[:socket], :shouldnt_be_set_in_core3) == true
+    end
+
+    test "after handler `except` test 3", context do
+      click_and_wait("core3_button")
+      assert get_store(context[:socket], :shouldnt_be_set_in_core3) == nil
+    end
+
+    test "onconnect should go before onload" do
+      assert find_element(:id, "onconnect_counter") |> visible_text() == "1"
+    end
+
+    test "onload should go after onconnect" do
+      assert find_element(:id, "onload_counter") |> visible_text() == "2"
+    end
   end
 
   ### TODO: find out how to make persistent store test (not working in chromedriver by default, use profiles?)

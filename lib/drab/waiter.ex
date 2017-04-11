@@ -2,8 +2,9 @@ defmodule Drab.Waiter do
   require Logger
 
   @moduledoc """
-  Enables Drab Waiter functionality - synchronous wait for browser events in the Commander handler function. Introduces 
-  DSL to register events. Syntax:
+  Enables Drab Waiter functionality - synchronous wait for browser events in the Commander handler function. 
+
+  Introduces DSL for register events. Syntax:
 
       waiter(socket) do
         on "selector1", "event_name", fn (sender) ->

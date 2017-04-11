@@ -61,5 +61,28 @@ defmodule DrabTestApp.ModalTest do
       key_press_test "modal1", :escape, "{:cancel, %{}}" 
     end
 
+    test "basic modal with timeout" do
+      open_modal("modal2")
+      Process.sleep 1600
+      check_if_closed()
+    end
+
+    test "modal with form" do
+      open_modal("modal3")
+      find_element(:name, "first") |> fill_field("First")
+      find_element(:id, "second")  |> fill_field("Second")
+      # there is no difference which button we click, should return values from the form
+      find_element(:css, "#_drab_modal_button_cancel") |> click()
+      check_if_closed()
+      assert visible_text(find_element(:id, "modal3_out")) == 
+             "{:cancel, %{\"first\" => \"First\", \"second\" => \"Second\"}}"
+    end
+
+    test "modal with additional button" do
+      open_modal("modal4")
+      find_element(:id, "_drab_modal_button_addtional") |> click()
+      check_if_closed()
+      assert visible_text(find_element(:id, "modal4_out")) == "{:additional, %{}}"
+    end
   end
 end

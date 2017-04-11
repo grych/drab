@@ -390,6 +390,8 @@ defmodule Drab do
       config :drab, disable_controls_while_processing: false
 
   Configuration options:
+  * `templates_path` (default: "priv/templates/drab") - path to the user templates (may be new or override default 
+    templates)
   * `disable_controls_while_processing` (default: `true`) - after sending request to the server, sender will be 
     disabled until get the answer; warning: this behaviour is not broadcasted, so only the control in the current
     browers will be disabled
@@ -404,6 +406,7 @@ defmodule Drab do
   """
   def config() do
     %{
+      templates_path: Application.get_env(:drab, :templates_path, "priv/templates/drab"),
       disable_controls_while_processing: Application.get_env(:drab, :disable_controls_while_processing, true),
       events_to_disable_while_processing: Application.get_env(:drab, :events_to_disable_while_processing, ["click"]),
       disable_controls_when_disconnected: Application.get_env(:drab, :disable_controls_when_disconnected, true),
