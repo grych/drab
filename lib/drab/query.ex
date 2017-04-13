@@ -137,7 +137,7 @@ defmodule Drab.Query do
   * attr: "attribute" - DOM attribute
   * prop: "property" - DOM property
   * css: "css"
-  * data: "att" - get "data-att" attribute
+  * data: "att" - returns the value of jQuery `data("attr")` method
 
   Examples:
       name = socket |> select(:val, from: "#name")
@@ -205,7 +205,7 @@ defmodule Drab.Query do
   * prop: property - DOM property
   * class: class - class name to be replaced by another class
   * css: updates a given css
-  * data: updates data-* attribute
+  * data: sets the jQuery data storage by calling `data("key", value`); it *does not* update the `data-*` attribute
 
   Examples:
       socket |> update(:text, set: "saved...", on: "#save_button")

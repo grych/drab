@@ -1,3 +1,6 @@
+## 0.3.2
+* warning when user updates `attr: "data-*"` - it should be done with `data: *` (#14)
+
 ## 0.4.0
 Changes:
 
@@ -20,6 +23,7 @@ Changes:
 * render Drab templates in a compile-time
 * compress Drab templates (js)
 * before_handler, only: should take a list or atom (currently list only)
+
 
 ## Bugs or features?
 * Drab.Socket steals all `connect` callbacks. Bad Drab
