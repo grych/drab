@@ -103,4 +103,20 @@ defmodule DrabTestApp.PageCommander do
     update_out(socket, sender, ret) 
   end
 
+  def start_waiter(socket, sender) do
+    socket 
+      |> delete(from: "#waiter_wrapper")
+      |> insert("<button>Wait for click</button>", append: "#waiter_wrapper")
+    answer = waiter(socket) do
+      on "#waiter_wrapper button", "click", fn(_sender) ->
+        "button clicked"
+      end
+      on_timeout 1000, fn ->
+        "timeout"
+      end
+    end
+    socket 
+      |> delete(from: "#waiter_wrapper")
+      |> update(:text, set: answer, on: "#waiter_out_div")
+  end
 end

@@ -1,0 +1,6 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<button id="start_waiter_button" drab-click="start_waiter">Start Waiter</button>
+<div id="waiter_wrapper"></div>
+<div id="waiter_out_div"></div>

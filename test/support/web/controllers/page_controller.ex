@@ -20,4 +20,8 @@ defmodule DrabTestApp.PageController do
     render conn, "modal.html"
   end
 
+  def waiter(conn, _params) do
+    render conn, "waiter.html"
+  end
+
 end
