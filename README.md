@@ -63,7 +63,7 @@ end
 
 ```elixir
 def deps do
-  [{:drab, "~> 0.3.1"}]
+  [{:drab, "~> 0.3"}]
 end
 ```
 
