@@ -1,4 +1,4 @@
-![phoenix logo](https://raw.githubusercontent.com/grych/drab-poc/master/web/static/assets/images/drab-banner.png)
+[![phoenix logo](https://raw.githubusercontent.com/grych/drab-poc/master/web/static/assets/images/drab-banner.png)](https://tg.pl/drab)
 
 [![hex.pm version](https://img.shields.io/hexpm/v/drab.svg)](https://hex.pm/packages/drab)
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/drab.svg?style=flat)](https://hex.pm/packages/drab)
