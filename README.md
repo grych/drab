@@ -227,31 +227,39 @@ with it.
 
 * clone Drab from github:
 
-    git clone git@github.com:grych/drab.git
-    cd drab
+````shell
+git clone git@github.com:grych/drab.git
+cd drab
+````
 
 * get deps and node modules:
 
-    mix deps.get
-    npm install && node_modules/brunch/bin/brunch build
+````shell
+mix deps.get
+npm install && node_modules/brunch/bin/brunch build
+````
 
 * start Phoenix with Drab:
 
-    iex -S mix phoenix.server
+````shell
+iex -S mix phoenix.server
+````
 
 * open the browser and navigate to http://localhost:4000
 
 * follow the instructions in IEx to play with Drab functions:
 
-    import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
-    socket = GenServer.call(pid("0.xxxxx.0"), :get_socket)
+````elixir
+import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
+socket = GenServer.call(pid("0.xxxxx.0"), :get_socket)
 
-    iex(5)> socket |> alert("Title", "WOW!")                                          
-    {:ok, %{}}
-    iex(6)> socket |> select(:text, from: "h3")
-    "Drab Tests"
-    iex(7)> socket |> update(:text, set: "It is set from IEx, wow!", on: "h3")  
-    %Phoenix.Socket{assigns: %{__action: :index, .........
+iex(5)> socket |> alert("Title", "WOW!")                                          
+{:ok, %{}}
+iex(6)> socket |> select(:text, from: "h3")
+"Drab Tests"
+iex(7)> socket |> update(:text, set: "It is set from IEx, wow!", on: "h3")  
+%Phoenix.Socket{assigns: %{__action: :index, .........
+````
 
 ## Tests
 
@@ -260,28 +268,34 @@ Most of the Drab tests are integration (end-to-end) tests, thus they require aut
 
 * clone Drab from github:
 
-    git clone git@github.com:grych/drab.git
-    cd drab
+````shell
+git clone git@github.com:grych/drab.git
+cd drab
+````
 
 * get deps and node modules:
 
-    mix deps.get
-    npm install && node_modules/brunch/bin/brunch build
+````shell
+mix deps.get
+npm install && node_modules/brunch/bin/brunch build
+````
 
 * run `chromedriver` 
 
 * run tests:
 
-    $ mix test
-    Compiling 29 files (.ex)
+````shell
+$ mix test
+Compiling 29 files (.ex)
 
-    Generated drab app
-    .......................................................................
+Generated drab app
+.......................................................................
 
-    Finished in 149.4 seconds
-    71 tests, 0 failures
+Finished in 149.4 seconds
+71 tests, 0 failures
 
-    Randomized with seed 277485
+Randomized with seed 277485
+````
 
 ## Contact
 
