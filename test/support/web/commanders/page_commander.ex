@@ -103,7 +103,7 @@ defmodule DrabTestApp.PageCommander do
     update_out(socket, sender, ret) 
   end
 
-  def start_waiter(socket, sender) do
+  def start_waiter(socket, _sender) do
     socket 
       |> delete(from: "#waiter_wrapper")
       |> insert("<button>Wait for click</button>", append: "#waiter_wrapper")
