@@ -236,15 +236,6 @@ defmodule Drab.Query do
 
   Available jQuery methods: see `Drab.Query.select/2`
   """
-  defp data_attr_warn!() do
-    Logger.warn """
-    Updating data-* attribute or property is not recommended. You should use :data method instead:
-
-        socket |> update(data: "#{data}", set: "#{set}", on: "#{on}")
-
-    See https://github.com/grych/drab/issues/14 to learn more.
-    """
-  end
   def update(socket, attr: "data-" <> data, set: set, on: on) do
     data_attr_warn!()
     do_update(socket, @broadcast, attr: "data-" <> data, set: set, on: on)
@@ -366,6 +357,16 @@ defmodule Drab.Query do
     if Enum.count(v) != 1 do 
       raise ArgumentError, "Cycle is possible only on one element selector, given: \"#{selector}\""
     end
+  end
+
+  defp data_attr_warn!() do
+    Logger.warn """
+    Updating data-* attribute or property is not recommended. You should use :data method instead:
+
+        socket |> update(data: "#{data}", set: "#{set}", on: "#{on}")
+
+    See https://github.com/grych/drab/issues/14 to learn more.
+    """
   end
 
   @doc """
