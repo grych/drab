@@ -236,6 +236,23 @@ defmodule Drab.Query do
 
   Available jQuery methods: see `Drab.Query.select/2`
   """
+  defp data_attr_warn!() do
+    Logger.warn """
+    Updating data-* attribute or property is not recommended. You should use :data method instead:
+
+        socket |> update(data: "#{data}", set: "#{set}", on: "#{on}")
+
+    See https://github.com/grych/drab/issues/14 to learn more.
+    """
+  end
+  def update(socket, attr: "data-" <> data, set: set, on: on) do
+    data_attr_warn!()
+    do_update(socket, @broadcast, attr: "data-" <> data, set: set, on: on)
+  end
+  def update(socket, prop: "data-" <> data, set: set, on: on) do
+    data_attr_warn!()
+    do_update(socket, @broadcast, prop: "data-" <> data, set: set, on: on)
+  end
   def update(socket, options) do
     do_update(socket, @no_broadcast, options)
     socket
