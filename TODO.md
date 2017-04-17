@@ -1,6 +1,3 @@
-## 0.3.2
-* warning when user updates `attr: "data-*"` - it should be done with `data: *` (#14)
-
 ## 0.4.0
 Changes:
 

@@ -19,9 +19,9 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
 
     # Drab requires Phoenix, so I can use its brilliant helpers
     Mix.Phoenix.check_module_name_availability!(binding[:module] <> "Commander")
-    check_if_controller_exists!(path, binding[:module])
+    check_controller_existence!(path, binding[:module])
 
-    Mix.Phoenix.copy_from paths(), "priv/templates/", "", binding, [
+    Mix.Phoenix.copy_from paths(), "priv/templates/drab/", "", binding, [
       {:eex, "drab.gen.commander.ex.eex", "web/commanders/#{path}_commander.ex"}
     ]
 
@@ -32,7 +32,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     """
   end
 
-  defp check_if_controller_exists!(path, module) do
+  defp check_controller_existence!(path, module) do
     controller_file = "web/controllers/#{path}_controller.ex"
     unless File.exists?(controller_file) do
       unless Mix.shell.yes?("Can't find corresponding #{module}Controller in #{controller_file}. Proceed? ") do
