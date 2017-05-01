@@ -16,7 +16,7 @@ Changes:
 * dependencies for modules (for ex. Modal depends on Query)
 * extract Drab Store and Session to standalone module (loaded by default)
 * group JS commands to be launched in one step
-* render templates, views in commanders (accutally it can already be done, must thing about some helpers)
+* render templates, views in commanders (accutally it can already be done, must think about some helpers)
 * render Drab templates in a compile-time
 * compress Drab templates (js)
 * before_handler, only: should take a list or atom (currently list only)

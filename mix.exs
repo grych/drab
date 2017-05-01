@@ -1,6 +1,6 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.3.2"
+  @version "0.3.3"
 
   def project do
     [app: :drab,
@@ -13,6 +13,7 @@ defmodule Drab.Mixfile do
      description: description(),
      package: package(),
      compilers: [:phoenix, :gettext] ++ Mix.compilers
+     # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
    ]
   end
 
