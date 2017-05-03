@@ -403,6 +403,8 @@ defmodule Drab do
   * `drab_store_storage` (default: :session_storage) - where to keep the Drab Store - :memory, :local_storage or 
     :session_storage; data in memory is kept to the next page load, session storage persist until browser (or a tab) is
     closed, and local storage is kept forever
+  * `timeout` (default: 5000 ms) - timeout for messages which return value from the browser, like 
+    `Drab.Core.execjs/2`; value in ms or `:infinity`
   """
   def config() do
     %{
@@ -411,7 +413,8 @@ defmodule Drab do
       events_to_disable_while_processing: Application.get_env(:drab, :events_to_disable_while_processing, ["click"]),
       disable_controls_when_disconnected: Application.get_env(:drab, :disable_controls_when_disconnected, true),
       socket: Application.get_env(:drab, :socket, "/socket"),
-      drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage)
+      drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage),
+      timeout: Application.get_env(:drab, :timeout, 5000)
     }
   end
 end

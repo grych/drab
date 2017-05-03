@@ -6,7 +6,7 @@ Changes:
 
 ## Future
 Changes:
-* broadcast to all except you
+* broadcast to all except you (really?)
 * benchmarks
 * timeout for event handlers
 * timeout for Drab.Query and Drab.Modal functions

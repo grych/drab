@@ -1,11 +1,16 @@
 ## 0.3.3
 
-* precompiled templates
+* precompile Drab templates for better performance; user templates are still interpreted on the fly
+* choose the behaviour for broadcasting functions: now may send to `:same_url`, `:same_controller` or to user 
+  defined `"topic"`
+* timeout for `execjs/2` (and so for most of the Drab.Query functions); default is 5000 ms and can be changed
+  with `config :drab, timeout: xxx|:infinity`
 
 ## 0.3.2
 
 * phoenix version ~> 1.2 (#13)
 * warning when user updates `attr: "data-*"` - it should be done with `data: *` (#14)
+* integration tests
 
 ## 0.3.1
 
