@@ -3,7 +3,6 @@ defmodule Drab.Channel do
   @moduledoc false
 
   use Phoenix.Channel
-  # import Supervisor.Spec
 
   def join("__drab:" <> broadcast_topic, _, socket) do
     # socket already contains controller and action
@@ -11,13 +10,6 @@ defmodule Drab.Channel do
 
     {:ok, pid} = Drab.start_link(%Drab{store: %{}, session: %{}, 
       commander: Drab.get_commander(socket)})
-
-    # children = [
-    #   worker(Drab, [], restart: :transient)
-    # ]
-    # {:ok, sup_pid} = Supervisor.start_link(children, strategy: :simple_one_for_one)
-    # {:ok, pid} = Supervisor.start_child(sup_pid, 
-    #   [%Drab{store: %{}, session: %{}, commander: Drab.get_commander(socket)}])
 
     socket_with_pid = assign(socket_with_topic, :__drab_pid, pid)
 

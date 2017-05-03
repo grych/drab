@@ -3,7 +3,7 @@ defmodule DrabTestApp.Broadcast3Commander do
 
   onload :page_loaded
   onconnect :connected
-  broadcasting "*"
+  broadcasting :same_controller
 
   def page_loaded(socket) do
     socket |> Drab.Query.insert("<h3 id='page_loaded_indicator'>Page Loaded</h3>", after: "#begin")

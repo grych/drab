@@ -44,7 +44,7 @@ defmodule Drab.Client do
                                __assigns: assigns])
       commander = controller.__drab__()[:commander]
       modules = [Drab.Core | commander.__drab__().modules] # Drab.Core is included by default
-      broadcast_topic = commander.__drab__().broadcasting
+      broadcast_topic = topic(commander.__drab__().broadcasting, controller, conn.request_path)
       templates = Enum.map(modules, fn x -> "#{Module.split(x) |> Enum.join(".") |> String.downcase()}.js" end)
 
       access_store = commander.__drab__().access_session
@@ -75,4 +75,8 @@ defmodule Drab.Client do
     end
   end
 
+  defp topic(:all, _, _), do: "all"
+  defp topic(:same_url, _, path), do: "same_url:#{path}"
+  defp topic(:same_controller, controller, _), do: "controller:#{inspect(controller)}"
+  defp topic(topic, _, _) when is_binary(topic), do: "topic:#{topic}"
 end
