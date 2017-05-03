@@ -3,7 +3,7 @@
 * precompile Drab templates for better performance; user templates are still interpreted on the fly
 * choose the behaviour for broadcasting functions: now may send to `:same_url`, `:same_controller` or to user 
   defined `"topic"`
-* timeout for `execjs/2` (and so for most of the Drab.Query functions); default is 5000 ms and can be changed
+* timeout for `execjs/2` (and so for the most of Drab.Query functions); default is 5000 ms and can be changed
   with `config :drab, timeout: xxx|:infinity`
 
 ## 0.3.2

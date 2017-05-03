@@ -8,18 +8,16 @@ Changes:
 Changes:
 * broadcast to all except you (really?)
 * benchmarks
-* timeout for event handlers
-* timeout for Drab.Query and Drab.Modal functions
 * dependencies for modules (for ex. Modal depends on Query)
 * extract Drab Store and Session to standalone module (loaded by default)
 * group JS commands to be launched in one step
-* render templates, views in commanders (accutally it can already be done, must think about some helpers)
+* render partials in commanders (accutally it can already be done, must think about some helpers)
 * render additional, user templates in a compile-time
 * compress Drab templates (js)
 * before_handler, only: should take a list or atom (currently list only)
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
 * remove Query from the default, rename it to Drab.JQuery
-
+* new default module, not jQuery based
 
 ## Bugs or features?
 * Drab.Socket steals all `connect` callbacks. Bad Drab
