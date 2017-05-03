@@ -1,4 +1,4 @@
-## 0.3.3
+## 0.3.3 (2017-05-03)
 
 * precompile Drab templates for better performance; user templates are still interpreted on the fly
 * choose the behaviour for broadcasting functions: now may send to `:same_url`, `:same_controller` or to user 
