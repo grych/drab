@@ -9,5 +9,6 @@ defmodule Drab.Commander.Config do
     modules: [Drab.Query, Drab.Modal, Drab.Waiter],
     access_session: [],
     before_handler: [],
-    after_handler: []
+    after_handler: [],
+    broadcasting: :same_url
 end

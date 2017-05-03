@@ -231,4 +231,25 @@ defmodule Drab.Commander do
     end
   end)
 
+  @broadcasts ~w(same_url same_controller all)a
+  defmacro broadcasting(where) when is_atom(where) and where in @broadcasts do
+    quote do
+      broadcast_option = Map.get(@options, :broadcasting)
+      @options Map.put(@options, :broadcasting, unquote(where))
+    end
+  end
+
+  defmacro broadcasting(where) when is_binary(where) do
+    quote do
+      broadcast_option = Map.get(@options, :broadcasting)
+      @options Map.put(@options, :broadcasting, unquote(where))
+    end
+  end
+
+  defmacro broadcasting(unknown_argument) do 
+    raise CompileError, description: """
+      Invalid `broadcasting` option: #{inspect unknown_argument}.
+      """
+  end
+
 end

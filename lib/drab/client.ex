@@ -39,12 +39,12 @@ defmodule Drab.Client do
     # in this case controller contains function `__drab__/0`
     if Enum.member?(controller.__info__(:functions), {:__drab__, 0}) do
       controller_and_action = Phoenix.Token.sign(conn, "controller_and_action", 
-                              # "#{controller}##{Phoenix.Controller.action_name(conn)}")
                               [__controller: controller, 
                                __action: Phoenix.Controller.action_name(conn), 
                                __assigns: assigns])
       commander = controller.__drab__()[:commander]
       modules = [Drab.Core | commander.__drab__().modules] # Drab.Core is included by default
+      broadcast_topic = commander.__drab__().broadcasting
       templates = Enum.map(modules, fn x -> "#{Module.split(x) |> Enum.join(".") |> String.downcase()}.js" end)
 
       access_store = commander.__drab__().access_session
@@ -59,7 +59,8 @@ defmodule Drab.Client do
         controller_and_action: controller_and_action,
         commander: commander,
         templates: templates,
-        drab_session_token: store_token
+        drab_session_token: store_token,
+        broadcast_topic: broadcast_topic
       ]
 
       js = render_template("drab.js", bindings)

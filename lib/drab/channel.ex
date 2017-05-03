@@ -5,9 +5,9 @@ defmodule Drab.Channel do
   use Phoenix.Channel
   # import Supervisor.Spec
 
-  def join("__drab:" <> url_path, _, socket) do
+  def join("__drab:" <> broadcast_topic, _, socket) do
     # socket already contains controller and action
-    socket_with_path = socket |> assign(:__url_path, url_path)
+    socket_with_topic = socket |> assign(:__broadcast_topic, broadcast_topic)
 
     {:ok, pid} = Drab.start_link(%Drab{store: %{}, session: %{}, 
       commander: Drab.get_commander(socket)})
@@ -19,7 +19,7 @@ defmodule Drab.Channel do
     # {:ok, pid} = Supervisor.start_child(sup_pid, 
     #   [%Drab{store: %{}, session: %{}, commander: Drab.get_commander(socket)}])
 
-    socket_with_pid = assign(socket_with_path, :__drab_pid, pid)
+    socket_with_pid = assign(socket_with_topic, :__drab_pid, pid)
 
     {:ok, socket_with_pid}
   end
@@ -71,7 +71,7 @@ defmodule Drab.Channel do
       pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
       Logger.debug """
 
-          Started Drab for #{socket.assigns.__url_path}, handling events in #{inspect(commander)}
+          Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{inspect(commander)}
           You may debug Drab functions in IEx by copy/paste the following:
       #{Enum.map(modules, fn module -> "import #{inspect(module)}" end) |> Enum.join("; ")}
       socket = GenServer.call(pid("#{pid_string}"), :get_socket)

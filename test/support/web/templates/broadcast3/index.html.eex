@@ -1,0 +1,7 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<hr>
+
+<button id="broadcast3_button" drab-click='broadcast3'>Broadcast to all</button>
+<div id="broadcast_out"></div>

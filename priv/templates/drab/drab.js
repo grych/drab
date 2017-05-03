@@ -11,7 +11,7 @@
   }
   
   window.Drab = {
-    run: function(drab_return_token, drab_session_token) {
+    run: function(drab_return_token, drab_session_token, broadcast_topic) {
       this.Socket = require("phoenix").Socket
 
       this.drab_return_token = drab_return_token
@@ -21,21 +21,23 @@
       this.myid = uuid()
       this.onload_launched = false
       this.already_connected = false
-      this.path = location.pathname
+      // this.drab_topic = broadcast_topic
+      if(broadcast_topic == "same_url") {
+        this.drab_topic = "url:" + location.pathname
+      } else {
+        this.drab_topic = broadcast_topic
+      }
 
       var drab = this
 
       // launch all on_load functions
-      // for(var f of this.load) {
-      //   f(this)
-      // }
       drab.load.forEach(function(fx) {
         fx(drab)
       })
 
       this.socket = new this.Socket("<%= Drab.config.socket %>", {params: {__drab_return: drab_return_token}})
       this.socket.connect()
-      this.channel = this.socket.channel("__drab:" + this.path, {})
+      this.channel = this.socket.channel("__drab:" + this.drab_topic, {})
       
       this.channel.join()
         .receive("error", function(resp) { 
@@ -123,5 +125,5 @@
     end)
   %>
 
-  Drab.run('<%= controller_and_action %>', '<%= drab_session_token %>')
+  Drab.run('<%= controller_and_action %>', '<%= drab_session_token %>', '<%= broadcast_topic %>')
 })();

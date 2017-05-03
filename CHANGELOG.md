@@ -1,3 +1,7 @@
+## 0.3.3
+
+* precompiled templates
+
 ## 0.3.2
 
 * phoenix version ~> 1.2 (#13)

@@ -6,9 +6,7 @@ Changes:
 
 ## Future
 Changes:
-* rewrite Drab.Query - use meta, Luke!
 * broadcast to all except you
-* tests, tests, tests
 * benchmarks
 * timeout for event handlers
 * timeout for Drab.Query and Drab.Modal functions
@@ -17,9 +15,11 @@ Changes:
 * extract Drab Store and Session to standalone module (loaded by default)
 * group JS commands to be launched in one step
 * render templates, views in commanders (accutally it can already be done, must think about some helpers)
-* render Drab templates in a compile-time
+* render additional, user templates in a compile-time
 * compress Drab templates (js)
 * before_handler, only: should take a list or atom (currently list only)
+* disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
+* remove Query from the default, rename it to Drab.JQuery
 
 
 ## Bugs or features?

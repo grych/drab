@@ -1,0 +1,7 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<hr>
+
+<button id="broadcast2_button" drab-click='broadcast2'>Broadcast to the same controller (can be different urls)</button>
+<div id="broadcast_out"></div>
