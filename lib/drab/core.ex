@@ -84,7 +84,8 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Asynchronously broadcasts given javascript to all browsers displaying current page.
+  Asynchronously broadcasts given javascript to all browsers, by default to all browsers connected to the same url.
+  See `Drab.Commander.broadcasting/1` to find out how to change the default behaviour.
   """
   def broadcastjs(socket, js) do
     Drab.broadcast(socket, self(), "broadcastjs", js: js)

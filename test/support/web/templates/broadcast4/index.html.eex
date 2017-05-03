@@ -3,5 +3,5 @@
 
 <hr>
 
-<button id="broadcast4_button" drab-click='broadcast4'>Broadcast to topic</button>
+<button id="broadcast4_button" drab-click='broadcast4'>Broadcast to the topic (different controller)</button>
 <div id="broadcast_out"></div>

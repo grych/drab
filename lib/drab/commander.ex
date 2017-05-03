@@ -92,6 +92,11 @@ defmodule Drab.Commander do
   Runs after the event handler. Gets return value of the event handler function as a third argument.
   Can be filtered by `:only` or `:except` options, analogically to `before_handler`
 
+  ## Broadcasting options
+
+  Drab requests to update, insert or delete can be broadcasted. By default, broadcasts are sent to browsers
+  which view the same page (the same url), but it could be override by `broadcasting/1` macro.
+
   ## Modules
 
   Drab is modular. You my choose which modules to use in the specific Commander by using `:module` option
@@ -231,7 +236,15 @@ defmodule Drab.Commander do
     end
   end)
 
-  @broadcasts ~w(same_url same_controller all)a
+  @broadcasts ~w(same_url same_controller)a
+  @doc """
+  Set up broadcasting options. It is used by Drab.Query bang functions, like `update!` or `insert!`.
+
+  * `:same_url` (default) - broadcasts will go to the browsers rendering the same url
+  * `:same_controller` - broadcasted message will be received by all browsers, which renders the page generated 
+    by the same controller
+  * `"topic"` - any topic you want to set, messages will go to the clients sharing this topic
+  """
   defmacro broadcasting(where) when is_atom(where) and where in @broadcasts do
     quote do
       broadcast_option = Map.get(@options, :broadcasting)

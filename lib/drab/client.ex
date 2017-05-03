@@ -75,7 +75,7 @@ defmodule Drab.Client do
     end
   end
 
-  defp topic(:all, _, _), do: "all"
+  # defp topic(:all, _, _), do: "all"
   defp topic(:same_url, _, path), do: "same_url:#{path}"
   defp topic(:same_controller, controller, _), do: "controller:#{inspect(controller)}"
   defp topic(topic, _, _) when is_binary(topic), do: "topic:#{topic}"

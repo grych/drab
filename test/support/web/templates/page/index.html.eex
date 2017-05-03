@@ -31,5 +31,5 @@ Pages for Integration Tests: <br>
 <a href="/tests/broadcast1">Broadcasting to the same URL (default)</a><br>
 <a href="/tests/broadcast2">Broadcasting to the same controller</a><br>
 <a href="/tests/broadcast2/different_url"> -> Different url in the same controller</a><br>
-<a href="/tests/broadcast3">Broadcasting to all</a><br>
-<a href="/tests/broadcast4">Broadcasting to specific topic</a><br>
+<a href="/tests/broadcast3">Broadcasting to specific topic</a><br>
+<a href="/tests/broadcast4">Broadcasting to specific topic - different controller</a><br>

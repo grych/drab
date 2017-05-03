@@ -22,11 +22,6 @@
       this.onload_launched = false
       this.already_connected = false
       this.drab_topic = broadcast_topic
-      // if(broadcast_topic == "same_url") {
-      //   this.drab_topic = "url:" + location.pathname
-      // } else {
-      //   this.drab_topic = broadcast_topic
-      // }
 
       var drab = this
 

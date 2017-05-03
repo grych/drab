@@ -3,7 +3,7 @@ defmodule DrabTestApp.Broadcast3Commander do
 
   onload :page_loaded
   onconnect :connected
-  broadcasting :same_controller
+  broadcasting "my_topic"
 
   def page_loaded(socket) do
     socket |> Drab.Query.insert("<h3 id='page_loaded_indicator'>Page Loaded</h3>", after: "#begin")
@@ -19,6 +19,6 @@ defmodule DrabTestApp.Broadcast3Commander do
   end
 
   def broadcast3(socket, _) do
-    socket |> update!(:text, set: "Broadcasted Text to all", on: "#broadcast_out")
+    socket |> update!(:text, set: "Broadcasted Text to the topic", on: "#broadcast_out")
   end
 end

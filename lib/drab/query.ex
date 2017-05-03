@@ -39,7 +39,8 @@ defmodule Drab.Query do
   Select queries always refers to the page on which the event were launched. Data manipulation queries (`update/2`, 
   `insert/2`, `delete/2`, `execute/2`) changes DOM objects on this page as well, but they have a broadcast versions:
   `update!/2`, `insert!/2`, `delete!/2` and `execute!/2`, which works the same, but changes DOM on every currently 
-  connected browsers, which has opened the same URL.
+  connected browsers, which has opened the same URL, same controller, or having the same channel topic (see 
+  `Drab.Commander.broadcasting/1` to find out more).
 
   ## Events
 
@@ -256,7 +257,7 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Like `Drab.Query.update/2`, but broadcasts to all currently connected browsers, which have the same URL opened.
+  Like `Drab.Query.update/2`, but broadcasts to all currently connected browsers.
 
   Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return socket.
   """
@@ -398,7 +399,7 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Like `Drab.Query.insert/2`, but broadcast to all currently connected browsers, which have the same URL opened.
+  Like `Drab.Query.insert/2`, but broadcast to all currently connected browsers.
 
   Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return socket.
   """
@@ -454,7 +455,7 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Like `Dom.Query.delete/2`, but broadcasts to all currently connected browsers, which have the same URL opened.
+  Like `Dom.Query.delete/2`, but broadcasts to all currently connected browsers.
 
   Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
   """
