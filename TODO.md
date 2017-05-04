@@ -18,6 +18,7 @@ Changes:
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
 * remove Query from the default, rename it to Drab.JQuery
 * new default module, not jQuery based
+* execute(:method, params) does not work when the method have more than 1 parameter
 
 ## Bugs or features?
 * Drab.Socket steals all `connect` callbacks. Bad Drab

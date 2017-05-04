@@ -79,8 +79,6 @@ defmodule Drab.Core do
     receive do
       {:got_results_from_client, reply} ->
         reply
-      after Drab.config[:timeout] ->
-        raise Drab.Timeout
     end
   end
 

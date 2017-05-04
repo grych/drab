@@ -1,3 +1,11 @@
+## 0.3.4 (2017-05-04)
+
+Bug fixes:
+
+* `execute!` allows string as the method with parameters
+* reverted back the timeout for `execjs/2` - it caused troubles and it is not really needed; in case of the 
+  connectivity failure the whole Drab will die anyway
+
 ## 0.3.3 (2017-05-03)
 
 * precompile Drab templates for better performance; user templates are still interpreted on the fly

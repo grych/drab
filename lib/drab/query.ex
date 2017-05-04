@@ -624,6 +624,12 @@ defmodule Drab.Query do
     """
   end
 
+  defp build_js(selector, method, type) when is_binary(method) and type == :execute do
+    """
+    $('#{selector}').#{method}
+    """
+  end
+
   defp singular(method) do
     # returns singular version of plural atom
     List.zip([@methods_plural ++ @methods_with_argument_plural, @methods ++ @methods_with_argument])[method] || method

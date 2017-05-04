@@ -413,8 +413,7 @@ defmodule Drab do
       events_to_disable_while_processing: Application.get_env(:drab, :events_to_disable_while_processing, ["click"]),
       disable_controls_when_disconnected: Application.get_env(:drab, :disable_controls_when_disconnected, true),
       socket: Application.get_env(:drab, :socket, "/socket"),
-      drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage),
-      timeout: Application.get_env(:drab, :timeout, 5000)
+      drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage)
     }
   end
 end
