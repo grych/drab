@@ -6,7 +6,7 @@ Changes:
 * execute(method: [parameters]) should work
 * render partials in commanders (accutally it can already be done, just add a helper)
 
-## 0.4.0
+## 0.5.0
 Changes:
 * remove Query from the default, rename it to Drab.JQuery
 * new default module, not jQuery based
