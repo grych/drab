@@ -1,5 +1,17 @@
+## 0.3.5
+Changes:
+* before_handler, only: should take a list or atom (currently list only)
+* dependencies for modules (for ex. Modal depends on Query)
+* execute(:method, params) does not work when the method have more than 1 parameter
+* execute(method: [parameters]) should work
+* render partials in commanders (accutally it can already be done, just add a helper)
+
 ## 0.4.0
 Changes:
+* remove Query from the default, rename it to Drab.JQuery
+* new default module, not jQuery based
+* changesets for update/insert in the new base module
+* group JS commands to be launched in one step, if possible
 
 ## Bugs:
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
@@ -8,17 +20,9 @@ Changes:
 Changes:
 * broadcast to all except you (really?)
 * benchmarks
-* dependencies for modules (for ex. Modal depends on Query)
 * extract Drab Store and Session to standalone module (loaded by default)
-* group JS commands to be launched in one step
-* render partials in commanders (accutally it can already be done, must think about some helpers)
+* disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
+
+Performance:
 * render additional, user templates in a compile-time
 * compress Drab templates (js)
-* before_handler, only: should take a list or atom (currently list only)
-* disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
-* remove Query from the default, rename it to Drab.JQuery
-* new default module, not jQuery based
-* execute(:method, params) does not work when the method have more than 1 parameter
-
-## Bugs or features?
-* Drab.Socket steals all `connect` callbacks. Bad Drab
