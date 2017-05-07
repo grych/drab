@@ -403,8 +403,6 @@ defmodule Drab do
   * `drab_store_storage` (default: :session_storage) - where to keep the Drab Store - :memory, :local_storage or 
     :session_storage; data in memory is kept to the next page load, session storage persist until browser (or a tab) is
     closed, and local storage is kept forever
-  * `timeout` (default: 5000 ms) - timeout for messages which return value from the browser, like 
-    `Drab.Core.execjs/2`; value in ms or `:infinity`
   """
   def config() do
     %{

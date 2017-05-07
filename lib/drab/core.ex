@@ -71,7 +71,7 @@ defmodule Drab.Core do
   require Logger
 
   @doc """
-  Synchronously executes the given javascript on the client side and returns value. Raises Drab.Timeout on timeout.
+  Synchronously executes the given javascript on the client side and returns value. 
   """
   def execjs(socket, js) do
     Drab.push(socket, self(), "execjs", js: js)

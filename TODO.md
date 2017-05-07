@@ -1,10 +1,19 @@
 ## 0.3.5
 Changes:
+* redirect_to in Drab.Browser
+* Drab.Browser.tz_difference (client_timezone)
+* Drab.Browser.now (client time)
+* Drab.Browser.user_agent (navigator.userAgent)
+* move Drab.Core.console to Drab.Browser
+
+## 0.3.6
+Changes:
+* render partials in commanders (accutally it can already be done, just add a helper)
 * before_handler, only: should take a list or atom (currently list only)
 * dependencies for modules (for ex. Modal depends on Query)
 * execute(:method, params) does not work when the method have more than 1 parameter
 * execute(method: [parameters]) should work
-* render partials in commanders (accutally it can already be done, just add a helper)
+
 
 ## 0.5.0
 Changes:
