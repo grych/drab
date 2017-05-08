@@ -14,6 +14,11 @@ Changes:
 * execute(:method, params) does not work when the method have more than 1 parameter
 * execute(method: [parameters]) should work
 
+## 0.4.0
+Changes:
+* timeouts
+* execjs and broadcastjs returns tuple {:ok, } or {:error, }
+* execjs! and broadcastjs! raise on JS error
 
 ## 0.5.0
 Changes:

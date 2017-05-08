@@ -24,4 +24,7 @@ defmodule DrabTestApp.PageController do
     render conn, "waiter.html"
   end
 
+  def browser(conn, _params) do
+    render conn, "browser.html"
+  end
 end

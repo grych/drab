@@ -92,23 +92,27 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Sends the log to the browser console for debugging
+  Moved to `Drab.Browser.console/2`
   """
   def console(socket, log) do
-    do_console(socket, log, &Drab.push/4)
-    socket
+    IO.warn """
+    Drab.Core.console/2 is depreciated.
+    Use Drab.Browser.console/2 instead.
+    """
+    Drab.Browser.console(socket, log)
   end
 
   @doc """
-  Broadcasts the log to the browsers console for debugging
+  Moved to `Drab.Browser.console!/2`
   """
   def console!(socket, log) do
-    do_console(socket, log, &Drab.broadcast/4)
+    IO.warn """
+    Drab.Core.console/2 is depreciated.
+    Use Drab.Browser.console/2 instead.
+    """
+    Drab.Browser.console!(socket, log)
   end
 
-  defp do_console(socket, log, push_or_broadcast_function) do
-    push_or_broadcast_function.(socket, self(), "console",  log: log)
-  end
 
   @doc false
   def encode_js(value), do: Poison.encode!(value)

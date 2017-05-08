@@ -21,6 +21,7 @@ defmodule DrabTestApp.Router do
     get "/tests/query", PageController, :query, as: :query
     get "/tests/modal", PageController, :modal, as: :modal
     get "/tests/waiter", PageController, :waiter, as: :waiter
+    get "/tests/browser", PageController, :browser, as: :browser
 
     get "/tests/broadcast1", Broadcast1Controller, :index, as: :broadcast1
     get "/tests/broadcast2", Broadcast2Controller, :index, as: :broadcast2
