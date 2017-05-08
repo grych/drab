@@ -1,3 +1,10 @@
+## 0.3.5
+Changes:
+* Drab.Browser with browser related functions, like local time, timezone difference, userAgent, redirect_to
+
+Depreciations:
+* Drab.Core.console moved to Drab.Browser
+
 ## 0.3.4 (2017-05-04)
 
 Bug fixes:

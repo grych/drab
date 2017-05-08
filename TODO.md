@@ -1,11 +1,3 @@
-## 0.3.5
-Changes:
-* redirect_to in Drab.Browser
-* Drab.Browser.tz_difference (client_timezone)
-* Drab.Browser.now (client time)
-* Drab.Browser.user_agent (navigator.userAgent)
-* move Drab.Core.console to Drab.Browser
-
 ## 0.3.6
 Changes:
 * render partials in commanders (accutally it can already be done, just add a helper)
