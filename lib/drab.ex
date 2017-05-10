@@ -131,9 +131,12 @@ defmodule Drab do
 
   @doc false
   def handle_cast({:onconnect, socket}, %Drab{commander: commander} = state) do
-    tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end), 
-             Task.async(fn -> Drab.Core.save_store(socket, Drab.Core.store(socket)) end)]
-    Enum.each(tasks, fn(task) -> Task.await(task) end)
+    # TODO: fix the issue
+    # tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end), 
+    #          Task.async(fn -> Drab.Core.save_store(socket, Drab.Core.store(socket)) end)]
+    # Enum.each(tasks, fn(task) -> Task.await(task) end)
+    Drab.Core.save_session(socket, Drab.Core.session(socket))
+    Drab.Core.save_store(socket, Drab.Core.store(socket))
 
     onconnect = commander_config(commander).onconnect
     handle_callback(socket, commander, onconnect) #returns socket

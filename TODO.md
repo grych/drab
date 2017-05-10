@@ -5,6 +5,9 @@ Changes:
 * dependencies for modules (for ex. Modal depends on Query)
 * execute(:method, params) does not work when the method have more than 1 parameter
 * execute(method: [parameters]) should work
+* Drab.get_socket
+
+* access to conn? Drab.Browser.ip?
 
 ## 0.4.0
 Changes:
@@ -18,6 +21,7 @@ Changes:
 * new default module, not jQuery based
 * changesets for update/insert in the new base module
 * group JS commands to be launched in one step, if possible
+* DOM tree as a Map?
 
 ## Bugs:
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
