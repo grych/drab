@@ -111,6 +111,9 @@
     },
     get_drab_store_token: function() {
       <%= Drab.Template.render_template("drab.store.#{Drab.config.drab_store_storage |> Atom.to_string}.get.js", []) %>
+    },
+    get_drab_session_token: function() {
+      return this.drab_session_token
     }
   }
 

@@ -43,8 +43,8 @@ Bug fixes:
   have corresponding plural methods, which return a Map of `%{name|id|__undefined_XX => value}`
 
 ````elixir
-### <span name="first_span" class="qs_2 small-border">First span with class qs_2</span>
-### <span id="second_span" class="qs_2 small-border">Second span with class qs_2</span>
+# <span name="first_span" class="qs_2 small-border">First span with class qs_2</span>
+# <span id="second_span" class="qs_2 small-border">Second span with class qs_2</span>
 socket |> select(:html, from: ".qs_2")
 # "First span with class qs_2"
 socket |> select(:htmls, from: ".qs_2")

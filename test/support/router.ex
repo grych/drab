@@ -28,6 +28,8 @@ defmodule DrabTestApp.Router do
     get "/tests/broadcast2/different_url", Broadcast2Controller, :index, as: :different_url
     get "/tests/broadcast3", Broadcast3Controller, :index, as: :broadcast3
     get "/tests/broadcast4", Broadcast4Controller, :index, as: :broadcast4
+
+    get "/tests/ampere", AmpereController, :index, as: :ampere
   end
 
   # Other scopes may use custom stacks.

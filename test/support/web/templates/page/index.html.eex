@@ -28,6 +28,7 @@ Pages for Integration Tests: <br>
 <a href="/tests/modal">Drab.Modal</a><br>
 <a href="/tests/waiter">Drab.Waiter</a><br>
 <a href="/tests/browser">Drab.Browser</a><br>
+<a href="/tests/ampere">Drab.Ampere</a><br>
 <br>
 <a href="/tests/broadcast1">Broadcasting to the same URL (default)</a><br>
 <a href="/tests/broadcast2">Broadcasting to the same controller</a><br>

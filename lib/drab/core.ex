@@ -194,7 +194,7 @@ defmodule Drab.Core do
 
   @doc false
   def session(socket) do
-    store_token = execjs(socket, "Drab.drab_session_token")
+    store_token = execjs(socket, "Drab.get_drab_session_token()")
     detokenize_store(socket, store_token)
   end
 
