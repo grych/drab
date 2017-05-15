@@ -17,12 +17,6 @@ defmodule Drab.Mixfile do
    ]
   end
 
-  # def application do
-  #   [
-  #     applications: [:logger],
-  #   ]
-  # end
-
   def application do
     [mod: {DrabTestApp, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger]]

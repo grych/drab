@@ -1,3 +1,12 @@
+## 0.4.0
+Changes:
+
+* renamed execjs -> exec_js, brodcastjs -> broadcast_js
+* exec_js returns tuple {:ok, result} or {:error, reason}
+* exec_js! raises exceptions on JS error
+* configurable timeouts for exec_js
+
+
 ## 0.3.5
 Changes:
 * Drab.Browser with browser related functions, like local time, timezone difference, userAgent, redirect_to

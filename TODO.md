@@ -1,21 +1,15 @@
 ## 0.4.0
-Changes:
-
-* exec_js and broadcast_js returns tuple {:ok, result} or {:error, reason}
-* exec_js! and broadcast_js! raise exceptions on JS error
-* configurable timeouts for exec_js
+* configurable timeout in exec_js
+* ignore wrong Store token and default it to %{}
 
 ## 0.4.1
 Changes:
 * technical socket? for broadcasts from drab server
-* configurable timeout in exec_js
 * render partials in commanders (accutally it can already be done, just add a helper)
 * before_handler, only: should take a list or atom (currently list only)
 * dependencies for modules (for ex. Modal depends on Query)
 * execute(:method, params) does not work when the method have more than 1 parameter
 * execute(method: [parameters]) should work
-* access to conn? Drab.Browser.remote_ip?
-
 
 ## 0.5.0
 Changes:

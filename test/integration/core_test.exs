@@ -39,9 +39,16 @@ defmodule DrabTestApp.CoreTest do
       assert visible_text(store_value) == "test store value"
     end
 
-    test "return values of execjs", context do
+    test "return values of exec_js", context do
       assert exec_js(context[:socket], "2 + 2") == {:ok, 4}
       assert exec_js(context[:socket], "nonexisting") == {:error, "nonexisting is not defined"}
+    end
+
+    test "return values of exec_js!", context do
+      assert exec_js!(context[:socket], "2 + 2") == 4
+      assert_raise Drab.JSExecutionError, "nonexisting is not defined", fn ->
+        exec_js!(context[:socket], "nonexisting")
+      end 
     end
 
   end
