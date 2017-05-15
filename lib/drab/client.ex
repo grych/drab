@@ -47,19 +47,20 @@ defmodule Drab.Client do
       broadcast_topic = topic(commander.__drab__().broadcasting, controller, conn.request_path)
       templates = Enum.map(modules, fn x -> "#{Module.split(x) |> Enum.join(".") |> String.downcase()}.js" end)
 
-      access_store = commander.__drab__().access_session
-      store = access_store 
+      access_session = commander.__drab__().access_session
+      session = access_session 
         |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end) 
         |> Enum.into(%{})
-      # Logger.debug("**** #{inspect store}")
+      # Logger.debug("**** #{inspect session}")
 
-      store_token = Drab.Core.tokenize_store(conn, store)
+      session_token = Drab.Core.tokenize_store(conn, session)
+      # session_token = Drab.tokenize(conn, session)
 
       bindings = [
         controller_and_action: controller_and_action,
         commander: commander,
         templates: templates,
-        drab_session_token: store_token,
+        drab_session_token: session_token,
         broadcast_topic: broadcast_topic
       ]
 

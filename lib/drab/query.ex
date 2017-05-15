@@ -537,7 +537,8 @@ defmodule Drab.Query do
 
   # Build and run general jQuery query
   defp do_query(socket, selector, method_jqueried, type, push_or_broadcast_function) do
-    push_or_broadcast_function.(socket, build_js(selector, method_jqueried, type))
+    {:ok, return} = push_or_broadcast_function.(socket, build_js(selector, method_jqueried, type))
+    return
   end
 
   defp jquery_method(method) do

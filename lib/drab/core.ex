@@ -71,24 +71,57 @@ defmodule Drab.Core do
   require Logger
 
   @doc """
-  Synchronously executes the given javascript on the client side and returns value. 
+  Synchronously executes the given javascript on the client side. 
+
+  Returns tuple `{status, return_value}`, where status could be `:ok` or `:error`, and return value 
+  contains the output computed by the Javascript or the error message.
+
+  ### Examples
+
+      iex> socket |> execjs("2 + 2")                   
+      {:ok, 4}
+      iex> socket |> execjs("not_existing_function()")
+      {:error, "not_existing_function is not defined"}
+      iex> socket |> execjs("for(i=0; i<1000000000; i++) {}")
+      {:error, "timed out after 5000 ms."}
   """
   def execjs(socket, js) do
-    Drab.push(socket, self(), "execjs", js: js)
+    Drab.push_and_wait_for_response(socket, self(), "execjs", js: js)
+  end
 
-    receive do
-      {:got_results_from_client, reply} ->
-        reply
+  @doc """
+  Exception raising version of `execjs/2`
+
+  ### Examples
+
+        iex> socket |> execjs!("2 + 2")
+        4
+        iex> socket |> execjs!("nonexistent")
+        ** (Drab.JSExecutionError) nonexistent is not defined
+            (drab) lib/drab/core.ex:100: Drab.Core.execjs!/2
+        iex> socket |> execjs!("for(i=0; i<1000000000; i++) {}")                       
+        ** (Drab.JSExecutionError) timed out after 5000 ms.
+            (drab) lib/drab/core.ex:100: Drab.Core.execjs!/2
+  """
+  def execjs!(socket, js) do
+    case execjs(socket, js) do
+      {:ok, result} -> result
+      {:error, message} -> raise Drab.JSExecutionError, message: message
     end
   end
 
   @doc """
   Asynchronously broadcasts given javascript to all browsers, by default to all browsers connected to the same url.
   See `Drab.Commander.broadcasting/1` to find out how to change the default behaviour.
+
+      iex> Drab.Core.broadcastjs(socket, "alert('Broadcasted to all!')")
+      %Phoenix.Socket{assigns: %{__action: :modal,
+
+  Always returns tuple `{:ok, :broadcasted}`
   """
   def broadcastjs(socket, js) do
     Drab.broadcast(socket, self(), "broadcastjs", js: js)
-    socket
+    {:ok, :broadcasted}
   end
 
   @doc """
@@ -144,7 +177,7 @@ defmodule Drab.Core do
   """
   def put_store(socket, key, value) do
     store = store(socket) |> Map.merge(%{key => value})
-    execjs(socket, "Drab.set_drab_store_token(\"#{tokenize_store(socket, store)}\")")
+    {:ok, _} = execjs(socket, "Drab.set_drab_store_token(\"#{tokenize_store(socket, store)}\")")
 
     # store the store in Drab server, to have it on terminate
     save_store(socket, store)
@@ -187,29 +220,32 @@ defmodule Drab.Core do
 
   @doc false
   def store(socket) do
-    store_token = execjs(socket, "Drab.get_drab_store_token()")
+    {:ok, store_token} = execjs(socket, "Drab.get_drab_store_token()")
     detokenize_store(socket, store_token)
-    # GenServer.call(socket.assigns.__drab_pid, :get_store)
+    # Drab.detokenize(socket, store_token)
   end
 
   @doc false
   def session(socket) do
-    store_token = execjs(socket, "Drab.get_drab_session_token()")
-    detokenize_store(socket, store_token)
+    {:ok, session_token} = execjs(socket, "Drab.get_drab_session_token()")
+    detokenize_store(socket, session_token)
+    # Drab.detokenize(socket, session)
   end
 
   def tokenize_store(socket, store) do
-    Phoenix.Token.sign(socket, "drab_store_token",  store)
+    Drab.tokenize(socket, store, "drab_store_token")
+    # Phoenix.Token.sign(socket, "drab_store_token",  store)
   end
  
-  defp detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
+  # defp detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
 
   defp detokenize_store(socket, drab_store_token) do
-    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
-      {:ok, drab_store} -> 
-        drab_store
-      {:error, reason} -> 
-        raise "Can't verify the token: #{inspect(reason)}" # let it die    
-    end
+    Drab.detokenize(socket, drab_store_token, "drab_store_token")
+    # case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
+    #   {:ok, drab_store} -> 
+    #     drab_store
+    #   {:error, reason} -> 
+    #     raise "Can't verify the token: #{inspect(reason)}" # let it die    
+    # end
   end
 end

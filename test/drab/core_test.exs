@@ -1,6 +1,6 @@
 defmodule Drab.CoreTest do
   use ExUnit.Case, ascync: true
-  doctest Drab.Core
+  # doctest Drab.Core
 
   test "encode_js" do
     assert Drab.Core.encode_js(false) == "false"

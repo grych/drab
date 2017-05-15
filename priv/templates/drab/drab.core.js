@@ -7,11 +7,21 @@ Drab.on_connect(function(resp, drab) {
 
     // exec is synchronous, returns the result
     drab.channel.on("execjs", function(message) {
-      var query_output = [
-        message.sender,
-        eval(message.js)
-      ]
-      drab.channel.push("execjs", {ok: query_output})
+      var output
+      try {
+        output = {
+          ok: [
+            message.sender, 
+            eval(message.js)]
+        }
+      } catch(e) {
+        output = {
+          error: [
+            message.sender,
+            e.message]
+        } 
+      }
+      drab.channel.push("execjs", output)
     })
 
     // broadcast does not return a meesage

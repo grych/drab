@@ -30,7 +30,7 @@
         fx(drab)
       })
 
-      this.socket = new this.Socket("<%= Drab.config.socket %>", {params: {__drab_return: drab_return_token}})
+      this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", {params: {__drab_return: drab_return_token}})
       this.socket.connect()
       this.channel = this.socket.channel("__drab:" + this.drab_topic, {})
       
@@ -107,10 +107,10 @@
       this.load.push(f)
     },
     set_drab_store_token: function(token) {
-      <%= Drab.Template.render_template("drab.store.#{Drab.config.drab_store_storage |> Atom.to_string}.set.js", []) %>
+      <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.set.js", []) %>
     },
     get_drab_store_token: function() {
-      <%= Drab.Template.render_template("drab.store.#{Drab.config.drab_store_storage |> Atom.to_string}.get.js", []) %>
+      <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.get.js", []) %>
     },
     get_drab_session_token: function() {
       return this.drab_session_token

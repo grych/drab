@@ -74,7 +74,8 @@ defmodule Drab.Modal do
       |> delete("#_drab_modal")
       |> insert(html, append: "body")
 
-    Drab.push_and_wait_for_response(socket, self(), "modal", timeout: options[:timeout])
+    {:ok, result} = Drab.push_and_wait_forever(socket, self(), "modal", timeout: options[:timeout])
+    result
   end
 
   defp buttons_html(buttons) do

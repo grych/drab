@@ -49,7 +49,7 @@ defmodule DrabTestApp.IntegrationCase do
   end
 
   def drab_socket() do
-    GenServer.call(drab_pid(), :get_socket)
+    Drab.get_socket(drab_pid())
   end
 
   # removes hash from the begin of #selector

@@ -40,6 +40,7 @@ defmodule Drab.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:ex_doc, "~> 0.14", only: :dev},
+     # {:floki, "~> 0.17.0"},
      {:hound, "~> 1.0"} ### , only: [:dev, :test]
     ]
   end

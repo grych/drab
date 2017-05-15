@@ -57,5 +57,5 @@ defmodule Drab.Template do
 
   # defp template_paths(), do: Enum.map(paths(), &(template_dir(&1)))
 
-  defp user_templates(), do: Drab.config.templates_path
+  defp user_templates(), do: Drab.Config.get(:templates_path)
 end

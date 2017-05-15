@@ -1,0 +1,7 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<br>
+Users count: <%= @count %>
+<br>
+<%= render("users.html", users: @users) %>

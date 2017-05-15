@@ -39,6 +39,11 @@ defmodule DrabTestApp.CoreTest do
       assert visible_text(store_value) == "test store value"
     end
 
+    test "return values of execjs", context do
+      assert execjs(context[:socket], "2 + 2") == {:ok, 4}
+      assert execjs(context[:socket], "nonexisting") == {:error, "nonexisting is not defined"}
+    end
+
   end
 
   describe "Drab.Core callbacks" do

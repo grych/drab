@@ -54,7 +54,7 @@ defmodule DrabTestApp.PageCommander do
   ### Drab.Core ###
   def core1_click(socket, _sender) do
     Process.sleep 500 # emulate some longer work, to test if tester waits for a button to be enabled 
-    Drab.Core.execjs(socket, "$('#core1_out').html('core1')")
+    {:ok, _} = Drab.Core.execjs(socket, "$('#core1_out').html('core1')")
     # the return value is passed to `after_handler`
     42
   end
@@ -64,7 +64,7 @@ defmodule DrabTestApp.PageCommander do
   end
 
   def core3_click(socket, _sender) do
-    Drab.Core.execjs(socket, "$('#core3_out').html('core3')")
+    {:ok, _} = Drab.Core.execjs(socket, "$('#core3_out').html('core3')")
     put_store(socket, :should_never_be_assigned, true)
   end
 

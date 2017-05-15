@@ -20,9 +20,14 @@ defmodule Drab.Channel do
     # sender contains PID of the process which sent the query
     # sender is waiting for the result
     send(sender(socket, sender_encrypted), 
-      {
-        :got_results_from_client, reply
-      })
+      { :got_results_from_client, :ok, reply })
+
+    {:noreply, socket}
+  end
+
+  def handle_in("execjs", %{"error" => [sender_encrypted, reply]}, socket) do
+    send(sender(socket, sender_encrypted), 
+      { :got_results_from_client, :error, reply })
 
     {:noreply, socket}
   end
@@ -31,7 +36,8 @@ defmodule Drab.Channel do
     # sends { "button_name", %{"Param" => "value"}}
     send(sender(socket, sender_encrypted), 
       {
-        :got_results_from_client, 
+        :got_results_from_client,
+        :ok,
         { 
           reply["button_clicked"] |> String.to_existing_atom, 
           reply["params"] |> Map.delete("__drab_modal_hidden_input")
@@ -66,7 +72,7 @@ defmodule Drab.Channel do
           Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{inspect(commander)}
           You may debug Drab functions in IEx by copy/paste the following:
       #{Enum.map(modules, fn module -> "import #{inspect(module)}" end) |> Enum.join("; ")}
-      socket = GenServer.call(pid("#{pid_string}"), :get_socket)
+      socket = Drab.get_socket(pid("#{pid_string}"))
       
           Examples:
       socket |> select(:htmls, from: "h4")
@@ -84,7 +90,7 @@ defmodule Drab.Channel do
       "event_handler_function" => event_handler_function,
       "reply_to" => reply_to
       }, socket) do
-    # event is currently not used (0.2.0)
+    # event name is currently not used (0.2.0)
     verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket)
   end   
 
@@ -95,6 +101,6 @@ defmodule Drab.Channel do
   end
 
   defp sender(socket, sender_encrypted) do
-    Drab.detokenize_pid(socket, sender_encrypted)
+    Drab.detokenize(socket, sender_encrypted)
   end
 end

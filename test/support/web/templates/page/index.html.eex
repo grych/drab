@@ -9,7 +9,7 @@ If you started it with <code>iex -S mix phoenix.server</code>, you may debug Dra
     Started Drab for /, handling events in DrabTestApp.PageCommander
     You may debug Drab functions in IEx by copy/paste the following:
 import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
-socket = GenServer.call(pid("HERE BE PID"), :get_socket)
+socket = Drab.get_socket(pid("HERE BE PID"))
 </pre>
 
 

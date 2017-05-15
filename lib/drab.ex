@@ -52,7 +52,7 @@ defmodule Drab do
           Started Drab for /drab/docs, handling events in DrabPoc.DocsCommander
           You may debug Drab functions in IEx by copy/paste the following:
       import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
-      socket = GenServer.call(pid("0.413.0"), :get_socket)
+      socket = Drab.get_socket(pid("0.443.0"))
 
           Examples:
       socket |> select(:htmls, from: "h4")
@@ -131,10 +131,14 @@ defmodule Drab do
 
   @doc false
   def handle_cast({:onconnect, socket}, %Drab{commander: commander} = state) do
-    # TODO: fix the issue
+    # TODO: there is an issue when the below failed and client tried to reconnect again and again
     # tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end), 
     #          Task.async(fn -> Drab.Core.save_store(socket, Drab.Core.store(socket)) end)]
     # Enum.each(tasks, fn(task) -> Task.await(task) end)
+
+    # Logger.debug "******"
+    # Logger.debug inspect(Drab.Core.session(socket))
+
     Drab.Core.save_session(socket, Drab.Core.session(socket))
     Drab.Core.save_store(socket, Drab.Core.store(socket))
 
@@ -256,7 +260,7 @@ defmodule Drab do
       js = Drab.Template.render_template(
         "drab.handler_error.#{Atom.to_string(Mix.env)}.js", 
         message: Drab.Core.encode_js(error))
-      Drab.Core.execjs socket, js
+      {:ok, _} = Drab.Core.execjs(socket, js)
     end
   end
 
@@ -315,6 +319,11 @@ defmodule Drab do
   end
 
   @doc false
+  def get_socket(pid) do
+    GenServer.call(pid, :get_socket)
+  end
+
+  @doc false
   def function_exists?(module_name, function_name) do
     module_name.__info__(:functions) 
       |> Enum.map(fn {f, _} -> Atom.to_string(f) end)
@@ -325,46 +334,72 @@ defmodule Drab do
   def push_and_wait_for_response(socket, pid, message, options \\ []) do
     push(socket, pid, message, options)
     receive do
-      {:got_results_from_client, reply} ->
-        reply
-    # TODO: timeout
+      {:got_results_from_client, status, reply} -> 
+        {status, reply}
+      after Drab.Config.get(:browser_response_timeout) -> 
+        {:error, "timed out after #{Drab.Config.get(:browser_response_timeout)} ms."}
+    end    
+  end
+
+  def push_and_wait_forever(socket, pid, message, options \\ []) do
+    # TODO: timeout for modals
+    push(socket, pid, message, options)
+    receive do
+      {:got_results_from_client, status, reply} -> 
+        {status, reply}
     end    
   end
 
   @doc false
   def push(socket, pid, message, options \\ []) do
-    # allow to use different push/broadcast function in options, to be used in tests
-    # f = options[:push_or_broadcast_function]  || &Phoenix.Channel.push/3
-    # do_push_or_broadcast(socket, pid, message, options, f)
     do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.push/3)
   end
 
   @doc false
   def broadcast(socket, pid, message, options \\ []) do
-    # f = options[:push_or_broadcast_function] || &Phoenix.Channel.broadcast/3
-    # do_push_or_broadcast(socket, pid, message, options, f)
     do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.broadcast/3)
   end
 
   defp do_push_or_broadcast(socket, pid, message, options, function) do
-    m = options |> Enum.into(%{}) |> Map.merge(%{sender: tokenize_pid(socket, pid)})
+    m = options |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, pid)})
     function.(socket, message,  m)    
   end
 
-  @doc """
-  Returns token made created from PID. See also `Drab.detokenize_pid/2`
-  """
-  def tokenize_pid(socket, pid) do
-    myself = :erlang.term_to_binary(pid)
-    Phoenix.Token.sign(socket, "sender", myself)
-  end
+  # @doc """
+  # Returns token created from PID. See also `Drab.detokenize_pid/2`
+  # """
+  # def tokenize_pid(socket, pid) do
+  #   myself = :erlang.term_to_binary(pid)
+  #   Phoenix.Token.sign(socket, "sender", myself)
+  # end
  
+  # @doc """
+  # Returns PID decrypted from token. See also `Drab.tokenize_pid/2`
+  # """
+  # def detokenize_pid(socket, token) do
+  #   {:ok, detokenized_pid} = Phoenix.Token.verify(socket, "sender", token)
+  #   detokenized_pid |> :erlang.binary_to_term
+  # end
+
   @doc """
-  Returns PID decrypted from token. See also `Drab.tokenize_pid/2`
+  Tokenize any valid Elixir data.
+
+  Returns signed (but not ciphered) string, which can be decrypted with `Drab.detokenize/2`
   """
-  def detokenize_pid(socket, token) do
-    {:ok, detokenized_pid} = Phoenix.Token.verify(socket, "sender", token)
-    detokenized_pid |> :erlang.binary_to_term
+  def tokenize(socket, what, salt \\ "drab token") do
+    Phoenix.Token.sign(socket, salt, what)
+  end
+
+  @doc """
+  Returns data decrypted from the token.
+  """
+  def detokenize(socket, token, salt \\ "drab token") do
+    case Phoenix.Token.verify(socket, salt, token) do
+      {:ok, detokenized} -> 
+        detokenized
+      {:error, reason} -> 
+        raise "Can't verify the token `#{salt}`: #{inspect(reason)}" # let it die    
+    end
   end
 
   # returns the commander name for the given controller (assigned in token)
@@ -385,36 +420,8 @@ defmodule Drab do
     module.__drab__()
   end
 
-  @doc """
-  Returns map of Drab configuration options.
-  
-  All the config values may be override in `config.exs`, for example:
-
-      config :drab, disable_controls_while_processing: false
-
-  Configuration options:
-  * `templates_path` (default: "priv/templates/drab") - path to the user templates (may be new or override default 
-    templates)
-  * `disable_controls_while_processing` (default: `true`) - after sending request to the server, sender will be 
-    disabled until get the answer; warning: this behaviour is not broadcasted, so only the control in the current
-    browers will be disabled
-  * `events_to_disable_while_processing` (default: `["click"]`) - list of events which will be disabled when 
-    waiting for server response
-  * `disable_controls_when_disconnected` (default: `true`) - disables control when there is no connectivity
-    between the browser and the server
-  * `socket` (default: `"/socket"`) - path to the socket where Drab operates
-  * `drab_store_storage` (default: :session_storage) - where to keep the Drab Store - :memory, :local_storage or 
-    :session_storage; data in memory is kept to the next page load, session storage persist until browser (or a tab) is
-    closed, and local storage is kept forever
-  """
+  @doc false
   def config() do
-    %{
-      templates_path: Application.get_env(:drab, :templates_path, "priv/templates/drab"),
-      disable_controls_while_processing: Application.get_env(:drab, :disable_controls_while_processing, true),
-      events_to_disable_while_processing: Application.get_env(:drab, :events_to_disable_while_processing, ["click"]),
-      disable_controls_when_disconnected: Application.get_env(:drab, :disable_controls_when_disconnected, true),
-      socket: Application.get_env(:drab, :socket, "/socket"),
-      drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage)
-    }
+    Drab.Config.config()
   end
 end

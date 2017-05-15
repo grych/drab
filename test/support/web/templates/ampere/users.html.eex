@@ -1,0 +1,3 @@
+<%= for user <- @users do %>
+  User: <%= render("user.html", user: user) %><br>
+<% end %>

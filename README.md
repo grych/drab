@@ -251,7 +251,7 @@ iex -S mix phoenix.server
 
 ````elixir
 import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
-socket = GenServer.call(pid("0.xxxxx.0"), :get_socket)
+socket = Drab.get_socket(pid("0.443.0"))
 
 iex(5)> socket |> alert("Title", "WOW!")                                          
 {:ok, %{}}

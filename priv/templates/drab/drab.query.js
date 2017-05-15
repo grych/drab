@@ -1,9 +1,9 @@
 const EVENTS = ["click", "change", "keyup", "keydown"]
-const EVENTS_TO_DISABLE = <%= Drab.config.events_to_disable_while_processing |> Drab.Core.encode_js %>
+const EVENTS_TO_DISABLE = <%= Drab.Config.get(:events_to_disable_while_processing) |> Drab.Core.encode_js %>
 
 // disable all drab object when disconnected from the server
 Drab.disable_drab_objects = function(disable) {
-  <%= if Drab.config.disable_controls_when_disconnected do %>
+  <%= if Drab.Config.get(:disable_controls_when_disconnected) do %>
     $("[drab-event]").prop('disabled', disable)
   <% end %>
 }
@@ -90,7 +90,7 @@ Drab.set_event_handlers = function(obj) {
       var event_handler_function = function(event) {
         var t = $(this)
         // disable current control - will be re-enabled after finish
-        <%= if Drab.config.disable_controls_while_processing do %>
+        <%= if Drab.Config.get(:disable_controls_while_processing) do %>
           if ($.inArray(event_name, events_to_disable) >= 0) {
             t.prop('disabled', true)
           }
@@ -101,7 +101,7 @@ Drab.set_event_handlers = function(obj) {
           event_name, 
           t.attr("drab-handler"), 
           payload(t, event)
-          <%= if Drab.config.disable_controls_while_processing do %>
+          <%= if Drab.Config.get(:disable_controls_while_processing) do %>
             ,
             function() {
               t.prop('disabled', false)

@@ -1,6 +1,6 @@
 defmodule Drab.QueryTest do
   use ExUnit.Case, ascync: true
-  doctest Drab.Query
+  # doctest Drab.Query
 
   test "this/1 should return drab_id" do
     dom_sender = %{ "drab_id" => "DRAB_ID"}
