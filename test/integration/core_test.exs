@@ -14,7 +14,7 @@ defmodule DrabTestApp.CoreTest do
 
   describe "Drab.Core" do
 
-    test "execjs and broadcast" do
+    test "exec_js and broadcast_js" do
       # test execjs and broadcastjs
       standard_click_and_get_test("core1")
       standard_click_and_get_test("core2")
@@ -40,8 +40,8 @@ defmodule DrabTestApp.CoreTest do
     end
 
     test "return values of execjs", context do
-      assert execjs(context[:socket], "2 + 2") == {:ok, 4}
-      assert execjs(context[:socket], "nonexisting") == {:error, "nonexisting is not defined"}
+      assert exec_js(context[:socket], "2 + 2") == {:ok, 4}
+      assert exec_js(context[:socket], "nonexisting") == {:error, "nonexisting is not defined"}
     end
 
   end

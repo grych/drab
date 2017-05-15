@@ -16,7 +16,7 @@ socket = Drab.get_socket(pid("HERE BE PID"))
     Examples:
 <pre>
 socket |> select(:htmls, from: "h3")
-socket |> execjs("alert('hello from IEx!')")
+socket |> exec_js("alert('hello from IEx!')")
 socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
 </pre>
 

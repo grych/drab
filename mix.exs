@@ -1,6 +1,6 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.3.5"
+  @version "0.4.0"
 
   def project do
     [app: :drab,
@@ -40,7 +40,7 @@ defmodule Drab.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:ex_doc, "~> 0.14", only: :dev},
-     # {:floki, "~> 0.17.0"},
+     {:deppie, "~> 1.0"},
      {:hound, "~> 1.0"} ### , only: [:dev, :test]
     ]
   end

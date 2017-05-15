@@ -28,7 +28,7 @@ defmodule Drab.Browser do
     }
     retval
     """
-    {:ok, browser_now} = execjs(socket, js)
+    {:ok, browser_now} = exec_js(socket, js)
     {:ok, now} = NaiveDateTime.new(
       browser_now["year"],
       browser_now["month"],
@@ -50,13 +50,13 @@ defmodule Drab.Browser do
       7200 # UTC + 02:00
   """
   def utc_offset(socket) do
-    {:ok, offset} = execjs(socket, "new Date().getTimezoneOffset()")
+    {:ok, offset} = exec_js(socket, "new Date().getTimezoneOffset()")
     -60 * offset
   end
 
 
   # def utc_now(socket) do
-  #   browser_utc = execjs(socket, "new Date().toISOString()")
+  #   browser_utc = exec_js!(socket, "new Date().toISOString()")
   #   {:ok, now, _offset} = DateTime.from_iso8601(browser_utc)
   #   now
   # end
@@ -71,7 +71,7 @@ defmodule Drab.Browser do
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) ..."
   """
   def user_agent(socket) do
-    {:ok, agent} = execjs(socket, "navigator.userAgent")
+    {:ok, agent} = exec_js(socket, "navigator.userAgent")
     agent
   end
 
@@ -84,7 +84,7 @@ defmodule Drab.Browser do
 
   """
   def language(socket) do
-    {:ok, lang} = execjs(socket, "navigator.language")
+    {:ok, lang} = exec_js(socket, "navigator.language")
     lang
   end
 
@@ -97,7 +97,7 @@ defmodule Drab.Browser do
 
   """
   def languages(socket) do
-    {:ok, langs} = execjs(socket, "navigator.languages")
+    {:ok, langs} = exec_js(socket, "navigator.languages")
     langs
   end
 
@@ -108,7 +108,7 @@ defmodule Drab.Browser do
   handler.
   """
   def redirect_to(socket, url) do
-    {:ok, _} = execjs(socket, "window.location = '#{url}'")
+    {:ok, _} = exec_js(socket, "window.location = '#{url}'")
   end
 
   @doc """
@@ -118,7 +118,7 @@ defmodule Drab.Browser do
   handler.
   """
   def redirect_to!(socket, url) do
-    broadcastjs(socket, "window.location = '#{url}'")
+    broadcast_js(socket, "window.location = '#{url}'")
   end
 
   @doc """

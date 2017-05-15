@@ -76,7 +76,7 @@ defmodule Drab.Channel do
       
           Examples:
       socket |> select(:htmls, from: "h4")
-      socket |> execjs("alert('hello from IEx!')")
+      socket |> exec_js("alert('hello from IEx!')")
       socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
       """
     end

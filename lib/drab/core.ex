@@ -78,59 +78,82 @@ defmodule Drab.Core do
 
   ### Examples
 
-      iex> socket |> execjs("2 + 2")                   
+      iex> socket |> exec_js("2 + 2")                   
       {:ok, 4}
-      iex> socket |> execjs("not_existing_function()")
+      iex> socket |> exec_js("not_existing_function()")
       {:error, "not_existing_function is not defined"}
-      iex> socket |> execjs("for(i=0; i<1000000000; i++) {}")
+      iex> socket |> exec_js("for(i=0; i<1000000000; i++) {}")
       {:error, "timed out after 5000 ms."}
   """
-  def execjs(socket, js) do
+  def exec_js(socket, js, _options \\ []) do
     Drab.push_and_wait_for_response(socket, self(), "execjs", js: js)
   end
 
   @doc """
-  Exception raising version of `execjs/2`
+  Exception raising version of `exec_js/2`
 
   ### Examples
 
-        iex> socket |> execjs!("2 + 2")
+        iex> socket |> exec_js!("2 + 2")
         4
-        iex> socket |> execjs!("nonexistent")
+        iex> socket |> exec_js!("nonexistent")
         ** (Drab.JSExecutionError) nonexistent is not defined
-            (drab) lib/drab/core.ex:100: Drab.Core.execjs!/2
-        iex> socket |> execjs!("for(i=0; i<1000000000; i++) {}")                       
+            (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
+        iex> socket |> exec_js!("for(i=0; i<1000000000; i++) {}")                       
         ** (Drab.JSExecutionError) timed out after 5000 ms.
-            (drab) lib/drab/core.ex:100: Drab.Core.execjs!/2
+            (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
   """
-  def execjs!(socket, js) do
-    case execjs(socket, js) do
+  def exec_js!(socket, js, _options \\ []) do
+    case exec_js(socket, js) do
       {:ok, result} -> result
       {:error, message} -> raise Drab.JSExecutionError, message: message
     end
+  end
+
+  @doc false
+  def execjs(socket, js) do
+    Deppie.once("Drab.Core.execjs/2 is depreciated. Please use Drab.Core.exec_js/3 instead")
+    {_, result} = exec_js(socket, js)
+    result
   end
 
   @doc """
   Asynchronously broadcasts given javascript to all browsers, by default to all browsers connected to the same url.
   See `Drab.Commander.broadcasting/1` to find out how to change the default behaviour.
 
-      iex> Drab.Core.broadcastjs(socket, "alert('Broadcasted to all!')")
-      %Phoenix.Socket{assigns: %{__action: :modal,
+      iex> Drab.Core.broadcast_js(socket, "alert('Broadcasted to all!')")
+      {:ok, :broadcasted}
 
   Always returns tuple `{:ok, :broadcasted}`
   """
-  def broadcastjs(socket, js) do
+  def broadcast_js(socket, js, _options \\ []) do
     Drab.broadcast(socket, self(), "broadcastjs", js: js)
     {:ok, :broadcasted}
+  end
+
+  @doc """
+  Bang version of `Drab.Core.broadcast_js/3
+
+  Returns `socket`
+  """
+  def broadcast_js!(socket, js, _options \\ []) do
+    Drab.broadcast(socket, self(), "broadcastjs", js: js)
+    socket
+  end
+
+  @doc false
+  def broadcastjs(socket, js) do
+    Deppie.once("Drab.Core.broadcastjs/2 is depreciated. Please use Drab.Core.broadcast_js/3 instead")
+    _ = broadcast_js(socket, js)
+    socket
   end
 
   @doc """
   Moved to `Drab.Browser.console/2`
   """
   def console(socket, log) do
-    IO.warn """
-    Drab.Core.console/2 is depreciated.
-    Use Drab.Browser.console/2 instead.
+    Deppie.once """
+    Drab.Core.console/2 is depreciated. Use Drab.Browser.console/2 instead.
     """
     Drab.Browser.console(socket, log)
   end
@@ -139,13 +162,11 @@ defmodule Drab.Core do
   Moved to `Drab.Browser.console!/2`
   """
   def console!(socket, log) do
-    IO.warn """
-    Drab.Core.console/2 is depreciated.
-    Use Drab.Browser.console/2 instead.
+    Deppie.once """
+    Drab.Core.console!/2 is depreciated. Use Drab.Browser.console!/2 instead.
     """
     Drab.Browser.console!(socket, log)
   end
-
 
   @doc false
   def encode_js(value), do: Poison.encode!(value)
@@ -177,7 +198,7 @@ defmodule Drab.Core do
   """
   def put_store(socket, key, value) do
     store = store(socket) |> Map.merge(%{key => value})
-    {:ok, _} = execjs(socket, "Drab.set_drab_store_token(\"#{tokenize_store(socket, store)}\")")
+    {:ok, _} = exec_js(socket, "Drab.set_drab_store_token(\"#{tokenize_store(socket, store)}\")")
 
     # store the store in Drab server, to have it on terminate
     save_store(socket, store)
@@ -220,14 +241,14 @@ defmodule Drab.Core do
 
   @doc false
   def store(socket) do
-    {:ok, store_token} = execjs(socket, "Drab.get_drab_store_token()")
+    {:ok, store_token} = exec_js(socket, "Drab.get_drab_store_token()")
     detokenize_store(socket, store_token)
     # Drab.detokenize(socket, store_token)
   end
 
   @doc false
   def session(socket) do
-    {:ok, session_token} = execjs(socket, "Drab.get_drab_session_token()")
+    {:ok, session_token} = exec_js(socket, "Drab.get_drab_session_token()")
     detokenize_store(socket, session_token)
     # Drab.detokenize(socket, session)
   end

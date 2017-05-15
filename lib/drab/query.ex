@@ -8,8 +8,8 @@ defmodule Drab.Query do
   @methods_with_argument         ~w(attr prop css data)a
   @methods_with_argument_plural  ~w(attrs props csses datas)a
   @insert_methods        ~w(before after prepend append)a
-  @broadcast             &Drab.Core.broadcastjs/2
-  @no_broadcast          &Drab.Core.execjs/2
+  @broadcast             &Drab.Core.broadcast_js/2
+  @no_broadcast          &Drab.Core.exec_js/2
   @html_modifiers        ~r/html|append|before|after|insertAfter|insertBefore|htmlPrefilter|prepend|replaceWidth|wrap/i
 
   @moduledoc """

@@ -56,7 +56,7 @@ defmodule Drab do
 
           Examples:
       socket |> select(:htmls, from: "h4")
-      socket |> execjs("alert('hello from IEx!')")
+      socket |> exec_js("alert('hello from IEx!')")
       socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
 
   All you need to do is to copy/paste the line with `socket = ...` and now you can run Drab function directly
@@ -260,7 +260,7 @@ defmodule Drab do
       js = Drab.Template.render_template(
         "drab.handler_error.#{Atom.to_string(Mix.env)}.js", 
         message: Drab.Core.encode_js(error))
-      {:ok, _} = Drab.Core.execjs(socket, js)
+      {:ok, _} = Drab.Core.exec_js(socket, js)
     end
   end
 

@@ -12,7 +12,7 @@ defmodule DrabTestApp.AmpereCommander do
       elem.setAttribute("id", "page_loaded_indicator");
       begin.parentNode.insertBefore(elem, begin.nextElementSibling)
       """
-    {:ok, _} = execjs(socket, js)
+    {:ok, _} = exec_js(socket, js)
 
     p = inspect(socket.assigns.__drab_pid)
     pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
@@ -21,7 +21,7 @@ defmodule DrabTestApp.AmpereCommander do
       var txt = document.createTextNode("#{pid_string}")
       pid.appendChild(txt)
       """
-    {:ok, _} = execjs(socket, js)
+    {:ok, _} = exec_js(socket, js)
 
     # socket |> Drab.Query.insert("<h3 id='page_loaded_indicator'>Page Loaded</h3>", after: "#begin")
     # socket |> Drab.Query.insert("<h5>Drab Broadcast Topic: #{__drab__().broadcasting |> inspect}</h5>", 
