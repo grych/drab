@@ -258,7 +258,7 @@ defmodule Drab.Core do
     # Phoenix.Token.sign(socket, "drab_store_token",  store)
   end
  
-  # defp detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
+  defp detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
 
   defp detokenize_store(socket, drab_store_token) do
     Drab.detokenize(socket, drab_store_token, "drab_store_token")
