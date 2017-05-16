@@ -1,4 +1,6 @@
 defmodule DrabTestApp.AmpereController do
+  @moduledoc false
+  
   use DrabTestApp.Web, :controller
   use Drab.Controller 
 
@@ -11,7 +13,7 @@ defmodule DrabTestApp.AmpereController do
 
   defp render_live(conn, _template, assigns) do
     r = render(conn, "index.html", assigns)
-    IO.inspect(Phoenix.View.render_to_string DrabTestApp.AmpereView, "index.html", assigns)
+    # IO.inspect(Phoenix.View.render_to_string DrabTestApp.AmpereView, "index.html", assigns)
     r
   end
 end

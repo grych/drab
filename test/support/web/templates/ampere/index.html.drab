@@ -1,0 +1,8 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<br>
+Users (<%= @count %>) count: <%= @count %>
+<br>
+<%# Drab.Ampere.render("test/support/web/templates/ampere/users.html.eex", users: @users) %>
+<%= render("users.html", users: @users, count: @count) %>

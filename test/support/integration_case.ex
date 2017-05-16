@@ -1,4 +1,5 @@
 defmodule DrabTestApp.IntegrationCase do
+  @moduledoc false
   use ExUnit.CaseTemplate
   use Hound.Helpers
 

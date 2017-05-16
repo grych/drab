@@ -1,4 +1,7 @@
 defmodule Drab.Config do
+  @moduledoc """
+  Drab configuration related functions.
+  """
   
   @doc """
   Returns the name of the client Phoenix Application
@@ -20,7 +23,7 @@ defmodule Drab.Config do
   end
 
   # TODO: find a better way to check if the module is an Endpoint
-  def is_endpoint?(atom) when is_atom(atom) do
+  defp is_endpoint?(atom) when is_atom(atom) do
     {loaded, _} = Code.ensure_loaded(atom)
     loaded == :module 
       && Drab.function_exists?(atom, "struct_url") 
@@ -71,6 +74,9 @@ defmodule Drab.Config do
   def get(:browser_response_timeout), do:           Application.get_env(:drab, :browser_response_timeout, 5000)
   def get(_), do: nil
 
+  @doc """
+  Depreciated. Use `get/1` instead.
+  """
   def config() do
     IO.warn """
     `Drab.config` has been depreciated. Please use `Drab.Config.get/1` instead

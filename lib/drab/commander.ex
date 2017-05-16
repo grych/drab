@@ -110,6 +110,15 @@ defmodule Drab.Commander do
 
   Every module has its corresponding JS template, which is loaded only when module is enabled.
 
+  ## Using templates
+
+  Drab injects function `render_to_string/2` into your Commander. It is a shorthand for 
+  `Phoenix.View.render_to_string/3` - Drab automatically chooses the correct View.
+
+  ### Examples:
+
+      buttons = render_to_string("waiter_example.html", [])
+
   ## Generate the Commander
 
   There is a mix task (`Mix.Tasks.Drab.Gen.Commander`) to generate skeleton of commander:
@@ -132,7 +141,15 @@ defmodule Drab.Commander do
             """, Macro.Env.stacktrace(__ENV__))
         end
       end)
-      @options Map.merge(%Drab.Commander.Config{}, o)
+
+      commander_path = __MODULE__ |> Atom.to_string() |> String.split(".")
+      controller = commander_path |> List.last() |> String.replace("Commander", "Controller")
+      controller = commander_path |> List.replace_at(-1, controller) |> Module.concat
+      view = commander_path |> List.last() |> String.replace("Commander", "View")
+      view = commander_path |> List.replace_at(-1, view) |> Module.concat
+      commander_config = %Drab.Commander.Config{controller: controller, view: view}
+
+      @options Map.merge(commander_config, o)
 
       unquote do
         opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
@@ -141,6 +158,14 @@ defmodule Drab.Commander do
             import unquote(module)
           end
         end)
+      end
+
+      @doc """
+      A shordhand for `Phoenix.View.render_to_string/3. Injects the corresponding view.
+      """
+      def render_to_string(template, assigns) do
+        view = __MODULE__.__drab__().view
+        Phoenix.View.render_to_string(view, template, assigns)
       end
 
       @before_compile unquote(__MODULE__)

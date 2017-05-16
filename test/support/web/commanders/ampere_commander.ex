@@ -1,4 +1,6 @@
 defmodule DrabTestApp.AmpereCommander do
+  @moduledoc false
+  
   use Drab.Commander, modules: [Drab.Ampere]
 
   onload :page_loaded

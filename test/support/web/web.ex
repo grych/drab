@@ -1,21 +1,6 @@
 defmodule DrabTestApp.Web do
-  @moduledoc """
-  A module that keeps using definitions for controllers,
-  views and so on.
-
-  This can be used in your application as:
-
-      use DrabTestApp.Web, :controller
-      use DrabTestApp.Web, :view
-
-  The definitions below will be executed for every view,
-  controller, etc, so keep them short and clean, focused
-  on imports, uses and aliases.
-
-  Do NOT define functions inside the quoted expressions
-  below.
-  """
-
+  @moduledoc false
+  
   def model do
     quote do
       # Define common model functionality

@@ -1,4 +1,6 @@
 defmodule DrabTestApp.Broadcast4Commander do
+  @moduledoc false
+  
   use Drab.Commander
 
   onload :page_loaded

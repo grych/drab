@@ -1,4 +1,6 @@
 defmodule DrabTestApp.Router do
+  @moduledoc false
+  
   use DrabTestApp.Web, :router
 
   pipeline :browser do
