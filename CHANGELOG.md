@@ -1,3 +1,6 @@
+## 0.4.1
+* `render_to_string/2` in Commander, a shorthand for `Phoenix.View.render_to_string/3`
+
 ## 0.4.0
 Changes:
 
@@ -5,7 +8,6 @@ Changes:
 * `exec_js/3` returns tuple {:ok, result} or {:error, reason}
 * `exec_js!/3` raises exceptions on JS error
 * configurable timeouts for `exec_js/3` and `exec_js!/3`
-* `render_to_string/2` in Commander, a shorthand for `Phoenix.View.render_to_string/3`
 
 
 ## 0.3.5

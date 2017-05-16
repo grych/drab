@@ -4,5 +4,4 @@
 <br>
 Users (<%= @count %>) count: <%= @count %>
 <br>
-<%# Drab.Ampere.render("test/support/web/templates/ampere/users.html.eex", users: @users) %>
-<%= render("users.html", users: @users, count: @count) %>
+<%= render("users.html", users: @users) %>

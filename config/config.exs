@@ -24,6 +24,3 @@ import_config "#{Mix.env}.exs"
 
 config :phoenix, :template_engines,
   drab: Drab.Ampere.Engine
-
-config :phoenix, :format_encoders,
-  drab: Phoenix.HTML.Engine

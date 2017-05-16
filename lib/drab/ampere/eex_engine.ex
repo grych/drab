@@ -27,7 +27,6 @@ defmodule Drab.Ampere.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
-    found_assigns = find_assigns(expr) |> Enum.join(",")
     # expr = Macro.prewalk(expr, &EEx.Engine.handle_assign/1)
     # quote do
     #   tmp1 = unquote(buffer)
@@ -41,6 +40,8 @@ defmodule Drab.Ampere.EExEngine do
     # IO.inspect buffer
     # IO.puts "********"
 
+    found_assigns = find_assigns(expr) |> Enum.join(",")
+    found_assigns? = found_assigns != ""
     line   = line_from_expr(expr)
     expr   = expr(expr)
     encoded_expr = encode(expr)
@@ -49,9 +50,17 @@ defmodule Drab.Ampere.EExEngine do
 
     {:safe, quote do
       tmp1 = unquote(buffer)
-      tmp1 = [tmp1|unquote(span)]
+      tmp1 = if unquote(found_assigns?) do
+        [tmp1|unquote(span)]
+      else
+        tmp1
+      end
       tmp1 = [tmp1|unquote(to_safe(expr, line))]
-      tmp1 = [tmp1|unquote("</span>")]
+      if unquote(found_assigns?) do
+        [tmp1|unquote("</span>")]
+      else
+        tmp1
+      end
      end}
   end
 
