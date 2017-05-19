@@ -110,6 +110,7 @@ defmodule Drab do
   @doc false
   def handle_info({:EXIT, pid, :normal}, state) when pid != self() do
     # ignore exits of the subprocesses
+    # Logger.debug "************** #{inspect pid} process exit normal"
     {:noreply, state}
   end
 
@@ -270,20 +271,13 @@ defmodule Drab do
     })
   end
 
-  # defp push_reply(arg, _, commander_module, event_handler_function) do
-  #   raise """
-  #   Event handler (#{commander_module}.#{event_handler_function}) should return Phoenix.Socket.
-  #   It actually returned: 
-  #   #{inspect(arg)}
-  #   """    
-  # end
-
   @doc false
   # Returns the list of callbacks (before_handler, after_handler) defined in handler_config
   def callbacks_for(_, []) do
     []
   end
 
+  @doc false
   def callbacks_for(event_handler_function, handler_config) do
     #:uppercase, [{:run_before_each, []}, {:run_before_uppercase, [only: [:uppercase]]}]
     Enum.map(handler_config, fn {callback_name, callback_filter} -> 

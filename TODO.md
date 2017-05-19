@@ -24,6 +24,9 @@ Changes:
 * dependencies for modules (for ex. Modal depends on Query)
 
 
+Bugs:
+* spawn_link in handler does not terminate the spawned process
+
 Performance:
 * render additional, user templates in a compile-time
 * compress Drab templates (js)

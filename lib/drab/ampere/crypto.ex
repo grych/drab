@@ -12,4 +12,5 @@ defmodule Drab.Ampere.Crypto do
     string |> Base.decode64! |> :zlib.gunzip() |> :erlang.binary_to_term
   end
 
+  # :erlang.phash2/1
 end
