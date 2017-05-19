@@ -28,11 +28,13 @@ defmodule Drab.Controller do
       unless Module.defines?(__MODULE__, {:__drab__, 0}) do
         def __drab__() do
           # default commander is named as a controller
-          controller_path = __MODULE__ |> Atom.to_string |> String.split(".")
+          controller_path = __MODULE__ |> Atom.to_string() |> String.split(".")
           commander = controller_path |> List.last() |> String.replace("Controller", "Commander")
-          module = controller_path |> List.replace_at(-1, commander) |> Module.concat
+          commander = controller_path |> List.replace_at(-1, commander) |> Module.concat
+          view = controller_path |> List.last() |> String.replace("Controller", "View")
+          view = controller_path |> List.replace_at(-1, view) |> Module.concat
 
-          Enum.into(@__drab_opts__, %{commander: module, controller: __MODULE__})
+          Enum.into(@__drab_opts__, %{commander: commander, view: view, controller: __MODULE__})
         end
       end
     end

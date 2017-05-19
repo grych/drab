@@ -1,4 +1,6 @@
 defmodule DrabTestApp.PageCommander do
+  @moduledoc false
+  
   use Drab.Commander
   
   onload :page_loaded

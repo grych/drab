@@ -1,4 +1,6 @@
 defmodule DrabTestApp.Broadcast1Controller do
+  @moduledoc false
+  
   use DrabTestApp.Web, :controller
   use Drab.Controller 
 

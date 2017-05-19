@@ -1,48 +1,167 @@
 defmodule Drab.Ampere.EExEngine do
-  @moduledoc """
-  The default engine used by EEx.
-  It includes assigns (like `@foo`) and possibly other
-  conveniences in the future.
-  ## Examples
-      iex> EEx.eval_string("<%= @foo %>", assigns: [foo: 1])
-      "1"
-  In the example above, we can access the value `foo` under
-  the binding `assigns` using `@foo`. This is useful because
-  a template, after being compiled, can receive different
-  assigns and would not require recompilation for each
-  variable set.
-  Assigns can also be used when compiled to a function:
-      # sample.eex
-      <%= @a + @b %>
-      # sample.ex
-      defmodule Sample do
-        require EEx
-        EEx.function_from_file :def, :sample, "sample.eex", [:assigns]
-      end
-      # iex
-      Sample.sample(a: 1, b: 2) #=> "3"
-  """
+  @moduledoc false
 
+  import Drab.Ampere.Crypto
   use EEx.Engine
 
-  def handle_expr(buffer, "=", expr) do
-    IO.inspect expr
-    expr = Macro.prewalk(expr, &EEx.Engine.handle_assign/1)
-    IO.inspect expr
-    IO.puts ""
-    quote do
+  @anno (if :erlang.system_info(:otp_release) >= '19' do
+    [generated: true]
+  else
+    [line: -1]
+  end)
+
+  @doc false
+  def init(_opts), do: {:safe, ""}
+
+  @doc false
+  def handle_body(body), do: Phoenix.HTML.Engine.handle_body(body)
+
+  @doc false
+  def handle_text({:safe, buffer}, text), do: Phoenix.HTML.Engine.handle_text({:safe, buffer}, text)
+
+  @doc false
+  def handle_text("", text), do: Phoenix.HTML.Engine.handle_text("", text)
+
+  @doc false
+  def handle_expr("", marker, expr), do: Phoenix.HTML.Engine.handle_expr("", marker, expr)
+
+  @doc false
+  def handle_expr({:safe, buffer}, "=", expr) do
+    # expr = Macro.prewalk(expr, &EEx.Engine.handle_assign/1)
+    # quote do
+    #   tmp1 = unquote(buffer)
+    #   # tmp1  
+    #   #   <> "<span id='#{unquote(uuid)}' drab-assigns='#{unquote(found_assigns)}' drab-expr='#{unquote(encoded_expr)}'>"
+    #   #   <> String.Chars.to_string(unquote(expr)) 
+    #   #   <> "</span>"
+    #   tmp1 
+
+    # IO.puts "********"
+    # IO.inspect buffer
+    # IO.puts "********"
+
+    found_assigns = find_assigns(expr) |> Enum.join(",")
+    found_assigns? = found_assigns != ""
+    line   = line_from_expr(expr)
+    expr   = expr(expr)
+    encoded_expr = encode(expr)
+    uuid = uuid()
+    span = "<span id='#{uuid}' drab-assigns='#{found_assigns}' drab-expr='#{encoded_expr}'>"
+
+    {:safe, quote do
       tmp1 = unquote(buffer)
-      tmp1 <> "<SPAN>" <> String.Chars.to_string(unquote(expr)) <> "</SPAN>"
+      tmp1 = if unquote(found_assigns?) do
+        [tmp1|unquote(span)]
+      else
+        tmp1
+      end
+      tmp1 = [tmp1|unquote(to_safe(expr, line))]
+      if unquote(found_assigns?) do
+        [tmp1|unquote("</span>")]
+      else
+        tmp1
+      end
+     end}
+  end
+
+  @doc false
+  def handle_expr({:safe, buffer}, "", expr), do: Phoenix.HTML.Engine.handle_expr({:safe, buffer}, "", expr)
+
+  defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
+  defp line_from_expr(_), do: nil
+
+  # We can do the work at compile time
+  defp to_safe(literal, _line) when is_binary(literal) or is_atom(literal) or is_number(literal) do
+    Phoenix.HTML.Safe.to_iodata(literal)
+  end
+
+  # We can do the work at runtime
+  defp to_safe(literal, line) when is_list(literal) do
+    quote line: line, do: Phoenix.HTML.Safe.to_iodata(unquote(literal))
+  end
+
+  # We need to check at runtime and we do so by
+  # optimizing common cases.
+  defp to_safe(expr, line) do
+    # Keep stacktraces for protocol dispatch...
+    fallback = quote line: line, do: Phoenix.HTML.Safe.to_iodata(other)
+
+    # However ignore them for the generated clauses to avoid warnings
+    quote @anno do
+      case unquote(expr) do
+        {:safe, data} -> data
+        bin when is_binary(bin) -> Plug.HTML.html_escape(bin)
+        other -> unquote(fallback)
+      end
     end
   end
 
-  def handle_expr(buffer, "", expr) do
-    super(buffer, "", expr)
+  defp expr(expr) do
+    Macro.prewalk(expr, &handle_assign/1)
   end
 
-  def handle_expr(buffer, "#", expr) do
-    super(buffer, "", expr)
+  defp handle_assign({:@, meta, [{name, _, atom}]}) when is_atom(name) and is_atom(atom) do
+    quote line: meta[:line] || 0 do
+      Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(name))
+    end
   end
+  defp handle_assign(arg), do: arg
+
+  defp find_assigns(ast) do
+    {_, result} = Macro.prewalk ast, [], fn node, acc ->
+      case node do
+        {:@, _, [{name, _, atom}]} when is_atom(name) and is_atom(atom) -> {node, [name | acc]} 
+        _ -> {node, acc}
+      end
+    end
+    result |> Enum.uniq 
+  end
+
+
+  # @doc false
+  # def fetch_assign(assigns, key) do
+  #   case Access.fetch(assigns, key) do
+  #     {:ok, val} ->
+  #       val
+  #     :error ->
+  #       raise ArgumentError, message: """
+  #       assign @#{key} not available in eex template.
+  #       Please make sure all proper assigns have been set. If this
+  #       is a child template, ensure assigns are given explicitly by
+  #       the parent template as they are not automatically forwarded.
+  #       Available assigns: #{inspect Enum.map(assigns, &elem(&1, 0))}
+  #       """
+  #   end
+  # end
+
+
+
+
+  # def handle_expr(buffer, "=", expr) do
+  #   found_assigns = find_assigns(expr) |> Enum.join(",")
+  #   expr = Macro.prewalk(expr, &EEx.Engine.handle_assign/1)
+  #   encoded_expr = encode(expr)
+  #   uuid = uuid()
+  #   quote do
+  #     tmp1 = unquote(buffer)
+  #     # tmp1  
+  #     #   <> "<span id='#{unquote(uuid)}' drab-assigns='#{unquote(found_assigns)}' drab-expr='#{unquote(encoded_expr)}'>"
+  #     #   <> String.Chars.to_string(unquote(expr)) 
+  #     #   <> "</span>"
+  #     tmp1 
+  #   end
+  # end
+
+  # def handle_expr(buffer, "", expr) do
+  #   super(buffer, "", expr)
+  # end
+
+  # def handle_expr(buffer, "#", expr) do
+  #   super(buffer, "", expr)
+  # end
+
+
+
 
   # def init(_opts) do
   #   ""

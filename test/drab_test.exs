@@ -1,4 +1,6 @@
 defmodule DrabTest do
+  @moduledoc false
+  
   use ExUnit.Case, ascync: true
   doctest Drab
 

@@ -1,10 +1,13 @@
+## 0.4.1
+* `render_to_string/2` in Commander, a shorthand for `Phoenix.View.render_to_string/3`
+
 ## 0.4.0
 Changes:
 
-* renamed execjs -> exec_js, brodcastjs -> broadcast_js
-* exec_js returns tuple {:ok, result} or {:error, reason}
-* exec_js! raises exceptions on JS error
-* configurable timeouts for exec_js
+* renamed `execjs/2` -> `exec_js/3`, `brodcastjs/2` -> `broadcast_js/3`
+* `exec_js/3` returns tuple {:ok, result} or {:error, reason}
+* `exec_js!/3` raises exceptions on JS error
+* configurable timeouts for `exec_js/3` and `exec_js!/3`
 
 
 ## 0.3.5

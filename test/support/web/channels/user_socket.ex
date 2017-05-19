@@ -1,4 +1,6 @@
 defmodule DrabTestApp.UserSocket do
+  @moduledoc false
+  
   use Phoenix.Socket
   use Drab.Socket
 

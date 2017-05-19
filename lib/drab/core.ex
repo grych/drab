@@ -76,17 +76,27 @@ defmodule Drab.Core do
   Returns tuple `{status, return_value}`, where status could be `:ok` or `:error`, and return value 
   contains the output computed by the Javascript or the error message.
 
+  ### Options
+
+  * `timeout` in milliseconds
+
   ### Examples
 
       iex> socket |> exec_js("2 + 2")                   
       {:ok, 4}
+
       iex> socket |> exec_js("not_existing_function()")
       {:error, "not_existing_function is not defined"}
+
       iex> socket |> exec_js("for(i=0; i<1000000000; i++) {}")
       {:error, "timed out after 5000 ms."}
+
+      iex> socket |> exec_js("alert('hello from IEx!')", timeout: 500)               
+      {:error, "timed out after 500 ms."}
+
   """
-  def exec_js(socket, js, _options \\ []) do
-    Drab.push_and_wait_for_response(socket, self(), "execjs", js: js)
+  def exec_js(socket, js, options \\ []) do
+    Drab.push_and_wait_for_response(socket, self(), "execjs", [js: js], options)
   end
 
   @doc """
@@ -96,15 +106,22 @@ defmodule Drab.Core do
 
         iex> socket |> exec_js!("2 + 2")
         4
+
         iex> socket |> exec_js!("nonexistent")
         ** (Drab.JSExecutionError) nonexistent is not defined
             (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
+
         iex> socket |> exec_js!("for(i=0; i<1000000000; i++) {}")                       
         ** (Drab.JSExecutionError) timed out after 5000 ms.
             (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
+
+        iex> socket |> exec_js!("for(i=0; i<10000000; i++) {}", timeout: 1000)         
+        ** (Drab.JSExecutionError) timed out after 1000 ms.
+            lib/drab/core.ex:114: Drab.Core.exec_js!/3
+
   """
-  def exec_js!(socket, js, _options \\ []) do
-    case exec_js(socket, js) do
+  def exec_js!(socket, js, options \\ []) do
+    case exec_js(socket, js, options) do
       {:ok, result} -> result
       {:error, message} -> raise Drab.JSExecutionError, message: message
     end
@@ -132,7 +149,7 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Bang version of `Drab.Core.broadcast_js/3
+  Bang version of `Drab.Core.broadcast_js/3`
 
   Returns `socket`
   """
@@ -243,30 +260,29 @@ defmodule Drab.Core do
   def store(socket) do
     {:ok, store_token} = exec_js(socket, "Drab.get_drab_store_token()")
     detokenize_store(socket, store_token)
-    # Drab.detokenize(socket, store_token)
   end
 
   @doc false
   def session(socket) do
     {:ok, session_token} = exec_js(socket, "Drab.get_drab_session_token()")
     detokenize_store(socket, session_token)
-    # Drab.detokenize(socket, session)
   end
 
+  @doc false
   def tokenize_store(socket, store) do
     Drab.tokenize(socket, store, "drab_store_token")
-    # Phoenix.Token.sign(socket, "drab_store_token",  store)
   end
  
   defp detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
 
   defp detokenize_store(socket, drab_store_token) do
-    Drab.detokenize(socket, drab_store_token, "drab_store_token")
-    # case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
-    #   {:ok, drab_store} -> 
-    #     drab_store
-    #   {:error, reason} -> 
-    #     raise "Can't verify the token: #{inspect(reason)}" # let it die    
-    # end
+    # we just ignore wrong token and defauklt the store to %{}
+    # this is because it is read on connect, and raising here would cause infinite reconnects
+    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token) do
+      {:ok, drab_store} -> 
+        drab_store
+      {:error, _reason} -> 
+        %{}
+    end
   end
 end

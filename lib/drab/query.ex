@@ -544,11 +544,11 @@ defmodule Drab.Query do
   defp jquery_method(method) do
     {method, "()"}
   end
-  defp jquery_method(method, value) do
-    {method, "(#{escape_value(value)})"}
+  defp jquery_method(method, parameter) do
+    {method, "(#{escape_value(parameter)})"}
   end
-  defp jquery_method(method, attribute, value) do
-    {method, "(#{escape_value(attribute)}, #{escape_value(value)})"}
+  defp jquery_method(method, attribute, parameter) do
+    {method, "(#{escape_value(attribute)}, #{escape_value(parameter)})"}
   end
 
   #TODO: move it to templates

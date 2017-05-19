@@ -2,6 +2,6 @@
 <div id="drab_pid"></div>
 
 <br>
-Users count: <%= @count %>
+Users (<%= @count %>) count: <%= @count %>
 <br>
 <%= render("users.html", users: @users) %>

@@ -1,15 +1,7 @@
-## 0.4.0
-* configurable timeout in exec_js
-* ignore wrong Store token and default it to %{}
-
 ## 0.4.1
 Changes:
 * technical socket? for broadcasts from drab server
-* render partials in commanders (accutally it can already be done, just add a helper)
-* before_handler, only: should take a list or atom (currently list only)
-* dependencies for modules (for ex. Modal depends on Query)
-* execute(:method, params) does not work when the method have more than 1 parameter
-* execute(method: [parameters]) should work
+
 
 ## 0.5.0
 Changes:
@@ -28,6 +20,12 @@ Changes:
 * benchmarks
 * extract Drab Store and Session to standalone module (loaded by default)
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
+* before_handler (etc), only: should accept a list or atom (currently list only)
+* dependencies for modules (for ex. Modal depends on Query)
+
+
+Bugs:
+* spawn_link in handler does not terminate the spawned process
 
 Performance:
 * render additional, user templates in a compile-time

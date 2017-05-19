@@ -2,7 +2,7 @@ defmodule Mix.Tasks.Compile.Drab do
   use Mix.Task
   @recursive true
 
-  # This module is not used
+  # This module is not used so far (0.4.0)
 
   @moduledoc false
 

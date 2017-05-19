@@ -1,4 +1,5 @@
 # defmodule DrabTestApp.TestHelper do
+#   @moduledoc false
 #   def phantomjs_path() do
 #     # {"/opt/local/bin/phantomjs\n", 0}
 #     {path, ret} = System.cmd("which", ["phantomjs"])

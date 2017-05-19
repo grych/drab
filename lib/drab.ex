@@ -110,6 +110,7 @@ defmodule Drab do
   @doc false
   def handle_info({:EXIT, pid, :normal}, state) when pid != self() do
     # ignore exits of the subprocesses
+    # Logger.debug "************** #{inspect pid} process exit normal"
     {:noreply, state}
   end
 
@@ -270,20 +271,13 @@ defmodule Drab do
     })
   end
 
-  # defp push_reply(arg, _, commander_module, event_handler_function) do
-  #   raise """
-  #   Event handler (#{commander_module}.#{event_handler_function}) should return Phoenix.Socket.
-  #   It actually returned: 
-  #   #{inspect(arg)}
-  #   """    
-  # end
-
   @doc false
   # Returns the list of callbacks (before_handler, after_handler) defined in handler_config
   def callbacks_for(_, []) do
     []
   end
 
+  @doc false
   def callbacks_for(event_handler_function, handler_config) do
     #:uppercase, [{:run_before_each, []}, {:run_before_uppercase, [only: [:uppercase]]}]
     Enum.map(handler_config, fn {callback_name, callback_filter} -> 
@@ -331,19 +325,21 @@ defmodule Drab do
   end
 
   @doc false
-  def push_and_wait_for_response(socket, pid, message, options \\ []) do
-    push(socket, pid, message, options)
+  def push_and_wait_for_response(socket, pid, message, payload \\ [], options \\ []) do
+    push(socket, pid, message, payload)
+    timeout = options[:timeout] || Drab.Config.get(:browser_response_timeout)
     receive do
       {:got_results_from_client, status, reply} -> 
         {status, reply}
-      after Drab.Config.get(:browser_response_timeout) -> 
-        {:error, "timed out after #{Drab.Config.get(:browser_response_timeout)} ms."}
+      after timeout -> 
+        {:error, "timed out after #{timeout} ms."}
     end    
   end
 
-  def push_and_wait_forever(socket, pid, message, options \\ []) do
+  @doc false
+  def push_and_wait_forever(socket, pid, message, payload \\ []) do
     # TODO: timeout for modals
-    push(socket, pid, message, options)
+    push(socket, pid, message, payload)
     receive do
       {:got_results_from_client, status, reply} -> 
         {status, reply}
@@ -351,17 +347,17 @@ defmodule Drab do
   end
 
   @doc false
-  def push(socket, pid, message, options \\ []) do
-    do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.push/3)
+  def push(socket, pid, message, payload \\ []) do
+    do_push_or_broadcast(socket, pid, message, payload, &Phoenix.Channel.push/3)
   end
 
   @doc false
-  def broadcast(socket, pid, message, options \\ []) do
-    do_push_or_broadcast(socket, pid, message, options, &Phoenix.Channel.broadcast/3)
+  def broadcast(socket, pid, message, payload \\ []) do
+    do_push_or_broadcast(socket, pid, message, payload, &Phoenix.Channel.broadcast/3)
   end
 
-  defp do_push_or_broadcast(socket, pid, message, options, function) do
-    m = options |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, pid)})
+  defp do_push_or_broadcast(socket, pid, message, payload, function) do
+    m = payload |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, pid)})
     function.(socket, message,  m)    
   end
 

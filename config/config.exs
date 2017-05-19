@@ -22,3 +22,5 @@ config :logger, :console,
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env}.exs"
 
+config :phoenix, :template_engines,
+  drab: Drab.Ampere.Engine

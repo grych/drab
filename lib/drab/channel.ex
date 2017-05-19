@@ -60,8 +60,8 @@ defmodule Drab.Channel do
   end
 
   def handle_in("onconnect", _, socket) do
-    # for debugging
     GenServer.cast(socket.assigns.__drab_pid, {:update_socket, socket})
+    # for debugging
     if IEx.started? do
       commander = Drab.get_commander(socket)
       modules = [Drab.Core] ++ commander.__drab__().modules
