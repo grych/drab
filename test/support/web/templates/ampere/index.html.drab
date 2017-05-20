@@ -1,7 +1,14 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
+<%= dupa(@count) %>
 <br>
 Users (<%= @count %>) count: <%= @count %>
 <br>
-<%= render("users.html", users: @users) %>
+<%= render("users.html", users: @users, count: @count) %>
+
+
+<br>
+<button onclick="Drab.run_handler('click', 'update_list', {})" class="btn btn-primary">
+  Update List
+</button>

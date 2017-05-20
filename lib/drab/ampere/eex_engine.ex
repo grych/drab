@@ -46,7 +46,9 @@ defmodule Drab.Ampere.EExEngine do
     expr   = expr(expr)
     encoded_expr = encode(expr)
     uuid = uuid()
-    span = "<span id='#{uuid}' drab-assigns='#{found_assigns}' drab-expr='#{encoded_expr}'>"
+    span = "<span id='drab_#{uuid}' drab-assigns='#{found_assigns}' drab-expr='#{encoded_expr}'>"
+    span_end = "</span>"
+    IO.inspect __MODULE__
 
     {:safe, quote do
       tmp1 = unquote(buffer)
@@ -57,7 +59,7 @@ defmodule Drab.Ampere.EExEngine do
       end
       tmp1 = [tmp1|unquote(to_safe(expr, line))]
       if unquote(found_assigns?) do
-        [tmp1|unquote("</span>")]
+        [tmp1|unquote(span_end)]
       else
         tmp1
       end
@@ -114,7 +116,7 @@ defmodule Drab.Ampere.EExEngine do
         _ -> {node, acc}
       end
     end
-    result |> Enum.uniq 
+    result |> Enum.uniq |> Enum.sort
   end
 
 

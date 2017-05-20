@@ -45,8 +45,6 @@ def perform_long_process(socket, dom_sender) do
 end
 ```
 
-## Warning: this software is still experimental!
-
 ### Prerequisites
 
   1. Erlang ~> 19

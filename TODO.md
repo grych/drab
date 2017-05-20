@@ -17,7 +17,7 @@ Changes:
 ## Future
 Changes:
 * broadcast to all except you (really?)
-* benchmarks
+* benchmarks (compare to AJAX)
 * extract Drab Store and Session to standalone module (loaded by default)
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
 * before_handler (etc), only: should accept a list or atom (currently list only)
