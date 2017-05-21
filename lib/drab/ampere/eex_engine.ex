@@ -11,7 +11,18 @@ defmodule Drab.Ampere.EExEngine do
   end)
 
   @doc false
-  def init(_opts), do: {:safe, ""}
+  def init(_opts) do
+    # [engine: Drab.Ampere.EExEngine,
+    #  file: "test/support/web/templates/ampere/users.html.drab", line: 1]
+    init_js = """
+    \n\n<!-- DRAB BEGIN -->
+    <script language='javascript'>
+      if (typeof window.ampere == 'undefined') {window.ampere = {}; window.ampere.assigns = {}}
+    </script>
+    \n
+    """
+    {:safe, init_js}
+  end
 
   @doc false
   def handle_body(body), do: Phoenix.HTML.Engine.handle_body(body)
@@ -27,6 +38,10 @@ defmodule Drab.Ampere.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
+    # IO.puts ""
+    # IO.inspect buffer
+    # IO.puts ""
+    # {:@, [line: 2], [{:count, [line: 2], nil}]}
     # expr = Macro.prewalk(expr, &EEx.Engine.handle_assign/1)
     # quote do
     #   tmp1 = unquote(buffer)
@@ -40,34 +55,73 @@ defmodule Drab.Ampere.EExEngine do
     # IO.inspect buffer
     # IO.puts "********"
 
-    found_assigns = find_assigns(expr) |> Enum.join(",")
-    found_assigns? = found_assigns != ""
-    line   = line_from_expr(expr)
-    expr   = expr(expr)
-    encoded_expr = encode(expr)
-    uuid = uuid()
-    span = "<span id='drab_#{uuid}' drab-assigns='#{found_assigns}' drab-expr='#{encoded_expr}'>"
-    span_end = "</span>"
     # IO.inspect __MODULE__
 
-    {:safe, quote do
-      tmp1 = unquote(buffer)
-      tmp1 = if unquote(found_assigns?) do
-        [tmp1|unquote(span)]
-      else
-        tmp1
-      end
-      tmp1 = [tmp1|unquote(to_safe(expr, line))]
-      if unquote(found_assigns?) do
-        [tmp1|unquote(span_end)]
-      else
-        tmp1
-      end
-     end}
+    {:safe, inject_span(buffer, expr)}
   end
 
   @doc false
   def handle_expr({:safe, buffer}, "", expr), do: Phoenix.HTML.Engine.handle_expr({:safe, buffer}, "", expr)
+
+  defp inject_span(buffer, expr) do
+    found_assigns = find_assigns(expr)
+    found_assigns? = found_assigns != []
+    line   = line_from_expr(expr)
+    expr   = expr(expr)
+    encoded_expr = encode(expr)
+    uuid = uuid()
+    span = "<span id='#{uuid}' drab-assigns='#{found_assigns |> Enum.join(",")}' drab-expr='#{encoded_expr}'>"
+    span_end = "</span>"
+    js = found_assigns |> Enum.map(fn assign ->
+      IO.puts "ampere.assigns['#{assign}'] ="
+      if deep_find(buffer, "ampere.assigns['#{assign}'] =") do
+        []
+      else
+        # IO.puts "*** NOT FOUND ***"
+        ["<script language='javascript'>", assign_js(assign), "</script>"]
+      end
+    end)
+
+    # IO.inspect buffer
+    if deep_find(buffer, "ampere.assigns") do
+      IO.puts "!!!*** FOUND"
+    else
+      IO.puts "!!!NOT FOUND"
+    end
+
+    quote do
+      tmp1 = unquote(buffer)
+      tmp1 = if unquote(found_assigns?) do
+        [[tmp1 | unquote(span)] | unquote(js)]
+      else
+        tmp1
+      end
+      tmp2 = [tmp1 | unquote(to_safe(expr, line))]
+      if unquote(found_assigns?) do
+        [[tmp2 | unquote(span_end)] | unquote(js)]
+      else
+        tmp2
+      end
+    end
+  end
+
+  defp assign_js(assign) do
+    # assign_expr = {:@, [context: Drab.Ampere.EExEngine, import: Kernel],
+    #   [{assign, [context: Drab.Ampere.EExEngine], Drab.Ampere.EExEngine}]}
+
+    # TODO: not sure about the line: 0
+    assign_expr = {:@, [line: 0], [{assign, [line: 0], nil}]}
+    assign_expr = handle_assign(assign_expr)
+
+    assign_expr = {{:., [line: 0], [{:__aliases__, [line: 0], [:Drab, :Ampere, :Crypto]}, :encode]},
+                   [line: 0], 
+                   [assign_expr]}
+
+    # assign_expr = {{:., [], [{:__aliases__, [alias: false], [:Drab, :Core]}, :encode_js]}, [], assign_expr}
+    # IO.inspect assign_expr
+    # IO.inspect(quote do Drab.Core.encode_js(ass) end)
+    ["ampere.assigns['#{assign}'] = '", assign_expr, "';"]
+  end
 
   defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
   defp line_from_expr(_), do: nil
@@ -97,6 +151,33 @@ defmodule Drab.Ampere.EExEngine do
       end
     end
   end
+
+  def deep_find(string, what) when is_binary(string), do: String.contains?(string, what) == true
+
+  def deep_find(list, what) when is_list(list) do
+    Enum.find(list, fn x -> 
+      deep_find(x, what)
+    end)
+  end
+
+  def deep_find({_, _, list} = tuple, what) when is_tuple(tuple), do: deep_find(list, what)
+
+  def deep_find(_, _), do: false
+
+  # def deep_find(list, what) when is_list(list) do
+  #   Enum.find(list, fn x ->
+  #     contains?(x, what)
+  #   end)
+  # end
+
+  # # we don't want to search in atoms
+  # def deep_find(atom, what) when is_atom(atom), do: false
+
+  # defp contains?(string, what) when is_binary(string), do: String.contains?(string, what)
+
+  # defp contains?({_, _, arguments} = tuple, what) when is_tuple(tuple), do: deep_find(arguments, what)
+
+  # defp contains?(list, what) when is_list(list), do: deep_find(list, what)
 
   defp expr(expr) do
     Macro.prewalk(expr, &handle_assign/1)

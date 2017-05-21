@@ -46,7 +46,7 @@ defmodule DrabTestApp.AmpereCommander do
     assigns_string = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq() |> Enum.sort() |> Enum.join(",")
     js = """
       var spans = document.querySelectorAll("[drab-assigns='#{assigns_string}']")
-      ret = []
+      var ret = []
       for (var i = 0; i < spans.length; ++i) {
         span = spans[i]
         ret.push({
@@ -88,7 +88,7 @@ defmodule DrabTestApp.AmpereCommander do
       """
 
     end)
-    # IO.inspect updates
+    IO.inspect updates
     {:ok, _} = Drab.Core.exec_js(socket, Enum.join(updates, ";"))
     # IO.inspect(exprs)
   end

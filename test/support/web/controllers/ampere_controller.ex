@@ -7,7 +7,7 @@ defmodule DrabTestApp.AmpereController do
   require Logger
 
   def index(conn, _params) do
-    users = ~w(Zdzisław Zofia)
+    users = ~w(Zdzisław Zofia Hendryk Stefan)
     render_live conn, "index.html", users: users, count: length(users)
   end
 
