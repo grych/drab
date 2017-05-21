@@ -48,7 +48,7 @@ defmodule Drab.Ampere.EExEngine do
     uuid = uuid()
     span = "<span id='drab_#{uuid}' drab-assigns='#{found_assigns}' drab-expr='#{encoded_expr}'>"
     span_end = "</span>"
-    IO.inspect __MODULE__
+    # IO.inspect __MODULE__
 
     {:safe, quote do
       tmp1 = unquote(buffer)

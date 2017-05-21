@@ -72,12 +72,12 @@ defmodule DrabTestApp.AmpereCommander do
       end
       {html, _assigns} = Code.eval_quoted(expr, [assigns: assigns])
       # IO.inspect html
-      js = """
-        var spans = document.querySelectorAll("[drab-assigns='#{assigns_string}']")
-        spans.forEach(function(span){
-          span.innerHTML = "#{safe_to_string(html) |>  String.replace("\n", " ")}"
-        })
-        """
+      # js = """
+      #   var spans = document.querySelectorAll("[drab-assigns='#{assigns_string}']")
+      #   spans.forEach(function(span){
+      #     span.innerHTML = "#{safe_to_string(html) |>  String.replace("\n", " ")}"
+      #   })
+      #   """
       # IO.puts(js)
       # {:ok, _} = Drab.Core.exec_js(socket, js)
 
@@ -88,7 +88,7 @@ defmodule DrabTestApp.AmpereCommander do
       """
 
     end)
-    IO.inspect updates
+    # IO.inspect updates
     {:ok, _} = Drab.Core.exec_js(socket, Enum.join(updates, ";"))
     # IO.inspect(exprs)
   end
