@@ -51,7 +51,7 @@ defmodule Drab.Ampere.EExEngine do
     #   #   <> "</span>"
     #   tmp1 
 
-    # IO.puts "********"
+    # IO.puts "\n********"
     # IO.inspect buffer
     # IO.puts "********"
 
@@ -73,54 +73,69 @@ defmodule Drab.Ampere.EExEngine do
     span = "<span id='#{uuid}' drab-assigns='#{found_assigns |> Enum.join(",")}' drab-expr='#{encoded_expr}'>"
     span_end = "</span>"
     js = found_assigns |> Enum.map(fn assign ->
-      IO.puts "ampere.assigns['#{assign}'] ="
-      if deep_find(buffer, "ampere.assigns['#{assign}'] =") do
+      # IO.puts "ampere.assigns['#{assign}']"
+      # IO.inspect assign_js(assign)
+      # require IEx; IEx.pry
+      if deep_find(buffer, "ampere.assigns['#{assign}']") do
+        # IO.puts "!!!*** FOUND "
         []
       else
         # IO.puts "*** NOT FOUND ***"
-        ["<script language='javascript'>", assign_js(assign), "</script>"]
+        ["\n", "<script language='javascript'>", assign_js(assign), "</script>"]
       end
     end)
 
     # IO.inspect buffer
-    if deep_find(buffer, "ampere.assigns") do
-      IO.puts "!!!*** FOUND"
-    else
-      IO.puts "!!!NOT FOUND"
-    end
+    # if deep_find(buffer, "ampere.assigns") do
+    #   IO.puts "!!!*** FOUND"
+    # else
+    #   IO.puts "!!!NOT FOUND"
+    # end
 
-    quote do
-      tmp1 = unquote(buffer)
-      tmp1 = if unquote(found_assigns?) do
-        [[tmp1 | unquote(span)] | unquote(js)]
-      else
-        tmp1
+
+    if found_assigns? do
+      quote do
+        [unquote(buffer), unquote(span), unquote(to_safe(expr, line)), unquote(span_end), unquote(js)]
       end
-      tmp2 = [tmp1 | unquote(to_safe(expr, line))]
-      if unquote(found_assigns?) do
-        [[tmp2 | unquote(span_end)] | unquote(js)]
-      else
-        tmp2
+    else 
+      quote do
+        [unquote(buffer), unquote(to_safe(expr, line))]
       end
     end
+    # quote do
+    #   tmp1 = unquote(buffer)
+    #   tmp1 = if unquote(found_assigns?) do
+    #     [[tmp1 | unquote(span)] | unquote(js)]
+    #   else
+    #     tmp1
+    #   end
+    #   tmp2 = [tmp1 | unquote(to_safe(expr, line))]
+    #   if unquote(found_assigns?) do
+    #     [[tmp2 | unquote(span_end)] | unquote(js)]
+    #   else
+    #     tmp2
+    #   end
+    # end
   end
 
   defp assign_js(assign) do
     # assign_expr = {:@, [context: Drab.Ampere.EExEngine, import: Kernel],
     #   [{assign, [context: Drab.Ampere.EExEngine], Drab.Ampere.EExEngine}]}
 
+    # assign_expr = {{:., [], [{:__aliases__, [alias: false], [:Drab, :Core]}, :encode_js]}, [], assign_expr}
+    # IO.inspect assign_expr
+    # IO.inspect(quote do Drab.Core.encode_js(ass) end)
+    ["ampere.assigns['#{assign}'] = '", assign_expr(assign), "';"]
+  end
+
+  defp assign_expr(assign) do
     # TODO: not sure about the line: 0
     assign_expr = {:@, [line: 0], [{assign, [line: 0], nil}]}
     assign_expr = handle_assign(assign_expr)
 
-    assign_expr = {{:., [line: 0], [{:__aliases__, [line: 0], [:Drab, :Ampere, :Crypto]}, :encode]},
-                   [line: 0], 
-                   [assign_expr]}
-
-    # assign_expr = {{:., [], [{:__aliases__, [alias: false], [:Drab, :Core]}, :encode_js]}, [], assign_expr}
-    # IO.inspect assign_expr
-    # IO.inspect(quote do Drab.Core.encode_js(ass) end)
-    ["ampere.assigns['#{assign}'] = '", assign_expr, "';"]
+    {{:., [line: 0], [{:__aliases__, [line: 0], [:Drab, :Ampere, :Crypto]}, :encode]},
+       [line: 0], 
+       [assign_expr]}
   end
 
   defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
@@ -152,15 +167,18 @@ defmodule Drab.Ampere.EExEngine do
     end
   end
 
-  def deep_find(string, what) when is_binary(string), do: String.contains?(string, what) == true
+  def deep_find(string, what) when is_binary(string), do: String.contains?(string, what)
 
   def deep_find(list, what) when is_list(list) do
     Enum.find(list, fn x -> 
+      # IO.inspect x
       deep_find(x, what)
     end)
   end
 
-  def deep_find({_, _, list} = tuple, what) when is_tuple(tuple), do: deep_find(list, what)
+  # def deep_find(tuple, what) when is_tuple(tuple), do: deep_find(Tuple.to_list(tuple), what)
+
+  def deep_find({_, _, list}, what), do: deep_find(list, what)
 
   def deep_find(_, _), do: false
 

@@ -31,6 +31,7 @@ defmodule DrabTestApp.Router do
     get "/tests/broadcast3", Broadcast3Controller, :index, as: :broadcast3
     get "/tests/broadcast4", Broadcast4Controller, :index, as: :broadcast4
 
+    get "/tests/ampere/mini", AmpereController, :mini
     get "/tests/ampere", AmpereController, :index, as: :ampere
   end
 

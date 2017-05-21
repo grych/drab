@@ -11,10 +11,14 @@ defmodule DrabTestApp.AmpereController do
     render_live conn, "index.html", users: users, count: length(users)
   end
 
-  defp render_live(conn, _template, assigns) do
-    r = render(conn, "index.html", assigns)
+  def mini(conn, _params) do
+    render_live conn, "mini.html", count: 42
+  end
+
+  defp render_live(conn, template, assigns) do
+    r = render(conn, template, assigns)
     # IO.inspect(Phoenix.View.render_to_string DrabTestApp.AmpereView, "index.html", assigns)
-    IO.inspect r.assigns
+    # IO.inspect r.assigns
     r
   end
 end
