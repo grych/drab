@@ -1,0 +1,12 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+
+<%= for x <- @list do %>
+<%= x %>
+<% end %>
+
+<br>
+<button onclick="Drab.run_handler('click', 'update_mini', {})" class="btn btn-primary">
+  Update Mini
+</button>

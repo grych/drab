@@ -1,4 +1,4 @@
-defmodule Drab.Ampere.Engine do
+defmodule Drab.Live.Engine do
   @moduledoc false
 
 #   Usage
@@ -27,6 +27,6 @@ defmodule Drab.Ampere.Engine do
   @behaviour Phoenix.Template.Engine
 
   def compile(path, _name) do
-    File.read!(path) |> EEx.compile_string(engine: Drab.Ampere.EExEngine , file: path, line: 1)
+    File.read!(path) |> EEx.compile_string(engine: Drab.Live.EExEngine , file: path, line: 1)
   end
 end

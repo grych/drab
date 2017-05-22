@@ -2,7 +2,7 @@
 
 ### Controller:
 
-use Drab.Ampere.Controller (injected automatically )
+use Drab.Live.Controller (injected automatically )
 
 render_live - proxy over render, adding span with id unique identifying the partial (controller + template), sha
 musi jakoś oznaczać gdzie interpolować
@@ -14,7 +14,7 @@ What about re-rendering the whole page?
 
 ### View & Template
 
-use Drab.Ampere.View (or even Drab.View, to be consistent, Drab.View may inject Drab.Ampere.View by config)
+use Drab.Live.View (or even Drab.View, to be consistent, Drab.View may inject Drab.Live.View by config)
 
 <%= render_living("parial.html", bindings) %> - sorround with <span>
 

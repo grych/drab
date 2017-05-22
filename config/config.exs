@@ -23,4 +23,4 @@ config :logger, :console,
 import_config "#{Mix.env}.exs"
 
 config :phoenix, :template_engines,
-  drab: Drab.Ampere.Engine
+  drab: Drab.Live.Engine

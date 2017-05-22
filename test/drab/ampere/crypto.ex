@@ -1,7 +1,7 @@
-defmodule Drab.Ampere.CryptoTest do
+defmodule Drab.Live.CryptoTest do
   use ExUnit.Case, ascync: true
-  doctest Drab.Ampere.Crypto
-  import Drab.Ampere.Crypto
+  doctest Drab.Live.Crypto
+  import Drab.Live.Crypto
 
   test "uuid should be uniqe" do
     refute uuid() == uuid()
