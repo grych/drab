@@ -42,12 +42,13 @@ defmodule Drab.Live.EExEngine do
   def handle_expr({:safe, buffer}, "", expr), do: Phoenix.HTML.Engine.handle_expr({:safe, buffer}, "", expr)
 
   defp inject_span(buffer, expr) do
-    found_assigns  = find_assigns(expr)
-    found_assigns? = found_assigns != []
 
     line           = line_from_expr(expr)
     expr           = Macro.prewalk(expr, &handle_assign/1)
     encoded_expr   = encode(expr)
+
+    found_assigns  = find_assigns(expr)
+    found_assigns? = found_assigns != []
 
     span_begin = 
       "<span id='#{uuid()}' drab-assigns='#{found_assigns |> Enum.join(" ")}' drab-expr='#{encoded_expr}'>"
@@ -132,17 +133,20 @@ defmodule Drab.Live.EExEngine do
   defp deep_find({_, _, list}, what), do: deep_find(list, what)
   defp deep_find(_, _), do: false
 
-  defp handle_assign({:@, meta, [{name, _, atom}]}) when is_atom(name) and is_atom(atom) do
+  def handle_assign({:@, meta, [{name, _, atom}]}) when is_atom(name) and is_atom(atom) do
     quote line: meta[:line] || 0 do
       Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(name))
     end
   end
-  defp handle_assign(arg), do: arg
+  def handle_assign(arg), do: arg
 
   defp find_assigns(ast) do
     {_, result} = Macro.prewalk ast, [], fn node, acc ->
       case node do
-        {:@, _, [{name, _, atom}]} when is_atom(name) and is_atom(atom) -> {node, [name | acc]} 
+        # {:@, _, [{name, _, atom}]} when is_atom(name) and is_atom(atom) -> {node, [name | acc]} 
+        # {{:., _, [_, :fetch_assign]}, _, [_, name]} when is_atom(name) -> {node, [name | acc]} 
+        {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]} when is_atom(name) ->
+          {node, [name | acc]} 
         _ -> {node, acc}
       end
     end
