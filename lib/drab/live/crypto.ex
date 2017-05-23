@@ -1,7 +1,9 @@
 defmodule Drab.Live.Crypto do
   @moduledoc false
 
-  def uuid(), do: :erlang.term_to_binary(make_ref()) |> Base.encode64()
+  # :erlang.term_to_binary(make_ref()) |> :erlang.phash2() |> to_string() |> Base.encode64()
+  # :erlang.term_to_binary(make_ref()) |> Base.encode64()
+  def uuid(), do: make_ref() |> hash()
 
   #TODO: encrypt it
   def encode(term) do

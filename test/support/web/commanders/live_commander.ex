@@ -47,7 +47,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   def update_list(socket, _) do
-    push socket, users: ["Zdzisław", "Andżelika", "Brajanek"]
+    push socket, users: ["Mieczysław", "Andżelika", "Brajanek"]
     # push socket, user: "dupa"
     # push socket, count: 42
   end
@@ -56,116 +56,57 @@ defmodule DrabTestApp.LiveCommander do
     push socket, list: ["Zdzisław", "Andżelika", "Brajanek"]
   end
 
-  defp push2(socket, assigns) do
-    assigns_string = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq() |> Enum.sort() |> Enum.join(" ")
-    js = """
-      var spans = document.querySelectorAll("[drab-assigns='#{assigns_string}']")
-      var ret = []
-      for (var i = 0; i < spans.length; ++i) {
-        span = spans[i]
-        ret.push({
-          id:         span.getAttribute("id"),
-          drab_expr:  span.getAttribute("drab-expr")
-        })
-      }
-      ret
-      """
-
-    # IO.puts js
-    {:ok, exprs} = Drab.Core.exec_js(socket, js)
-    # IO.inspect(exprs)
-
-    updates = Enum.map(exprs, fn %{"id" => id, "drab_expr" => drab_expr} -> 
-      # import DrabTestApp.LiveView, only: [dupa: 1]
-      # IO.inspect Drab.Live.Crypto.decode(drab_expr)
-      decoded = Drab.Live.Crypto.decode(drab_expr)
-      #TODO: import dynamically
-      expr = quote do 
-        import DrabTestApp.LiveView
-        unquote(decoded)
-      end
-      {html, _assigns} = Code.eval_quoted(expr, [assigns: assigns])
-      IO.inspect html
-      # js = """
-      #   var spans = document.querySelectorAll("[drab-assigns='#{assigns_string}']")
-      #   spans.forEach(function(span){
-      #     span.innerHTML = "#{safe_to_string(html) |>  String.replace("\n", " ")}"
-      #   })
-      #   """
-      # IO.puts(js)
-      # {:ok, _} = Drab.Core.exec_js(socket, js)
-
-      # %{"id" => id, "drab_expr" => }
-      # IO.inspect html
-      """
-      document.getElementById('#{id}').innerHTML = "#{safe_to_string(html) |>  String.replace("\n", " ")}"
-      """
-
-    end)
-    # IO.inspect updates
-    {:ok, _} = Drab.Core.exec_js(socket, Enum.join(updates, ";"))
-    # IO.inspect(exprs)
-  end  
-
   defp push(socket, assigns) do
-    # assigns_string = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq() |> Enum.sort() |> Enum.join(" ")
-    # js = """
-    #   var spans = document.querySelectorAll("[drab-assigns='#{assigns_string}']")
-    #   var ret = []
-    #   for (var i = 0; i < spans.length; ++i) {
-    #     span = spans[i]
-    #     ret.push({
-    #       id:         span.getAttribute("id"),
-    #       drab_expr:  span.getAttribute("drab-expr")
-    #     })
-    #   }
-    #   ret
-    #   """
+    # first, get all amperes with any of the key
     assigns_keys = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq()
+
+    #TODO: check for ampere_assigns in socket
     js = "Drab.find_amperes_by_assigns(#{Drab.Core.encode_js(assigns_keys)})"
-
-    # IO.puts js
     {:ok, ret} = Drab.Core.exec_js(socket, js)
-    # IO.inspect(ret)
 
+    # ret contains a list of amperes and current (as displayed on the page) assigns
     current_assigns = ret["current_assigns"] |>  Enum.map(fn({name, value}) -> 
       {String.to_existing_atom(name), Drab.Live.Crypto.decode(value)} 
     end) |> Map.new()
+
     amperes = ret["amperes"]
-    assigns = Map.new(assigns)
+    assigns_to_change = Map.new(assigns)
 
-    # require IEx; IEx.pry
-
-    updates = Enum.map(amperes, fn %{"id" => id, "drab_expr" => drab_expr, "assigns" => assigns_in_expr} ->
-      assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
-      missing_keys = assigns_in_expr -- Map.keys(assigns)
-      additional_assigns = Enum.filter(current_assigns, fn {k, _} -> Enum.member?(missing_keys, k) end) |> Map.new()
-      assigns_for_expr = Map.merge(additional_assigns, assigns)
-      if !assigns_for_expr[:count] do
-        require IEx; IEx.pry
-      end
-
+    # to construct the javascript for update the innerHTML of amperes
+    ampere_updates = Enum.map(amperes, fn %{"id" => id, "drab_expr" => drab_expr, "assigns" => assigns_in_expr} ->
       decoded = Drab.Live.Crypto.decode(drab_expr)
       #TODO: import dynamically
       expr = quote do 
         import DrabTestApp.LiveView
         unquote(decoded)
       end
-      IO.inspect assigns_for_expr
-      {safe, _assigns} = Code.eval_quoted(expr, [assigns: Map.to_list(assigns_for_expr)])
-      # case safe do
-      #   {:safe, html} ->
-      #     # IO.inspect html
-      #     "document.getElementById('#{id}').innerHTML = #{safe_to_string(html) |>  Drab.Core.encode_js()}"
-      #   # TODO: this is a bad hack, sometimes expr returns list. Why? Shouldn't it be only safe html?
-      #   _ -> ""
-      # end
-      "document.getElementById('#{id}').innerHTML = #{safe_to_string(safe) |>  Drab.Core.encode_js()}"
-    end)
-    IO.inspect updates
-    {:ok, _} = Drab.Core.exec_js(socket, Enum.join(updates, ";"))
+      {safe, _assigns} = Code.eval_quoted(expr, 
+        [assigns: assigns_for_expr(assigns_to_change, assigns_in_expr, current_assigns) |> Map.to_list()])
+
+      [
+        "document.getElementById('#{id}').innerHTML = #{safe_to_encoded_js(safe)}",
+        changed_assigns_js_list(assigns_to_change)
+      ]
+    end) |> List.flatten() |> Enum.uniq()
+
+    IO.inspect ampere_updates
+    {:ok, _} = Drab.Core.exec_js(socket, ampere_updates |> Enum.join(";"))
   end
 
+  defp assigns_for_expr(assigns_in_push, assigns_in_expr, assings_in_page) do
+    assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
+    missing_keys = assigns_in_expr -- Map.keys(assigns_in_push)
+    stored_assigns = Enum.filter(assings_in_page, fn {k, _} -> Enum.member?(missing_keys, k) end) |> Map.new()
+    Map.merge(stored_assigns, assigns_in_push)
+  end
+
+  defp changed_assigns_js_list(assigns) do
+    Enum.map(assigns, fn {k, v} -> 
+      "__drab.assigns[#{Drab.Core.encode_js(k)}] = #{Drab.Live.Crypto.encode(v) |> Drab.Core.encode_js()}" 
+    end)
+  end
+
+  defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> Drab.Core.encode_js()
 
   defp safe_to_string(list) when is_list(list), do: Enum.map(list, &safe_to_string/1) |> Enum.join("")
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
