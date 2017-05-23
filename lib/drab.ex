@@ -212,7 +212,7 @@ defmodule Drab do
         check_handler_existence!(commander_module, event_handler_function)
 
         event_handler = String.to_existing_atom(event_handler_function)
-        dom_sender = Map.delete(payload, "event_handler_function")
+        dom_sender = Map.delete(payload, "event_handler_function") |> decode_data()
         commander_cfg = commander_config(commander_module)    
 
         # run before_handlers first
@@ -241,6 +241,14 @@ defmodule Drab do
     end
 
     {:noreply, state}
+  end
+
+  defp decode_data(payload) do
+    d = payload["data"] || %{}
+    d = Enum.map(d, fn {k, v} -> 
+      {k, Drab.Core.decode_js(v)}
+    end) |> Map.new()
+    Map.merge(payload, %{"data" => d})
   end
 
   defp check_handler_existence!(commander_module, handler) do

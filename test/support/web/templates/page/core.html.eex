@@ -7,20 +7,20 @@
 <div id="onload_counter"></div>
 <div id="onconnect_counter"></div>
 
-<button id="core1_button" drab-click="core1_click">core1</button>
+<button id="core1_button" class="btn btn-primary" drab-click="core1_click">core1</button>
 <span id="core1_out"></span>
 <br>
 
-<button id="core2_button" drab-click="core2_click">core2</button>
+<button id="core2_button" class="btn btn-primary" drab-click="core2_click">core2</button>
 <span id="core2_out"></span>
 <br>
 
-<button id="core3_button" drab-click="core3_click">core3</button>
+<button id="core3_button" class="btn btn-primary" drab-click="core3_click">core3</button>
 <span id="core3_out"></span>
 <br>
 
-<button id="set_store_button" drab-click="set_store_click">set store</button><br>
-<button id="get_store_button" drab-click="get_store_click">get store</button><br>
+<button id="set_store_button" class="btn btn-primary"  drab-click="set_store_click">set store</button><br>
+<button id="get_store_button" class="btn btn-primary"  drab-click="get_store_click">get store</button><br>
 <span id="store1_out"></span>
 
 <br>

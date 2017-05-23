@@ -62,10 +62,6 @@
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
       this.socket.onClose(function(event) {
-        // on_disconnect
-        // for(var f of drab.disconnected) {
-          // f(drab)
-        // }
         drab.disconnected.forEach(function(fx) {
           fx(drab)
         })

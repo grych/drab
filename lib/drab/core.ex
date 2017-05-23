@@ -188,6 +188,14 @@ defmodule Drab.Core do
   @doc false
   def encode_js(value), do: Poison.encode!(value)
 
+  @doc false
+  def decode_js(value) do
+    case Poison.decode(value) do
+      {:ok, v} -> v
+      _ -> value
+    end
+  end
+
   @doc """
   Returns the value of the Drab store represented by the given key.
 
