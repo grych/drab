@@ -1,5 +1,3 @@
-////////////////
-
 Drab.on_connect(function(resp, drab) {
   // prevent reassigning messages
   if (!drab.already_connected) {
@@ -48,10 +46,6 @@ Drab.on_connect(function(resp, drab) {
 })
 
 
-
-///////////////////////
-
-
 const EVENTS = ["click", "change", "keyup", "keydown"]
 const EVENTS_TO_DISABLE = <%= Drab.Config.get(:events_to_disable_while_processing) |> Drab.Core.encode_js %>
 
@@ -83,15 +77,15 @@ function payload(who, event) {
   setid(who)
   return {
     // by default, we pass back some sender attributes
-    id:     who.getAttribute("id"),
-    name:   who.getAttribute("name"),
-    class:  who.getAttribute("class"),
-    text:   who.innerText,
-    html:   who.innerHTML,
-    val:    who.value,
-    data:   who.dataset,
-    drab_id: who.getAttribute("drab-id"),
-    event:  extract_from_event(event)
+    id:       who.getAttribute("id"),
+    name:     who.getAttribute("name"),
+    class:    who.getAttribute("class"),
+    text:     who.innerText,
+    html:     who.innerHTML,
+    val:      who.value,
+    data:     who.dataset,
+    drab_id:  who.getAttribute("drab-id"),
+    event:    extract_from_event(event)
   }
 }
 

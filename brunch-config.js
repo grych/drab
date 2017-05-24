@@ -68,7 +68,7 @@ exports.config = {
   },
 
   npm: {globals: {
-    $: 'jquery',
+    // $: 'jquery',
     jQuery: 'jquery',
     bootstrap: 'bootstrap'
   }}

@@ -57,4 +57,27 @@ defmodule DrabTestApp.IntegrationCase do
   def nohash(selector) do
     String.replace_leading(selector, "#", "")
   end
+
+  def add_page_loaded_indicator(socket) do
+    js = """
+      var begin = document.getElementById("begin")
+      var txt = document.createTextNode("Page Loaded")
+      var elem = document.createElement("h3")
+      elem.appendChild(txt)
+      elem.setAttribute("id", "page_loaded_indicator");
+      begin.parentNode.insertBefore(elem, begin.nextElementSibling)
+      """
+    {:ok, _} = Drab.Core.exec_js(socket, js)    
+  end
+
+  def add_pid(socket) do
+    p = inspect(socket.assigns.__drab_pid)
+    pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
+    js = """
+      var pid = document.getElementById("drab_pid")
+      var txt = document.createTextNode("#{pid_string}")
+      pid.appendChild(txt)
+      """
+    {:ok, _} = Drab.Core.exec_js(socket, js)    
+  end
 end

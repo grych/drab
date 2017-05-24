@@ -1,7 +1,7 @@
 defmodule DrabTestApp.Broadcast2Commander do
   @moduledoc false
   
-  use Drab.Commander
+  use Drab.Commander, modules: [Drab.Query, Drab.Modal]
 
   onload :page_loaded
   onconnect :connected
@@ -17,6 +17,7 @@ defmodule DrabTestApp.Broadcast2Commander do
   end
 
   def connected(socket) do
+    exec_js! socket, "window.$ = jQuery"
     socket |> Drab.Query.update(:text, set: "", on: "#broadcast_out")
   end
 

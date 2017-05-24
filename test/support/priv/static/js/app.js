@@ -14442,7 +14442,6 @@ require.alias("phoenix/priv/static/phoenix.js", "phoenix");process = require('pr
   
 
 // Auto-loaded modules from config.npm.globals.
-window["$"] = require("jquery");
 window.jQuery = require("jquery");
 window.bootstrap = require("bootstrap");
 

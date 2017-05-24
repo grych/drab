@@ -41,49 +41,6 @@ defmodule Drab.Query do
   `update!/2`, `insert!/2`, `delete!/2` and `execute!/2`, which works the same, but changes DOM on every currently 
   connected browsers, which has opened the same URL, same controller, or having the same channel topic (see 
   `Drab.Commander.broadcasting/1` to find out more).
-
-  ## Events
-
-  Events are defined directly in the HTML by adding `drab-event` and `drab-handler` properties:
-
-      <button drab-event='click' drab-handler='button_clicked'>clickme</button>
-
-  Clicking such button launches `DrabExample.PageCommander.button_clicked/2` on the Phoenix server.
-
-  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For this event 
-  an attribute `drab-EVENT_NAME` must be set. The following like is an equivalent for the previous one:
-
-      <button drab-click='button_clicked'>clickme</button>
-
-  Normally Drab operates on the user interface of the browser which generared the event, but it is possible to broadcast
-  the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query` module.
-
-  ## Event handler functions
-
-  The event handler function receives two parameters:
-  * `socket`     - the websocket used to communicate back to the page by `Drab.Query` functions
-  * `dom_sender` - a map contains information of the object which sent the event; keys are binary strings
-
-  The `dom_sender` map:
-
-      %{
-        "id"      => "sender object ID attribute",
-        "name"    => "sender object 'name' attribute",
-        "class"   => "sender object 'class' attribute",
-        "text"    => "sender node 'text'",
-        "html"    => "sender node 'html', result of running .html() on the node",
-        "val"     => "sender object value",
-        "data"    => "a map with sender object 'data-xxxx' attributes, where 'xxxx' are the keys",
-        "event"   => "a map with choosen properties of `event` object"
-        "drab_id" => "internal"
-      }
-
-  Example:
-
-      def button_clicked(socket, dom_sender) do
-        socket |> update(:text, set: "clicked", on: this(dom_sender))
-      end
-
   """
 
   @doc """

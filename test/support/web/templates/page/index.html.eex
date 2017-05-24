@@ -1,4 +1,8 @@
 <h3 id="header">Drab Tests</h3>
+
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
 <p>
   This application is for debugging and testing Drab.
 </p>

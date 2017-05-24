@@ -1,13 +1,14 @@
 defmodule DrabTestApp.Broadcast4Commander do
   @moduledoc false
   
-  use Drab.Commander
+  use Drab.Commander, modules: [Drab.Query, Drab.Modal]
 
   onload :page_loaded
   onconnect :connected
   broadcasting "my_topic"
 
   def page_loaded(socket) do
+    exec_js! socket, "window.$ = jQuery"
     socket |> Drab.Query.insert("<h3 id='page_loaded_indicator'>Page Loaded</h3>", after: "#begin")
     socket |> Drab.Query.insert("<h5>Drab Broadcast Topic: #{__drab__().broadcasting |> inspect}</h5>", 
       after: "#page_loaded_indicator")
@@ -17,6 +18,7 @@ defmodule DrabTestApp.Broadcast4Commander do
   end
 
   def connected(socket) do
+    exec_js! socket, "window.$ = jQuery"
     socket |> Drab.Query.update(:text, set: "", on: "#broadcast_out")
   end
 
