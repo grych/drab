@@ -64,14 +64,19 @@ defmodule Drab.Channel do
     # for debugging
     if IEx.started? do
       commander = Drab.get_commander(socket)
-      modules = [Drab.Core] ++ commander.__drab__().modules
+      modules = Drab.all_modules_for(commander.__drab__().modules)
+      groupped = Enum.map(modules, fn module -> 
+        [_ | rest] = Module.split(module)
+        Enum.join(rest, ".")
+      end) |> Enum.join(", ")
+      
       p = inspect(socket.assigns.__drab_pid)
       pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
       Logger.debug """
 
           Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{inspect(commander)}
           You may debug Drab functions in IEx by copy/paste the following:
-      #{Enum.map(modules, fn module -> "import #{inspect(module)}" end) |> Enum.join("; ")}
+      import Drab.{#{groupped}}
       socket = Drab.get_socket(pid("#{pid_string}"))
       
           Examples:

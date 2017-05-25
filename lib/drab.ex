@@ -1,6 +1,4 @@
 defmodule Drab do
-  require Logger
-
   @moduledoc """
   Drab allows to query and manipulate the User Interface directly from the Phoenix server backend.
 
@@ -51,7 +49,7 @@ defmodule Drab do
 
           Started Drab for /drab/docs, handling events in DrabPoc.DocsCommander
           You may debug Drab functions in IEx by copy/paste the following:
-      import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
+      import Drab.{Core, Query, Modal, Waiter}
       socket = Drab.get_socket(pid("0.443.0"))
 
           Examples:
@@ -81,6 +79,7 @@ defmodule Drab do
   Every module must have the corresponding javascript template, which is added to the client code in case the module is loaded.
   """
 
+  require Logger
   use GenServer
 
   defstruct store: nil, session: nil, commander: nil, socket: nil
@@ -205,7 +204,8 @@ defmodule Drab do
     socket
   end
 
-  defp handle_event(socket, _event_name, event_handler_function, payload, reply_to, %Drab{commander: commander_module} = state) do
+  defp handle_event(socket, _event_name, event_handler_function, payload, reply_to, 
+                                        %Drab{commander: commander_module} = state) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn -> 
       try do
@@ -427,5 +427,32 @@ defmodule Drab do
   @doc false
   def config() do
     Drab.Config.config()
+  end
+
+  # Drab behaviour
+  # All Drab Modules must provide a list of prerequisite modules (except Drab.Core, which is loaded by defaut),
+  # as well as the list of the Javascripts to render
+  @callback prerequisites() :: list
+  @callback js_templates() :: list
+
+  @doc false
+  def all_modules_for(modules) do
+    modules = prereqs_for(modules) |> List.flatten() |> Enum.reverse()
+    [Drab.Core | modules] |> Enum.uniq()
+  end
+
+  @doc false
+  def all_templates_for(modules) do
+    Enum.map(all_modules_for(modules), fn mod ->
+      mod.js_templates 
+    end) |> List.flatten() |> Enum.uniq()
+  end
+
+  def prereqs_for(module) when is_atom(module) do
+    [module | prereqs_for(module.prerequisites())]
+  end
+
+  def prereqs_for(modules) when is_list(modules) do
+    Enum.map(modules, &prereqs_for/1)
   end
 end

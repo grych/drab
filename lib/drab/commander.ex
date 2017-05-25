@@ -129,6 +129,16 @@ defmodule Drab.Commander do
   """
 
   defmacro __using__(options) do
+    opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
+    modules = Enum.map(opts.modules, fn x -> 
+      case x do
+        # TODO: don't like this hack
+        {:__aliases__, _, m} -> Module.concat(m)
+        _ -> x
+      end
+    end)
+    modules_to_import = Drab.all_modules_for(modules)
+
     quote do
       import unquote(__MODULE__)
       import Drab.Core
@@ -152,8 +162,8 @@ defmodule Drab.Commander do
       @options Map.merge(commander_config, o)
 
       unquote do
-        opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
-        opts.modules |> Enum.map(fn module -> 
+        # opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
+        modules_to_import |> Enum.map(fn module -> 
           quote do
             import unquote(module)
           end

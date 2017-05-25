@@ -43,6 +43,10 @@ defmodule Drab.Query do
   `Drab.Commander.broadcasting/1` to find out more).
   """
 
+  @behaviour Drab
+  def prerequisites(), do: []
+  def js_templates(), do: ["drab.events.js", "drab.query.js"]
+
   @doc """
   Finds the DOM object which triggered the event. To be used only in event handlers.
 

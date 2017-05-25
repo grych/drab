@@ -7,6 +7,10 @@ defmodule Drab.Modal do
   Drab Module which contains function to launch Bootstrap Modals in the browser.
   """
 
+  @behaviour Drab
+  def prerequisites(), do: [Drab.Query]
+  def js_templates(), do: ["drab.modal.js"]
+
   @doc """
   Modal, synchronous alert box. This function shows bootstrap modal window on the browser and waits for the user input.
 

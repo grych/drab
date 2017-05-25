@@ -1,5 +1,11 @@
 ## 0.4.1
+
+### New:
 * `render_to_string/2` in Commander, a shorthand for `Phoenix.View.render_to_string/3`
+
+### Internal improvements:
+* removed jQuery from core JS code
+* module dependencies (Drab behaviour)
 
 ## 0.4.0
 Changes:

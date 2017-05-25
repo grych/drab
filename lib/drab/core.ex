@@ -115,6 +115,10 @@ defmodule Drab.Core do
   """
   require Logger
 
+  @behaviour Drab
+  def prerequisites(), do: []
+  def js_templates(), do: ["drab.core.js"]
+
   @doc """
   Synchronously executes the given javascript on the client side. 
 

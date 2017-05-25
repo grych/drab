@@ -1,6 +1,5 @@
 defmodule Drab.Waiter do
   require Logger
-
   @moduledoc """
   Enables Drab Waiter functionality - synchronous wait for browser events in the Commander handler function. 
 
@@ -16,6 +15,10 @@ defmodule Drab.Waiter do
 
   Requires Drab.Query.
   """
+
+  @behaviour Drab
+  def prerequisites(), do: []
+  def js_templates(), do: ["drab.events.js", "drab.waiter.js"]
 
   @doc """
   Main Waiter loop. 
