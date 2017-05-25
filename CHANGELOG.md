@@ -1,10 +1,10 @@
-## 0.4.1
+## v0.4.1 - 2017-05-25
 
 ### New:
 * `render_to_string/2` in Commander, a shorthand for `Phoenix.View.render_to_string/3`
 
 ### Internal improvements:
-* removed jQuery from core JS code
+* removed jQuery from core JS code; only Drab.Query and Drab.Modal depends on jQuery
 * module dependencies (Drab behaviour)
 
 ## 0.4.0

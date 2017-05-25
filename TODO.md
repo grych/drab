@@ -1,7 +1,3 @@
-## 0.4.1
-Changes:
-* technical socket? for broadcasts from drab server
-
 
 ## 0.5.0
 Changes:
@@ -21,8 +17,7 @@ Changes:
 * extract Drab Store and Session to standalone module (loaded by default)
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
 * before_handler (etc), only: should accept a list or atom (currently list only)
-* dependencies for modules (for ex. Modal depends on Query)
-
+* technical socket? for broadcasts from drab server
 
 Bugs:
 * spawn_link in handler does not terminate the spawned process
