@@ -20,37 +20,47 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   def update_both(socket, _) do
-    push socket, users: ["Mieczysław", "Andżelika", "Brajanek"], count: 3
-    # push socket, count: 3
-    # push socket, user: "dupa"
-    # push socket, count: 42
+    poke socket, users: ["Mieczysław", "Andżelika", "Brajanek"], count: 3
+    # poke socket, count: 3
+    # poke socket, user: "dupa"
+    # poke socket, count: 42
   end
 
   def update_count(socket, _) do
-    push socket, count: 42
+    poke socket, count: 42
   end
 
   def update_list(socket, _) do
-    push socket, users: ["Mieczysław", "Andżelika", "Brajanek"]
-    # push socket, user: "dupa"
-    # push socket, count: 42
+    poke socket, users: ["Mieczysław", "Andżelika", "Brajanek"]
+    # poke socket, user: "dupa"
+    # poke socket, count: 42
   end
 
-  def update_mini(socket, _) do
-    push socket, list: ["Zdzisław", "Andżelika", "Brajanek"]
+  def update_mini(socket, _payload) do
+    list = peek(socket, :list) ++ ["Zdzisław", "Andżelika", "Brajanek"]
+    IO.inspect peek(socket, :list)
+    socket = poke socket, list: list
+    IO.inspect peek(socket, :list)
   end
 
-  defp push(socket, assigns) do
+
+  defp peek(socket, assign) when is_binary(assign) do
+    socket.assigns.__ampere_assigns[assign]
+  end
+
+  defp peek(socket, assign) when is_atom(assign), do: peek(socket, Atom.to_string(assign))
+
+  defp poke(socket, assigns) do
     # first, get all amperes with any of the key
     assigns_keys = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq()
 
-    #TODO: check for ampere_assigns in socket
+    #TODO: put amperes into socket
     js = "Drab.find_amperes_by_assigns(#{Drab.Core.encode_js(assigns_keys)})"
     {:ok, ret} = Drab.Core.exec_js(socket, js)
 
     # ret contains a list of amperes and current (as displayed on the page) assigns
     current_assigns = ret["current_assigns"] |>  Enum.map(fn({name, value}) -> 
-      {String.to_existing_atom(name), Drab.Live.Crypto.decode(value)} 
+      {name, Drab.Live.Crypto.decode(value)}
     end) |> Map.new()
 
     amperes = ret["amperes"]
@@ -73,15 +83,19 @@ defmodule DrabTestApp.LiveCommander do
       ]
     end) |> List.flatten() |> Enum.uniq()
 
-    IO.inspect ampere_updates
+    # IO.inspect ampere_updates
     {:ok, _} = Drab.Core.exec_js(socket, ampere_updates |> Enum.join(";"))
+
+    assigns_to_change = for {k, v} <- assigns_to_change, into: %{}, do: {Atom.to_string(k), v}
+    updated_assigns = Map.merge(current_assigns, assigns_to_change)
+    Phoenix.Socket.assign(socket, :__ampere_assigns, updated_assigns)
   end
 
-  defp assigns_for_expr(assigns_in_push, assigns_in_expr, assings_in_page) do
+  defp assigns_for_expr(assigns_in_poke, assigns_in_expr, assings_in_page) do
     assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
-    missing_keys = assigns_in_expr -- Map.keys(assigns_in_push)
+    missing_keys = assigns_in_expr -- Map.keys(assigns_in_poke)
     stored_assigns = Enum.filter(assings_in_page, fn {k, _} -> Enum.member?(missing_keys, k) end) |> Map.new()
-    Map.merge(stored_assigns, assigns_in_push)
+    Map.merge(stored_assigns, assigns_in_poke)
   end
 
   defp changed_assigns_js_list(assigns) do

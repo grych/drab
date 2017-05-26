@@ -422,4 +422,11 @@ defmodule DrabTestApp.QueryTest do
       refute element_displayed?(input)
     end
   end
+
+  test "dom_sender data transformation" do
+    click_and_wait("data_test_button")
+    socket = drab_socket()
+    assert select(socket, :text, from: "#data_test_div_out1") == "true"
+    assert select(socket, :text, from: "#data_test_div_out2") == "true"
+  end
 end

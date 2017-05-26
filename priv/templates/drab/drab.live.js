@@ -31,3 +31,6 @@ Drab.find_amperes_by_assigns = function(assign_list) {
   return {amperes: ret, current_assigns: get_assigns()}
 }
 
+Drab.add_payload(function(sender, event) {
+  return {assigns: __drab.assigns}
+})

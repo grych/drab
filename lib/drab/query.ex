@@ -43,9 +43,21 @@ defmodule Drab.Query do
   `Drab.Commander.broadcasting/1` to find out more).
   """
 
-  @behaviour Drab
-  def prerequisites(), do: []
+  # Drab behaviour
+  use DrabModule
   def js_templates(), do: ["drab.events.js", "drab.query.js"]
+
+  def transform_payload(payload) do
+    #TODO: change jQuery sender API to %{sender:, event:}
+    payload = Map.merge(payload["sender"], %{"event" => payload["event"]})
+
+    # decode data values, just like jquery does
+    d = payload["data"] || %{}
+    d = Enum.map(d, fn {k, v} -> 
+      {k, Drab.Core.decode_js(v)}
+    end) |> Map.new()
+    Map.merge(payload, %{"data" => d})
+  end
 
   @doc """
   Finds the DOM object which triggered the event. To be used only in event handlers.

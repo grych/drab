@@ -64,7 +64,7 @@ defmodule Drab.Channel do
     # for debugging
     if IEx.started? do
       commander = Drab.get_commander(socket)
-      modules = Drab.all_modules_for(commander.__drab__().modules)
+      modules = DrabModule.all_modules_for(commander.__drab__().modules)
       groupped = Enum.map(modules, fn module -> 
         [_ | rest] = Module.split(module)
         Enum.join(rest, ".")

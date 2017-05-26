@@ -16,8 +16,9 @@ defmodule Drab.Waiter do
   Requires Drab.Query.
   """
 
-  @behaviour Drab
-  def prerequisites(), do: []
+  # @behaviour Drab
+  use DrabModule
+  # def prerequisites(), do: []
   def js_templates(), do: ["drab.events.js", "drab.waiter.js"]
 
   @doc """

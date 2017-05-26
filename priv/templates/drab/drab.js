@@ -92,6 +92,7 @@
     connected: [],
     disconnected: [],
     load: [],
+    additional_payloads: [],
     event_reply_table: {},
     on_connect: function(f) {
       this.connected.push(f)
@@ -101,6 +102,9 @@
     },
     on_load: function(f) {
       this.load.push(f)
+    },
+    add_payload: function(f) {
+      this.additional_payloads.push(f)
     },
     set_drab_store_token: function(token) {
       <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.set.js", []) %>

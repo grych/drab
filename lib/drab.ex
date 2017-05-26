@@ -212,23 +212,34 @@ defmodule Drab do
         check_handler_existence!(commander_module, event_handler_function)
 
         event_handler = String.to_existing_atom(event_handler_function)
-        dom_sender = Map.delete(payload, "event_handler_function") |> decode_data()
-        commander_cfg = commander_config(commander_module)    
+        payload = Map.delete(payload, "event_handler_function")
+
+        # transform payload via callbacks in DrabModules
+        payload = Enum.reduce(DrabModule.all_modules_for(commander_module.__drab__().modules), payload, fn(m, p) ->
+          m.transform_payload(p)
+        end)
+
+        # transform socket via callbacks
+        socket = Enum.reduce(DrabModule.all_modules_for(commander_module.__drab__().modules), socket, fn(m, s) ->
+          m.transform_socket(s, payload)
+        end)
+
+        commander_cfg = commander_config(commander_module)
 
         # run before_handlers first
         returns_from_befores = Enum.map(callbacks_for(event_handler, commander_cfg.before_handler), 
           fn callback_handler ->
-            apply(commander_module, callback_handler, [socket, dom_sender])
+            apply(commander_module, callback_handler, [socket, payload])
           end)
 
         # if ANY of them fail (return false or nil), do not proceed
         unless Enum.any?(returns_from_befores, &(!&1)) do
           # run actuall event handler
-          returned_from_handler = apply(commander_module, event_handler, [socket, dom_sender])
+          returned_from_handler = apply(commander_module, event_handler, [socket, payload])
 
           Enum.map(callbacks_for(event_handler, commander_cfg.after_handler), 
             fn callback_handler ->
-              apply(commander_module, callback_handler, [socket, dom_sender, returned_from_handler])
+              apply(commander_module, callback_handler, [socket, payload, returned_from_handler])
             end)
         end
       
@@ -241,14 +252,6 @@ defmodule Drab do
     end
 
     {:noreply, state}
-  end
-
-  defp decode_data(payload) do
-    d = payload["data"] || %{}
-    d = Enum.map(d, fn {k, v} -> 
-      {k, Drab.Core.decode_js(v)}
-    end) |> Map.new()
-    Map.merge(payload, %{"data" => d})
   end
 
   defp check_handler_existence!(commander_module, handler) do
@@ -429,30 +432,4 @@ defmodule Drab do
     Drab.Config.config()
   end
 
-  # Drab behaviour
-  # All Drab Modules must provide a list of prerequisite modules (except Drab.Core, which is loaded by defaut),
-  # as well as the list of the Javascripts to render
-  @callback prerequisites() :: list
-  @callback js_templates() :: list
-
-  @doc false
-  def all_modules_for(modules) do
-    modules = prereqs_for(modules) |> List.flatten() |> Enum.reverse()
-    [Drab.Core | modules] |> Enum.uniq()
-  end
-
-  @doc false
-  def all_templates_for(modules) do
-    Enum.map(all_modules_for(modules), fn mod ->
-      mod.js_templates 
-    end) |> List.flatten() |> Enum.uniq()
-  end
-
-  def prereqs_for(module) when is_atom(module) do
-    [module | prereqs_for(module.prerequisites())]
-  end
-
-  def prereqs_for(modules) when is_list(modules) do
-    Enum.map(modules, &prereqs_for/1)
-  end
 end

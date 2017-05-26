@@ -42,7 +42,6 @@ defmodule Drab.Live.EExEngine do
   def handle_expr({:safe, buffer}, "", expr), do: Phoenix.HTML.Engine.handle_expr({:safe, buffer}, "", expr)
 
   defp inject_span(buffer, expr) do
-
     line           = line_from_expr(expr)
     expr           = Macro.prewalk(expr, &handle_assign/1)
     encoded_expr   = encode(expr)

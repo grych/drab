@@ -7,7 +7,8 @@ defmodule Drab.Modal do
   Drab Module which contains function to launch Bootstrap Modals in the browser.
   """
 
-  @behaviour Drab
+  use DrabModule
+  # @behaviour Drab
   def prerequisites(), do: [Drab.Query]
   def js_templates(), do: ["drab.modal.js"]
 

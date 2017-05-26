@@ -7,6 +7,6 @@
 <% end %>
 
 <br>
-<button onclick="Drab.run_handler('click', 'update_mini', {})" class="btn btn-primary">
+<button drab-click='update_mini' class="btn btn-primary">
   Update Mini
 </button>

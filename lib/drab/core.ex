@@ -115,8 +115,9 @@ defmodule Drab.Core do
   """
   require Logger
 
-  @behaviour Drab
-  def prerequisites(), do: []
+  # @behaviour Drab
+  use DrabModule  
+  # def prerequisites(), do: []
   def js_templates(), do: ["drab.core.js"]
 
   @doc """

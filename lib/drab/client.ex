@@ -47,7 +47,7 @@ defmodule Drab.Client do
 
       # modules = [Drab.Core | commander.__drab__().modules] # Drab.Core is included by default
       # templates = Enum.map(modules, fn x -> "#{Module.split(x) |> Enum.join(".") |> String.downcase()}.js" end)
-      templates = Drab.all_templates_for(commander.__drab__().modules)
+      templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
       access_session = commander.__drab__().access_session
       session = access_session 

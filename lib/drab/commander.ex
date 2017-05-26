@@ -137,7 +137,7 @@ defmodule Drab.Commander do
         _ -> x
       end
     end)
-    modules_to_import = Drab.all_modules_for(modules)
+    modules_to_import = DrabModule.all_modules_for(modules)
 
     quote do
       import unquote(__MODULE__)

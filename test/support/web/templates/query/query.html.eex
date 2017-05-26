@@ -22,3 +22,10 @@
 
 <input type="text" id="execute1_input">
 <br>
+
+<br>
+<button id="data_test_button" drab-click="sender_test" data-integer="42" data-string="string">
+Test Sender
+</button>
+<div id="data_test_div_out1"></div>
+<div id="data_test_div_out2"></div>

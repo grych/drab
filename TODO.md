@@ -18,6 +18,7 @@ Changes:
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
 * before_handler (etc), only: should accept a list or atom (currently list only)
 * technical socket? for broadcasts from drab server
+* cumulate drab related assigns in socket to one map `__drab`
 
 Bugs:
 * spawn_link in handler does not terminate the spawned process

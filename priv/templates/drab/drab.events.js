@@ -25,41 +25,46 @@ function debounce(func, wait, immediate) {
     };
 };
 
-function payload(who, event) {
-  setid(who)
-  return {
-    // by default, we pass back some sender attributes
-    id:       who.getAttribute("id"),
-    name:     who.getAttribute("name"),
-    class:    who.getAttribute("class"),
-    text:     who.innerText,
-    html:     who.innerHTML,
-    val:      who.value,
-    data:     who.dataset,
-    drab_id:  who.getAttribute("drab-id"),
-    event:    extract_from_event(event)
-  }
+function payload(sender, event) {
+  p = default_payload(sender, event)
+  Drab.additional_payloads.forEach(function(fx) {
+    p = Object.assign(p, fx(sender, event))
+  })
+  return p
 }
 
-function extract_from_event(event) {
+// default payload contains sender information and some info about event
+function default_payload(sender, event) {
   return {
-    altKey: event.altKey,
-    data: event.data,
-    key: event.key,
-    keyCode: event.keyCode,
-    metaKey: event.metaKey,
-    shiftKey: event.shiftKey,
-    ctrlKey: event.ctlrKey,
-    type: event.type,
-    which: event.which,
-    clientX: event.clientX,
-    clientY: event.clientY,
-    offsetX: event.offsetX,
-    offsetY: event.offsetY,
-    pageX: event.pageX,
-    pageY: event.pageY,
-    screenX: event.screenX,
-    screenY: event.screenY
+    sender: {
+      // by default, we pass back some sender attributes
+      id:       sender.getAttribute("id"),
+      name:     sender.getAttribute("name"),
+      class:    sender.getAttribute("class"),
+      text:     sender.innerText,
+      html:     sender.innerHTML,
+      val:      sender.value,
+      data:     sender.dataset,
+      drab_id:  sender.getAttribute("drab-id") },
+    event: {
+      altKey:   event.altKey,
+      data:     event.data,
+      key:      event.key,
+      keyCode:  event.keyCode,
+      metaKey:  event.metaKey,
+      shiftKey: event.shiftKey,
+      ctrlKey:  event.ctlrKey,
+      type:     event.type,
+      which:    event.which,
+      clientX:  event.clientX,
+      clientY:  event.clientY,
+      offsetX:  event.offsetX,
+      offsetY:  event.offsetY,
+      pageX:    event.pageX,
+      pageY:    event.pageY,
+      screenX:  event.screenX,
+      screenY:  event.screenY
+    }
   }
 }
 
@@ -93,7 +98,6 @@ Drab.set_event_handlers = function(obj) {
 
   // first serve the shortcut controls by adding the longcut attrbutes
   EVENTS.forEach(function(ev) {
-    // drab_objects_shortcut = obj ? $(obj).parent().find("[drab-" + ev + "]") : $("[drab-" + ev + "]")
     if (obj) {
       var o = document.querySelector(obj)
       if (o) {
@@ -125,29 +129,25 @@ Drab.set_event_handlers = function(obj) {
       var event_handler_function = function(event) {
         // disable current control - will be re-enabled after finish
         <%= if Drab.Config.get(:disable_controls_while_processing) do %>
-          // if ($.inArray(event_name, events_to_disable) >= 0) {
           if(events_to_disable.indexOf(event_name) >= 0) {
             node['disabled'] = true
           }
         <% end %>
-        // console.log(this)
+        setid(node)
         // send the message back to the server
         Drab.run_handler(
-          event_name, 
+          event_name,
           node.getAttribute("drab-handler"), 
           payload(node, event)
           <%= if Drab.Config.get(:disable_controls_while_processing) do %>
-            ,
-            function() {
-              node['disabled'] = false
-              // console.log("GOTREPLY!", t)
-            }
+            , function() {
+                node['disabled'] = false
+              }
           <% end %>
           )
       }
 
       var event_name = node.getAttribute("drab-event")
-      // console.log(event_name, obj)
 
       // options. Wraps around event_handler_function, eg. debounce(event_handler_function, 500)
       var options = node.getAttribute("drab-options")
@@ -157,10 +157,8 @@ Drab.set_event_handlers = function(obj) {
         var fargs = matched[2].replace(/^\s+|\s+$/g, '') // strip whitespace
         var f = fname + "(event_handler_function" + (fargs == "" ? "" : ", " + fargs) + ")"
         update_event_handler(node, event_name, eval(f))
-        // node.off(event_name).on(event_name, eval(f))        
       } else {
         update_event_handler(node, event_name, event_handler_function)
-        // node.off(event_name).on(event_name, event_handler_function)         
       }
 
     } else {

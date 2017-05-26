@@ -39,4 +39,9 @@ defmodule DrabTestApp.QueryCommander do
     update_out(socket, sender, ret) 
   end
 
+  def sender_test(socket, sender) do
+    socket |> update(:text, set: is_number(sender["data"]["integer"]), on: "#data_test_div_out1")
+    socket |> update(:text, set: is_binary(sender["data"]["string"]), on: "#data_test_div_out2")
+  end
+
 end
