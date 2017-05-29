@@ -1,7 +1,6 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
-<%= dupa(@count, @users) %>
 <br>
 Users (<%= @count %>) count: <%= @count %>
 <br>
@@ -9,18 +8,18 @@ Users (<%= @count %>) count: <%= @count %>
 
 <br>
 
-<button onclick="Drab.run_handler('click', 'update_both', {})" class="btn btn-primary">
+<button drab-click="update_both" class="btn btn-primary">
   Update Both
 </button>
 
 <br>
 
-<button onclick="Drab.run_handler('click', 'update_count', {})" class="btn btn-primary">
+<button drab-click="update_count" class="btn btn-primary">
   Update Count
 </button>
 
 <br>
-<button onclick="Drab.run_handler('click', 'update_list', {})" class="btn btn-primary">
+<button drab-click="update_list" class="btn btn-primary">
   Update List
 </button>
 

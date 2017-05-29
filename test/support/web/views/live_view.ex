@@ -3,5 +3,4 @@ defmodule DrabTestApp.LiveView do
   
   use DrabTestApp.Web, :view
 
-  def dupa(x, _y), do: "dupa ----------- #{x}"
 end
