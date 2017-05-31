@@ -19,3 +19,5 @@ erl_crash.dump
 # Static artifacts
 /node_modules
 /priv/static/
+/priv/*.drab.cache
+

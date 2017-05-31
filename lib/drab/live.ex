@@ -45,13 +45,14 @@ defmodule Drab.Live do
     assigns_to_change = Map.new(assigns)
 
     # to construct the javascript for update the innerHTML of amperes
-    ampere_updates = Enum.map(amperes, fn %{"id" => id, "drab_expr" => drab_expr, "assigns" => assigns_in_expr} ->
-      decoded = Drab.Live.Crypto.decode(drab_expr)
+    ampere_updates = Enum.map(amperes, fn %{"id" => id, "drab_expr" => drab_expr_hash, "assigns" => assigns_in_expr} ->
+      # decoded = Drab.Live.Crypto.decode(drab_expr)
+      expr = Drab.Live.Cache.get(drab_expr_hash)
       # Find corresponding View
       view = socket.assigns.__controller.__drab__().view
       expr = quote do 
         import unquote(view)
-        unquote(decoded)
+        unquote(expr)
       end
       {safe, _assigns} = Code.eval_quoted(expr, 
         [assigns: assigns_for_expr(assigns_to_change, assigns_in_expr, current_assigns) |> Map.to_list()])

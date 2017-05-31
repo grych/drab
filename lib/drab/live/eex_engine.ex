@@ -44,14 +44,17 @@ defmodule Drab.Live.EExEngine do
   defp inject_span(buffer, expr) do
     line           = line_from_expr(expr)
     expr           = Macro.prewalk(expr, &handle_assign/1)
-    encoded_expr   = encode(expr)
+    # encoded_expr   = encode(expr)
+    expr_hash      = hash(expr)
 
     found_assigns  = find_assigns(expr)
     found_assigns? = found_assigns != []
 
     span_begin = 
-      "<span id='#{uuid()}' drab-assigns='#{found_assigns |> Enum.join(" ")}' drab-expr='#{encoded_expr}'>"
+      "<span id='#{uuid()}' drab-assigns='#{found_assigns |> Enum.join(" ")}' drab-expr='#{expr_hash}'>"
     span_end   = "</span>"
+
+    Drab.Live.Cache.add(expr_hash, expr)
     
     # do not repeat assign javascript
     as = found_assigns |> Enum.map(fn assign ->
@@ -142,8 +145,6 @@ defmodule Drab.Live.EExEngine do
   defp find_assigns(ast) do
     {_, result} = Macro.prewalk ast, [], fn node, acc ->
       case node do
-        # {:@, _, [{name, _, atom}]} when is_atom(name) and is_atom(atom) -> {node, [name | acc]} 
-        # {{:., _, [_, :fetch_assign]}, _, [_, name]} when is_atom(name) -> {node, [name | acc]} 
         {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]} when is_atom(name) ->
           {node, [name | acc]} 
         _ -> {node, acc}

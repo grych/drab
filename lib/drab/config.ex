@@ -16,7 +16,9 @@ defmodule Drab.Config do
   Returns the Endpoint of the client Phoenix Application
   """
   def endpoint() do
+    # IO.inspect app_env()
     {endpoint, _} = app_env() |> Enum.find(fn {base, _} ->
+      Code.ensure_compiled(base) # needs to be compiled before View
       is_endpoint?(base)
     end)
     endpoint
@@ -36,6 +38,24 @@ defmodule Drab.Config do
   def app_env() do
     Application.get_all_env(app_name()) 
   end
+
+  @doc """
+  Returns any config key for current main Application
+
+      iex> Drab.app_config(:secret_key_base)
+      "bP1ZF+DDZiAVGuIigj3UuAzBhDmxHSboH9EEH575muSET1g18BPO4HeZnggJA/7q"
+  """
+  def app_config(config_key) do
+    Keyword.fetch!(app_env(), endpoint()) |> Keyword.fetch!(config_key)
+  end
+
+  @doc """
+  Returns the config for current main Application
+  """
+  def app_config() do
+    Keyword.fetch!(app_env(), endpoint())
+  end
+
 
   @doc """
   Returns Drab configuration for the given atom.
