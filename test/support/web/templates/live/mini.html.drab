@@ -1,6 +1,6 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
-<button drab-click='update_mini' class="<%= @class %>" tag='<%= @tag %>'>
+<button drab-click='update_mini' class="<%= @class %>" tag="<%= @tag %>">
   Update Mini
 </button>

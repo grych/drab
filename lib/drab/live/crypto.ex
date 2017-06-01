@@ -5,7 +5,7 @@ defmodule Drab.Live.Crypto do
 
   # :erlang.term_to_binary(make_ref()) |> :erlang.phash2() |> to_string() |> Base.encode64()
   # :erlang.term_to_binary(make_ref()) |> Base.encode64()
-  def uuid(), do: make_ref() |> hash()
+  def uuid(), do: {now_ms(), make_ref()} |> hash()
 
   # The most effective way for store assigns in the browser is basic encode
   def encode(term) do
@@ -45,7 +45,7 @@ defmodule Drab.Live.Crypto do
     {secret, sign_secret}
   end
 
-  # defp now_ms(), do: System.system_time(:milli_seconds)
+  defp now_ms(), do: System.system_time(:milli_seconds)
 
   def hash(term) do
     :erlang.phash2(term) |> to_string() |> Base.encode64()

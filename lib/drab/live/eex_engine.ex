@@ -46,7 +46,7 @@ defmodule Drab.Live.EExEngine do
       # raise """
       # Live Expressions inside tags are not allowed yet
       # """
-      {:safe, inject_attribute(buffer, expr, no_tags)}
+      {:safe, inject_attribute(buffer, expr, html)}
     else
       {:safe, inject_span(buffer, expr)}
     end
@@ -67,7 +67,7 @@ defmodule Drab.Live.EExEngine do
 
     # assign_expr(assign)
     #TODO: czym rozpoczyna się attribute? ", ', niczym
-    attr = "\" drab_expr='#{expr_hash}' drab-assigns='#{found_assigns |> Enum.join(" ")}' __dumb=\""
+    attr = "\" drab-id='#{Drab.Live.Crypto.uuid()}' drab-expr='#{expr_hash}' drab-assigns='#{found_assigns |> Enum.join(" ")}' __dumb=\""
 
     if found_assigns? do
       quote do
@@ -121,7 +121,7 @@ defmodule Drab.Live.EExEngine do
 
   defp script_tag([]), do: []
   defp script_tag(js) do
-    ["\n", "<script language='javascript'>", js, "</script>"]
+    ["\n", "<script>", js, "</script>"]
   end
 
   defp assign_js(assign) do
