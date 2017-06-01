@@ -37,10 +37,11 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   def update_mini(socket, _payload) do
-    list = peek(socket, :list) ++ ["Zdzisław", "Andżelika", "Brajanek"]
-    IO.inspect peek(socket, :list)
-    socket = poke socket, list: list
-    IO.inspect peek(socket, :list)
+    # list = peek(socket, :list) ++ ["Zdzisław", "Andżelika", "Brajanek"]
+    # IO.inspect peek(socket, :list)
+    # socket = poke socket, list: list
+    # IO.inspect peek(socket, :list)
+    poke socket, tag: :hr
   end
 
 end

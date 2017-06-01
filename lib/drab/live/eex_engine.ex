@@ -14,15 +14,17 @@ defmodule Drab.Live.EExEngine do
   end)
 
   @doc false
-  def init(_opts) do
+  def init(opts) do
     # [engine: Drab.Live.EExEngine,
     #  file: "test/support/web/templates/live/users.html.drab", line: 1]
-    init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
-    {:safe, ["\n", "\n", "<!-- DRAB BEGIN -->", script_tag(init_js), "\n"]}
+    {:safe, ["\n", "\n", "<!-- DRAB BEGIN ", opts[:file], " -->", "\n"]}
   end
 
   @doc false
-  def handle_body(body), do: Phoenix.HTML.Engine.handle_body(body)
+  def handle_body({:safe, body}) do 
+    init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
+    {:safe, [script_tag(init_js), body, "<!-- DRAB END -->", "\n"]}
+  end
 
   @doc false
   def handle_text({:safe, buffer}, text), do: Phoenix.HTML.Engine.handle_text({:safe, buffer}, text)
@@ -34,18 +36,55 @@ defmodule Drab.Live.EExEngine do
   def handle_expr("", marker, expr), do: Phoenix.HTML.Engine.handle_expr("", marker, expr)
 
   @doc false
-  def handle_expr({:safe, buffer}, "=", expr) do
-    {:safe, inject_span(buffer, expr)}
-  end
+  def handle_expr({:safe, buffer}, "", expr), do: Phoenix.HTML.Engine.handle_expr({:safe, buffer}, "", expr)
 
   @doc false
-  def handle_expr({:safe, buffer}, "", expr), do: Phoenix.HTML.Engine.handle_expr({:safe, buffer}, "", expr)
+  def handle_expr({:safe, buffer}, "=", expr) do
+    html = get_plain_html(buffer) 
+    no_tags = String.replace(html, ~r/<\S+.*>/, "")
+    if Regex.match?(~r/<\S+/, no_tags) do
+      # raise """
+      # Live Expressions inside tags are not allowed yet
+      # """
+      {:safe, inject_attribute(buffer, expr, no_tags)}
+    else
+      {:safe, inject_span(buffer, expr)}
+    end
+  end
+
+  defp inject_attribute(buffer, expr, html) do
+    line           = line_from_expr(expr)
+    expr           = Macro.prewalk(expr, &handle_assign/1)
+    expr_hash      = hash(expr)
+    Drab.Live.Cache.add(expr_hash, expr)
+
+    found_assigns  = find_assigns(expr)
+    found_assigns? = found_assigns != []
+
+    # do not repeat assign javascript
+    as = deduplicated_js_lines(buffer, found_assigns)
+    assigns_js = script_tag(as)
+
+    # assign_expr(assign)
+    #TODO: czym rozpoczyna się attribute? ", ', niczym
+    attr = "\" drab_expr='#{expr_hash}' drab-assigns='#{found_assigns |> Enum.join(" ")}' __dumb=\""
+
+    if found_assigns? do
+      quote do
+        [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line)), unquote(attr)]
+      end
+    else
+      quote do
+        [unquote(buffer), unquote(to_safe(expr, line))]
+      end
+    end
+  end
 
   defp inject_span(buffer, expr) do
     line           = line_from_expr(expr)
     expr           = Macro.prewalk(expr, &handle_assign/1)
-    # encoded_expr   = encode(expr)
     expr_hash      = hash(expr)
+    Drab.Live.Cache.add(expr_hash, expr)
 
     found_assigns  = find_assigns(expr)
     found_assigns? = found_assigns != []
@@ -54,17 +93,8 @@ defmodule Drab.Live.EExEngine do
       "<span id='#{uuid()}' drab-assigns='#{found_assigns |> Enum.join(" ")}' drab-expr='#{expr_hash}'>"
     span_end   = "</span>"
 
-    Drab.Live.Cache.add(expr_hash, expr)
-    
     # do not repeat assign javascript
-    as = found_assigns |> Enum.map(fn assign ->
-      # TODO: find a better way to search in buffer, rather than string-based
-      if deep_find(buffer, assign_js(assign) |> List.first()) do
-        []
-      else
-        assign_js(assign)
-      end
-    end) |> List.flatten()
+    as = deduplicated_js_lines(buffer, found_assigns)
     assigns_js = script_tag(as)
 
     if found_assigns? do
@@ -76,6 +106,17 @@ defmodule Drab.Live.EExEngine do
         [unquote(buffer), unquote(to_safe(expr, line))]
       end
     end
+  end
+
+  defp deduplicated_js_lines(buffer, found_assigns) do
+    found_assigns |> Enum.map(fn assign ->
+      # TODO: find a better way to search in buffer, rather than string-based
+      if deep_find(buffer, assign_js(assign) |> List.first()) do
+        []
+      else
+        assign_js(assign)
+      end
+    end) |> List.flatten()    
   end
 
   defp script_tag([]), do: []
@@ -153,7 +194,18 @@ defmodule Drab.Live.EExEngine do
     result |> Enum.uniq |> Enum.sort
   end
 
-
+  #TODO: rethink, may not be very smart
+  def get_plain_html(ast) do
+    {_, result} = Macro.prewalk ast, [], fn node, acc ->
+      case node do
+        {_, _, atom} when is_atom(atom) -> {node, acc}
+        {_, _, string} when is_binary(string) -> {node, [string | acc]}
+        {_, _, list} -> {node, [Enum.filter(list, fn x -> is_binary(x) end) | acc]}
+        _ -> {node, acc}
+      end
+    end
+    result |> List.flatten() |> Enum.join()
+  end
 
 
   # def handle_expr(buffer, "=", expr) do
@@ -180,36 +232,6 @@ defmodule Drab.Live.EExEngine do
   # end
 
 
-
-
-  # def init(_opts) do
-  #   ""
-  # end
-
-  # def handle_expr(buffer, mark, expr) do
-  #   IO.inspect expr
-  #   expr = inject_drab_span(expr)
-  #   IO.inspect expr
-  #   expr = Macro.prewalk(expr, &EEx.Engine.handle_assign/1)
-  #   IO.inspect expr
-  #   {a, b, [e, pre_string]} = buffer
-  #   # IO.inspect x
-  #   # IO.inspect pre_string
-  #   IO.puts ""
-  #   super({a, b, [e, pre_string]}, mark, expr)
-  # end
-
-  # defp inject_drab_span(expr) do
-  #   quote do 
-  #     "<span>" <> unquote(expr)
-  #   end
-  #   # tag regex = ~r/<([^\/].*)>/mis
-  #   # s = "</div1>\n<b>dwa</b><div2 dupa='bada'><i id=1>xx</i>"
-  #   # l = String.split(s, ~r/</) |> Enum.reverse()
-  #   # quote do
-  #   #   "<drab_id>" <> unquote(expr)
-  #   # end
-  # end
 
   def find_unclosed_tag(list) do
     Enum.reduce(list, {[], []}, fn(x, {acc, closed_tags}) -> 

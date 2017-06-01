@@ -50,10 +50,26 @@ defmodule Drab.Live do
       expr = Drab.Live.Cache.get(drab_expr_hash)
       # Find corresponding View
       view = socket.assigns.__controller.__drab__().view
+
+      #TODO: find it in the web.ex
+      # import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
+      # use Phoenix.HTML
+      # import DrabTestApp.Router.Helpers
+      # import DrabTestApp.ErrorHelpers
+      # import DrabTestApp.Gettext
+      router_helpers = Module.concat(Drab.Config.app_module(), Router.Helpers)
+      error_helpers = Module.concat(Drab.Config.app_module(), ErrorHelpers)
+      gettext = Module.concat(Drab.Config.app_module(), Gettext)
       expr = quote do 
         import unquote(view)
+        import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
+        use Phoenix.HTML
+        import unquote(router_helpers)
+        import unquote(error_helpers)
+        import unquote(gettext)
         unquote(expr)
       end
+
       {safe, _assigns} = Code.eval_quoted(expr, 
         [assigns: assigns_for_expr(assigns_to_change, assigns_in_expr, current_assigns) |> Map.to_list()])
 

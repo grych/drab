@@ -1,11 +1,12 @@
 
 ## 0.5.0
 Changes:
-* remove Query from the default, rename it to Drab.JQuery
+* remove Query from the default
 * new default module, not jQuery based
 * changesets for update/insert in the new base module
 * group JS commands to be launched in one step, if possible
 * DOM tree as a Map?
+* IEx helper text must depend on loaded modules
 
 ## Bugs:
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket

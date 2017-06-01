@@ -33,6 +33,15 @@ defmodule Drab.Config do
   end
 
   @doc """
+  Returns the Phoenix Application module atom
+  """
+  def app_module() do
+    Module.split(endpoint()) 
+    |> Enum.drop(-1)
+    |> Module.concat()
+  end
+
+  @doc """
   Returns all environment for the default main Application
   """
   def app_env() do
