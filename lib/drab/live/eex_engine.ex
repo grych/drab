@@ -6,6 +6,7 @@ defmodule Drab.Live.EExEngine do
   require IEx
 
   @jsvar "__drab"
+  @drab_indicator  "__drabbed"
 
   @anno (if :erlang.system_info(:otp_release) >= '19' do
     [generated: true]
@@ -41,8 +42,7 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
     html = get_plain_html(buffer) 
-    no_tags = String.replace(html, ~r/<\S+.*>/, "")
-    if Regex.match?(~r/<\S+/, no_tags) do
+    if Regex.match?(~r/<\S+/, no_tags(html)) do
       # raise """
       # Live Expressions inside tags are not allowed yet
       # """
@@ -65,9 +65,26 @@ defmodule Drab.Live.EExEngine do
     as = deduplicated_js_lines(buffer, found_assigns)
     assigns_js = script_tag(as)
 
-    # assign_expr(assign)
-    #TODO: czym rozpoczyna się attribute? ", ', niczym
-    attr = "\" drab-id='#{Drab.Live.Crypto.uuid()}' drab-expr='#{expr_hash}' drab-assigns='#{found_assigns |> Enum.join(" ")}' __dumb=\""
+    #TODO: try to find out if there is nothing AFTER the expression? I guess not
+    # IO.inspect html
+    # Regex.match?(~r/__dumb=".+"/, html) && invalid_attribute!(line)
+    opener = String.last(html)
+    closer = case opener do
+      "\"" -> "#{@drab_indicator}=\""
+      "'"  -> "#{@drab_indicator}='"
+      "="  -> "#{@drab_indicator}"
+      _    -> invalid_attribute!(line)
+    end
+
+    {attribute, _} = String.split(no_tags(html), ~r/[=\s]/) |> List.pop_at(-2)
+    unless attribute, do: invalid_attribute!(line)
+
+    opener = if opener == "=", do: "", else: opener
+
+    expr_assigns = "drab-assigns-#{expr_hash}='#{found_assigns |> Enum.join(" ")}'"
+    expr_attribute = "drab-attribute-#{expr_hash}='#{attribute}'"
+
+    attr = "#{opener} #{expr_assigns} #{expr_attribute} #{closer}"
 
     if found_assigns? do
       quote do
@@ -88,9 +105,10 @@ defmodule Drab.Live.EExEngine do
 
     found_assigns  = find_assigns(expr)
     found_assigns? = found_assigns != []
+    drab_assigns   = found_assigns |> Enum.join(" ")
 
     span_begin = 
-      "<span id='#{uuid()}' drab-assigns='#{found_assigns |> Enum.join(" ")}' drab-expr='#{expr_hash}'>"
+      "<span id='#{uuid()}' drab-assigns='#{drab_assigns}' drab-expr='#{expr_hash}' #{@drab_indicator}='ampere'>"
     span_end   = "</span>"
 
     # do not repeat assign javascript
@@ -106,6 +124,18 @@ defmodule Drab.Live.EExEngine do
         [unquote(buffer), unquote(to_safe(expr, line))]
       end
     end
+  end
+
+  defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/, "")
+
+  defp invalid_attribute!(line) do
+    raise """
+      Invalid attribute in html template, line: #{line}.
+      Partials or mixing expression in HTML tag attributes are not allowed. Use only:
+        <tag attribute="<%= my_func() %>">
+        <tag attribute='<%= @attr <> @attr2 %>'>
+        <tag attribute=<%= my_func(@attr) %>>
+      """    
   end
 
   defp deduplicated_js_lines(buffer, found_assigns) do
@@ -133,7 +163,7 @@ defmodule Drab.Live.EExEngine do
     assign_expr = {:@, [@anno], [{assign, [@anno], nil}]}
     assign_expr = handle_assign(assign_expr)
 
-    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Live, :Crypto]}, :encode]},
+    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Live, :Crypto]}, :encode64]},
        [@anno], 
        [assign_expr]}
   end
@@ -206,32 +236,6 @@ defmodule Drab.Live.EExEngine do
     end
     result |> List.flatten() |> Enum.join()
   end
-
-
-  # def handle_expr(buffer, "=", expr) do
-  #   found_assigns = find_assigns(expr) |> Enum.join(",")
-  #   expr = Macro.prewalk(expr, &EEx.Engine.handle_assign/1)
-  #   encoded_expr = encode(expr)
-  #   uuid = uuid()
-  #   quote do
-  #     tmp1 = unquote(buffer)
-  #     # tmp1  
-  #     #   <> "<span id='#{unquote(uuid)}' drab-assigns='#{unquote(found_assigns)}' drab-expr='#{unquote(encoded_expr)}'>"
-  #     #   <> String.Chars.to_string(unquote(expr)) 
-  #     #   <> "</span>"
-  #     tmp1 
-  #   end
-  # end
-
-  # def handle_expr(buffer, "", expr) do
-  #   super(buffer, "", expr)
-  # end
-
-  # def handle_expr(buffer, "#", expr) do
-  #   super(buffer, "", expr)
-  # end
-
-
 
   def find_unclosed_tag(list) do
     Enum.reduce(list, {[], []}, fn(x, {acc, closed_tags}) -> 

@@ -7,6 +7,7 @@ Changes:
 * group JS commands to be launched in one step, if possible
 * DOM tree as a Map?
 * IEx helper text must depend on loaded modules
+* Query must work with Live
 
 ## Bugs:
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket

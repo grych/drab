@@ -6,13 +6,15 @@ defmodule Drab.Live do
 
   def transform_payload(payload) do
     # decrypt assigns
-    decrypted = for {k, v} <- payload["assigns"] || %{}, into: %{}, do: {k, Drab.Live.Crypto.decode(v)}
+    decrypted = for {k, v} <- payload["assigns"] || %{}, into: %{}, do: {k, Drab.Live.Crypto.decode64(v)}
     Map.merge(payload, %{"assigns" => decrypted})
   end
 
   def transform_socket(socket, payload) do
     # store assigns in socket as well
-    Phoenix.Socket.assign(socket, :__ampere_assigns, payload["assigns"])
+    socket 
+    |> Phoenix.Socket.assign(:__ampere_assigns, payload["assigns"])
+    |> Phoenix.Socket.assign(:__amperes, payload["amperes"])
   end
 
   # engine: Drab.Live.EExEngine
@@ -38,7 +40,7 @@ defmodule Drab.Live do
 
     # ret contains a list of amperes and current (as displayed on the page) assigns
     current_assigns = ret["current_assigns"] |>  Enum.map(fn({name, value}) -> 
-      {name, Drab.Live.Crypto.decode(value)}
+      {name, Drab.Live.Crypto.decode64(value)}
     end) |> Map.new()
 
     amperes = ret["amperes"]
@@ -98,7 +100,7 @@ defmodule Drab.Live do
 
   defp changed_assigns_js_list(assigns) do
     Enum.map(assigns, fn {k, v} -> 
-      "__drab.assigns[#{Drab.Core.encode_js(k)}] = #{Drab.Live.Crypto.encode(v) |> Drab.Core.encode_js()}" 
+      "__drab.assigns[#{Drab.Core.encode_js(k)}] = #{Drab.Live.Crypto.encode64(v) |> Drab.Core.encode_js()}" 
     end)
   end
 

@@ -3,27 +3,35 @@ defmodule Drab.Live.Crypto do
   alias Plug.Crypto.KeyGenerator
   alias Plug.Crypto.MessageEncryptor
 
-  # :erlang.term_to_binary(make_ref()) |> :erlang.phash2() |> to_string() |> Base.encode64()
-  # :erlang.term_to_binary(make_ref()) |> Base.encode64()
+  # :erlang.term_to_binary(make_ref()) |> :erlang.phash2() |> to_string() |> Base.url_encode64()
+  # :erlang.term_to_binary(make_ref()) |> Base.url_encode64()
   def uuid(), do: {now_ms(), make_ref()} |> hash()
 
   # The most effective way for store assigns in the browser is basic encode
-  def encode(term) do
-    :erlang.term_to_binary(term) |> Base.encode64()
-    # :erlang.term_to_binary(term) |> :zlib.gzip() |> Base.encode64()
+  def encode32(term) do
+    term |> :erlang.term_to_binary() |> Base.encode32(padding: false, case: :lower)
+    # :erlang.term_to_binary(term) |> :zlib.gzip() |> Base.url_encode64()
     # {now_ms(), term} |> :erlang.term_to_binary() |> :zlib.gzip() |> encrypt()
     # Drab.Core.encode_js(term)
     # Phoenix.Token.sign(Drab.Config.endpoint(), "Drab.Live.Crypto", term)
   end
 
-  def decode(string) do
-    string |> Base.decode64! |> :erlang.binary_to_term
-    # string |> Base.decode64! |> :zlib.gunzip() |> :erlang.binary_to_term
+  def decode32(string) do
+    string |> Base.decode32!(padding: false, case: :lower) |> :erlang.binary_to_term()
+    # string |> Base.url_decode64! |> :zlib.gunzip() |> :erlang.binary_to_term
     # {_millisecs, decoded} = string |> decrypt() |> :zlib.gunzip() |> :erlang.binary_to_term()
     # decoded
     # Drab.Core.decode_js(string)
     # {:ok, term} = Phoenix.Token.verify(Drab.Config.endpoint(), "Drab.Live.Crypto", string)
     # term
+  end
+
+  def encode64(term) do
+    term |> :erlang.term_to_binary() |> Base.url_encode64()
+  end
+
+  def decode64(string) do
+    string |> Base.url_decode64!() |> :erlang.binary_to_term()
   end
 
   def encrypt(term) do
@@ -48,7 +56,7 @@ defmodule Drab.Live.Crypto do
   defp now_ms(), do: System.system_time(:milli_seconds)
 
   def hash(term) do
-    :erlang.phash2(term) |> to_string() |> Base.encode64()
+    :erlang.phash2(term) |> to_string() |> Base.encode32(padding: false, case: :lower)
   end
 
 end

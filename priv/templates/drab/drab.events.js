@@ -74,7 +74,7 @@ function do_setid(whom) {
   }
 }
 
-function setid(whom) {
+Drab.setid = function(whom) {
   if (Array.isArray(whom)) {
     whom.forEach(function(x) {
       do_setid(x)
@@ -133,7 +133,7 @@ Drab.set_event_handlers = function(obj) {
             node['disabled'] = true
           }
         <% end %>
-        setid(node)
+        Drab.setid(node)
         // send the message back to the server
         Drab.run_handler(
           event_name,
