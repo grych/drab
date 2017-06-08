@@ -31,11 +31,11 @@ defmodule Drab.Live do
   def peek(socket, assign) when is_atom(assign), do: peek(socket, Atom.to_string(assign))
 
   def poke(socket, assigns) do
-    # first, get all amperes with any of the key
     # assigns_keys = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq()
 
     current_assigns = socket.assigns.__ampere_assigns
     assigns_to_update = Map.new(assigns)
+    assigns_to_update_keys = Map.keys(assigns_to_update)
 
     view = socket.assigns.__controller.__drab__().view
     app_module = Drab.Config.app_module()
@@ -43,28 +43,47 @@ defmodule Drab.Live do
     error_helpers = Module.concat(app_module, ErrorHelpers)
     gettext = Module.concat(app_module, Gettext)
 
-    # construct the javascript for update the innerHTML of amperes
-    injected_updates = 
-      for {assigns_in_expr, exprs} <- socket.assigns.__amperes["injected"], 
-          %{"id" => id, "drab_expr" => drab_expr_hash} <- exprs do
+    # class = "<%= @class1 %>" class2='<%= @class2 %>' class3 = <%= @class1 %>
 
-        {safe, _assigns} = expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext)
+    # construct the javascript for update the innerHTML of amperes
+    injected_updates = for ampere_hash <- socket.assigns.__amperes do
+      {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
+      # change only if poked assign exist in this ampere
+      if has_common?(assigns_in_expr, assigns_to_update_keys) do
+        {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
           |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
 
-        "document.getElementById('#{id}').innerHTML = #{safe_to_encoded_js(safe)}"
-      end 
+        selector = "[drab-id='#{ampere_hash}']"
+        safe_js = safe_to_encoded_js(safe)
+        "document.querySelectorAll(\"#{selector}\").forEach(function(node) {node.innerHTML = #{safe_js}})"
+      else
+        nil
+      end
+    end |> Enum.filter(fn x -> x end)
+    IO.puts ""
+    IO.inspect injected_updates
+    
+      # for {assigns_in_expr, exprs} <- socket.assigns.__amperes["injected"], 
+      #     %{"id" => id, "drab_expr" => drab_expr_hash} <- exprs do
+
+      #   expr = Drab.Live.Cache.get(drab_expr_hash)
+      #   {safe, _assigns} = expr_with_imports(hash, view, router_helpers, error_helpers, gettext)
+      #     |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+
+      #   "document.getElementById('#{id}').innerHTML = #{safe_to_encoded_js(safe)}"
+      # end 
 
     #TODO: group updates on one node
-    attributed_updates = 
-      for {drab_id, assns_exprs} <- socket.assigns.__amperes["attributed"], 
-          {assigns_in_expr, exprs} <- assns_exprs, 
-          %{"attribute" => attribute, "drab_expr" => drab_expr_hash} <- exprs do
+    attributed_updates = []
+      # for {drab_id, assns_exprs} <- socket.assigns.__amperes["attributed"], 
+      #     {assigns_in_expr, exprs} <- assns_exprs, 
+      #     %{"attribute" => attribute, "drab_expr" => drab_expr_hash} <- exprs do
 
-        {safe, _assigns} = expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext)
-          |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+      #   {safe, _assigns} = expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext)
+      #     |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
 
-        "document.querySelector(\"[drab-id='#{drab_id}']\").setAttribute('#{attribute}', #{safe_to_encoded_js(safe)})"
-      end
+      #   "document.querySelector(\"[drab-id='#{drab_id}']\").setAttribute('#{attribute}', #{safe_to_encoded_js(safe)})"
+      # end
 
     changes_assigns_js = changed_assigns_js_list(assigns_to_update)
     ampere_updates = (changes_assigns_js ++ injected_updates ++ attributed_updates) |> Enum.uniq()
@@ -77,8 +96,11 @@ defmodule Drab.Live do
     Phoenix.Socket.assign(socket, :__ampere_assigns, updated_assigns)
   end
 
-  defp expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext) do
-    expr = Drab.Live.Cache.get(drab_expr_hash)
+  defp has_common?(lista, listb) do
+    if Enum.find(lista, fn xa -> Enum.find(listb, fn xb -> xa == xb end) end), do: true, else: false
+  end
+
+  defp expr_with_imports(expr, view, router_helpers, error_helpers, gettext) do
     #TODO: find it in the web.ex
     # Find corresponding View
     quote do 
@@ -102,7 +124,7 @@ defmodule Drab.Live do
 
   #TODO: refactor, not very efficient
   defp assigns_for_expr(assigns_in_poke, assigns_in_expr, assigns_in_page) do
-    assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
+    # assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
     missing_keys = assigns_in_expr -- Map.keys(assigns_in_poke)
     assigns_in_page = for {k, v} <- assigns_in_page, into: %{}, do: {String.to_existing_atom(k), v}
     stored_assigns = Enum.filter(assigns_in_page, fn {k, _} -> Enum.member?(missing_keys, k) end) |> Map.new()

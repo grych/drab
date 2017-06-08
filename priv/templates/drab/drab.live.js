@@ -71,43 +71,50 @@ Drab.on_load(function(resp, drab) {
   // })
   // extract information from all drabbed nodes and store it in global __drab
   var d = window.__drab
-  d.amperes = {}
-  d.amperes.injected = {}
-  d.amperes.attributed = {}
-  drabbed.forEach(function(node) {
-    if (node.getAttribute("__drabbed") == "ampere") {
-      // injected spans
-      var assigns = node.getAttribute("drab-assigns")
-        if (!(assigns in d.amperes.injected)) {
-          d.amperes.injected[assigns] = []
-        }
-        d.amperes.injected[assigns].push({
-          id:         node.getAttribute("id"),
-          drab_expr:  node.getAttribute("drab-expr")
-        })
-    } else {
-      // attribute
-      Drab.setid(node)
-      var drab_id = node.getAttribute("drab-id")
-      d.amperes.attributed[drab_id] = {}
-      // console.log(node)
-      for (var i = 0; i < node.attributes.length; i++) {
-        var attr = node.attributes[i]
-        // console.log(attr)
-        if (attr.name.startsWith("drab-assigns")) {
-          // console.log(attr)
-          var assigns = attr.value
-          if (!(assigns in d.amperes.attributed)) {
-            d.amperes.attributed[drab_id][assigns] = []
-          }
-          var expr = attr.name.replace("drab-assigns-", "")
-          d.amperes.attributed[drab_id][assigns].push({
-            // id:        node.getAttribute("id"),
-            drab_expr: expr,
-            attribute: node.getAttribute("drab-attribute-" + expr)
-          })
-        }
-      }
+  d.amperes = []
+  document.querySelectorAll("[drab-id]").forEach(function(node) {
+    var drab_id = node.getAttribute("drab-id")
+    if (d.amperes.indexOf(drab_id) < 0) {
+      d.amperes.push(drab_id)
     }
   })
+
+  // d.amperes.injected = {}
+  // d.amperes.attributed = {}
+  // drabbed.forEach(function(node) {
+  //   if (node.getAttribute("__drabbed") == "ampere") {
+  //     // injected spans
+  //     var assigns = node.getAttribute("drab-assigns")
+  //       if (!(assigns in d.amperes.injected)) {
+  //         d.amperes.injected[assigns] = []
+  //       }
+  //       d.amperes.injected[assigns].push({
+  //         id:         node.getAttribute("id"),
+  //         drab_expr:  node.getAttribute("drab-expr")
+  //       })
+  //   } else {
+  //     // attribute
+  //     Drab.setid(node)
+  //     var drab_id = node.getAttribute("drab-id")
+  //     d.amperes.attributed[drab_id] = {}
+  //     // console.log(node)
+  //     for (var i = 0; i < node.attributes.length; i++) {
+  //       var attr = node.attributes[i]
+  //       // console.log(attr)
+  //       if (attr.name.startsWith("drab-assigns")) {
+  //         // console.log(attr)
+  //         var assigns = attr.value
+  //         if (!(assigns in d.amperes.attributed)) {
+  //           d.amperes.attributed[drab_id][assigns] = []
+  //         }
+  //         var expr = attr.name.replace("drab-assigns-", "")
+  //         d.amperes.attributed[drab_id][assigns].push({
+  //           // id:        node.getAttribute("id"),
+  //           drab_expr: expr,
+  //           attribute: node.getAttribute("drab-attribute-" + expr)
+  //         })
+  //       }
+  //     }
+  //   }
+  // })
 })

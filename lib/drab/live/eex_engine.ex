@@ -100,15 +100,19 @@ defmodule Drab.Live.EExEngine do
   defp inject_span(buffer, expr) do
     line           = line_from_expr(expr)
     expr           = Macro.prewalk(expr, &handle_assign/1)
-    expr_hash      = hash(expr)
-    Drab.Live.Cache.add(expr_hash, expr)
+    # expr_hash      = hash(expr)
+    # Drab.Live.Cache.add(expr_hash, expr)
 
     found_assigns  = find_assigns(expr)
     found_assigns? = found_assigns != []
-    drab_assigns   = found_assigns |> Enum.join(" ")
+    # drab_assigns   = found_assigns |> Enum.join(" ")
 
-    span_begin = 
-      "<span id='#{uuid()}' drab-assigns='#{drab_assigns}' drab-expr='#{expr_hash}' #{@drab_indicator}='ampere'>"
+    hash = hash({:ampere, expr, found_assigns})
+    Drab.Live.Cache.add(hash, {:ampere, expr, found_assigns})
+
+    # span_begin = 
+    #   "<span drab-id='#{hash}' id='#{uuid()}' drab-assigns='#{drab_assigns}' drab-expr='#{expr_hash}' #{@drab_indicator}='ampere'>"
+    span_begin = "<span drab-id='#{hash}'>"
     span_end   = "</span>"
 
     # do not repeat assign javascript
@@ -222,7 +226,7 @@ defmodule Drab.Live.EExEngine do
         _ -> {node, acc}
       end
     end
-    result |> Enum.uniq |> Enum.sort
+    result |> Enum.uniq() |> Enum.sort()
   end
 
   #TODO: rethink, may not be very smart
