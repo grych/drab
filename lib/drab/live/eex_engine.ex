@@ -42,10 +42,8 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
     html = get_plain_html(buffer) 
+    # IO.inspect no_tags(html)
     if Regex.match?(~r/<\S+/, no_tags(html)) do
-      # raise """
-      # Live Expressions inside tags are not allowed yet
-      # """
       {:safe, inject_attribute(buffer, expr, html)}
     else
       {:safe, inject_span(buffer, expr)}
@@ -58,17 +56,16 @@ defmodule Drab.Live.EExEngine do
     expr_hash      = hash(expr)
     Drab.Live.Cache.add(expr_hash, expr)
 
-    found_assigns  = find_assigns(expr)
+    found_assigns  = find_assigns(expr) |> Enum.sort()
     found_assigns? = found_assigns != []
 
     # do not repeat assign javascript
     as = deduplicated_js_lines(buffer, found_assigns)
     assigns_js = script_tag(as)
 
-    #TODO: try to find out if there is nothing AFTER the expression? I guess not
-    # IO.inspect html
+    #TODO: try to find out if there is nothing AFTER the expression?
     # Regex.match?(~r/__dumb=".+"/, html) && invalid_attribute!(line)
-    opener = String.last(html)
+    opener = html |> String.trim() |> String.last()
     closer = case opener do
       "\"" -> "#{@drab_indicator}=\""
       "'"  -> "#{@drab_indicator}='"
@@ -76,7 +73,10 @@ defmodule Drab.Live.EExEngine do
       _    -> invalid_attribute!(line)
     end
 
-    {attribute, _} = String.split(no_tags(html), ~r/[=\s]/) |> List.pop_at(-2)
+    # IO.inspect no_tags(html)
+    {attribute, _} = String.split(no_tags(html), ~r/[=\s]/) 
+      |> Enum.filter(fn x -> x != "" end)
+      |> List.pop_at(-2)
     unless attribute, do: invalid_attribute!(line)
 
     opener = if opener == "=", do: "", else: opener
@@ -135,6 +135,7 @@ defmodule Drab.Live.EExEngine do
         <tag attribute="<%= my_func() %>">
         <tag attribute='<%= @attr <> @attr2 %>'>
         <tag attribute=<%= my_func(@attr) %>>
+      Or you tried to include the "<" character in your page: you should escape it as "&lt;"
       """    
   end
 
@@ -249,7 +250,7 @@ defmodule Drab.Live.EExEngine do
           {acc ++ ["#{x} (closing)"], closed_tags ++ [tag(s)]}
         Regex.match?(opening_match, s) ->
           # IO.puts "#{s} opening, tag: #{tag(s)}"
-          IO.inspect closed_tags
+          # IO.inspect closed_tags
           {acc ++ ["#{x} OPEN"], closed_tags -- [tag(s)]}
         true -> {acc, closed_tags}
       end

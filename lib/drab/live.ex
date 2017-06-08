@@ -6,6 +6,7 @@ defmodule Drab.Live do
 
   def transform_payload(payload) do
     # decrypt assigns
+    # TODO: maybe better to do it on demand, on poke/peek?
     decrypted = for {k, v} <- payload["assigns"] || %{}, into: %{}, do: {k, Drab.Live.Crypto.decode64(v)}
     Map.merge(payload, %{"assigns" => decrypted})
   end
@@ -31,71 +32,81 @@ defmodule Drab.Live do
 
   def poke(socket, assigns) do
     # first, get all amperes with any of the key
-    assigns_keys = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq()
+    # assigns_keys = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq()
 
-    #TODO: put amperes into socket
-    js = "Drab.find_amperes_by_assigns(#{Drab.Core.encode_js(assigns_keys)})"
-    {:ok, ret} = Drab.Core.exec_js(socket, js)
+    current_assigns = socket.assigns.__ampere_assigns
+    assigns_to_update = Map.new(assigns)
 
+    view = socket.assigns.__controller.__drab__().view
+    app_module = Drab.Config.app_module()
+    router_helpers = Module.concat(app_module, Router.Helpers)
+    error_helpers = Module.concat(app_module, ErrorHelpers)
+    gettext = Module.concat(app_module, Gettext)
 
-    # ret contains a list of amperes and current (as displayed on the page) assigns
-    current_assigns = ret["current_assigns"] |>  Enum.map(fn({name, value}) -> 
-      {name, Drab.Live.Crypto.decode64(value)}
-    end) |> Map.new()
+    # construct the javascript for update the innerHTML of amperes
+    injected_updates = 
+      for {assigns_in_expr, exprs} <- socket.assigns.__amperes["injected"], 
+          %{"id" => id, "drab_expr" => drab_expr_hash} <- exprs do
 
-    amperes = ret["amperes"]
-    assigns_to_change = Map.new(assigns)
+        {safe, _assigns} = expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext)
+          |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
 
-    # to construct the javascript for update the innerHTML of amperes
-    ampere_updates = Enum.map(amperes, fn %{"id" => id, "drab_expr" => drab_expr_hash, "assigns" => assigns_in_expr} ->
-      # decoded = Drab.Live.Crypto.decode(drab_expr)
-      expr = Drab.Live.Cache.get(drab_expr_hash)
-      # Find corresponding View
-      view = socket.assigns.__controller.__drab__().view
+        "document.getElementById('#{id}').innerHTML = #{safe_to_encoded_js(safe)}"
+      end 
 
-      #TODO: find it in the web.ex
-      # import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
-      # use Phoenix.HTML
-      # import DrabTestApp.Router.Helpers
-      # import DrabTestApp.ErrorHelpers
-      # import DrabTestApp.Gettext
-      router_helpers = Module.concat(Drab.Config.app_module(), Router.Helpers)
-      error_helpers = Module.concat(Drab.Config.app_module(), ErrorHelpers)
-      gettext = Module.concat(Drab.Config.app_module(), Gettext)
-      expr = quote do 
-        import unquote(view)
-        import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
-        use Phoenix.HTML
-        import unquote(router_helpers)
-        import unquote(error_helpers)
-        import unquote(gettext)
-        unquote(expr)
+    #TODO: group updates on one node
+    attributed_updates = 
+      for {drab_id, assns_exprs} <- socket.assigns.__amperes["attributed"], 
+          {assigns_in_expr, exprs} <- assns_exprs, 
+          %{"attribute" => attribute, "drab_expr" => drab_expr_hash} <- exprs do
+
+        {safe, _assigns} = expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext)
+          |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+
+        "document.querySelector(\"[drab-id='#{drab_id}']\").setAttribute('#{attribute}', #{safe_to_encoded_js(safe)})"
       end
 
-      {safe, _assigns} = Code.eval_quoted(expr, 
-        [assigns: assigns_for_expr(assigns_to_change, assigns_in_expr, current_assigns) |> Map.to_list()])
-
-      [
-        "document.getElementById('#{id}').innerHTML = #{safe_to_encoded_js(safe)}",
-        changed_assigns_js_list(assigns_to_change)
-      ]
-    end) |> List.flatten() |> Enum.uniq()
-
-    # IO.inspect ampere_updates
+    changes_assigns_js = changed_assigns_js_list(assigns_to_update)
+    ampere_updates = (changes_assigns_js ++ injected_updates ++ attributed_updates) |> Enum.uniq()
+      
     {:ok, _} = Drab.Core.exec_js(socket, ampere_updates |> Enum.join(";"))
 
-    assigns_to_change = for {k, v} <- assigns_to_change, into: %{}, do: {Atom.to_string(k), v}
-    updated_assigns = Map.merge(current_assigns, assigns_to_change)
+    assigns_to_update = for {k, v} <- assigns_to_update, into: %{}, do: {Atom.to_string(k), v}
+    updated_assigns = Map.merge(current_assigns, assigns_to_update)
 
     Phoenix.Socket.assign(socket, :__ampere_assigns, updated_assigns)
   end
 
+  defp expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext) do
+    expr = Drab.Live.Cache.get(drab_expr_hash)
+    #TODO: find it in the web.ex
+    # Find corresponding View
+    quote do 
+      import unquote(view)
+      import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
+      use Phoenix.HTML
+      import unquote(router_helpers)
+      import unquote(error_helpers)
+      import unquote(gettext)
+      unquote(expr)
+    end    
+  end
+
+  # defp find_amperes_by_assigns(amperes, assigns_keys) do
+  #   #       |> Enum.filter(fn {k, _v} -> String.contains?(k, "class1") end)
+  #   filtered = for assign <- assigns_keys, {k, v} <- amperes, String.contains?(k, Atom.to_string(assign)), into: %{} do
+  #     {k, v}
+  #   end
+  #   for {assigns, amperes} <- filtered, ampere <- amperes, do: Map.merge(%{"assigns" => assigns}, ampere)
+  # end
+
+  #TODO: refactor, not very efficient
   defp assigns_for_expr(assigns_in_poke, assigns_in_expr, assigns_in_page) do
     assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
     missing_keys = assigns_in_expr -- Map.keys(assigns_in_poke)
     assigns_in_page = for {k, v} <- assigns_in_page, into: %{}, do: {String.to_existing_atom(k), v}
     stored_assigns = Enum.filter(assigns_in_page, fn {k, _} -> Enum.member?(missing_keys, k) end) |> Map.new()
-    Map.merge(stored_assigns, assigns_in_poke)
+    Map.merge(stored_assigns, assigns_in_poke) |> Map.to_list()
   end
 
   defp changed_assigns_js_list(assigns) do

@@ -41,7 +41,7 @@ defmodule DrabTestApp.LiveCommander do
     # IO.inspect peek(socket, :list)
     # socket = poke socket, list: list
     # IO.inspect peek(socket, :list)
-    poke socket, class1: "btn btn-primary"
+    poke socket, class1: "btn btn-primary", class2: "btn-warning"
   end
 
 end

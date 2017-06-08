@@ -17,19 +17,27 @@ defmodule Drab.Config do
   """
   def endpoint() do
     # IO.inspect app_env()
-    {endpoint, _} = app_env() |> Enum.find(fn {base, _} ->
-      Code.ensure_compiled(base) # needs to be compiled before View
+    # TODO: bad performance
+    {endpoint, _} = app_env() 
+    |> Enum.filter(fn {x, _} -> first_uppercase?(x) end)
+    |> Enum.find(fn {base, _} ->
+      # Code.ensure_compiled(base) # needs to be compiled before View
       is_endpoint?(base)
     end)
     endpoint
   end
 
+  defp first_uppercase?(atom) do
+    x = atom |> Atom.to_string() |> String.first()
+    x == String.upcase(x)
+  end
+
   # TODO: find a better way to check if the module is an Endpoint
-  defp is_endpoint?(atom) when is_atom(atom) do
-    {loaded, _} = Code.ensure_loaded(atom)
+  defp is_endpoint?(module) when is_atom(module) do
+    {loaded, _} = Code.ensure_loaded(module)
     loaded == :module 
-      && Drab.function_exists?(atom, "struct_url") 
-      && Drab.function_exists?(atom, "url")
+      && Drab.function_exists?(module, "struct_url") 
+      && Drab.function_exists?(module, "url")
   end
 
   @doc """

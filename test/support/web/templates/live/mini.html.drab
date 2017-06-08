@@ -1,7 +1,7 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
-<button id=b drab-click='update_mini' class="<%= @class1 %>" class2='<%= @class2 %>' class3=<%= @class1 %> >
+<button id=b dupa = blada drab-click='update_mini' class = "<%= @class1 %>" class2='<%= @class2 %>' class3 = <%= @class1 %> >
   Update Mini
 </button>
 <br>
@@ -11,7 +11,8 @@
 </button>
 <br>
 
-
 Class1: <%= @class1 %> <br>
+Class1+: <%= @class1 <> " other" %> <br>
 Class2: <%= @class2 %> <br>
-Both: <%= "#{@class1} #{@class2}" %> <br>
+Both: <%= "#{@class2} #{@class1}" %> <br>
+
