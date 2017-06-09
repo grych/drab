@@ -12,6 +12,7 @@ defmodule Drab.Live.CryptoTest do
       z = x * y
       to_string(z)
     end
-    assert encode(quoted) |> decode() == quoted
+    assert encode32(quoted) |> decode32() == quoted
+    assert encode64(quoted) |> decode64() == quoted
   end
 end

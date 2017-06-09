@@ -45,24 +45,46 @@ defmodule Drab.Live do
 
     # class = "<%= @class1 %>" class2='<%= @class2 %>' class3 = <%= @class1 %>
 
-    # construct the javascript for update the innerHTML of amperes
-    injected_updates = for ampere_hash <- socket.assigns.__amperes do
-      {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
-      # change only if poked assign exist in this ampere
-      if has_common?(assigns_in_expr, assigns_to_update_keys) do
-        {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
-          |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+    # amperes of attributes contains more hashes, space separated
+    amperes = socket.assigns.__amperes 
+      |> Enum.map(&String.split/1)
+      |> List.flatten()
+      |> Enum.uniq()
 
-        selector = "[drab-id='#{ampere_hash}']"
-        safe_js = safe_to_encoded_js(safe)
-        "document.querySelectorAll(\"#{selector}\").forEach(function(node) {node.innerHTML = #{safe_js}})"
-      else
-        nil
+    # construct the javascript for update the innerHTML of amperes
+    injected_updates = for ampere_hash <- amperes do
+      case Drab.Live.Cache.get(ampere_hash) do
+        {:ampere, expr, assigns_in_expr} ->
+          # change only if poked assign exist in this ampere
+          #TODO: stay DRY
+          if has_common?(assigns_in_expr, assigns_to_update_keys) do
+            {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
+              |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+
+            selector = "[drab-expr='#{ampere_hash}']"
+            safe_js = safe_to_encoded_js(safe)
+            "document.querySelectorAll(\"#{selector}\").forEach(function(n) {n.innerHTML = #{safe_js}})"
+          else
+            nil
+          end
+        {:attributed, expr, assigns_in_expr, attribute} ->
+          if has_common?(assigns_in_expr, assigns_to_update_keys) do
+            {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
+              |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+
+            selector = "[drab-expr~='#{ampere_hash}']"
+            safe_js = safe_to_encoded_js(safe)
+            "document.querySelectorAll(\"#{selector}\").forEach(function(n) {n.setAttribute('#{attribute}', #{safe_js})})"
+          else
+            nil
+          end
+        _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
       end
+      # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
     end |> Enum.filter(fn x -> x end)
     IO.puts ""
     IO.inspect injected_updates
-    
+
       # for {assigns_in_expr, exprs} <- socket.assigns.__amperes["injected"], 
       #     %{"id" => id, "drab_expr" => drab_expr_hash} <- exprs do
 
@@ -82,7 +104,7 @@ defmodule Drab.Live do
       #   {safe, _assigns} = expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext)
       #     |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
 
-      #   "document.querySelector(\"[drab-id='#{drab_id}']\").setAttribute('#{attribute}', #{safe_to_encoded_js(safe)})"
+      #   "document.querySelector(\"[drab-expr='#{drab_id}']\").setAttribute('#{attribute}', #{safe_to_encoded_js(safe)})"
       # end
 
     changes_assigns_js = changed_assigns_js_list(assigns_to_update)

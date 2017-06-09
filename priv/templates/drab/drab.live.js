@@ -36,7 +36,7 @@
 //   var ret = []
 //   nodes.forEach(function(node) {
 //     ret.push({
-//       drab_id:  node.getAttribute("drab-id")
+//       drab_id:  node.getAttribute("drab-expr")
 //     })
 //   })
 //   return ret
@@ -63,17 +63,37 @@ Drab.add_payload(function(sender, event) {
 })
 
 Drab.on_load(function(resp, drab) {
-  // add drab-id to all drabbed tags
-  var drabbed = document.querySelectorAll("[__drabbed]")
+  // add drab-expr to all drabbed tags
+  // var drabbed = document.querySelectorAll("[__drabbed]")
   // drabbed.forEach(function(node) {
     // Drab.setid(node)
     // 
   // })
+  // collect attributed values
+  var drabbed = document.querySelectorAll("[drabbed]")
+  var hashes = []
+  drabbed.forEach(function(node) {
+    node.removeAttribute("drabbed")
+    for (var i = 0; i < node.attributes.length; i++) {
+      var attr = node.attributes[i]
+      if (attr.name.startsWith("drab-attr")) {
+        var hash = attr.name.replace("drab-attr-", "")
+        if (hashes.indexOf(hash) < 0) {
+          node.removeAttribute(attr.name)
+          hashes.push(hash)
+        }
+      }
+    }
+    if (hashes.length > 0) {
+      node.setAttribute("drab-expr", hashes.join(" "))
+    }
+  })
+
   // extract information from all drabbed nodes and store it in global __drab
   var d = window.__drab
   d.amperes = []
-  document.querySelectorAll("[drab-id]").forEach(function(node) {
-    var drab_id = node.getAttribute("drab-id")
+  document.querySelectorAll("[drab-expr]").forEach(function(node) {
+    var drab_id = node.getAttribute("drab-expr")
     if (d.amperes.indexOf(drab_id) < 0) {
       d.amperes.push(drab_id)
     }
@@ -95,7 +115,7 @@ Drab.on_load(function(resp, drab) {
   //   } else {
   //     // attribute
   //     Drab.setid(node)
-  //     var drab_id = node.getAttribute("drab-id")
+  //     var drab_id = node.getAttribute("drab-expr")
   //     d.amperes.attributed[drab_id] = {}
   //     // console.log(node)
   //     for (var i = 0; i < node.attributes.length; i++) {

@@ -6,7 +6,7 @@ defmodule Drab.Live.EExEngine do
   require IEx
 
   @jsvar "__drab"
-  @drab_indicator  "__drabbed"
+  @drab_indicator  "drabbed"
 
   @anno (if :erlang.system_info(:otp_release) >= '19' do
     [generated: true]
@@ -50,7 +50,7 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-  defp inject_attribute(buffer, expr, html) do
+  defp inject_attribute(buffer, expr, _html) do
     line           = line_from_expr(expr)
     expr           = Macro.prewalk(expr, &handle_assign/1)
     expr_hash      = hash(expr)
@@ -63,38 +63,114 @@ defmodule Drab.Live.EExEngine do
     as = deduplicated_js_lines(buffer, found_assigns)
     assigns_js = script_tag(as)
 
+    lastline = last_line(buffer)
+    IO.inspect lastline
+    attribute = find_attr_in_line(lastline)
+
+    IO.inspect attribute
+
+    hash = hash({:attributed, expr, found_assigns, attribute})
+    Drab.Live.Cache.add(hash, {:attributed, expr, found_assigns, attribute})
+
+    # add drabbed indicator, only once
+    drabbed = if Regex.match?(~r/<\S+/, lastline), do: "#{@drab_indicator} ", else: ""
+
+    injected_line =
+      replace_last(lastline, attribute, "#{drabbed}drab-attr-#{hash} #{attribute}")
+    IO.inspect injected_line
+
+    [{a, b, list}] = buffer
+    buffer = [{a, b, List.replace_at(list, -1, injected_line)}]
+    IO.puts ""
+
+
     #TODO: try to find out if there is nothing AFTER the expression?
     # Regex.match?(~r/__dumb=".+"/, html) && invalid_attribute!(line)
-    opener = html |> String.trim() |> String.last()
-    closer = case opener do
-      "\"" -> "#{@drab_indicator}=\""
-      "'"  -> "#{@drab_indicator}='"
-      "="  -> "#{@drab_indicator}"
-      _    -> invalid_attribute!(line)
-    end
+    # opener = html |> String.trim() |> String.last()
+    # closer = case opener do
+    #   "\"" -> "#{@drab_indicator}=\""
+    #   "'"  -> "#{@drab_indicator}='"
+    #   "="  -> "#{@drab_indicator}"
+    #   _    -> invalid_attribute!(line)
+    # end
 
-    # IO.inspect no_tags(html)
-    {attribute, _} = String.split(no_tags(html), ~r/[=\s]/) 
-      |> Enum.filter(fn x -> x != "" end)
-      |> List.pop_at(-2)
-    unless attribute, do: invalid_attribute!(line)
+    # # IO.inspect no_tags(html)
+    # {attribute, _} = String.split(no_tags(html), ~r/[=\s]/) 
+    #   |> Enum.filter(fn x -> x != "" end)
+    #   |> List.pop_at(-2)
+    # unless attribute, do: invalid_attribute!(line)
 
-    opener = if opener == "=", do: "", else: opener
+    # opener = if opener == "=", do: "", else: opener
 
-    expr_assigns = "drab-assigns-#{expr_hash}='#{found_assigns |> Enum.join(" ")}'"
-    expr_attribute = "drab-attribute-#{expr_hash}='#{attribute}'"
+    # expr_assigns = "drab-assigns-#{expr_hash}='#{found_assigns |> Enum.join(" ")}'"
+    # expr_attribute = "drab-attribute-#{expr_hash}='#{attribute}'"
 
-    attr = "#{opener} #{expr_assigns} #{expr_attribute} #{closer}"
+    # attr = "#{opener} #{expr_assigns} #{expr_attribute} #{closer}"
 
     if found_assigns? do
       quote do
-        [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line)), unquote(attr)]
+        # [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line)), unquote(attr)]
+        [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line))]
       end
     else
       quote do
         [unquote(buffer), unquote(to_safe(expr, line))]
       end
     end
+  end
+
+  def find_attr_in_line(line) do
+    args_removed = line
+    |> String.split(~r/<\S+/)
+    |> take_at(-1)
+    |> remove_full_args()
+
+    unless String.contains?(args_removed, "=") do
+      raise CompileError, description: """
+        Invalid attribute in html template:
+          `#{IO.inspect line}`
+        You must specify the the attribute in the tag, like:
+          <tag attribute="<%= my_func() %>">
+          <tag attribute='<%= @attr <> @attr2 %>'>
+          <tag attribute=<%= my_func(@attr) %>>
+        Or you tried to include the "<" character in your page: you should escape it as "&lt;"
+        """
+    end
+
+    line
+    |> String.split("=") 
+    |> take_at(-2)
+    |> String.split(~r/\s+/)
+    |> Enum.filter(fn x -> x != "" end)
+    |> List.last()
+  end
+
+  defp remove_full_args(string) do
+    string
+    |> String.replace(~r/\S+\s*=\s*'.*'/, "")
+    |> String.replace(~r/\S+\s*=\s*".*"/, "")
+    |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/, "")
+  end
+
+  # defp puts(s) do 
+  #   IO.inspect(s)
+  #   s 
+  # end
+
+  defp replace_last(string, pattern, replacement) do
+    String.reverse(string)
+    |> String.replace(String.reverse(pattern), String.reverse(replacement), global: false) 
+    |> String.reverse()
+  end
+
+  defp take_at(list, index) do
+    {item, _} = List.pop_at(list, index)
+    item
+  end
+
+  defp last_line(buffer) do
+    [{:|, _, a}] = buffer
+    List.last(a)
   end
 
   defp inject_span(buffer, expr) do
@@ -112,7 +188,7 @@ defmodule Drab.Live.EExEngine do
 
     # span_begin = 
     #   "<span drab-id='#{hash}' id='#{uuid()}' drab-assigns='#{drab_assigns}' drab-expr='#{expr_hash}' #{@drab_indicator}='ampere'>"
-    span_begin = "<span drab-id='#{hash}'>"
+    span_begin = "<span drab-expr='#{hash}'>"
     span_end   = "</span>"
 
     # do not repeat assign javascript
@@ -131,17 +207,6 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/, "")
-
-  defp invalid_attribute!(line) do
-    raise """
-      Invalid attribute in html template, line: #{line}.
-      Partials or mixing expression in HTML tag attributes are not allowed. Use only:
-        <tag attribute="<%= my_func() %>">
-        <tag attribute='<%= @attr <> @attr2 %>'>
-        <tag attribute=<%= my_func(@attr) %>>
-      Or you tried to include the "<" character in your page: you should escape it as "&lt;"
-      """    
-  end
 
   defp deduplicated_js_lines(buffer, found_assigns) do
     found_assigns |> Enum.map(fn assign ->
