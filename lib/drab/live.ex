@@ -82,8 +82,6 @@ defmodule Drab.Live do
       end
       # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
     end |> Enum.filter(fn x -> x end)
-    IO.puts ""
-    IO.inspect injected_updates
 
       # for {assigns_in_expr, exprs} <- socket.assigns.__amperes["injected"], 
       #     %{"id" => id, "drab_expr" => drab_expr_hash} <- exprs do
