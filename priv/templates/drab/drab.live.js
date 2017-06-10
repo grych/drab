@@ -38,12 +38,12 @@ Drab.on_load(function(resp, drab) {
   })
 })
 
-Drab.update_attribute = function(selector, attribute, value, prefix) {
+Drab.update_attribute = function(selector, attribute, current_value, new_value, prefix) {
   // "document.querySelectorAll(\"#{selector}\").forEach(function(n) {n.setAttribute('#{attribute}', #{js})})"
   document.querySelectorAll(selector).forEach(function(node) {
     var current = node.getAttribute(attribute)
     var suffix = current.replace(prefix, "")
-    var replaced = suffix.replace(suffix, value)
+    var replaced = suffix.replace(current_value, new_value)
     node.setAttribute(attribute, prefix + replaced)
   })
 }

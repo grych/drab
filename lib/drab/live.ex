@@ -72,13 +72,20 @@ defmodule Drab.Live do
           end
         {:attributed, expr, assigns_in_expr, attribute, prefix} ->
           if has_common?(assigns_in_expr, assigns_to_update_keys) do
+            IO.inspect current_assigns
+            curr = Enum.map(current_assigns, fn {k, v} -> {String.to_existing_atom(k), v} end)
+            IO.inspect curr
+            {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
+              |> Code.eval_quoted([assigns: curr])
+            current_js = safe_to_encoded_js(safe)
+
             {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
               |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
-
-            selector = "[drab-expr~='#{ampere_hash}']"
             js = safe_to_encoded_js(safe)
 
-            "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{js}, #{encode_js(prefix)})"
+            selector = "[drab-expr~='#{ampere_hash}']"
+
+            "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{current_js}, #{js}, #{encode_js(prefix)})"
           else
             nil
           end

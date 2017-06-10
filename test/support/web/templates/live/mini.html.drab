@@ -3,7 +3,7 @@
 
 <button id=b  one='one' two="two" class
 = "btn
-<%=@class2%>" drab-click='update_mini'  >
+<%=@class2%> after" drab-click='update_mini'  >
   Update Mini
 </button>
 <br>
