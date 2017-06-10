@@ -87,6 +87,8 @@ defmodule Drab.Live do
       # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
     end |> Enum.filter(fn x -> x end)
 
+    IO.inspect(injected_updates)
+
     changes_assigns_js = changed_assigns_js_list(assigns_to_update)
     ampere_updates = (changes_assigns_js ++ injected_updates) |> Enum.uniq()
       

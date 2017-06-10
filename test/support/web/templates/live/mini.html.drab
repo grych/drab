@@ -2,8 +2,8 @@
 <div id="drab_pid"></div>
 
 <button id=b  one='one' two="two" class
-=
-<%=@class2%> drab-click='update_mini'  >
+= "btn
+<%=@class2%>" drab-click='update_mini'  >
   Update Mini
 </button>
 <br>

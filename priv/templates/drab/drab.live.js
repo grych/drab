@@ -42,7 +42,8 @@ Drab.update_attribute = function(selector, attribute, value, prefix) {
   // "document.querySelectorAll(\"#{selector}\").forEach(function(n) {n.setAttribute('#{attribute}', #{js})})"
   document.querySelectorAll(selector).forEach(function(node) {
     var current = node.getAttribute(attribute)
-    var replaced = current.replace(prefix, "").replace(current, value)
+    var suffix = current.replace(prefix, "")
+    var replaced = suffix.replace(suffix, value)
     node.setAttribute(attribute, prefix + replaced)
   })
 }
