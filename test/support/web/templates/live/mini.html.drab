@@ -1,14 +1,14 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
-<button id=b  one='one' two="two" class
-= "btn
+<button a=b  one='one' two="two" class= "btn
 <%=@class2%> after" drab-click='update_mini'  >
   Update Mini
 </button>
 <br>
 
-<button class= "before <%= "#{@class1} #{@class2}" %> after" class=3>
+<button a="b" class
+ = "before <%= "#{@class1} #{@class2}" %> after" class=3>
   Second
 </button>
 <br>

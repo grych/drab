@@ -44,6 +44,7 @@ function default_payload(sender, event) {
       text:     sender.innerText,
       html:     sender.innerHTML,
       val:      sender.value,
+      value:    sender.value,
       data:     sender.dataset,
       drab_id:  sender.getAttribute("drab-id") },
     event: {

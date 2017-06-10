@@ -72,9 +72,7 @@ defmodule Drab.Live do
           end
         {:attributed, expr, assigns_in_expr, attribute, prefix} ->
           if has_common?(assigns_in_expr, assigns_to_update_keys) do
-            IO.inspect current_assigns
             curr = Enum.map(current_assigns, fn {k, v} -> {String.to_existing_atom(k), v} end)
-            IO.inspect curr
             {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
               |> Code.eval_quoted([assigns: curr])
             current_js = safe_to_encoded_js(safe)
@@ -85,7 +83,8 @@ defmodule Drab.Live do
 
             selector = "[drab-expr~='#{ampere_hash}']"
 
-            "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{current_js}, #{js}, #{encode_js(prefix)})"
+            "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{current_js}, #{js}, \
+            #{encode_js(prefix)})"
           else
             nil
           end
@@ -94,7 +93,7 @@ defmodule Drab.Live do
       # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
     end |> Enum.filter(fn x -> x end)
 
-    IO.inspect(injected_updates)
+    # IO.inspect(injected_updates)
 
     changes_assigns_js = changed_assigns_js_list(assigns_to_update)
     ampere_updates = (changes_assigns_js ++ injected_updates) |> Enum.uniq()

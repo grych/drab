@@ -9,8 +9,8 @@ Drab.on_load(function(resp, drab) {
   // add drab-expr to all drabbed tags
   // collect attributed values
   var drabbed = document.querySelectorAll("[drabbed]")
-  var hashes = []
   drabbed.forEach(function(node) {
+    var hashes = []
     node.removeAttribute("drabbed")
     for (var i = 0; i < node.attributes.length; i++) {
       var attr = node.attributes[i]

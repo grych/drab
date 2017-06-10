@@ -163,10 +163,10 @@ defmodule Drab.Live.EExEngine do
     |> String.replace_suffix("\"", "")
   end
 
-  defp remove_full_args(string) do
+  def remove_full_args(string) do
     string
-    |> String.replace(~r/\S+\s*=\s*'.*'/, "")
-    |> String.replace(~r/\S+\s*=\s*".*"/, "")
+    |> String.replace(~r/\S+\s*=\s*'[^']*'/, "")
+    |> String.replace(~r/\S+\s*=\s*"[^"]*"/, "")
     |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/, "")
   end
 
