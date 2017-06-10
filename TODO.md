@@ -1,12 +1,12 @@
 
 ## 0.5.0
 Changes:
+* keep Amperes in Drab, not in socket
 * remove Query from the default
 * new default module, not jQuery based
 * changesets for update/insert in the new base module
 * group JS commands to be launched in one step, if possible
 * DOM tree as a Map?
-* IEx helper text must depend on loaded modules
 * Query must work with Live
 
 ## Bugs:

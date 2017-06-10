@@ -1,5 +1,7 @@
 defmodule Drab.Live.EExEngine do
-  @moduledoc false
+  @moduledoc """
+
+  """
 
   import Drab.Live.Crypto
   use EEx.Engine
@@ -94,9 +96,10 @@ defmodule Drab.Live.EExEngine do
 
     lastline = last_line(buffer)
     attribute = find_attr_in_line(lastline)
+    prefix = find_prefix_in_line(lastline)
 
     hash = hash({:attributed, expr, found_assigns, attribute})
-    Drab.Live.Cache.add(hash, {:attributed, expr, found_assigns, attribute})
+    Drab.Live.Cache.add(hash, {:attributed, expr, found_assigns, attribute, prefix})
 
     # Add drabbed indicator, only once
     drabbed = if Regex.match?(~r/<\S+/, lastline), do: "#{@drab_indicator} ", else: ""
@@ -131,7 +134,7 @@ defmodule Drab.Live.EExEngine do
     unless String.contains?(args_removed, "=") do
       raise CompileError, description: """
         Invalid attribute in html template:
-          `#{IO.inspect line}`
+          `#{inspect line}`
         You must specify the the attribute in the tag, like:
           <tag attribute="<%= my_func() %>">
           <tag attribute='<%= @attr <> @attr2 %>'>
@@ -148,6 +151,16 @@ defmodule Drab.Live.EExEngine do
     |> String.split(~r/\s+/)
     |> Enum.filter(fn x -> x != "" end)
     |> List.last()
+  end
+
+  @doc false
+  def find_prefix_in_line(line) do
+    line
+    |> String.split("=") 
+    |> take_at(-1)
+    |> String.replace(~r/^\s*["']*/, "", global: false)
+    |> String.replace_suffix("'", "")
+    |> String.replace_suffix("\"", "")
   end
 
   defp remove_full_args(string) do

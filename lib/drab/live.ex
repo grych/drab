@@ -1,5 +1,6 @@
 defmodule Drab.Live do
   @moduledoc false
+  import Drab.Core
 
   use DrabModule
   def js_templates(),  do: ["drab.events.js", "drab.live.js"]
@@ -52,6 +53,7 @@ defmodule Drab.Live do
       |> Enum.uniq()
 
     # construct the javascript for update the innerHTML of amperes
+    #TODO: group updates on one node
     injected_updates = for ampere_hash <- amperes do
       case Drab.Live.Cache.get(ampere_hash) do
         {:ampere, expr, assigns_in_expr} ->
@@ -62,19 +64,21 @@ defmodule Drab.Live do
               |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
 
             selector = "[drab-expr='#{ampere_hash}']"
-            safe_js = safe_to_encoded_js(safe)
-            "document.querySelectorAll(\"#{selector}\").forEach(function(n) {n.innerHTML = #{safe_js}})"
+            js = safe_to_encoded_js(safe)
+
+            "Drab.update_drab_span(#{encode_js(selector)}, #{js})"
           else
             nil
           end
-        {:attributed, expr, assigns_in_expr, attribute} ->
+        {:attributed, expr, assigns_in_expr, attribute, prefix} ->
           if has_common?(assigns_in_expr, assigns_to_update_keys) do
             {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
               |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
 
             selector = "[drab-expr~='#{ampere_hash}']"
-            safe_js = safe_to_encoded_js(safe)
-            "document.querySelectorAll(\"#{selector}\").forEach(function(n) {n.setAttribute('#{attribute}', #{safe_js})})"
+            js = safe_to_encoded_js(safe)
+
+            "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{js}, #{encode_js(prefix)})"
           else
             nil
           end
@@ -83,30 +87,8 @@ defmodule Drab.Live do
       # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
     end |> Enum.filter(fn x -> x end)
 
-      # for {assigns_in_expr, exprs} <- socket.assigns.__amperes["injected"], 
-      #     %{"id" => id, "drab_expr" => drab_expr_hash} <- exprs do
-
-      #   expr = Drab.Live.Cache.get(drab_expr_hash)
-      #   {safe, _assigns} = expr_with_imports(hash, view, router_helpers, error_helpers, gettext)
-      #     |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
-
-      #   "document.getElementById('#{id}').innerHTML = #{safe_to_encoded_js(safe)}"
-      # end 
-
-    #TODO: group updates on one node
-    attributed_updates = []
-      # for {drab_id, assns_exprs} <- socket.assigns.__amperes["attributed"], 
-      #     {assigns_in_expr, exprs} <- assns_exprs, 
-      #     %{"attribute" => attribute, "drab_expr" => drab_expr_hash} <- exprs do
-
-      #   {safe, _assigns} = expr_with_imports(drab_expr_hash, view, router_helpers, error_helpers, gettext)
-      #     |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
-
-      #   "document.querySelector(\"[drab-expr='#{drab_id}']\").setAttribute('#{attribute}', #{safe_to_encoded_js(safe)})"
-      # end
-
     changes_assigns_js = changed_assigns_js_list(assigns_to_update)
-    ampere_updates = (changes_assigns_js ++ injected_updates ++ attributed_updates) |> Enum.uniq()
+    ampere_updates = (changes_assigns_js ++ injected_updates) |> Enum.uniq()
       
     {:ok, _} = Drab.Core.exec_js(socket, ampere_updates |> Enum.join(";"))
 
@@ -134,14 +116,6 @@ defmodule Drab.Live do
     end    
   end
 
-  # defp find_amperes_by_assigns(amperes, assigns_keys) do
-  #   #       |> Enum.filter(fn {k, _v} -> String.contains?(k, "class1") end)
-  #   filtered = for assign <- assigns_keys, {k, v} <- amperes, String.contains?(k, Atom.to_string(assign)), into: %{} do
-  #     {k, v}
-  #   end
-  #   for {assigns, amperes} <- filtered, ampere <- amperes, do: Map.merge(%{"assigns" => assigns}, ampere)
-  # end
-
   #TODO: refactor, not very efficient
   defp assigns_for_expr(assigns_in_poke, assigns_in_expr, assigns_in_page) do
     # assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
@@ -157,7 +131,7 @@ defmodule Drab.Live do
     end)
   end
 
-  defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> Drab.Core.encode_js()
+  defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
 
   defp safe_to_string(list) when is_list(list), do: Enum.map(list, &safe_to_string/1) |> Enum.join("")
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)

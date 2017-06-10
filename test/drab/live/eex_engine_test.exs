@@ -50,7 +50,6 @@ defmodule Drab.Live.EExEngineTest do
       "<tag attr='value' ",
       "<tag attr = 'value' ",
       "<tag attr\n=\r'value' ",
-
       " attr=value ",
       "\n attr = value ",
       "\t attr\n=\rvalue ",
@@ -64,7 +63,26 @@ defmodule Drab.Live.EExEngineTest do
     for line <- wrong do
       assert_raise CompileError, fn -> find_attr_in_line(line) end
     end
-    
+  end
+
+  test "trailing text" do
+    lines = [
+      {"<tag attr=", ""},
+      {"<tag attr= '", ""},
+      {"<tag attr =\n \"", ""},
+      {"<tag attr=before", "before"},
+      {"<tag attr=  before", "before"},
+      {"<tag attr = \nbefore", "before"},
+      {"<tag attr\n=\t\n   before", "before"},
+      {"<tag attr='before'", "before"},
+      {"<tag attr=  '  before '", "  before "},
+      {"<tag attr=\n\" before \"", " before "},
+      {"<tag attr='\nbefore'", "\nbefore"}
+    ]
+    for {line, attr} <- lines do
+      assert find_prefix_in_line(line) == attr 
+    end
+
   end
 
 end
