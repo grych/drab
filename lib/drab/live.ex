@@ -10,6 +10,7 @@ defmodule Drab.Live do
     # TODO: maybe better to do it on demand, on poke/peek?
     decrypted = for {k, v} <- payload["assigns"] || %{}, into: %{}, do: {k, Drab.Live.Crypto.decode64(v)}
     Map.merge(payload, %{"assigns" => decrypted})
+    |> Map.put_new("value", payload["val"])
   end
 
   def transform_socket(socket, payload) do

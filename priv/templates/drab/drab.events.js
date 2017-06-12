@@ -36,17 +36,15 @@ function payload(sender, event) {
 // default payload contains sender information and some info about event
 function default_payload(sender, event) {
   return {
-    sender: {
-      // by default, we pass back some sender attributes
-      id:       sender.getAttribute("id"),
-      name:     sender.getAttribute("name"),
-      class:    sender.getAttribute("class"),
-      text:     sender.innerText,
-      html:     sender.innerHTML,
-      val:      sender.value,
-      value:    sender.value,
-      data:     sender.dataset,
-      drab_id:  sender.getAttribute("drab-id") },
+    // by default, we pass back some sender attributes
+    id:       sender.getAttribute("id"),
+    name:     sender.getAttribute("name"),
+    class:    sender.getAttribute("class"),
+    text:     sender.innerText,
+    html:     sender.innerHTML,
+    val:      sender.value,
+    data:     sender.dataset,
+    drab_id:  sender.getAttribute("drab-id"),
     event: {
       altKey:   event.altKey,
       data:     event.data,

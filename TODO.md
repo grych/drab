@@ -8,6 +8,11 @@ Changes:
 * group JS commands to be launched in one step, if possible
 * DOM tree as a Map?
 * Query must work with Live
+* change url in the browser (smart?)
+
+## 0.6.0
+Changes:
+* support Phoenix 1.3
 
 ## Bugs:
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
