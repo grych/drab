@@ -5,19 +5,29 @@ defmodule Drab.Live do
   use DrabModule
   def js_templates(),  do: ["drab.events.js", "drab.live.js"]
 
-  def transform_payload(payload) do
+  def transform_payload(payload, _state) do
+    # IO.inspect payload
     # decrypt assigns
     # TODO: maybe better to do it on demand, on poke/peek?
     decrypted = for {k, v} <- payload["assigns"] || %{}, into: %{}, do: {k, Drab.Live.Crypto.decode64(v)}
     Map.merge(payload, %{"assigns" => decrypted})
-    |> Map.put_new("value", payload["val"])
+      |> Map.put_new("value", payload["val"])
   end
 
-  def transform_socket(socket, payload) do
-    # store assigns in socket as well
-    socket 
-    |> Phoenix.Socket.assign(:__ampere_assigns, payload["assigns"])
-    |> Phoenix.Socket.assign(:__amperes, payload["amperes"])
+  def transform_socket(socket, payload, state) do
+    # # store assigns in socket as well
+    # new_socket = socket 
+    #   |> Phoenix.Socket.assign(:__ampere_assigns, payload["assigns"])
+    #   |> Phoenix.Socket.assign(:__amperes, payload["amperes"])
+    # Drab.set_socket(Drab.pid(socket), new_socket)
+    # new_socket
+    # actually, we do not transform it, but store some payload information in the Drab Server
+    priv = Map.merge(state.priv, %{
+      ampere_assigns: payload["assigns"],
+      amperes: payload["amperes"]
+    })
+    Drab.pid(socket) |> Drab.set_priv(priv)
+    socket
   end
 
   # engine: Drab.Live.EExEngine
@@ -25,9 +35,19 @@ defmodule Drab.Live do
     EEx.eval_file(template, [assigns: assigns], engine: Drab.Live.EExEngine)
   end
 
+  defp assigns(socket) do
+    socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:ampere_assigns)
+  end
+
+  defp amperes(socket) do
+    socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:amperes)
+  end
 
   def peek(socket, assign) when is_binary(assign) do
-    socket.assigns.__ampere_assigns[assign]
+    # socket.assigns.__ampere_assigns[assign]
+    # priv = socket |> Drab.pid() |> Drab.get_priv()
+    # priv.ampere_assigns[assign]
+    assigns(socket)[assign]
   end
 
   def peek(socket, assign) when is_atom(assign), do: peek(socket, Atom.to_string(assign))
@@ -35,7 +55,7 @@ defmodule Drab.Live do
   def poke(socket, assigns) do
     # assigns_keys = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq()
 
-    current_assigns = socket.assigns.__ampere_assigns
+    current_assigns = assigns(socket)
     assigns_to_update = Map.new(assigns)
     assigns_to_update_keys = Map.keys(assigns_to_update)
 
@@ -48,7 +68,7 @@ defmodule Drab.Live do
     # class = "<%= @class1 %>" class2='<%= @class2 %>' class3 = <%= @class1 %>
 
     # amperes of attributes contains more hashes, space separated
-    amperes = socket.assigns.__amperes 
+    amperes = amperes(socket)
       |> Enum.map(&String.split/1)
       |> List.flatten()
       |> Enum.uniq()
@@ -104,7 +124,12 @@ defmodule Drab.Live do
     assigns_to_update = for {k, v} <- assigns_to_update, into: %{}, do: {Atom.to_string(k), v}
     updated_assigns = Map.merge(current_assigns, assigns_to_update)
 
-    Phoenix.Socket.assign(socket, :__ampere_assigns, updated_assigns)
+    #TODO: store in Drab
+    # Phoenix.Socket.assign(socket, :__ampere_assigns, updated_assigns)
+    priv = socket |> Drab.pid() |> Drab.get_priv()
+    socket |> Drab.pid() |> Drab.set_priv(%{priv | ampere_assigns: updated_assigns})
+
+    socket
   end
 
   defp has_common?(lista, listb) do

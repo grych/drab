@@ -9,6 +9,9 @@ Changes:
 * DOM tree as a Map?
 * Query must work with Live
 * change url in the browser (smart?)
+* have a values of the <input> fields directly in the Commander Event Handler Function
+* re-initiate JS event handler after changing the SPAN (inside it)
+* inside a <script> case
 
 ## 0.6.0
 Changes:

@@ -3,5 +3,6 @@
 
 <hr>
 
-<button id="broadcast1_button" drab-click='broadcast1'>Broadcast to the same url (default)</button>
+<button id="broadcast1_button" drab-click='broadcast1' class='btn btn-danger'>Broadcast to the same url (default)</button>
 <div id="broadcast_out"></div>
+

@@ -26,7 +26,12 @@ function debounce(func, wait, immediate) {
 };
 
 function payload(sender, event) {
-  p = default_payload(sender, event)
+  var p 
+  if (sender) {
+    p = default_payload(sender, event)
+  } else {
+    p = {}
+  }
   Drab.additional_payloads.forEach(function(fx) {
     p = Object.assign(p, fx(sender, event))
   })

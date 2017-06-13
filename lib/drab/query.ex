@@ -47,7 +47,7 @@ defmodule Drab.Query do
   use DrabModule
   def js_templates(), do: ["drab.events.js", "drab.query.js"]
 
-  def transform_payload(payload) do
+  def transform_payload(payload, _state) do
     #TODO: change jQuery sender API to %{sender:, event:}
     # payload = Map.merge(payload["sender"], %{"event" => payload["event"]})
 

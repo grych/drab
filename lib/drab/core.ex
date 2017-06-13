@@ -252,7 +252,7 @@ defmodule Drab.Core do
       uid = get_store(socket, :user_id)
   """
   def get_store(socket, key) do
-    store = Drab.get_store(socket.assigns.__drab_pid)
+    store = Drab.get_store(Drab.pid(socket))
     store[key]
     # store(socket)[key]
   end
@@ -283,7 +283,12 @@ defmodule Drab.Core do
 
   @doc false
   def save_store(socket, store) do
-    Drab.update_store(socket.assigns.__drab_pid, store)
+    Drab.set_store(Drab.pid(socket), store)
+  end
+
+  @doc false
+  def save_socket(socket) do
+    Drab.set_socket(Drab.pid(socket), socket)
   end
 
   @doc """
@@ -311,7 +316,7 @@ defmodule Drab.Core do
 
   @doc false
   def save_session(socket, session) do
-    Drab.update_session(socket.assigns.__drab_pid, session)
+    Drab.set_session(socket.assigns.__drab_pid, session)
   end
 
   @doc false

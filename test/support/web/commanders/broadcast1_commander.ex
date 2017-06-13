@@ -20,7 +20,10 @@ defmodule DrabTestApp.Broadcast1Commander do
     socket |> Drab.Query.update(:text, set: "", on: "#broadcast_out")
   end
 
-  def broadcast1(socket, _) do
-    socket |> update!(:text, set: "Broadcasted Text to same url", on: "#broadcast_out")
+  def broadcast1(socket, dom_sender) do
+    socket 
+    |> update!(:text, set: "Broadcasted Text to same url", on: "#broadcast_out")
+    |> update!(:text, set: "Broadcasted", on: this!(dom_sender))
+    |> update!(class: "btn-danger", set: "btn-success", on: this!(dom_sender))
   end
 end

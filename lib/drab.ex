@@ -82,11 +82,14 @@ defmodule Drab do
   require Logger
   use GenServer
 
-  defstruct store: nil, session: nil, commander: nil, socket: nil
+  @type t :: %Drab{store: map, session: map, commander: atom, socket: Phoenix.Socket.t, priv: map}
+
+  defstruct store: %{}, session: %{}, commander: nil, socket: nil, priv: %{}
 
   @doc false
-  def start_link(state) do
-    GenServer.start_link(__MODULE__, state)
+  def start_link(socket) do
+    GenServer.start_link(__MODULE__, 
+      %Drab{commander: Drab.get_commander(socket)})
   end
 
   @doc false
@@ -130,7 +133,7 @@ defmodule Drab do
   end
 
   @doc false
-  def handle_cast({:onconnect, socket}, %Drab{commander: commander} = state) do
+  def handle_cast({:onconnect, socket, payload}, %Drab{commander: commander} = state) do
     # TODO: there is an issue when the below failed and client tried to reconnect again and again
     # tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end), 
     #          Task.async(fn -> Drab.Core.save_store(socket, Drab.Core.store(socket)) end)]
@@ -139,30 +142,39 @@ defmodule Drab do
     # Logger.debug "******"
     # Logger.debug inspect(Drab.Core.session(socket))
 
+    # IO.inspect payload
+
+    socket  = transform_socket(payload, socket, state)
+
     Drab.Core.save_session(socket, Drab.Core.session(socket))
     Drab.Core.save_store(socket, Drab.Core.store(socket))
+    Drab.Core.save_socket(socket)
 
     onconnect = commander_config(commander).onconnect
-    handle_callback(socket, commander, onconnect) #returns socket
+    handle_callback(socket, commander, onconnect) 
+
     {:noreply, state}
   end
 
   @doc false
   def handle_cast({:onload, socket}, %Drab{commander: commander} = state) do
+    # {_, socket} = transform_payload_and_socket(payload, socket, commander_module)
+    # IO.inspect state
+
     onload = commander_config(commander).onload
     handle_callback(socket, commander, onload) #returns socket
     {:noreply, state}
   end
 
-  @doc false
-  def handle_cast({:update_store, store}, %Drab{session: session, commander: commander, socket: socket}) do
-    {:noreply, %Drab{store: store, session: session, commander: commander, socket: socket}}
-  end
-
-  @doc false
-  def handle_cast({:update_session, session}, %Drab{store: store, commander: commander, socket: socket}) do
-    {:noreply, %Drab{store: store, session: session, commander: commander, socket: socket}}
-  end
+  # casts for update values from the state
+  Enum.each([:store, :session, :socket, :priv], fn name ->
+    msg_name = "set_#{name}" |> String.to_atom()
+      @doc false
+      def handle_cast({unquote(msg_name), value}, state) do
+        new_state = Map.put(state, unquote(name), value)
+        {:noreply, new_state}
+      end
+  end)
 
   @doc false
   # any other cast is an event handler
@@ -170,25 +182,15 @@ defmodule Drab do
     handle_event(socket, event_name, event_handler_function, payload, reply_to, state)
   end
 
-  @doc false
-  def handle_cast({:update_socket, socket}, %Drab{store: store, commander: commander, session: session}) do
-    {:noreply, %Drab{store: store, session: session, commander: commander, socket: socket}}
-  end
-
-  @doc false
-  def handle_call(:get_store, _from, %Drab{store: store} = state) do
-    {:reply, store, state}
-  end
-
-  @doc false
-  def handle_call(:get_session, _from, %Drab{session: session} = state) do
-    {:reply, session, state}
-  end
-
-  @doc false
-  def handle_call(:get_socket, _from, %Drab{socket: socket} = state) do
-    {:reply, socket, state}
-  end
+  # calls for get values from the state
+  Enum.each([:store, :session, :socket, :priv], fn name ->
+    msg_name = "get_#{name}" |> String.to_atom()
+      @doc false
+      def handle_call(unquote(msg_name), _from, state) do
+        value = Map.get(state, unquote(name))
+        {:reply, value, state}
+      end
+  end)
 
   defp handle_callback(socket, commander, callback) do
     if callback do
@@ -204,6 +206,24 @@ defmodule Drab do
     socket
   end
 
+  defp transform_payload(payload, state) do
+    all_modules = DrabModule.all_modules_for(state.commander.__drab__().modules)
+
+    # transform payload via callbacks in DrabModules
+    Enum.reduce(all_modules, payload, fn(m, p) ->
+      m.transform_payload(p, state)
+    end)
+  end
+
+  defp transform_socket(payload, socket, state) do
+    all_modules = DrabModule.all_modules_for(state.commander.__drab__().modules)
+
+    # transform socket via callbacks
+    Enum.reduce(all_modules, socket, fn(m, s) ->
+      m.transform_socket(s, payload, state)
+    end)  
+  end
+
   defp handle_event(socket, _event_name, event_handler_function, payload, reply_to, 
                                         %Drab{commander: commander_module} = state) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
@@ -214,15 +234,8 @@ defmodule Drab do
         event_handler = String.to_existing_atom(event_handler_function)
         payload = Map.delete(payload, "event_handler_function")
 
-        # transform payload via callbacks in DrabModules
-        payload = Enum.reduce(DrabModule.all_modules_for(commander_module.__drab__().modules), payload, fn(m, p) ->
-          m.transform_payload(p)
-        end)
-
-        # transform socket via callbacks
-        socket = Enum.reduce(DrabModule.all_modules_for(commander_module.__drab__().modules), socket, fn(m, s) ->
-          m.transform_socket(s, payload)
-        end)
+        payload = transform_payload(payload, state)
+        socket  = transform_socket(payload, socket, state)
 
         commander_cfg = commander_config(commander_module)
 
@@ -303,30 +316,20 @@ defmodule Drab do
     end) |> Enum.filter(&(&1))
   end
 
-  @doc false
-  def get_store(pid) do
-    GenServer.call(pid, :get_store)
-  end
+  # setter and getter functions
+  Enum.each([:store, :session, :socket, :priv], fn name ->
+    get_name = "get_#{name}" |> String.to_atom()
+    update_name = "set_#{name}" |> String.to_atom()
 
-  @doc false
-  def update_store(pid, new_store) do
-    GenServer.cast(pid, {:update_store, new_store})
-  end
+    @doc false
+    def unquote(get_name)(pid) do
+      GenServer.call(pid, unquote(get_name))
+    end
 
-  @doc false
-  def get_session(pid) do
-    GenServer.call(pid, :get_session)
-  end
-
-  @doc false
-  def update_session(pid, new_session) do
-    GenServer.cast(pid, {:update_session, new_session})
-  end
-
-  @doc false
-  def get_socket(pid) do
-    GenServer.call(pid, :get_socket)
-  end
+    def unquote(update_name)(pid, new_value) do
+      GenServer.cast(pid, {unquote(update_name), new_value})
+    end
+  end)
 
   @doc false
   def function_exists?(module_name, function_name) do
@@ -371,22 +374,6 @@ defmodule Drab do
     m = payload |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, pid)})
     function.(socket, message,  m)    
   end
-
-  # @doc """
-  # Returns token created from PID. See also `Drab.detokenize_pid/2`
-  # """
-  # def tokenize_pid(socket, pid) do
-  #   myself = :erlang.term_to_binary(pid)
-  #   Phoenix.Token.sign(socket, "sender", myself)
-  # end
- 
-  # @doc """
-  # Returns PID decrypted from token. See also `Drab.tokenize_pid/2`
-  # """
-  # def detokenize_pid(socket, token) do
-  #   {:ok, detokenized_pid} = Phoenix.Token.verify(socket, "sender", token)
-  #   detokenized_pid |> :erlang.binary_to_term
-  # end
 
   @doc """
   Tokenize any valid Elixir data.

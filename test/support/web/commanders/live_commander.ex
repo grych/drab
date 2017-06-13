@@ -27,6 +27,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   def update_count(socket, _) do
+    # IO.inspect socket
     poke socket, count: 42
   end
 

@@ -8,8 +8,7 @@ defmodule Drab.Channel do
     # socket already contains controller and action
     socket_with_topic = socket |> assign(:__broadcast_topic, broadcast_topic)
 
-    {:ok, pid} = Drab.start_link(%Drab{store: %{}, session: %{}, 
-      commander: Drab.get_commander(socket)})
+    {:ok, pid} = Drab.start_link(socket)
 
     socket_with_pid = assign(socket_with_topic, :__drab_pid, pid)
 
@@ -59,8 +58,10 @@ defmodule Drab.Channel do
     verify_and_cast(:onload, [], socket)
   end
 
-  def handle_in("onconnect", _, socket) do
-    GenServer.cast(socket.assigns.__drab_pid, {:update_socket, socket})
+  def handle_in("onconnect", payload, socket) do
+    # IO.inspect payload
+
+    Drab.set_socket(socket.assigns.__drab_pid, socket)
     # for debugging
     if IEx.started? do
       commander = Drab.get_commander(socket)
@@ -69,7 +70,18 @@ defmodule Drab.Channel do
         [_ | rest] = Module.split(module)
         Enum.join(rest, ".")
       end) |> Enum.join(", ")
-      
+
+      module_examples = %{
+        Drab.Live   => "socket |> poke(count: 42)",
+        Drab.Query  => "socket |> select(:htmls, from: \"h4\")",
+        Drab.Modal  => "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
+        Drab.Core   => "socket |> exec_js(\"alert('hello from IEx!')\")"
+      }
+      examples = Enum.map(modules, fn module -> 
+        IO.inspect(module)
+        module_examples[module]
+      end)
+
       p = inspect(socket.assigns.__drab_pid)
       pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
       Logger.debug """
@@ -80,13 +92,11 @@ defmodule Drab.Channel do
       socket = Drab.get_socket(pid("#{pid_string}"))
       
           Examples:
-      socket |> select(:htmls, from: "h4")
-      socket |> exec_js("alert('hello from IEx!')")
-      socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
+      #{examples |> Enum.join("\n")}
       """
     end
 
-    verify_and_cast(:onconnect, [], socket)
+    verify_and_cast(:onconnect, [payload["payload"]], socket)
   end
 
   def handle_in("event", %{

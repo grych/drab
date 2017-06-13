@@ -7,8 +7,8 @@ defmodule DrabModule do
   # as well as the list of the Javascripts to render
   @callback prerequisites() :: list
   @callback js_templates() :: list
-  @callback transform_payload(payload :: list) :: list
-  @callback transform_socket(socket :: Phoenix.Socket.t, payload :: list) :: list
+  @callback transform_payload(payload :: list, state :: Drab.t) :: list
+  @callback transform_socket(socket :: Phoenix.Socket.t, payload :: list, state :: Drab.t) :: list
 
   defmacro __using__(_opts) do
     quote do
@@ -16,10 +16,10 @@ defmodule DrabModule do
 
       def prerequisites(), do: []
       def js_templates(),  do: []
-      def transform_payload(payload), do: payload
-      def transform_socket(socket, _payload), do: socket
+      def transform_payload(payload, _state), do: payload
+      def transform_socket(socket, _payload, _state), do: socket
 
-      defoverridable [prerequisites: 0, js_templates: 0, transform_payload: 1, transform_socket: 2]
+      defoverridable [prerequisites: 0, js_templates: 0, transform_payload: 2, transform_socket: 3]
     end
   end
 
