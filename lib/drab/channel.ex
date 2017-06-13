@@ -78,9 +78,8 @@ defmodule Drab.Channel do
         Drab.Core   => "socket |> exec_js(\"alert('hello from IEx!')\")"
       }
       examples = Enum.map(modules, fn module -> 
-        IO.inspect(module)
         module_examples[module]
-      end)
+      end) |> Enum.filter(fn x -> !is_nil(x) end)
 
       p = inspect(socket.assigns.__drab_pid)
       pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
