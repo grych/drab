@@ -1,7 +1,8 @@
 Drab.add_payload(function(sender, event) {
   return {
     assigns: __drab.assigns,
-    amperes: __drab.amperes
+    amperes: __drab.amperes,
+    scripts: __drab.scripts
   }
 })
 
@@ -34,6 +35,15 @@ Drab.on_load(function(resp, drab) {
     var drab_id = node.getAttribute("drab-expr")
     if (d.amperes.indexOf(drab_id) < 0) {
       d.amperes.push(drab_id)
+    }
+  })
+
+  var scripted = document.querySelectorAll("[drab-script]")
+  d.scripts = []
+  scripted.forEach(function(node) {
+    var drab_id = node.getAttribute("drab-script")
+    if (d.scripts.indexOf(drab_id) <0) {
+      d.scripts.push(drab_id)
     }
   })
 })

@@ -7,8 +7,11 @@ defmodule Drab.Live.EExEngine do
   use EEx.Engine
   require IEx
 
-  @jsvar "__drab"
+  @jsvar           "__drab"
   @drab_indicator  "drabbed"
+  @start_script    ~r/<script[^<>]*>/i
+  @end_script      ~r/<\/script[^<>]*>/i
+  @script_id       "drab-script"
 
   @anno (if :erlang.system_info(:otp_release) >= '19' do
     [generated: true]
@@ -48,8 +51,90 @@ defmodule Drab.Live.EExEngine do
     if Regex.match?(~r/<\S+/, no_tags(html)) do
       {:safe, inject_attribute(buffer, expr, html)}
     else
-      {:safe, inject_span(buffer, expr)}
+      if in_script?(html) do
+        {:safe, inject_script(buffer, expr)}
+      else
+        {:safe, inject_span(buffer, expr)}
+      end
     end
+  end
+
+  defp in_script?(html) do
+    # true if the expression is in <script></script>
+    count_matches(html, @start_script) > count_matches(html, @end_script)
+  end
+
+  defp count_matches(html, regex) do
+    regex |> Regex.scan(html) |> Enum.count()
+  end
+
+  defp replace_in(string, tag) when is_binary(string) do
+    if String.contains?(string, @script_id) do
+      string
+    else
+      # IO.inspect replace_last(string, find, replacement)
+      replacement = "<#{tag} #{@script_id}='#{uuid()}'"
+      replace_last(string, "<#{tag}", replacement)
+    end
+  end
+
+  #TODO: should really replace only last occurence in the whole nested list
+  # now it assigns id to the innocent scripts
+  defp replace_in(list, tag) when is_list(list) do
+    Enum.map(list, fn x -> replace_in(x, tag) end)
+  end
+
+  defp replace_in(other, _), do: other
+
+  defp inject_drab_id(buffer, tag) do
+    Macro.prewalk(buffer, fn expr -> 
+      case expr do
+        {:|, x, list} ->
+          {:|, x, replace_in(list, tag)}
+        other -> other
+      end
+    end)
+  end
+
+  # find the drab id in the last tag
+  defp drab_id(html, tag) do
+    r = ~r/<#{tag}[^<>]*#{@script_id}\s*=\s*'(.*)'[^<>]*>/isU
+    # IO.inspect Regex.scan(r, html)
+    Regex.scan(r, html) |> List.last() |> List.last()
+    # IO.inspect html
+  end
+
+  # The expression is inside the <script> tag
+  defp inject_script(buffer, expr) do
+    # IO.puts ""
+    # IO.puts "IN SCRIPT"
+
+    line           = line_from_expr(expr)
+    expr           = Macro.prewalk(expr, &handle_assign/1)
+
+    found_assigns  = find_assigns(expr)
+    found_assigns? = found_assigns != []
+
+    buffer = inject_drab_id(buffer, "script")
+    html = plain_html(buffer) 
+    # IO.inspect(buffer)
+
+    drab_id = drab_id(html, "script")
+    Drab.Live.Cache.add(drab_id, {:script, expr, found_assigns})
+
+    assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
+
+    #TODO: assigns_js
+    if found_assigns? do
+      quote do
+        [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line))]
+      end
+    else 
+      quote do
+        [unquote(buffer), unquote(to_safe(expr, line))]
+      end
+    end
+    
   end
 
   # Easy way. Surroud the expression with Drab Span
@@ -61,14 +146,13 @@ defmodule Drab.Live.EExEngine do
     found_assigns? = found_assigns != []
 
     hash = hash({:ampere, expr, found_assigns})
-    Drab.Live.Cache.add(hash, {:ampere, expr, found_assigns})
+    Drab.Live.Cache.set(hash, {:ampere, expr, found_assigns})
 
     span_begin = "<span drab-expr='#{hash}'>"
     span_end   = "</span>"
 
     # do not repeat assign javascript
-    as = deduplicated_js_lines(buffer, found_assigns)
-    assigns_js = script_tag(as)
+    assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
     if found_assigns? do
       quote do
@@ -99,7 +183,7 @@ defmodule Drab.Live.EExEngine do
     prefix = find_prefix_in_line(lastline)
 
     hash = hash({:attributed, expr, found_assigns, attribute})
-    Drab.Live.Cache.add(hash, {:attributed, expr, found_assigns, attribute, prefix})
+    Drab.Live.Cache.set(hash, {:attributed, expr, found_assigns, attribute, prefix})
 
     # Add drabbed indicator, only once
     drabbed = if Regex.match?(~r/<\S+/, lastline), do: "#{@drab_indicator} ", else: ""
@@ -171,9 +255,10 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp replace_last(string, pattern, replacement) do
-    String.reverse(string)
-    |> String.replace(String.reverse(pattern), String.reverse(replacement), global: false) 
-    |> String.reverse()
+    # String.reverse(string)
+    # |> String.replace(String.reverse(pattern), String.reverse(replacement), global: false) 
+    # |> String.reverse()
+    String.replace(string, ~r/#{pattern}(?!.*#{pattern})/is, replacement)
   end
 
   defp take_at(list, index) do

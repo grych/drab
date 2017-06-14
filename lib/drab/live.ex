@@ -24,7 +24,8 @@ defmodule Drab.Live do
     # actually, we do not transform it, but store some payload information in the Drab Server
     priv = Map.merge(state.priv, %{
       ampere_assigns: payload["assigns"],
-      amperes: payload["amperes"]
+      amperes: payload["amperes"],
+      ampere_scripts: payload["scripts"]
     })
     Drab.pid(socket) |> Drab.set_priv(priv)
     socket
@@ -41,6 +42,10 @@ defmodule Drab.Live do
 
   defp amperes(socket) do
     socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:amperes)
+  end
+
+  defp scripts(socket) do
+    socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:ampere_scripts)
   end
 
   def peek(socket, assign) when is_binary(assign) do

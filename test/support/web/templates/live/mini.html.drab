@@ -1,8 +1,25 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
-<button a=b  one='one' two="two" class= "btn
-<%=@class2%> after" drab-click='update_mini'  >
+<script language=jakis>
+  // here may be anything
+</script>
+
+<script type="text/javascript">
+  console.log('class1 = ' + '<%=@class1%>')
+</script>
+
+<script language=jakis>
+  // here may be anything
+</script>
+
+
+<Script type="text/javascript">
+  console.log('class1 = ' + '<%=@class1%>' + '\n' + 'class2 = ' + '<%=@class2%>')
+</script>
+
+
+<button a=b  one='one' two="two" class= "btn <%=@class2%> after" class1='<%=@class1%>' drab-click='update_mini'  >
   Update Mini
 </button>
 <br>
