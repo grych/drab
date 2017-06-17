@@ -37,11 +37,12 @@ defmodule DrabTestApp.LiveCommander do
     # poke socket, count: 42
   end
 
-  def update_mini(socket, _payload) do
+  def update_mini(socket, sender) do
     # list = peek(socket, :list) ++ ["Zdzisław", "Andżelika", "Brajanek"]
     # IO.inspect peek(socket, :list)
     # socket = poke socket, list: list
     # IO.inspect peek(socket, :list)
+    IO.inspect sender
     poke socket, class1: "btn", class2: "btn-warning", full_class: "btn btn-danger"
   end
 

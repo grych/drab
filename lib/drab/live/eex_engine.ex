@@ -19,15 +19,74 @@ defmodule Drab.Live.EExEngine do
     [line: -1]
   end)
 
+  # def start_shadow_buffer(state), do: Agent.start_link(fn -> state end) 
+
+  # def stop_shadow_buffer(buff), do: Agent.stop(buff)
+
+  # def put_shadow_buffer(buff, content), do: Agent.update(buff, &[content | &1]) 
+
+  # def get_shadow_buffer(buff), do: Agent.get(buff, &(&1)) |> Enum.reverse 
+
+
   @doc false
   def init(opts) do
     # [engine: Drab.Live.EExEngine,
     #  file: "test/support/web/templates/live/users.html.drab", line: 1]
-    {:safe, ["\n", "\n", "<!-- DRAB BEGIN ", opts[:file], " -->", "\n"]}
+    # {:ok, var!(shadow_buffer, Drab.Live.EExEngine)} = start_shadow_buffer([])
+    {:safe, "\n\n<!-- DRAB BEGIN #{opts[:file]} -->\n"}
   end
+
+  def collect_scripts([], opened_no) do
+    [{[], opened_no}]
+  end
+  def collect_scripts([h | t], opened_no) do
+    collect_scripts(h, opened_no) ++ collect_scripts(t, opened_no)
+    # Enum.map(buffer, fn b ->
+    #   collect_scripts(b, opened_no)
+    # end)
+  end
+  def collect_scripts(buffer, opened_no) when is_binary(buffer) do
+    cond do
+      Regex.match?(~r/<script/i, buffer) -> 
+        [{buffer, opened_no + 1}]
+      Regex.match?(~r/<\/script/i, buffer) -> 
+        [{buffer, opened_no - 1}]
+      true ->
+        # collect_scripts([], opened_no)
+        [{}]
+    end
+  end
+  def collect_scripts({:|, _, list}, opened_no) do
+    collect_scripts(list, opened_no)
+  end
+  def collect_scripts({atom, x, args} = tuple, 0) when is_tuple(tuple) do
+    collect_scripts(args, 0)
+  end
+  def collect_scripts({atom, x, args} = tuple, opened_no) when is_tuple(tuple) do
+    IO.inspect "FOUND TUPEL"
+    # collect_scripts([], acc ++ [{:tupppppppleeee, tuple}], opened_no)
+    {tuple, opened_no}
+  end
+  def collect_scripts(other, opened_no)  do
+    # collect_scripts(other, opened_no)
+    # {opened_no}
+    [{[], opened_no}]
+  end
+
 
   @doc false
   def handle_body({:safe, body}) do 
+    IO.puts ""
+    # IO.inspect body |> List.flatten()
+    # IO.inspect collect_scripts(body, 0)
+    # IO.inspect(IO.iodata_to_binary(body))
+    # IO.inspect plain_html(body)
+    # b = [body]
+    # Macro.prewalk(b, [], fn node, acc -> 
+    #   IO.inspect node
+    #   {nil, nil}
+    # end) 
+    # :ok = stop_shadow_buffer(var!(shadow_buffer, Drab.Live.EExEngine))
     init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
     {:safe, [script_tag(init_js), body, "<!-- DRAB END -->", "\n"]}
   end
@@ -46,15 +105,18 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
-    html = plain_html(buffer) 
+    html = plain_html(buffer)
+    line = line_from_expr(expr)
+    expr = Macro.prewalk(expr, &handle_assign/1)
+
     # Decide if the expression is inside the tag or not
     if Regex.match?(~r/<\S+/, no_tags(html)) do
-      {:safe, inject_attribute(buffer, expr, html)}
+      {:safe, inject_attribute(buffer, expr, line, html)}
     else
       if in_script?(html) do
-        {:safe, inject_script(buffer, expr)}
+        {:safe, inject_script(buffer, expr, line)}
       else
-        {:safe, inject_span(buffer, expr)}
+        {:safe, inject_span(buffer, expr, line)}
       end
     end
   end
@@ -104,43 +166,64 @@ defmodule Drab.Live.EExEngine do
     # IO.inspect html
   end
 
+
+  # defp plain_html(ast) do
+  #   {_, result} = Macro.prewalk ast, [], fn node, acc ->
+  #     case node do
+  #       {_, _, atom} when is_atom(atom) -> {node, acc}
+  #       {_, _, string} when is_binary(string) -> {node, [string | acc]}
+  #       {_, _, list} -> {node, [Enum.filter(list, fn x -> is_binary(x) end) | acc]}
+  #       _ -> {node, acc}
+  #     end
+  #   end
+  #   result |> List.flatten() |> Enum.join()
+  # end
+
+  #   defp deep_find(list, what) when is_list(list) do
+  #   Enum.find(list, fn x -> 
+  #     deep_find(x, what)
+  #   end)
+  # end
+  # defp deep_find(string, what) when is_binary(string), do: String.contains?(string, what)
+  # defp deep_find({_, _, list}, what), do: deep_find(list, what)
+  # defp deep_find(_, _), do: false
+
+
+
   # The expression is inside the <script> tag
-  defp inject_script(buffer, expr) do
+  defp inject_script(buffer, expr, line) do
     # IO.puts ""
     # IO.puts "IN SCRIPT"
 
-    line           = line_from_expr(expr)
-    expr           = Macro.prewalk(expr, &handle_assign/1)
 
     found_assigns  = find_assigns(expr)
-    found_assigns? = found_assigns != []
+    found_assigns? = (found_assigns != [])
 
-    buffer = inject_drab_id(buffer, "script")
-    html = plain_html(buffer) 
-    # IO.inspect(buffer)
+    # Poniższe dziala, ale będzie nowe podejście
+    # buffer = inject_drab_id(buffer, "script")
+    # html = plain_html(buffer) 
 
-    drab_id = drab_id(html, "script")
-    Drab.Live.Cache.add(drab_id, {:script, expr, found_assigns})
+    # drab_id = drab_id(html, "script")
+    # Drab.Live.Cache.add(drab_id, {:script, expr, found_assigns})
 
-    assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
+    # assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
-    #TODO: assigns_js
-    if found_assigns? do
+    # if found_assigns? do
+    #   quote do
+    #     [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line))]
+    #   end
+    # else 
       quote do
-        [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line))]
+        [unquote(buffer) | unquote(to_safe(expr, line))]
       end
-    else 
-      quote do
-        [unquote(buffer), unquote(to_safe(expr, line))]
-      end
-    end
+    # end
     
   end
 
   # Easy way. Surroud the expression with Drab Span
-  defp inject_span(buffer, expr) do
-    line           = line_from_expr(expr)
-    expr           = Macro.prewalk(expr, &handle_assign/1)
+  defp inject_span(buffer, expr, line) do
+    # line           = line_from_expr(expr)
+    # expr           = Macro.prewalk(expr, &handle_assign/1)
 
     found_assigns  = find_assigns(expr)
     found_assigns? = found_assigns != []
@@ -156,11 +239,15 @@ defmodule Drab.Live.EExEngine do
 
     if found_assigns? do
       quote do
-        [unquote(buffer), unquote(span_begin), unquote(to_safe(expr, line)), unquote(span_end), unquote(assigns_js)]
+        [unquote(buffer), 
+        unquote(span_begin),
+        unquote(to_safe(expr, line)),
+        unquote(span_end),
+        unquote(assigns_js)]
       end
     else 
       quote do
-        [unquote(buffer), unquote(to_safe(expr, line))]
+        [unquote(buffer) | unquote(to_safe(expr, line))]
       end
     end
   end
@@ -168,9 +255,9 @@ defmodule Drab.Live.EExEngine do
   # The expression is inside the attribute
   # In this case we need to inject the attribute, `drab-attr-HASH`, refering to the tuple in the Cache,
   # which contains expression, assigns and the attribute name
-  defp inject_attribute(buffer, expr, _html) do
-    line           = line_from_expr(expr)
-    expr           = Macro.prewalk(expr, &handle_assign/1)
+  defp inject_attribute(buffer, expr, _html, line) do
+    # line           = line_from_expr(expr)
+    # expr           = Macro.prewalk(expr, &handle_assign/1)
 
     found_assigns  = find_assigns(expr) |> Enum.sort()
     found_assigns? = found_assigns != []
@@ -199,11 +286,11 @@ defmodule Drab.Live.EExEngine do
     if found_assigns? do
       quote do
         # [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line)), unquote(attr)]
-        [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line))]
+        [unquote(assigns_js), [unquote(buffer) | unquote(to_safe(expr, line))]]
       end
     else
       quote do
-        [unquote(buffer), unquote(to_safe(expr, line))]
+        [unquote(buffer) | unquote(to_safe(expr, line))]
       end
     end
   end
@@ -216,7 +303,7 @@ defmodule Drab.Live.EExEngine do
     |> remove_full_args()
 
     unless String.contains?(args_removed, "=") do
-      raise CompileError, description: """
+      raise EEx.SyntaxError, description: """
         Invalid attribute in html template:
           `#{inspect line}`
         You must specify the the attribute in the tag, like:
@@ -286,7 +373,7 @@ defmodule Drab.Live.EExEngine do
 
   defp script_tag([]), do: []
   defp script_tag(js) do
-    ["\n", "<script>", js, "</script>"]
+    ["<script>", js, "</script>"]
   end
 
   defp assign_js(assign) do
@@ -372,28 +459,4 @@ defmodule Drab.Live.EExEngine do
     result |> List.flatten() |> Enum.join()
   end
 
-  # def find_unclosed_tag(list) do
-  #   Enum.reduce(list, {[], []}, fn(x, {acc, closed_tags}) -> 
-  #     s = String.trim_leading(x)
-  #     closing_match = ~r/^\/(.*)[\s>]/
-  #     opening_match = ~r/^[^\/](.*)[\s>]/
-  #     # IO.inspect Regex.match?(closing_match, s)
-  #     cond do
-  #       Regex.match?(closing_match, s) ->
-  #         # IO.puts "#{s} closing, tag: #{tag(s)}"
-  #         {acc ++ ["#{x} (closing)"], closed_tags ++ [tag(s)]}
-  #       Regex.match?(opening_match, s) ->
-  #         # IO.puts "#{s} opening, tag: #{tag(s)}"
-  #         # IO.inspect closed_tags
-  #         {acc ++ ["#{x} OPEN"], closed_tags -- [tag(s)]}
-  #       true -> {acc, closed_tags}
-  #     end
-  #     # [x] ++ acc
-  #   end)
-  # end
-
-  # defp tag(string) do
-  #   [_, match] = Regex.run(~r/^\/*([\S>]*)[\s>]+/, string)
-  #   String.replace(match, ">", "")
-  # end
 end

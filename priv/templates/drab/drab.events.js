@@ -41,10 +41,11 @@ function payload(sender, event) {
 // default payload contains sender information and some info about event
 function default_payload(sender, event) {
   return {
-    // by default, we pass back some sender attributes
-    id:       sender.getAttribute("id"),
-    name:     sender.getAttribute("name"),
-    class:    sender.getAttribute("class"),
+    // by default, we pass back some sender properties
+    id:       sender.id,
+    name:     sender.name,
+    class:    sender.className,
+    classes:  sender.classList,
     text:     sender.innerText,
     html:     sender.innerHTML,
     val:      sender.value,
