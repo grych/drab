@@ -2,6 +2,7 @@
 <div id="drab_pid"></div>
 
 <script type="text/javascript">
+  console.log('class1 = ' + '<%=@class1%>')
   console.log('class2 = ' + '<%=@class2%>')
 </script><!-- end -->
 

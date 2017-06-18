@@ -237,7 +237,7 @@ defmodule Drab.Live.EExEngine do
     found_assigns? = (found_assigns != [])
 
     # Poniższe dziala, ale będzie nowe podejście
-    # buffer = inject_drab_id(buffer, "script")
+    buffer = inject_drab_id(buffer, "script")
     # html = to_html(buffer) 
 
     # drab_id = drab_id(html, "script")
@@ -284,7 +284,7 @@ defmodule Drab.Live.EExEngine do
       end
     end
 
-    {buf, "{{{{@span}}}}"}
+    {buf, [span_begin, "{{{{@span}}}}", span_end]}
   end
 
   # The expression is inside the attribute
@@ -329,7 +329,7 @@ defmodule Drab.Live.EExEngine do
     #   end
     # end
 
-    {buf, "{{{{@attribute}}}}"}
+    {buf, "{{{{@attribute: #{hash}}}}}"}
   end
 
   @doc false
