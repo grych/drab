@@ -114,19 +114,20 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def handle_body({:safe, body}) do 
     # html = to_html(body)
-    IO.puts ""
-    IO.puts ""
+    # IO.puts ""
+    # IO.puts ""
+    # IO.inspect find_assigns(body)
     # IO.inspect partial(body)
     # IO.inspect body
-    # IO.inspect partial(body)
+
+    found_assigns = find_assigns(body)
+    assigns_js = deduplicated_js_lines(body, found_assigns) |> script_tag()
 
     init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
-    final = [script_tag(init_js), body, "\n</span>\n"]
+    final = [script_tag(init_js), assigns_js, body, "\n</span>\n"]
+
     put_shadow_buffer("\n</span>\n")
-
     Drab.Live.Cache.set({:shadow, partial(body)}, get_shadow_buffer() |> Floki.parse())
-    IO.inspect partial(body)
-
     stop_shadow_buffer()
 
     {:safe, final}
@@ -258,9 +259,6 @@ defmodule Drab.Live.EExEngine do
 
   # Easy way. Surroud the expression with Drab Span
   defp inject_span(buffer, expr, line) do
-    # line           = line_from_expr(expr)
-    # expr           = Macro.prewalk(expr, &handle_assign/1)
-
     found_assigns  = find_assigns(expr)
     found_assigns? = found_assigns != []
 
@@ -271,15 +269,14 @@ defmodule Drab.Live.EExEngine do
     span_end   = "</span>"
 
     # do not repeat assign javascript
-    assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
+    # assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
     buf = if found_assigns? do
       quote do
         [unquote(buffer), 
         unquote(span_begin),
         unquote(to_safe(expr, line)),
-        unquote(span_end),
-        unquote(assigns_js)]
+        unquote(span_end)]
       end
     else 
       quote do
@@ -298,10 +295,10 @@ defmodule Drab.Live.EExEngine do
     # expr           = Macro.prewalk(expr, &handle_assign/1)
 
     found_assigns  = find_assigns(expr) |> Enum.sort()
-    found_assigns? = found_assigns != []
+    # found_assigns? = found_assigns != []
 
     # do not repeat assign javascript
-    assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
+    # assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
     lastline = last_line(buffer)
     attribute = find_attr_in_line(lastline)
@@ -321,16 +318,16 @@ defmodule Drab.Live.EExEngine do
     [{a, b, list}] = buffer
     buffer = [{a, b, List.replace_at(list, -1, injected_line)}]
 
-    buf = if found_assigns? do
-      quote do
+    # buf = if found_assigns? do
+    buf = quote do
         # [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line)), unquote(attr)]
-        [unquote(assigns_js), [unquote(buffer) | unquote(to_safe(expr, line))]]
-      end
-    else
-      quote do
         [unquote(buffer) | unquote(to_safe(expr, line))]
       end
-    end
+    # else
+    #   quote do
+    #     [unquote(buffer) | unquote(to_safe(expr, line))]
+    #   end
+    # end
 
     {buf, "{{{{@attribute}}}}"}
   end
