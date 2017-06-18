@@ -20,9 +20,9 @@ defmodule Drab.Live.EExEngine do
   end)
 
   #TODO: like this, will not work with parallel compiling
-  defp start_shadow_buffer(buff) do 
+  defp start_shadow_buffer(initial) do 
     agent = :drab_compile_agent
-    case Agent.start_link(fn -> buff end, name: agent) do
+    case Agent.start_link(fn -> initial end, name: agent) do
       {:ok, _} = ret -> 
         ret
       {:error, {:already_started, _}} ->
@@ -33,19 +33,19 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-  defp stop_shadow_buffer(buff) do
+  defp stop_shadow_buffer() do
     :drab_compile_agent |> Agent.stop()
   end
 
-  defp put_shadow_buffer(buff, content) do 
+  defp put_shadow_buffer(content) do 
     agent = :drab_compile_agent
-    # Agent.update(agent, &[content | &1]) 
-    Agent.update(agent, fn _ -> content end) 
+    Agent.update(agent, &[content | &1]) 
+    # Agent.update(agent, fn _ -> content end) 
   end
 
-  defp get_shadow_buffer(buff) do 
+  defp get_shadow_buffer() do 
     agent = :drab_compile_agent
-    Agent.get(agent, &(&1)) |> Enum.reverse 
+    Agent.get(agent, &(&1)) |> Enum.reverse |> Enum.join()
   end
 
 
@@ -119,31 +119,25 @@ defmodule Drab.Live.EExEngine do
     # IO.inspect partial(body)
     # IO.inspect body
     # IO.inspect partial(body)
-    IO.inspect get_shadow_buffer(body) == body
 
-    # IO.inspect collect_scripts(body, 0)
-    # IO.inspect(IO.iodata_to_binary(body))
-    # IO.inspect to_html(body)
-    # b = [body]
-    # Macro.prewalk(b, [], fn node, acc -> 
-    #   IO.inspect node
-    #   {nil, nil}
-    # end) 
-    # :ok = stop_shadow_buffer(var!(shadow_buffer, Drab.Live.EExEngine))
-    stop_shadow_buffer(body)
     init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
-    {:safe, [script_tag(init_js), body, "\n</span>\n"]}
+    final = [script_tag(init_js), body, "\n</span>\n"]
+    put_shadow_buffer("\n</span>\n")
+
+    Drab.Live.Cache.set({:shadow, partial(body)}, get_shadow_buffer() |> Floki.parse())
+    IO.inspect partial(body)
+
+    stop_shadow_buffer()
+
+    {:safe, final}
   end
 
   @doc false
   def handle_text({:safe, buffer}, text) do
-    shadow = quote do
+    put_shadow_buffer(text)
+    {:safe, quote do
       [unquote(buffer)|unquote(text)]
-    end
-    # IO.puts ""
-    # IO.inspect buffer
-    put_shadow_buffer(buffer, shadow)
-    {:safe, shadow}
+    end}
   end
 
   @doc false
@@ -159,13 +153,11 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def handle_expr({:safe, buffer}, "", expr) do
     expr = Macro.prewalk(expr, &handle_assign/1)
-    shadow = quote do
+    {:safe, quote do
       tmp2 = unquote(buffer)
       unquote(expr)
       tmp2
-    end
-    put_shadow_buffer(buffer, shadow)
-    {:safe, shadow}    
+    end}
   end
 
   @doc false
@@ -175,7 +167,7 @@ defmodule Drab.Live.EExEngine do
     expr = Macro.prewalk(expr, &handle_assign/1)
 
     # Decide if the expression is inside the tag or not
-    shadow = if Regex.match?(~r/<\S+/, no_tags(html)) do
+    {injected, shadow} = if Regex.match?(~r/<\S+/, no_tags(html)) do
       inject_attribute(buffer, expr, line, html)
     else
       if in_script?(html) do
@@ -184,8 +176,8 @@ defmodule Drab.Live.EExEngine do
         inject_span(buffer, expr, line)
       end
     end
-    put_shadow_buffer(buffer, shadow)
-    {:safe, shadow}
+    put_shadow_buffer(shadow)
+    {:safe, injected}
   end
 
   defp in_script?(html) do
@@ -234,29 +226,6 @@ defmodule Drab.Live.EExEngine do
   end
 
 
-  # defp to_html(ast) do
-  #   {_, result} = Macro.prewalk ast, [], fn node, acc ->
-  #     case node do
-  #       {_, _, atom} when is_atom(atom) -> {node, acc}
-  #       {_, _, string} when is_binary(string) -> {node, [string | acc]}
-  #       {_, _, list} -> {node, [Enum.filter(list, fn x -> is_binary(x) end) | acc]}
-  #       _ -> {node, acc}
-  #     end
-  #   end
-  #   result |> List.flatten() |> Enum.join()
-  # end
-
-  #   defp deep_find(list, what) when is_list(list) do
-  #   Enum.find(list, fn x -> 
-  #     deep_find(x, what)
-  #   end)
-  # end
-  # defp deep_find(string, what) when is_binary(string), do: String.contains?(string, what)
-  # defp deep_find({_, _, list}, what), do: deep_find(list, what)
-  # defp deep_find(_, _), do: false
-
-
-
   # The expression is inside the <script> tag
   defp inject_script(buffer, expr, line) do
     # IO.puts ""
@@ -280,9 +249,9 @@ defmodule Drab.Live.EExEngine do
     #     [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line))]
     #   end
     # else 
-      quote do
+      {quote do
         [unquote(buffer) | unquote(to_safe(expr, line))]
-      end
+      end, "{{{{@script}}}}"}
     # end
     
   end
@@ -304,7 +273,7 @@ defmodule Drab.Live.EExEngine do
     # do not repeat assign javascript
     assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
-    if found_assigns? do
+    buf = if found_assigns? do
       quote do
         [unquote(buffer), 
         unquote(span_begin),
@@ -317,6 +286,8 @@ defmodule Drab.Live.EExEngine do
         [unquote(buffer) | unquote(to_safe(expr, line))]
       end
     end
+
+    {buf, "{{{{@span}}}}"}
   end
 
   # The expression is inside the attribute
@@ -350,7 +321,7 @@ defmodule Drab.Live.EExEngine do
     [{a, b, list}] = buffer
     buffer = [{a, b, List.replace_at(list, -1, injected_line)}]
 
-    if found_assigns? do
+    buf = if found_assigns? do
       quote do
         # [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line)), unquote(attr)]
         [unquote(assigns_js), [unquote(buffer) | unquote(to_safe(expr, line))]]
@@ -360,6 +331,8 @@ defmodule Drab.Live.EExEngine do
         [unquote(buffer) | unquote(to_safe(expr, line))]
       end
     end
+
+    {buf, "{{{{@attribute}}}}"}
   end
 
   @doc false
