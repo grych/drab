@@ -36,8 +36,8 @@ defmodule Drab.Mixfile do
      {:cowboy, "~> 1.0"},
      {:ex_doc, "~> 0.14", only: :dev},
      {:deppie, "~> 1.0"},
-     {:hound, "~> 1.0"} ### , only: [:dev, :test]
-     # {:floki, "~> 0.17.0"}
+     {:hound, "~> 1.0"}, ### , only: [:dev, :test]
+     {:floki, "~> 0.17.0"}
     ]
   end
 

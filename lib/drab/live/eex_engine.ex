@@ -19,13 +19,34 @@ defmodule Drab.Live.EExEngine do
     [line: -1]
   end)
 
-  # def start_shadow_buffer(state), do: Agent.start_link(fn -> state end) 
+  #TODO: like this, will not work with parallel compiling
+  defp start_shadow_buffer(buff) do 
+    agent = :drab_compile_agent
+    case Agent.start_link(fn -> buff end, name: agent) do
+      {:ok, _} = ret -> 
+        ret
+      {:error, {:already_started, _}} ->
+        raise EEx.SyntaxError, message: """
+          Exprected unexprected.
+          Shadow buffer Agent already started. Please report it as a bug in https://github.com/grych/drab
+          """
+    end
+  end
 
-  # def stop_shadow_buffer(buff), do: Agent.stop(buff)
+  defp stop_shadow_buffer(buff) do
+    :drab_compile_agent |> Agent.stop()
+  end
 
-  # def put_shadow_buffer(buff, content), do: Agent.update(buff, &[content | &1]) 
+  defp put_shadow_buffer(buff, content) do 
+    agent = :drab_compile_agent
+    # Agent.update(agent, &[content | &1]) 
+    Agent.update(agent, fn _ -> content end) 
+  end
 
-  # def get_shadow_buffer(buff), do: Agent.get(buff, &(&1)) |> Enum.reverse 
+  defp get_shadow_buffer(buff) do 
+    agent = :drab_compile_agent
+    Agent.get(agent, &(&1)) |> Enum.reverse 
+  end
 
 
   @doc false
@@ -33,7 +54,10 @@ defmodule Drab.Live.EExEngine do
     # [engine: Drab.Live.EExEngine,
     #  file: "test/support/web/templates/live/users.html.drab", line: 1]
     # {:ok, var!(shadow_buffer, Drab.Live.EExEngine)} = start_shadow_buffer([])
-    {:safe, "\n\n<!-- DRAB BEGIN #{opts[:file]} -->\n"}
+    IO.puts "\n\nINIT #{inspect opts}"
+    buffer = ["\n<span drab-partial='#{opts[:file]}'>\n"]
+    start_shadow_buffer(buffer)
+    {:safe, buffer}
   end
 
   def collect_scripts([], opened_no) do
@@ -63,7 +87,7 @@ defmodule Drab.Live.EExEngine do
     collect_scripts(args, 0)
   end
   def collect_scripts({atom, x, args} = tuple, opened_no) when is_tuple(tuple) do
-    IO.inspect "FOUND TUPEL"
+    # IO.inspect "FOUND TUPEL"
     # collect_scripts([], acc ++ [{:tupppppppleeee, tuple}], opened_no)
     {tuple, opened_no}
   end
@@ -73,52 +97,95 @@ defmodule Drab.Live.EExEngine do
     [{[], opened_no}]
   end
 
+  defp partial(body) do
+    html = to_html(body)
+    [_, p] = Regex.run ~r/<span drab-partial='([^']+)'/, html
+    p |> String.to_atom()
+  end
+
+  defp to_html(body), do: do_to_html(body) |> List.flatten() |> Enum.join()
+
+  defp do_to_html([]), do: []
+  defp do_to_html(body) when is_binary(body), do: [body]
+  defp do_to_html({_, _, list}) when is_list(list), do: do_to_html(list)
+  defp do_to_html([head | rest]), do: do_to_html(head) ++ do_to_html(rest)
+  defp do_to_html(_), do: []
 
   @doc false
   def handle_body({:safe, body}) do 
+    # html = to_html(body)
     IO.puts ""
-    # IO.inspect body |> List.flatten()
+    IO.puts ""
+    # IO.inspect partial(body)
+    # IO.inspect body
+    # IO.inspect partial(body)
+    IO.inspect get_shadow_buffer(body) == body
+
     # IO.inspect collect_scripts(body, 0)
     # IO.inspect(IO.iodata_to_binary(body))
-    # IO.inspect plain_html(body)
+    # IO.inspect to_html(body)
     # b = [body]
     # Macro.prewalk(b, [], fn node, acc -> 
     #   IO.inspect node
     #   {nil, nil}
     # end) 
     # :ok = stop_shadow_buffer(var!(shadow_buffer, Drab.Live.EExEngine))
+    stop_shadow_buffer(body)
     init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
-    {:safe, [script_tag(init_js), body, "<!-- DRAB END -->", "\n"]}
+    {:safe, [script_tag(init_js), body, "\n</span>\n"]}
   end
 
   @doc false
-  def handle_text({:safe, buffer}, text), do: Phoenix.HTML.Engine.handle_text({:safe, buffer}, text)
+  def handle_text({:safe, buffer}, text) do
+    shadow = quote do
+      [unquote(buffer)|unquote(text)]
+    end
+    # IO.puts ""
+    # IO.inspect buffer
+    put_shadow_buffer(buffer, shadow)
+    {:safe, shadow}
+  end
 
   @doc false
-  def handle_text("", text), do: Phoenix.HTML.Engine.handle_text("", text)
+  def handle_text("", text) do
+    handle_text({:safe, ""}, text)
+  end
 
   @doc false
-  def handle_expr("", marker, expr), do: Phoenix.HTML.Engine.handle_expr("", marker, expr)
+  def handle_expr("", marker, expr) do
+    handle_expr({:safe, ""}, marker, expr)
+  end
 
   @doc false
-  def handle_expr({:safe, buffer}, "", expr), do: Phoenix.HTML.Engine.handle_expr({:safe, buffer}, "", expr)
+  def handle_expr({:safe, buffer}, "", expr) do
+    expr = Macro.prewalk(expr, &handle_assign/1)
+    shadow = quote do
+      tmp2 = unquote(buffer)
+      unquote(expr)
+      tmp2
+    end
+    put_shadow_buffer(buffer, shadow)
+    {:safe, shadow}    
+  end
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
-    html = plain_html(buffer)
+    html = to_html(buffer)
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
 
     # Decide if the expression is inside the tag or not
-    if Regex.match?(~r/<\S+/, no_tags(html)) do
-      {:safe, inject_attribute(buffer, expr, line, html)}
+    shadow = if Regex.match?(~r/<\S+/, no_tags(html)) do
+      inject_attribute(buffer, expr, line, html)
     else
       if in_script?(html) do
-        {:safe, inject_script(buffer, expr, line)}
+        inject_script(buffer, expr, line)
       else
-        {:safe, inject_span(buffer, expr, line)}
+        inject_span(buffer, expr, line)
       end
     end
+    put_shadow_buffer(buffer, shadow)
+    {:safe, shadow}
   end
 
   defp in_script?(html) do
@@ -167,7 +234,7 @@ defmodule Drab.Live.EExEngine do
   end
 
 
-  # defp plain_html(ast) do
+  # defp to_html(ast) do
   #   {_, result} = Macro.prewalk ast, [], fn node, acc ->
   #     case node do
   #       {_, _, atom} when is_atom(atom) -> {node, acc}
@@ -201,7 +268,7 @@ defmodule Drab.Live.EExEngine do
 
     # Poniższe dziala, ale będzie nowe podejście
     # buffer = inject_drab_id(buffer, "script")
-    # html = plain_html(buffer) 
+    # html = to_html(buffer) 
 
     # drab_id = drab_id(html, "script")
     # Drab.Live.Cache.add(drab_id, {:script, expr, found_assigns})
@@ -303,7 +370,7 @@ defmodule Drab.Live.EExEngine do
     |> remove_full_args()
 
     unless String.contains?(args_removed, "=") do
-      raise EEx.SyntaxError, description: """
+      raise EEx.SyntaxError, message: """
         Invalid attribute in html template:
           `#{inspect line}`
         You must specify the the attribute in the tag, like:
@@ -393,18 +460,14 @@ defmodule Drab.Live.EExEngine do
   defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
   defp line_from_expr(_), do: nil
 
-  # We can do the work at compile time
   defp to_safe(literal, _line) when is_binary(literal) or is_atom(literal) or is_number(literal) do
     Phoenix.HTML.Safe.to_iodata(literal)
   end
 
-  # We can do the work at runtime
   defp to_safe(literal, line) when is_list(literal) do
     quote line: line, do: Phoenix.HTML.Safe.to_iodata(unquote(literal))
   end
 
-  # We need to check at runtime and we do so by
-  # optimizing common cases.
   defp to_safe(expr, line) do
     # Keep stacktraces for protocol dispatch...
     fallback = quote line: line, do: Phoenix.HTML.Safe.to_iodata(other)
@@ -447,16 +510,16 @@ defmodule Drab.Live.EExEngine do
   end
 
   #TODO: rethink, may not be very smart
-  defp plain_html(ast) do
-    {_, result} = Macro.prewalk ast, [], fn node, acc ->
-      case node do
-        {_, _, atom} when is_atom(atom) -> {node, acc}
-        {_, _, string} when is_binary(string) -> {node, [string | acc]}
-        {_, _, list} -> {node, [Enum.filter(list, fn x -> is_binary(x) end) | acc]}
-        _ -> {node, acc}
-      end
-    end
-    result |> List.flatten() |> Enum.join()
-  end
+  # defp to_html(ast) do
+  #   {_, result} = Macro.prewalk ast, [], fn node, acc ->
+  #     case node do
+  #       {_, _, atom} when is_atom(atom) -> {node, acc}
+  #       {_, _, string} when is_binary(string) -> {node, [string | acc]}
+  #       {_, _, list} -> {node, [Enum.filter(list, fn x -> is_binary(x) end) | acc]}
+  #       _ -> {node, acc}
+  #     end
+  #   end
+  #   result |> List.flatten() |> Enum.join()
+  # end
 
 end

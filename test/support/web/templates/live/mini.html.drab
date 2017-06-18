@@ -2,7 +2,10 @@
 <div id="drab_pid"></div>
 
 <script type="text/javascript">
-  console.log('class1 = ' + '<%=@class1%>')
+  console.log('class2 = ' + '<%=@class2%>')
 </script><!-- end -->
 
+<button drab-click=update_mini class="btn <%=@class2%>">
+  Clickme <%=@class2%>
+</button>
 
