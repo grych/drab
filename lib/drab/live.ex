@@ -82,7 +82,7 @@ defmodule Drab.Live do
     #TODO: group updates on one node
     injected_updates = for ampere_hash <- amperes do
       case Drab.Live.Cache.get(ampere_hash) do
-        {:ampere, expr, assigns_in_expr} ->
+        {:span, expr, assigns_in_expr} ->
           # change only if poked assign exist in this ampere
           #TODO: stay DRY
           if has_common?(assigns_in_expr, assigns_to_update_keys) do
@@ -96,7 +96,7 @@ defmodule Drab.Live do
           else
             nil
           end
-        {:attributed, expr, assigns_in_expr, attribute, prefix} ->
+        {:attribute, expr, assigns_in_expr, attribute, prefix} ->
           if has_common?(assigns_in_expr, assigns_to_update_keys) do
             curr = Enum.map(current_assigns, fn {k, v} -> {String.to_existing_atom(k), v} end)
             {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
