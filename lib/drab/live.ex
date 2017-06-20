@@ -89,7 +89,7 @@ defmodule Drab.Live do
             {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
               |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
 
-            selector = "[drab-expr='#{ampere_hash}']"
+            selector = "[drab-ampere='#{ampere_hash}']"
             js = safe_to_encoded_js(safe)
 
             "Drab.update_drab_span(#{encode_js(selector)}, #{js})"
@@ -107,13 +107,14 @@ defmodule Drab.Live do
               |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
             js = safe_to_encoded_js(safe)
 
-            selector = "[drab-expr~='#{ampere_hash}']"
+            selector = "[drab-ampere~='#{ampere_hash}']"
 
             "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{current_js}, #{js}, \
             #{encode_js(prefix)})"
           else
             nil
           end
+        {:script, expr, assigns_in_expr} -> nil #not implemented yet
         _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
       end
       # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)

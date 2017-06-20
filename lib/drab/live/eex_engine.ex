@@ -8,10 +8,7 @@ defmodule Drab.Live.EExEngine do
   require IEx
 
   @jsvar           "__drab"
-  @drab_indicator  "drabbed"
-  @start_script    ~r/<\s*script[^<>]*>/i
-  @end_script      ~r/<\s*\/\s*script[^<>]*>/i
-  @drab_id         "drab-ampere-id"
+  @drab_id         "drab-ampere"
 
   @anno (if :erlang.system_info(:otp_release) >= '19' do
     [generated: true]
@@ -38,6 +35,38 @@ defmodule Drab.Live.EExEngine do
     p |> String.to_atom()
   end
 
+  # {{{{@drab-ampere:uge3timjthaya@drab-expr-hash:gezdcmrzgy4deny}}}}
+  @doc false
+  defp do_attributes_from_shadow([]), do: []
+  defp do_attributes_from_shadow([head | rest]) do 
+    do_attributes_from_shadow(head) ++ do_attributes_from_shadow(rest)
+  end
+  defp do_attributes_from_shadow({_, attributes, children}) when is_list(attributes) do 
+    attributes ++ do_attributes_from_shadow(children)
+  end
+  defp do_attributes_from_shadow(other), do: []
+
+  def attributes_from_shadow(shadow) do 
+    do_attributes_from_shadow(shadow) 
+      |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
+  end
+
+  defp drabbed_attr([]), do: []
+  defp drabbed_attr([head | rest]), do: drabbed_attr(head) ++ drabbed_attr(rest)
+  defp drabbed_attr({name, value}) do
+    # "{{{{@drab-ampere:" <> ampere <> "@drab-expr-hash:" <> hash <> "}}}}"
+    if Regex.match?(~r/{{{{@\S+}}}}/, value) do
+      [ampere, hash] = value
+        |> String.replace("{{{{", "") 
+        |> String.replace("}}}}", "")
+        |> String.split("@", trim: true)
+        # |> List.to_tuple()
+      [{name, ampere, hash}]
+    else
+      []
+    end
+  end
+  defp drabbed_attr({_, _}), do: []
 
   @doc false
   def handle_body({:safe, body}) do 
@@ -57,9 +86,12 @@ defmodule Drab.Live.EExEngine do
 
     init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
     final = [script_tag(init_js), assigns_js, body, "\n</span>\n"]
-
     put_shadow_buffer("\n</span>\n")
-    Drab.Live.Cache.set({:shadow, partial(body)}, get_shadow_buffer() |> Floki.parse())
+
+    shadow = get_shadow_buffer() |> Floki.parse()
+    # find the attributes
+
+    Drab.Live.Cache.set({:shadow, partial(body)}, shadow)
     stop_shadow_buffer()
 
     {:safe, final}
@@ -113,6 +145,9 @@ defmodule Drab.Live.EExEngine do
     {:safe, injected}
   end
 
+
+  @start_script    ~r/<\s*script[^<>]*>/i
+  @end_script      ~r/<\s*\/\s*script[^<>]*>/i
   defp in_script?(html) do
     # true if the expression is in <script></script>
     count_matches(html, @start_script) > count_matches(html, @end_script)
@@ -173,7 +208,7 @@ defmodule Drab.Live.EExEngine do
     drab_id = drab_id(html, "script")
 
     hash = hash({:script, expr, found_assigns})
-    Drab.Live.Cache.set({drab_id, hash}, {:script, expr, found_assigns})
+    Drab.Live.Cache.set(drab_id, {:script, expr, found_assigns})
 
     # assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
@@ -184,7 +219,7 @@ defmodule Drab.Live.EExEngine do
     # else 
       {quote do
         [unquote(buffer) | unquote(to_safe(expr, line))]
-      end, "{{{{@drab-ampere-id:#{drab_id}@drab-expr-hash:#{hash}}}}}"}
+      end, "{{{{@#{@drab_id}:#{drab_id}@drab-expr-hash:#{hash}}}}}"}
     # end
     
   end
@@ -205,7 +240,7 @@ defmodule Drab.Live.EExEngine do
     # buffer = inject_drab_id(buffer, tag)
     # # drab_id = drab_id(html, tag)
 
-    span_begin = "<span drab-expr='#{hash}'>"
+    span_begin = "<span #{@drab_id}='#{hash}'>"
     span_end   = "</span>"
 
 
@@ -243,71 +278,108 @@ defmodule Drab.Live.EExEngine do
 
     # drab_id = drab_id(html, "button")
 
-    lastline = last_line(buffer)
-    attribute = find_attr_in_line(lastline)
-    prefix = find_prefix_in_line(lastline)
+    # lastline = last_line(buffer)
+    attribute = find_attr_in_html(html)
+    # prefix = find_prefix_in_line(lastline)
 
     hash = hash({expr, found_assigns, attribute})
-    Drab.Live.Cache.set(hash, {:attribute, expr, found_assigns, attribute, prefix})
+
+    # Drab.Live.Cache.set(hash, {:attribute, expr, found_assigns, attribute, ""})
 
     # Add drabbed indicator, only once
     tag = last_opened_tag(html)
-    drab_id = drab_id(html, tag) || uuid()
-    drabbed = if Regex.match?(~r/<\S+/, lastline), do: "#{@drab_indicator} #{@drab_id}='#{drab_id}' ", else: ""
+    # drab_id = drab_id(html, tag) || uuid() # just to be sure it is distinct from expression from hash
 
-    # Add Drab Attribute just before the attribute
-    injected_line =
-      replace_last(lastline, attribute, "#{drabbed}drab-attr-#{hash} #{attribute}")
+    # tag = last_opened_tag(to_html(buffer))
+    # tag = "script"
+    buffer = inject_drab_id(buffer, tag)
+    html = to_html(buffer)
+    drab_id = drab_id(html, tag)
 
-    # Hack the buffer by replacing the last line
-    [{a, b, list}] = buffer
-    buffer = [{a, b, List.replace_at(list, -1, injected_line)}]
+    # drabbed = if Regex.match?(~r/<\S+/, lastline), do: "#{@drab_indicator} #{@drab_id}='#{drab_id}' ", else: ""
+
+    # # Add Drab Attribute just before the attribute
+    # injected_line =
+    #   # replace_last(lastline, attribute, "#{drabbed}drab-attr-#{hash} #{attribute}")
+
+    # # Hack the buffer by replacing the last line
+    # [{a, b, list}] = buffer
+    # buffer = [{a, b, List.replace_at(list, -1, injected_line)}]
+
+
+    # buffer = if Regex.match?(~r/<\S+/, lastline) do
+    #   injected_line =
+    #     replace_last(lastline, attribute, "#{@drab_id}='#{drab_id}' #{attribute}")
+    #   [{a, b, list}] = buffer
+    #   [{a, b, List.replace_at(list, -1, injected_line)}]
+    # else
+    #   buffer
+    # end
 
     buf = quote do
       [unquote(buffer) | unquote(to_safe(expr, line))]
     end
 
-    {buf, "{{{{@drab-ampere-id:#{drab_id}@drab-expr-hash:#{hash}@attribute:#{attribute}}}}}"}
+    {buf, "{{{{@#{@drab_id}:#{drab_id}@drab-expr-hash:#{hash}}}}}"}
   end
 
   @doc false
-  def find_attr_in_line(line) do
-    args_removed = line
+  def find_attr_in_html(html) do
+    args_removed = html
     |> String.split(~r/<\S+/)
-    |> take_at(-1)
-    |> remove_full_args()
-
-    unless String.contains?(args_removed, "=") do
-      raise EEx.SyntaxError, message: """
-        Invalid attribute in html template:
-          `#{inspect line}`
-        You must specify the the attribute in the tag, like:
-          <tag attribute="<%= my_func() %>">
-          <tag attribute='<%= @attr <> @attr2 %>'>
-          <tag attribute=<%= my_func(@attr) %>>
-        The following attribute injection is forbidden:
-          <tag <%= @whole_attribute %>>
-        Or you tried to include the "<" character in your page: you should escape it as "&lt;"
-        """
-    end
-
-    line
-    |> String.split("=") 
-    |> take_at(-2)
-    |> String.split(~r/\s+/)
-    |> Enum.filter(fn x -> x != "" end)
     |> List.last()
+    |> remove_full_args()
+    
+    if String.contains?(args_removed, "=") do
+      args_removed
+      |> String.split("=") 
+      |> take_at(-2)
+      |> String.split(~r/\s+/)
+      |> Enum.filter(fn x -> x != "" end)
+      |> List.last()      
+    else
+      nil
+    end
   end
 
-  @doc false
-  def find_prefix_in_line(line) do
-    line
-    |> String.split("=") 
-    |> take_at(-1)
-    |> String.replace(~r/^\s*["']*/, "", global: false)
-    |> String.replace_suffix("'", "")
-    |> String.replace_suffix("\"", "")
-  end
+  # @doc false
+  # defp find_attr_in_line(line) do
+  #   args_removed = line
+  #   |> String.split(~r/<\S+/)
+  #   |> take_at(-1)
+  #   |> remove_full_args()
+
+  #   unless String.contains?(args_removed, "=") do
+  #     raise EEx.SyntaxError, message: """
+  #       Invalid attribute in html template:
+  #         `#{inspect line}`
+  #       You must specify the the attribute in the tag, like:
+  #         <tag attribute="<%= my_func() %>">
+  #         <tag attribute='<%= @attr <> @attr2 %>'>
+  #         <tag attribute=<%= my_func(@attr) %>>
+  #       The following attribute injection is forbidden:
+  #         <tag <%= @whole_attribute %>>
+  #       Or you tried to include the "<" character in your page: you should escape it as "&lt;"
+  #       """
+  #   end
+
+  #   line
+  #   |> String.split("=") 
+  #   |> take_at(-2)
+  #   |> String.split(~r/\s+/)
+  #   |> Enum.filter(fn x -> x != "" end)
+  #   |> List.last()
+  # end
+
+  # @doc false
+  # defp find_prefix_in_line(line) do
+  #   line
+  #   |> String.split("=") 
+  #   |> take_at(-1)
+  #   |> String.replace(~r/^\s*["']*/, "", global: false)
+  #   |> String.replace_suffix("'", "")
+  #   |> String.replace_suffix("\"", "")
+  # end
 
   defp remove_full_args(string) do
     string
@@ -326,10 +398,10 @@ defmodule Drab.Live.EExEngine do
     item
   end
 
-  defp last_line(buffer) do
-    [{:|, _, a}] = buffer
-    List.last(a)
-  end
+  # defp last_line(buffer) do
+  #   [{:|, _, a}] = buffer
+  #   List.last(a)
+  # end
 
   defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/, "")
 
