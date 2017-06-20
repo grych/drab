@@ -82,7 +82,7 @@ defmodule Drab.Live do
     #TODO: group updates on one node
     injected_updates = for ampere_hash <- amperes do
       case Drab.Live.Cache.get(ampere_hash) do
-        {:span, expr, assigns_in_expr} ->
+        {:expr, expr, assigns_in_expr} ->
           # change only if poked assign exist in this ampere
           #TODO: stay DRY
           if has_common?(assigns_in_expr, assigns_to_update_keys) do
@@ -115,7 +115,8 @@ defmodule Drab.Live do
             nil
           end
         {:script, expr, assigns_in_expr} -> nil #not implemented yet
-        _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
+        # _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
+        _ -> []
       end
       # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
     end |> Enum.filter(fn x -> x end)

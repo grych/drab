@@ -36,7 +36,6 @@ defmodule Drab.Live.EExEngine do
   end
 
   # {{{{@drab-ampere:uge3timjthaya@drab-expr-hash:gezdcmrzgy4deny}}}}
-  @doc false
   defp do_attributes_from_shadow([]), do: []
   defp do_attributes_from_shadow([head | rest]) do 
     do_attributes_from_shadow(head) ++ do_attributes_from_shadow(rest)
@@ -46,27 +45,16 @@ defmodule Drab.Live.EExEngine do
   end
   defp do_attributes_from_shadow(other), do: []
 
+  @doc false
   def attributes_from_shadow(shadow) do 
     do_attributes_from_shadow(shadow) 
       |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
   end
 
-  defp drabbed_attr([]), do: []
-  defp drabbed_attr([head | rest]), do: drabbed_attr(head) ++ drabbed_attr(rest)
-  defp drabbed_attr({name, value}) do
-    # "{{{{@drab-ampere:" <> ampere <> "@drab-expr-hash:" <> hash <> "}}}}"
-    if Regex.match?(~r/{{{{@\S+}}}}/, value) do
-      [ampere, hash] = value
-        |> String.replace("{{{{", "") 
-        |> String.replace("}}}}", "")
-        |> String.split("@", trim: true)
-        # |> List.to_tuple()
-      [{name, ampere, hash}]
-    else
-      []
-    end
+  @doc false
+  def ampere_from_pattern("{{{{@drab-ampere:" <> ampere) do
+    String.split(ampere, ~r/[@}]/, trim: true) |> List.first()
   end
-  defp drabbed_attr({_, _}), do: []
 
   @doc false
   def handle_body({:safe, body}) do 
@@ -90,6 +78,9 @@ defmodule Drab.Live.EExEngine do
 
     shadow = get_shadow_buffer() |> Floki.parse()
     # find the attributes
+    # add to cache:
+    # expression hash is alrady in cache:  hash, {:expr, expr, found_assigns}
+    # drab_ampere -> {:attribute, [ %{ "attribute" => {"pattern", [ {expr, [:assigns]} ] } } ]}
 
     Drab.Live.Cache.set({:shadow, partial(body)}, shadow)
     stop_shadow_buffer()
@@ -207,8 +198,8 @@ defmodule Drab.Live.EExEngine do
     html = to_html(buffer)
     drab_id = drab_id(html, "script")
 
-    hash = hash({:script, expr, found_assigns})
-    Drab.Live.Cache.set(drab_id, {:script, expr, found_assigns})
+    hash = hash({:expr, expr, found_assigns})
+    Drab.Live.Cache.set(drab_id, {:expr, expr, found_assigns})
 
     # assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
@@ -230,7 +221,7 @@ defmodule Drab.Live.EExEngine do
     found_assigns? = found_assigns != []
 
     hash = hash({expr, found_assigns})
-    Drab.Live.Cache.set(hash, {:span, expr, found_assigns})
+    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
 
     # IO.inspect buffer
@@ -284,7 +275,7 @@ defmodule Drab.Live.EExEngine do
 
     hash = hash({expr, found_assigns, attribute})
 
-    # Drab.Live.Cache.set(hash, {:attribute, expr, found_assigns, attribute, ""})
+    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
     # Add drabbed indicator, only once
     tag = last_opened_tag(html)

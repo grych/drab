@@ -22,7 +22,10 @@
 <button drab-click=update_mini <%= "standalone" %> class="<%=@class1%> <%=@class2%> rest" <%= "other=wrong" %> class1=<%=@class1%>>
   Clickme <%=@class1%> <%=@class2%>
 </button>
-
+<br><br>
+<button class="btn <%= @class2 %>">
+  Other button  
+</button>
 <p p=p>
   <b b=b>
     Class2: <%=@class2%>
