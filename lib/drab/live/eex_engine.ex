@@ -51,19 +51,13 @@ defmodule Drab.Live.EExEngine do
       |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
   end
 
-  @doc false
-  def ampere_from_pattern("{{{{@drab-ampere:" <> ampere) do
-    String.split(ampere, ~r/[@}]/, trim: true) |> List.first()
-  end
+  # @doc false don't work that way
+  # def ampere_from_pattern("{{{{@drab-ampere:" <> ampere) do
+  #   String.split(ampere, ~r/[@}]/, trim: true) |> List.first()
+  # end
 
   @doc false
   def handle_body({:safe, body}) do 
-    # html = to_html(body)
-    # IO.puts ""
-    # IO.puts ""
-    # IO.inspect find_assigns(body)
-    # IO.inspect partial(body)
-    # IO.inspect body
 
     found_assigns = find_assigns(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
