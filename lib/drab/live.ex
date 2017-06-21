@@ -49,19 +49,18 @@ defmodule Drab.Live do
     assigns_to_update = Map.new(assigns)
     assigns_to_update_keys = Map.keys(assigns_to_update)
 
-    view = socket.assigns.__controller.__drab__().view
     app_module = Drab.Config.app_module()
-    router_helpers = Module.concat(app_module, Router.Helpers)
-    error_helpers = Module.concat(app_module, ErrorHelpers)
-    gettext = Module.concat(app_module, Gettext)
+    modules = {
+      socket.assigns.__controller.__drab__().view,
+      Module.concat(app_module, Router.Helpers),
+      Module.concat(app_module, ErrorHelpers),
+      Module.concat(app_module, Gettext)
+    }
 
-    # amperes of attributes contains more hashes, space separated
+    # TODO: check only amperes which contains the changed assigns
     amperes = amperes(socket)
-      |> Enum.map(&String.split/1)
-      |> List.flatten()
-      |> Enum.uniq()
 
-    # construct the javascript for update the innerHTML of amperes
+    # construct the javascripts for update of amperes
     #TODO: group updates on one node
     injected_updates = for ampere_hash <- amperes do
       selector = "[drab-ampere='#{ampere_hash}']"
@@ -70,9 +69,7 @@ defmodule Drab.Live do
           # change only if poked assign exist in this ampere
           #TODO: stay DRY
           if has_common?(assigns_in_expr, assigns_to_update_keys) do
-            {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
-              |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
-
+            safe = eval_expr(expr, modules, assigns_to_update, assigns_in_expr, current_assigns)
             new_value = safe_to_encoded_js(safe)
 
             "Drab.update_drab_span(#{encode_js(selector)}, #{new_value})"
@@ -85,8 +82,7 @@ defmodule Drab.Live do
               {:expr, expr, assigns_in_expr} = Drab.Live.Cache.get(hash)
 
               if has_common?(assigns_in_expr, assigns_to_update_keys) do
-                {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
-                  |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+                safe = eval_expr(expr, modules, assigns_to_update, assigns_in_expr, current_assigns)
                 new_value = safe_to_string(safe)
 
                 {hash, new_value}
@@ -99,6 +95,7 @@ defmodule Drab.Live do
 
             if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attribute) do
               #TODO: special form, without atribute name
+              # ignored for now, let's think if it needs to be covered
               nil
             else
               "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{new_value_of_attribute})"
@@ -108,9 +105,9 @@ defmodule Drab.Live do
           hash_and_value = Enum.map(exprs, fn hash ->
             {:expr, expr, assigns_in_expr} = Drab.Live.Cache.get(hash)
             if has_common?(assigns_in_expr, assigns_to_update_keys) do
-              {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
-                |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+              safe = eval_expr(expr, modules, assigns_to_update, assigns_in_expr, current_assigns)
               new_value = safe_to_string(safe)
+
               {hash, new_value}
             else
               nil
@@ -152,9 +149,15 @@ defmodule Drab.Live do
     if Enum.find(lista, fn xa -> Enum.find(listb, fn xb -> xa == xb end) end), do: true, else: false
   end
 
-  defp expr_with_imports(expr, view, router_helpers, error_helpers, gettext) do
+  defp eval_expr(expr, modules, assigns_to_update, assigns_in_expr, current_assigns) do
+    {safe, _assigns} = expr_with_imports(expr, modules)
+      |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+    safe
+  end
+
+  defp expr_with_imports(expr, modules) do
     #TODO: find it in the web.ex
-    # Find corresponding View
+    {view, router_helpers, error_helpers, gettext} = modules
     quote do 
       import unquote(view)
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
