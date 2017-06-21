@@ -13,7 +13,7 @@ defmodule Drab.Live.Cache do
   def add(k, v) do
     {:ok, table} = :dets.open_file(@cache_file, [type: :set])
     list = get(k) || []
-    :dets.insert(table, {k, [v | list]})
+    :dets.insert(table, {k, list ++ [v]})
     :dets.close(table)
   end
 

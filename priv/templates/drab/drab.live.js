@@ -48,18 +48,26 @@ Drab.on_load(function(resp, drab) {
   })
 })
 
-Drab.update_attribute = function(selector, attribute, current_value, new_value, prefix) {
+Drab.update_attribute = function(selector, attribute, new_value) {
   // "document.querySelectorAll(\"#{selector}\").forEach(function(n) {n.setAttribute('#{attribute}', #{js})})"
-  document.querySelectorAll(selector).forEach(function(node) {
-    var current = node.getAttribute(attribute)
-    var suffix = current.replace(prefix, "")
-    var replaced = suffix.replace(current_value, new_value)
-    node.setAttribute(attribute, prefix + replaced)
-  })
+  // document.querySelectorAll(selector).forEach(function(node) {
+  //   // var current = node.getAttribute(attribute)
+  //   // var suffix = current.replace(prefix, "")
+  //   // var replaced = suffix.replace(current_value, new_value)
+  //   console.log(attribute, new_value)
+    
+  // })
+  node = document.querySelector(selector)
+  node.setAttribute(attribute, new_value)
 }
 
 Drab.update_drab_span = function(selector, html) {
   document.querySelectorAll(selector).forEach(function(node) {
     node.innerHTML = html
   })
+}
+
+Drab.update_script = function(selector, new_script) {
+  // console.log(new_value)
+  eval(new_script)
 }

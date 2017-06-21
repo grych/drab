@@ -44,9 +44,9 @@ defmodule Drab.Live do
     socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:amperes)
   end
 
-  defp scripts(socket) do
-    socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:ampere_scripts)
-  end
+  # defp scripts(socket) do
+  #   socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:ampere_scripts)
+  # end
 
   def peek(socket, assign) when is_binary(assign) do
     # socket.assigns.__ampere_assigns[assign]
@@ -81,6 +81,7 @@ defmodule Drab.Live do
     # construct the javascript for update the innerHTML of amperes
     #TODO: group updates on one node
     injected_updates = for ampere_hash <- amperes do
+      selector = "[drab-ampere='#{ampere_hash}']"
       case Drab.Live.Cache.get(ampere_hash) do
         {:expr, expr, assigns_in_expr} ->
           # change only if poked assign exist in this ampere
@@ -89,39 +90,59 @@ defmodule Drab.Live do
             {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
               |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
 
-            selector = "[drab-ampere='#{ampere_hash}']"
-            js = safe_to_encoded_js(safe)
+            new_value = safe_to_encoded_js(safe)
 
-            "Drab.update_drab_span(#{encode_js(selector)}, #{js})"
+            "Drab.update_drab_span(#{encode_js(selector)}, #{new_value})"
           else
             nil
           end
-        {:attribute, expr, assigns_in_expr, attribute, prefix} ->
-          if has_common?(assigns_in_expr, assigns_to_update_keys) do
-            curr = Enum.map(current_assigns, fn {k, v} -> {String.to_existing_atom(k), v} end)
-            {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
-              |> Code.eval_quoted([assigns: curr])
-            current_js = safe_to_encoded_js(safe)
+        {:attribute, list} ->
+          for {attribute, pattern, exprs} <- list do
+            hash_and_value = Enum.map(exprs, fn hash -> 
+              {:expr, expr, assigns_in_expr} = Drab.Live.Cache.get(hash)
 
-            {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
-              |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
-            js = safe_to_encoded_js(safe)
+              if has_common?(assigns_in_expr, assigns_to_update_keys) do
+                {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
+                  |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+                new_value = safe_to_string(safe)
 
-            selector = "[drab-ampere~='#{ampere_hash}']"
+                {hash, new_value}
+              else
+                nil
+              end
 
-            "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{current_js}, #{js}, \
-            #{encode_js(prefix)})"
-          else
-            nil
+            end) |> Enum.filter(fn x -> x end)
+            new_value_of_attribute = replace_pattern(pattern, hash_and_value) |> encode_js()
+
+            if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attribute) do
+              #TODO: special form, without atribute name
+              nil
+            else
+              "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{new_value_of_attribute})"
+            end
           end
-        {:script, expr, assigns_in_expr} -> nil #not implemented yet
-        # _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
-        _ -> []
+        {:script, pattern, exprs} -> 
+          hash_and_value = Enum.map(exprs, fn hash ->
+            {:expr, expr, assigns_in_expr} = Drab.Live.Cache.get(hash)
+            if has_common?(assigns_in_expr, assigns_to_update_keys) do
+              {safe, _assigns} = expr_with_imports(expr, view, router_helpers, error_helpers, gettext)
+                |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+              new_value = safe_to_string(safe)
+              {hash, new_value}
+            else
+              nil
+            end
+          end) |> Enum.filter(fn x -> x end)
+          new_script = replace_pattern(pattern, hash_and_value) |> encode_js()
+
+          "Drab.update_script(#{encode_js(selector)}, #{new_script})"
+        _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
+        # _ -> []
       end
       # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
-    end |> Enum.filter(fn x -> x end)
+    end |> Enum.filter(fn x -> x end) |> List.flatten()
 
-    # IO.inspect(injected_updates)
+    IO.inspect(injected_updates)
 
     changes_assigns_js = changed_assigns_js_list(assigns_to_update)
     ampere_updates = (changes_assigns_js ++ injected_updates) |> Enum.uniq()
@@ -137,6 +158,12 @@ defmodule Drab.Live do
     socket |> Drab.pid() |> Drab.set_priv(%{priv | ampere_assigns: updated_assigns})
 
     socket
+  end
+
+  defp replace_pattern(pattern, []), do: pattern
+  defp replace_pattern(pattern, [{hash, value} | rest]) do
+    new_pattern = String.replace(pattern, ~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:#{hash}}}}}/, value, global: true)
+    replace_pattern(new_pattern, rest)
   end
 
   defp has_common?(lista, listb) do

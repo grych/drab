@@ -3,26 +3,6 @@ defmodule Drab.Live.EExEngineTest do
   doctest Drab.Live.EExEngine
   import Drab.Live.EExEngine
 
-
-  test "trailing text" do
-    lines = [
-      {"<tag attr=", ""},
-      {"<tag attr= '", ""},
-      {"<tag attr =\n \"", ""},
-      {"<tag attr=before", "before"},
-      {"<tag attr=  before", "before"},
-      {"<tag attr = \nbefore", "before"},
-      {"<tag attr\n=\t\n   before", "before"},
-      {"<tag attr='before'", "before"},
-      {"<tag attr=  '  before '", "  before "},
-      {"<tag attr=\n\" before \"", " before "},
-      {"<tag attr='\nbefore'", "\nbefore"}
-    ]
-    for {line, attr} <- lines do
-      assert find_prefix_in_line(line) == attr 
-    end
-  end
-
   test "last opened tag" do
     htmls = [
       {"<div><b>a</b><span><script a=\"b\" something", "script"},
@@ -67,6 +47,22 @@ defmodule Drab.Live.EExEngineTest do
     for {html, attribute} <- htmls do
       assert attribute == find_attr_in_html(html)
     end
+  end
+
+  test "attributes from shadow" do
+    shadow = {"button",
+      [{"class",
+        "btn {{{{@drab-ampere:ugezdsnzygi3tknq@drab-expr-hash:geytgmzvhazdsoa}}}}"}],
+      ["\n  Other button  \n"]}
+    assert attributes_from_shadow(shadow) == [{"class",
+      "btn {{{{@drab-ampere:ugezdsnzygi3tknq@drab-expr-hash:geytgmzvhazdsoa}}}}"}]
+  end
+
+  test "extract expression hashes and ampere id from pattern" do
+    pattern = "begin {{{{@drab-ampere:ugm2dcmjvgyza@drab-expr-hash:g4ztsnbsha4to}}}}
+      {{{{@drab-ampere:ugm2dcmjvgyza@drab-expr-hash:geytmmrsgi2dona}}}} rest"
+    assert expression_hashes_from_pattern(pattern) == ["g4ztsnbsha4to", "geytmmrsgi2dona"]
+    assert ampere_from_pattern(pattern) == "ugm2dcmjvgyza"
   end
 
 end

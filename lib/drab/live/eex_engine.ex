@@ -18,21 +18,19 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def init(opts) do
-    # [engine: Drab.Live.EExEngine,
-    #  file: "test/support/web/templates/live/users.html.drab", line: 1]
-    # {:ok, var!(shadow_buffer, Drab.Live.EExEngine)} = start_shadow_buffer([])
     IO.puts "\n\nINIT #{inspect opts}"
-    buffer = ["\n<span drab-partial='#{opts[:file]}'>\n"]
-    start_shadow_buffer(buffer)
+    partial = opts[:file] |> String.to_atom()
+    buffer = ["\n<span drab-partial='#{partial}'>\n"]
+    start_shadow_buffer(buffer, partial)
     {:safe, buffer}
   end
 
-
-
   defp partial(body) do
     html = to_html(body)
-    [_, p] = Regex.run ~r/<span.*drab-partial='([^']+)'/i, html
-    p |> String.to_atom()
+    p = Regex.run ~r/<span.*drab-partial='([^']+)'/i, html
+    #TODO: possibly dangerous - returning nil when partial not found
+    # should be OK as we use shadow buffer only for attributes and scripts
+    if p, do: List.last(p) |> String.to_atom(), else: nil
   end
 
   # {{{{@drab-ampere:uge3timjthaya@drab-expr-hash:gezdcmrzgy4deny}}}}
@@ -51,10 +49,26 @@ defmodule Drab.Live.EExEngine do
       |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
   end
 
-  # @doc false don't work that way
-  # def ampere_from_pattern("{{{{@drab-ampere:" <> ampere) do
-  #   String.split(ampere, ~r/[@}]/, trim: true) |> List.first()
-  # end
+  def scripts_from_shadow(shadow) do
+    for {"script", _, [script]} <- Floki.find(shadow, "script"), Regex.match?(~r/{{{{@\S+}}}}/, script) do
+      script
+    end
+  end
+
+  @doc false
+  def expression_hashes_from_pattern(pattern) do
+    Regex.scan(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:([^@}]+)/, pattern)
+      |> Enum.map(fn [_, expr_hash] -> expr_hash end)
+  end
+
+  @doc false
+  def ampere_from_pattern(pattern) do
+    Regex.run(~r/{{{{@drab-ampere:([^@}]+)/, pattern) |> List.last()
+  end
+
+  defp expr_from_hash(hash) do
+    Drab.Live.Cache.get(hash)
+  end
 
   @doc false
   def handle_body({:safe, body}) do 
@@ -68,23 +82,49 @@ defmodule Drab.Live.EExEngine do
 
     init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
     final = [script_tag(init_js), assigns_js, body, "\n</span>\n"]
-    put_shadow_buffer("\n</span>\n")
+    put_shadow_buffer("\n</span>\n", partial(body))
 
-    shadow = get_shadow_buffer() |> Floki.parse()
-    # find the attributes
+    shadow = get_shadow_buffer(partial(body)) |> Floki.parse()
+    Drab.Live.Cache.set({:shadow, partial(body)}, shadow)
+    # stop_shadow_buffer(partial(body))
+
+    # find all the attributes
     # add to cache:
     # expression hash is alrady in cache:  hash, {:expr, expr, found_assigns}
-    # drab_ampere -> {:attribute, [ %{ "attribute" => {"pattern", [ {expr, [:assigns]} ] } } ]}
+    # drab_ampere -> {:attribute, [ { "attribute", "pattern", [ {:expr, ast, [assigns] ] } ]}
+    attributes = attributes_from_shadow(shadow)
+    grouped_by_ampere = Enum.map(attributes, fn {attribute, pattern} ->
+      {ampere_from_pattern(pattern), 
+        {
+          attribute, 
+          pattern, 
+          expression_hashes_from_pattern(pattern)
+        }
+      }
+    end) |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
 
-    Drab.Live.Cache.set({:shadow, partial(body)}, shadow)
-    stop_shadow_buffer()
+    for {ampere, list} <- grouped_by_ampere do
+      Drab.Live.Cache.set(ampere, {:attribute, list})
+    end
+
+    # {ampere_from_pattern(script), script, expression_hashes_from_pattern(script)}
+    for pattern <- scripts_from_shadow(shadow) do
+      ampere = ampere_from_pattern(pattern)
+      hashes = expression_hashes_from_pattern(pattern)
+      Drab.Live.Cache.set(ampere, {:script, pattern, hashes})
+    end
+
+    # Enum.map(scripts_from_shadow(shadow), fn {ampere, pattern_list} -> 
+    #   Drab.Live.Cache.set(ampere, {:script, })
+    #   # {ampere, pattern, expression_hashes_from_pattern(pattern)}
+    # end) |> IO.inspect()
 
     {:safe, final}
   end
 
   @doc false
   def handle_text({:safe, buffer}, text) do
-    put_shadow_buffer(text)
+    put_shadow_buffer(text, partial(buffer))
     {:safe, quote do
       [unquote(buffer)|unquote(text)]
     end}
@@ -126,7 +166,7 @@ defmodule Drab.Live.EExEngine do
         inject_span(buffer, expr, line)
       end
     end
-    put_shadow_buffer(shadow)
+    put_shadow_buffer(shadow, partial(buffer))
     {:safe, injected}
   end
 
@@ -180,20 +220,37 @@ defmodule Drab.Live.EExEngine do
   end
 
 
+
+    # found_assigns  = find_assigns(expr) |> Enum.sort()
+
+    # html = to_html(buffer) 
+    # attribute = find_attr_in_html(html)
+
+    # hash = hash({expr, found_assigns, attribute})
+    # Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+
+    # # Add drabbed indicator, only once
+    # tag = last_opened_tag(html)
+    # buffer = inject_drab_id(buffer, tag)
+    # html = to_html(buffer)
+    # drab_id = drab_id(html, tag)
+
+    # buf = quote do
+    #   [unquote(buffer) | unquote(to_safe(expr, line))]
+    # end
+
+    # {buf, "{{{{@#{@drab_id}:#{drab_id}@drab-expr-hash:#{hash}}}}}"}
+
   # The expression is inside the <script> tag
   defp inject_script(buffer, expr, line) do
     found_assigns  = find_assigns(expr)
-    # found_assigns? = (found_assigns != [])
 
-    # Poniższe dziala, ale będzie nowe podejście
-    # tag = last_opened_tag(to_html(buffer))
-    # tag = "script"
     buffer = inject_drab_id(buffer, "script")
     html = to_html(buffer)
-    drab_id = drab_id(html, "script")
+    ampere_id = drab_id(html, "script")
 
-    hash = hash({:expr, expr, found_assigns})
-    Drab.Live.Cache.set(drab_id, {:expr, expr, found_assigns})
+    hash = hash({expr, found_assigns})
+    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
     # assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
@@ -204,7 +261,7 @@ defmodule Drab.Live.EExEngine do
     # else 
       {quote do
         [unquote(buffer) | unquote(to_safe(expr, line))]
-      end, "{{{{@#{@drab_id}:#{drab_id}@drab-expr-hash:#{hash}}}}}"}
+      end, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
     # end
     
   end
@@ -217,20 +274,8 @@ defmodule Drab.Live.EExEngine do
     hash = hash({expr, found_assigns})
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
-
-    # IO.inspect buffer
-    # # buffer = inject_drab_id(buffer, "b")
-    # html = to_html(buffer)
-    # tag = last_opened_tag(html)
-    # buffer = inject_drab_id(buffer, tag)
-    # # drab_id = drab_id(html, tag)
-
     span_begin = "<span #{@drab_id}='#{hash}'>"
     span_end   = "</span>"
-
-
-    # do not repeat assign javascript
-    # assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
 
     buf = if found_assigns? do
       quote do
@@ -250,62 +295,29 @@ defmodule Drab.Live.EExEngine do
 
 
 
-
-
   # The expression is inside the attribute
   # In this case we need to inject the attribute, `drab-attr-HASH`, refering to the tuple in the Cache,
   # which contains expression, assigns and the attribute name
   defp inject_attribute(buffer, expr, _html, line) do
     found_assigns  = find_assigns(expr) |> Enum.sort()
 
-    # buffer = inject_drab_id(buffer, "button")
     html = to_html(buffer) 
-
-    # drab_id = drab_id(html, "button")
-
-    # lastline = last_line(buffer)
     attribute = find_attr_in_html(html)
-    # prefix = find_prefix_in_line(lastline)
 
-    hash = hash({expr, found_assigns, attribute})
-
+    hash = hash({expr, found_assigns})
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
     # Add drabbed indicator, only once
     tag = last_opened_tag(html)
-    # drab_id = drab_id(html, tag) || uuid() # just to be sure it is distinct from expression from hash
-
-    # tag = last_opened_tag(to_html(buffer))
-    # tag = "script"
     buffer = inject_drab_id(buffer, tag)
     html = to_html(buffer)
-    drab_id = drab_id(html, tag)
-
-    # drabbed = if Regex.match?(~r/<\S+/, lastline), do: "#{@drab_indicator} #{@drab_id}='#{drab_id}' ", else: ""
-
-    # # Add Drab Attribute just before the attribute
-    # injected_line =
-    #   # replace_last(lastline, attribute, "#{drabbed}drab-attr-#{hash} #{attribute}")
-
-    # # Hack the buffer by replacing the last line
-    # [{a, b, list}] = buffer
-    # buffer = [{a, b, List.replace_at(list, -1, injected_line)}]
-
-
-    # buffer = if Regex.match?(~r/<\S+/, lastline) do
-    #   injected_line =
-    #     replace_last(lastline, attribute, "#{@drab_id}='#{drab_id}' #{attribute}")
-    #   [{a, b, list}] = buffer
-    #   [{a, b, List.replace_at(list, -1, injected_line)}]
-    # else
-    #   buffer
-    # end
+    ampere_id = drab_id(html, tag)
 
     buf = quote do
       [unquote(buffer) | unquote(to_safe(expr, line))]
     end
 
-    {buf, "{{{{@#{@drab_id}:#{drab_id}@drab-expr-hash:#{hash}}}}}"}
+    {buf, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
   end
 
   @doc false
@@ -537,31 +549,37 @@ defmodule Drab.Live.EExEngine do
 
 
   #TODO: like this, will not work with parallel compiling
-  defp start_shadow_buffer(initial) do 
-    agent = :drab_compile_agent
-    case Agent.start_link(fn -> initial end, name: agent) do
-      {:ok, _} = ret -> 
-        ret
-      {:error, {:already_started, _}} ->
-        raise EEx.SyntaxError, message: """
-          Exprected unexprected.
-          Shadow buffer Agent already started. Please report it as a bug in https://github.com/grych/drab
-          """
-    end
+  defp start_shadow_buffer(initial, partial) do 
+    # agent = :drab_compile_agent
+    # case Agent.start_link(fn -> initial end, name: agent) do
+    #   {:ok, _} = ret -> 
+    #     ret
+    #   {:error, {:already_started, _}} ->
+    #     raise EEx.SyntaxError, message: """
+    #       Exprected unexprected.
+    #       Shadow buffer Agent already started. Please report it as a bug in https://github.com/grych/drab
+    #       """
+    # end
+    Drab.Live.Cache.set {:shadow, partial}, initial
   end
 
-  defp stop_shadow_buffer() do
-    :drab_compile_agent |> Agent.stop()
-  end
+  # defp stop_shadow_buffer(partial) do
+  #   # :drab_compile_agent |> Agent.stop()
+  #   # l = get_shadow_buffer(partial) |> Enum.reverse() |> Enum.join()
+  #   # Drab.Live.Cache.put {:shadow, partial}, l
+  # end
 
-  defp put_shadow_buffer(content) do 
-    agent = :drab_compile_agent
-    Agent.update(agent, &[content | &1]) 
+  defp put_shadow_buffer(content, partial) do
+    # existing = get_shadow_buffer(partial)
+    Drab.Live.Cache.add {:shadow, partial}, content
+    # agent = :drab_compile_agent
+    # Agent.update(agent, &[content | &1]) 
     # Agent.update(agent, fn _ -> content end) 
   end
 
-  defp get_shadow_buffer() do 
-    agent = :drab_compile_agent
-    Agent.get(agent, &(&1)) |> Enum.reverse |> Enum.join()
+  defp get_shadow_buffer(partial) do
+    Drab.Live.Cache.get {:shadow, partial}
+    # agent = :drab_compile_agent
+    # Agent.get(agent, &(&1)) |> Enum.reverse |> Enum.join()
   end
 end
