@@ -1,33 +1,11 @@
 Drab.add_payload(function(sender, event) {
   return {
     assigns: __drab.assigns,
-    amperes: __drab.amperes,
-    scripts: __drab.scripts
+    amperes: __drab.amperes
   }
 })
 
 Drab.on_load(function(resp, drab) {
-  // add drab-ampere to all drabbed tags
-  // collect attributed values
-  // var drabbed = document.querySelectorAll("[drabbed]")
-  // drabbed.forEach(function(node) {
-  //   var hashes = []
-  //   node.removeAttribute("drabbed")
-  //   for (var i = 0; i < node.attributes.length; i++) {
-  //     var attr = node.attributes[i]
-  //     if (attr.name.startsWith("drab-attr")) {
-  //       var hash = attr.name.replace("drab-attr-", "")
-  //       if (hashes.indexOf(hash) < 0) {
-  //         node.removeAttribute(attr.name)
-  //         hashes.push(hash)
-  //       }
-  //     }
-  //   }
-  //   if (hashes.length > 0) {
-  //     node.setAttribute("drab-ampere", hashes.join(" "))
-  //   }
-  // })
-
   // extract information from all drabbed nodes and store it in global __drab
   var d = window.__drab
   d.amperes = []
@@ -49,14 +27,6 @@ Drab.on_load(function(resp, drab) {
 })
 
 Drab.update_attribute = function(selector, attribute, new_value) {
-  // "document.querySelectorAll(\"#{selector}\").forEach(function(n) {n.setAttribute('#{attribute}', #{js})})"
-  // document.querySelectorAll(selector).forEach(function(node) {
-  //   // var current = node.getAttribute(attribute)
-  //   // var suffix = current.replace(prefix, "")
-  //   // var replaced = suffix.replace(current_value, new_value)
-  //   console.log(attribute, new_value)
-    
-  // })
   node = document.querySelector(selector)
   node.setAttribute(attribute, new_value)
 }
@@ -68,6 +38,5 @@ Drab.update_drab_span = function(selector, html) {
 }
 
 Drab.update_script = function(selector, new_script) {
-  // console.log(new_value)
   eval(new_script)
 }

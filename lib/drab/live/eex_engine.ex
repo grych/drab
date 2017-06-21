@@ -19,76 +19,15 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def init(opts) do
-    IO.puts "\n\nINIT #{inspect opts}"
     partial = opts[:file] |> String.to_atom()
+    IO.puts "Compiling Drab partial: #{partial}"
     buffer = ["\n<span drab-partial='#{partial}'>\n"]
     start_shadow_buffer(buffer, partial)
     {:safe, buffer}
   end
 
-  defp partial(body) do
-    html = to_html(body)
-    p = Regex.run ~r/<span.*drab-partial='([^']+)'/i, html
-    #TODO: possibly dangerous - returning nil when partial not found
-    # should be OK as we use shadow buffer only for attributes and scripts
-    if p, do: List.last(p) |> String.to_atom(), else: nil
-  end
-
-  # {{{{@drab-ampere:uge3timjthaya@drab-expr-hash:gezdcmrzgy4deny}}}}
-  defp do_attributes_from_shadow([]), do: []
-  defp do_attributes_from_shadow([head | rest]) do 
-    do_attributes_from_shadow(head) ++ do_attributes_from_shadow(rest)
-  end
-  defp do_attributes_from_shadow({_, attributes, children}) when is_list(attributes) do 
-    attributes ++ do_attributes_from_shadow(children)
-  end
-  defp do_attributes_from_shadow(other), do: []
-
-  @doc false
-  def attributes_from_shadow(shadow) do 
-    do_attributes_from_shadow(shadow) 
-      |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
-      |> Enum.filter(fn {name, _} -> 
-        n = Regex.match?(~r/{{{{@\S+}}}}/, name)
-        n && Logger.warn """
-          Unknown attribute found in HTML Template.
-
-          Drab works only with well defined attributes in HTML. You may use:
-              <button class="btn <%= @button_class %>">
-              <a href="<%= build_href(@site) %>">
-          But following constructs are prohibited:
-              <tag <%="attr='#{@value}'%>>
-              <tag <%=build_attr(@name, @value)%>>
-          This will not be updated by Drab Commander.
-          """
-        !n
-      end)
-  end
-
-  def scripts_from_shadow(shadow) do
-    for {"script", _, [script]} <- Floki.find(shadow, "script"), Regex.match?(~r/{{{{@\S+}}}}/, script) do
-      script
-    end
-  end
-
-  @doc false
-  def expression_hashes_from_pattern(pattern) do
-    Regex.scan(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:([^@}]+)/, pattern)
-      |> Enum.map(fn [_, expr_hash] -> expr_hash end)
-  end
-
-  @doc false
-  def ampere_from_pattern(pattern) do
-    Regex.run(~r/{{{{@drab-ampere:([^@}]+)/, pattern) |> List.last()
-  end
-
-  defp expr_from_hash(hash) do
-    Drab.Live.Cache.get(hash)
-  end
-
   @doc false
   def handle_body({:safe, body}) do 
-
     found_assigns = find_assigns(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
       assign_js(assign)
@@ -186,6 +125,101 @@ defmodule Drab.Live.EExEngine do
     {:safe, injected}
   end
 
+  # The expression is inside the <script> tag
+  defp inject_script(buffer, expr, line) do
+    found_assigns  = find_assigns(expr)
+
+    buffer = inject_drab_id(buffer, "script")
+    html = to_html(buffer)
+    ampere_id = drab_id(html, "script")
+
+    hash = hash({expr, found_assigns})
+    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+
+    {quote do
+      [unquote(buffer) | unquote(to_safe(expr, line))]
+    end, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
+  end
+
+
+
+  # Easy way. Surroud the expression with Drab Span
+  defp inject_span(buffer, expr, line) do
+    found_assigns  = find_assigns(expr)
+    found_assigns? = found_assigns != []
+
+    hash = hash({expr, found_assigns})
+    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+
+    span_begin = "<span #{@drab_id}='#{hash}'>"
+    span_end   = "</span>"
+
+    buf = if found_assigns? do
+      quote do
+        [unquote(buffer), 
+        unquote(span_begin),
+        unquote(to_safe(expr, line)),
+        unquote(span_end)]
+      end
+    else 
+      quote do
+        [unquote(buffer) | unquote(to_safe(expr, line))]
+      end
+    end
+
+    {buf, ["{{{{@drab-expr-hash:#{hash}}}}}"]}
+  end
+
+
+
+  # The expression is inside the attribute
+  # In this case we need to inject the attribute, `drab-attr-HASH`, refering to the tuple in the Cache,
+  # which contains expression, assigns and the attribute name
+  defp inject_attribute(buffer, expr, _html, line) do
+    found_assigns  = find_assigns(expr) |> Enum.sort()
+    html = to_html(buffer) 
+    hash = hash({expr, found_assigns})
+    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+
+    # Add drab indicator
+    tag = last_opened_tag(html)
+    buffer = inject_drab_id(buffer, tag)
+    html = to_html(buffer)
+    ampere_id = drab_id(html, tag)
+
+    buf = quote do
+      [unquote(buffer) | unquote(to_safe(expr, line))]
+    end
+
+    {buf, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
+  end
+
+  defp partial(body) do
+    html = to_html(body)
+    p = Regex.run ~r/<span.*drab-partial='([^']+)'/i, html
+    #TODO: possibly dangerous - returning nil when partial not found
+    # but should be OK as we use shadow buffer only for attributes and scripts
+    if p, do: List.last(p) |> String.to_atom(), else: nil
+  end
+
+  @doc false
+  def find_attr_in_html(html) do
+    args_removed = html
+    |> String.split(~r/<\S+/)
+    |> List.last()
+    |> remove_full_args()
+    
+    if String.contains?(args_removed, "=") do
+      args_removed
+      |> String.split("=") 
+      |> take_at(-2)
+      |> String.split(~r/\s+/)
+      |> Enum.filter(fn x -> x != "" end)
+      |> List.last()      
+    else
+      nil
+    end
+  end
 
   @start_script    ~r/<\s*script[^<>]*>/i
   @end_script      ~r/<\s*\/\s*script[^<>]*>/i
@@ -235,165 +269,6 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-
-
-    # found_assigns  = find_assigns(expr) |> Enum.sort()
-
-    # html = to_html(buffer) 
-    # attribute = find_attr_in_html(html)
-
-    # hash = hash({expr, found_assigns, attribute})
-    # Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
-
-    # # Add drabbed indicator, only once
-    # tag = last_opened_tag(html)
-    # buffer = inject_drab_id(buffer, tag)
-    # html = to_html(buffer)
-    # drab_id = drab_id(html, tag)
-
-    # buf = quote do
-    #   [unquote(buffer) | unquote(to_safe(expr, line))]
-    # end
-
-    # {buf, "{{{{@#{@drab_id}:#{drab_id}@drab-expr-hash:#{hash}}}}}"}
-
-  # The expression is inside the <script> tag
-  defp inject_script(buffer, expr, line) do
-    found_assigns  = find_assigns(expr)
-
-    buffer = inject_drab_id(buffer, "script")
-    html = to_html(buffer)
-    ampere_id = drab_id(html, "script")
-
-    hash = hash({expr, found_assigns})
-    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
-
-    # assigns_js = deduplicated_js_lines(buffer, found_assigns) |> script_tag()
-
-    # if found_assigns? do
-    #   quote do
-    #     [unquote(assigns_js), unquote(buffer), unquote(to_safe(expr, line))]
-    #   end
-    # else 
-      {quote do
-        [unquote(buffer) | unquote(to_safe(expr, line))]
-      end, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
-    # end
-    
-  end
-
-  # Easy way. Surroud the expression with Drab Span
-  defp inject_span(buffer, expr, line) do
-    found_assigns  = find_assigns(expr)
-    found_assigns? = found_assigns != []
-
-    hash = hash({expr, found_assigns})
-    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
-
-    span_begin = "<span #{@drab_id}='#{hash}'>"
-    span_end   = "</span>"
-
-    buf = if found_assigns? do
-      quote do
-        [unquote(buffer), 
-        unquote(span_begin),
-        unquote(to_safe(expr, line)),
-        unquote(span_end)]
-      end
-    else 
-      quote do
-        [unquote(buffer) | unquote(to_safe(expr, line))]
-      end
-    end
-
-    {buf, ["{{{{@drab-expr-hash:#{hash}}}}}"]}
-  end
-
-
-
-  # The expression is inside the attribute
-  # In this case we need to inject the attribute, `drab-attr-HASH`, refering to the tuple in the Cache,
-  # which contains expression, assigns and the attribute name
-  defp inject_attribute(buffer, expr, _html, line) do
-    found_assigns  = find_assigns(expr) |> Enum.sort()
-
-    html = to_html(buffer) 
-    attribute = find_attr_in_html(html)
-
-    hash = hash({expr, found_assigns})
-    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
-
-    # Add drabbed indicator, only once
-    tag = last_opened_tag(html)
-    buffer = inject_drab_id(buffer, tag)
-    html = to_html(buffer)
-    ampere_id = drab_id(html, tag)
-
-    buf = quote do
-      [unquote(buffer) | unquote(to_safe(expr, line))]
-    end
-
-    {buf, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
-  end
-
-  @doc false
-  def find_attr_in_html(html) do
-    args_removed = html
-    |> String.split(~r/<\S+/)
-    |> List.last()
-    |> remove_full_args()
-    
-    if String.contains?(args_removed, "=") do
-      args_removed
-      |> String.split("=") 
-      |> take_at(-2)
-      |> String.split(~r/\s+/)
-      |> Enum.filter(fn x -> x != "" end)
-      |> List.last()      
-    else
-      nil
-    end
-  end
-
-  # @doc false
-  # defp find_attr_in_line(line) do
-  #   args_removed = line
-  #   |> String.split(~r/<\S+/)
-  #   |> take_at(-1)
-  #   |> remove_full_args()
-
-  #   unless String.contains?(args_removed, "=") do
-  #     raise EEx.SyntaxError, message: """
-  #       Invalid attribute in html template:
-  #         `#{inspect line}`
-  #       You must specify the the attribute in the tag, like:
-  #         <tag attribute="<%= my_func() %>">
-  #         <tag attribute='<%= @attr <> @attr2 %>'>
-  #         <tag attribute=<%= my_func(@attr) %>>
-  #       The following attribute injection is forbidden:
-  #         <tag <%= @whole_attribute %>>
-  #       Or you tried to include the "<" character in your page: you should escape it as "&lt;"
-  #       """
-  #   end
-
-  #   line
-  #   |> String.split("=") 
-  #   |> take_at(-2)
-  #   |> String.split(~r/\s+/)
-  #   |> Enum.filter(fn x -> x != "" end)
-  #   |> List.last()
-  # end
-
-  # @doc false
-  # defp find_prefix_in_line(line) do
-  #   line
-  #   |> String.split("=") 
-  #   |> take_at(-1)
-  #   |> String.replace(~r/^\s*["']*/, "", global: false)
-  #   |> String.replace_suffix("'", "")
-  #   |> String.replace_suffix("\"", "")
-  # end
-
   defp remove_full_args(string) do
     string
     |> String.replace(~r/\S+\s*=\s*'[^']*'/, "")
@@ -410,11 +285,6 @@ defmodule Drab.Live.EExEngine do
     {item, _} = List.pop_at(list, index)
     item
   end
-
-  # defp last_line(buffer) do
-  #   [{:|, _, a}] = buffer
-  #   List.last(a)
-  # end
 
   defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/, "")
 
@@ -490,11 +360,7 @@ defmodule Drab.Live.EExEngine do
     result |> Enum.uniq() |> Enum.sort()
   end
 
-
-
-
-
-
+  @doc false
   def last_opened_tag(html) do
     html = String.replace(html, ~r/<.*>/, "", global: true)
     Regex.scan(~r/<\s*([^\s<>\/]+)/, html)
@@ -503,68 +369,56 @@ defmodule Drab.Live.EExEngine do
       |> String.replace(~r/\s+.*/, "")
   end
 
-  # def collect_scripts([], opened_no) do
-  #   [{[], opened_no}]
-  # end
-  # def collect_scripts([h | t], opened_no) do
-  #   collect_scripts(h, opened_no) ++ collect_scripts(t, opened_no)
-  #   # Enum.map(buffer, fn b ->
-  #   #   collect_scripts(b, opened_no)
-  #   # end)
-  # end
-  # def collect_scripts(buffer, opened_no) when is_binary(buffer) do
-  #   cond do
-  #     Regex.match?(~r/<script/i, buffer) -> 
-  #       [{buffer, opened_no + 1}]
-  #     Regex.match?(~r/<\/script/i, buffer) -> 
-  #       [{buffer, opened_no - 1}]
-  #     true ->
-  #       # collect_scripts([], opened_no)
-  #       [{}]
-  #   end
-  # end
-  # def collect_scripts({:|, _, list}, opened_no) do
-  #   collect_scripts(list, opened_no)
-  # end
-  # def collect_scripts({atom, x, args} = tuple, 0) when is_tuple(tuple) do
-  #   collect_scripts(args, 0)
-  # end
-  # def collect_scripts({atom, x, args} = tuple, opened_no) when is_tuple(tuple) do
-  #   # IO.inspect "FOUND TUPEL"
-  #   # collect_scripts([], acc ++ [{:tupppppppleeee, tuple}], opened_no)
-  #   {tuple, opened_no}
-  # end
-  # def collect_scripts(other, opened_no)  do
-  #   # collect_scripts(other, opened_no)
-  #   # {opened_no}
-  #   [{[], opened_no}]
-  # end
+
+  defp do_attributes_from_shadow([]), do: []
+  defp do_attributes_from_shadow([head | rest]) do 
+    do_attributes_from_shadow(head) ++ do_attributes_from_shadow(rest)
+  end
+  defp do_attributes_from_shadow({_, attributes, children}) when is_list(attributes) do 
+    attributes ++ do_attributes_from_shadow(children)
+  end
+  defp do_attributes_from_shadow(_), do: []
+
+  @doc false
+  def attributes_from_shadow(shadow) do 
+    do_attributes_from_shadow(shadow) 
+      |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
+      |> Enum.filter(fn {name, _} -> 
+        n = Regex.match?(~r/{{{{@\S+}}}}/, name)
+        n && Logger.warn """
+          Unknown attribute found in HTML Template.
+
+          Drab works only with well defined attributes in HTML. You may use:
+              <button class="btn <%= @button_class %>">
+              <a href="<%= build_href(@site) %>">
+          But following constructs are prohibited:
+              <tag <%="attr='" <> @value <> "'"%>>
+              <tag <%=build_attr(@name, @value)%>>
+          This will not be updated by Drab Commander.
+          """
+        !n
+      end)
+  end
+
+  @doc false
+  def scripts_from_shadow(shadow) do
+    for {"script", _, [script]} <- Floki.find(shadow, "script"), Regex.match?(~r/{{{{@\S+}}}}/, script) do
+      script
+    end
+  end
+
+  @doc false
+  def expression_hashes_from_pattern(pattern) do
+    Regex.scan(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:([^@}]+)/, pattern)
+      |> Enum.map(fn [_, expr_hash] -> expr_hash end)
+  end
+
+  @doc false
+  def ampere_from_pattern(pattern) do
+    Regex.run(~r/{{{{@drab-ampere:([^@}]+)/, pattern) |> List.last()
+  end
 
 
-  # defp deduplicated_js_lines(buffer, found_assigns) do
-  #   found_assigns |> Enum.map(fn assign ->
-  #     # TODO: find a better way to search in buffer, rather than string-based
-  #     if deep_find(buffer, assign_js(assign) |> List.first()) do
-  #       []
-  #     else
-  #       assign_js(assign)
-  #     end
-  #   end) |> List.flatten()    
-  # end
-
-
-  # defp deep_find(list, what) when is_list(list) do
-  #   Enum.find(list, fn x -> 
-  #     deep_find(x, what)
-  #   end)
-  # end
-  # defp deep_find(string, what) when is_binary(string), do: String.contains?(string, what)
-  # defp deep_find({_, _, list}, what), do: deep_find(list, what)
-  # defp deep_find(_, _), do: false
-
-
-
-  #TODO: like this, will not work with parallel compiling
   defp start_shadow_buffer(initial, partial) do
     case Agent.start_link(fn -> initial end, name: partial) do
       {:ok, _} = ret -> 

@@ -16,12 +16,6 @@ defmodule Drab.Live do
 
   def transform_socket(socket, payload, state) do
     # # store assigns in socket as well
-    # new_socket = socket 
-    #   |> Phoenix.Socket.assign(:__ampere_assigns, payload["assigns"])
-    #   |> Phoenix.Socket.assign(:__amperes, payload["amperes"])
-    # Drab.set_socket(Drab.pid(socket), new_socket)
-    # new_socket
-    # actually, we do not transform it, but store some payload information in the Drab Server
     priv = Map.merge(state.priv, %{
       ampere_assigns: payload["assigns"],
       amperes: payload["amperes"],
@@ -44,22 +38,13 @@ defmodule Drab.Live do
     socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:amperes)
   end
 
-  # defp scripts(socket) do
-  #   socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:ampere_scripts)
-  # end
-
   def peek(socket, assign) when is_binary(assign) do
-    # socket.assigns.__ampere_assigns[assign]
-    # priv = socket |> Drab.pid() |> Drab.get_priv()
-    # priv.ampere_assigns[assign]
     assigns(socket)[assign]
   end
 
   def peek(socket, assign) when is_atom(assign), do: peek(socket, Atom.to_string(assign))
 
   def poke(socket, assigns) do
-    # assigns_keys = Enum.map(assigns, fn {k, _v} -> k end) |> Enum.uniq()
-
     current_assigns = assigns(socket)
     assigns_to_update = Map.new(assigns)
     assigns_to_update_keys = Map.keys(assigns_to_update)
@@ -69,8 +54,6 @@ defmodule Drab.Live do
     router_helpers = Module.concat(app_module, Router.Helpers)
     error_helpers = Module.concat(app_module, ErrorHelpers)
     gettext = Module.concat(app_module, Gettext)
-
-    # class = "<%= @class1 %>" class2='<%= @class2 %>' class3 = <%= @class1 %>
 
     # amperes of attributes contains more hashes, space separated
     amperes = amperes(socket)
