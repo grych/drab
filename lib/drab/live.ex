@@ -139,7 +139,6 @@ defmodule Drab.Live do
         _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
         # _ -> []
       end
-      # {:ampere, expr, assigns_in_expr} = Drab.Live.Cache.get(ampere_hash)
     end |> Enum.filter(fn x -> x end) |> List.flatten()
 
     IO.inspect(injected_updates)

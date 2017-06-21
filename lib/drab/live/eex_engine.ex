@@ -6,6 +6,7 @@ defmodule Drab.Live.EExEngine do
   import Drab.Live.Crypto
   use EEx.Engine
   require IEx
+  require Logger
 
   @jsvar           "__drab"
   @drab_id         "drab-ampere"
@@ -47,6 +48,21 @@ defmodule Drab.Live.EExEngine do
   def attributes_from_shadow(shadow) do 
     do_attributes_from_shadow(shadow) 
       |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
+      |> Enum.filter(fn {name, _} -> 
+        n = Regex.match?(~r/{{{{@\S+}}}}/, name)
+        n && Logger.warn """
+          Unknown attribute found in HTML Template.
+
+          Drab works only with well defined attributes in HTML. You may use:
+              <button class="btn <%= @button_class %>">
+              <a href="<%= build_href(@site) %>">
+          But following constructs are prohibited:
+              <tag <%="attr='#{@value}'%>>
+              <tag <%=build_attr(@name, @value)%>>
+          This will not be updated by Drab Commander.
+          """
+        !n
+      end)
   end
 
   def scripts_from_shadow(shadow) do
@@ -86,7 +102,7 @@ defmodule Drab.Live.EExEngine do
 
     shadow = get_shadow_buffer(partial(body)) |> Floki.parse()
     Drab.Live.Cache.set({:shadow, partial(body)}, shadow)
-    # stop_shadow_buffer(partial(body))
+    stop_shadow_buffer(partial(body))
 
     # find all the attributes
     # add to cache:
@@ -549,37 +565,27 @@ defmodule Drab.Live.EExEngine do
 
 
   #TODO: like this, will not work with parallel compiling
-  defp start_shadow_buffer(initial, partial) do 
-    # agent = :drab_compile_agent
-    # case Agent.start_link(fn -> initial end, name: agent) do
-    #   {:ok, _} = ret -> 
-    #     ret
-    #   {:error, {:already_started, _}} ->
-    #     raise EEx.SyntaxError, message: """
-    #       Exprected unexprected.
-    #       Shadow buffer Agent already started. Please report it as a bug in https://github.com/grych/drab
-    #       """
-    # end
-    Drab.Live.Cache.set {:shadow, partial}, initial
+  defp start_shadow_buffer(initial, partial) do
+    case Agent.start_link(fn -> initial end, name: partial) do
+      {:ok, _} = ret -> 
+        ret
+      {:error, {:already_started, _}} ->
+        raise EEx.SyntaxError, message: """
+          Exprected unexprected.
+          Shadow buffer Agent for #{partial} already started. Please report it as a bug in https://github.com/grych/drab
+          """
+    end
   end
 
-  # defp stop_shadow_buffer(partial) do
-  #   # :drab_compile_agent |> Agent.stop()
-  #   # l = get_shadow_buffer(partial) |> Enum.reverse() |> Enum.join()
-  #   # Drab.Live.Cache.put {:shadow, partial}, l
-  # end
+  defp stop_shadow_buffer(partial) do
+    Agent.stop(partial)
+  end
 
   defp put_shadow_buffer(content, partial) do
-    # existing = get_shadow_buffer(partial)
-    Drab.Live.Cache.add {:shadow, partial}, content
-    # agent = :drab_compile_agent
-    # Agent.update(agent, &[content | &1]) 
-    # Agent.update(agent, fn _ -> content end) 
+    partial && Agent.update(partial, &[content | &1]) 
   end
 
   defp get_shadow_buffer(partial) do
-    Drab.Live.Cache.get {:shadow, partial}
-    # agent = :drab_compile_agent
-    # Agent.get(agent, &(&1)) |> Enum.reverse |> Enum.join()
+    Agent.get(partial, &(&1)) |> Enum.reverse |> Enum.join()
   end
 end

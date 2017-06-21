@@ -19,11 +19,11 @@
   // nothing
 </script>
 
-<button drab-click=update_mini <%= "standalone" %> class="begin <%=@class1%> <%=@class2%> rest" <%= "other=wrong" %> class1=<%=@class1%>>
+<button drab-click=update_mini class="begin <%=@class1%> <%=@class2%> rest"  class1=<%=@class1%>>
   Clickme <%=@class1%> <%=@class2%>
 </button>
 <br><br>
-<button class="btn <%= @class2 %>">
+<button class="btn <%=@class2%>"%>>
   Other button  
 </button>
 <p p=p>
