@@ -43,7 +43,7 @@ defmodule DrabTestApp.LiveCommander do
     # socket = poke socket, list: list
     # IO.inspect peek(socket, :list)
     IO.inspect sender
-    poke socket, class1: "btn", class2: "btn-warning", full_class: "btn btn-danger"
+    poke socket, class1: "btn", class2: "btn-warning", full_class: "btn btn-danger", hidden: false, list: [1,2,3]
   end
 
 end

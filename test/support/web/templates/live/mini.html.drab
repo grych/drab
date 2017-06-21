@@ -7,25 +7,24 @@
 
 <script type="text/javascript">
   console.log('class1 = ' + '<%=@class1%>')
-  console.log('class2 = ' + '<%=@class2%>')
+  console.log('class2 = <%=@class2%>')
 </script>
 
-<script type="text/javascript">
-  console.log('class1 = ' + '<%=@class1%>')
-  console.log('class2 = ' + '<%=@class2%>')
-</script>
-
-<script>
-  // nothing
-</script>
 
 <button drab-click=update_mini class="begin <%=@class1%> <%=@class2%> rest"  class1=<%=@class1%>>
   Clickme <%=@class1%> <%=@class2%>
 </button>
 <br><br>
-<button class="btn <%=@class2%>"%>>
+<button id=b $hidden=true>
   Other button  
 </button>
+
+<script>
+  var node = document.querySelector("#b")
+  node.hidden=<%= @hidden %>
+</script>
+
+
 <p p=p>
   <b b=b>
     Class2: <%=@class2%>
