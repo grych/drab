@@ -82,7 +82,7 @@ defmodule Drab.Live.EExEngine do
   def handle_text({:safe, buffer}, text) do
     put_shadow_buffer(text, partial(buffer))
     {:safe, quote do
-      [unquote(buffer)|unquote(text)]
+      [unquote(buffer), unquote(text)]
     end}
   end
 
@@ -138,7 +138,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
     {quote do
-      [unquote(buffer) | unquote(to_safe(expr, line))]
+      [unquote(buffer), unquote(to_safe(expr, line))]
     end, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
   end
 
@@ -164,7 +164,7 @@ defmodule Drab.Live.EExEngine do
       end
     else 
       quote do
-        [unquote(buffer) | unquote(to_safe(expr, line))]
+        [unquote(buffer), unquote(to_safe(expr, line))]
       end
     end
 
@@ -189,7 +189,7 @@ defmodule Drab.Live.EExEngine do
     ampere_id = drab_id(html, tag)
 
     buf = quote do
-      [unquote(buffer) | unquote(to_safe(expr, line))]
+      [unquote(buffer), unquote(to_safe(expr, line))]
     end
 
     {buf, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
