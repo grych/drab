@@ -29,15 +29,14 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def handle_body({:safe, body}) do 
     found_assigns = find_assigns(body)
+    partial = partial(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
       assign_js(assign)
     end) |> script_tag()
 
-    # assigns_js = deduplicated_js_lines(body, found_assigns) |> script_tag()
-
     init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
     final = [script_tag(init_js), assigns_js, body, "\n</span>\n"]
-    put_shadow_buffer("\n</span>\n", partial(body))
+    put_shadow_buffer("\n</span>\n", partial)
 
     shadow = get_shadow_buffer(partial(body)) |> Floki.parse()
     Drab.Live.Cache.set({:shadow, partial(body)}, shadow)
@@ -46,14 +45,15 @@ defmodule Drab.Live.EExEngine do
     # find all the attributes
     # add to cache:
     # expression hash is alrady in cache:  hash, {:expr, expr, found_assigns}
-    # drab_ampere -> {:attribute, [ { "attribute", "pattern", [ {:expr, ast, [assigns] ] } ]}
+    # drab_ampere -> {:attribute, [ { "attribute", "pattern", [ {:expr, ast, [assigns] ] } ], all_assigns_in_ampere}
     attributes = attributes_from_shadow(shadow)
     grouped_by_ampere = Enum.map(attributes, fn {attribute, pattern} ->
       {ampere_from_pattern(pattern), 
         {
           attribute, 
           pattern, 
-          expression_hashes_from_pattern(pattern)
+          expression_hashes_from_pattern(pattern),
+          assigns_from_pattern(pattern)
         }
       }
     end) |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
@@ -66,7 +66,8 @@ defmodule Drab.Live.EExEngine do
     for pattern <- scripts_from_shadow(shadow) do
       ampere = ampere_from_pattern(pattern)
       hashes = expression_hashes_from_pattern(pattern)
-      Drab.Live.Cache.set(ampere, {:script, pattern, hashes})
+      assigns = assigns_from_pattern(pattern)
+      Drab.Live.Cache.set(ampere, {:script, pattern, hashes, assigns})
     end
 
     # Enum.map(scripts_from_shadow(shadow), fn {ampere, pattern_list} -> 
@@ -232,8 +233,10 @@ defmodule Drab.Live.EExEngine do
     regex |> Regex.scan(html) |> Enum.count()
   end
 
+  #TODO: should really replace only last occurence in the whole nested list
+  # now it assigns id to the innocent tags
   defp replace_in(string, tag) when is_binary(string) do
-    if String.contains?(string, @drab_id) do
+    if String.contains?(string, @drab_id) || String.contains?(string, "drab-partial") do
       string
     else
       # IO.inspect replace_last(string, find, replacement)
@@ -241,14 +244,17 @@ defmodule Drab.Live.EExEngine do
       replace_last(string, "<#{tag}", replacement)
     end
   end
-  #TODO: should really replace only last occurence in the whole nested list
-  # now it assigns id to the innocent scripts
   defp replace_in(list, tag) when is_list(list) do
     Enum.map(list, fn x -> replace_in(x, tag) end)
+    # replace_in(List.last(list),)
   end
   defp replace_in(other, _), do: other
 
   defp inject_drab_id(buffer, tag) do
+    IO.puts ""
+    IO.inspect buffer |> List.last()
+    IO.inspect tag
+    IO.puts ""
     Macro.prewalk(buffer, fn expr -> 
       case expr do
         {:|, x, list} ->
@@ -295,7 +301,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp assign_js(assign) do
-    ["#{@jsvar}.assigns['#{assign}'] = '", assign_expr(assign), "';"]
+    ["#{@jsvar}.assigns['#{assign}'] = ", assign_expr(assign), ";"]
   end
 
   defp assign_expr(assign) do
@@ -303,7 +309,7 @@ defmodule Drab.Live.EExEngine do
     assign_expr = {:@, [@anno], [{assign, [@anno], nil}]}
     assign_expr = handle_assign(assign_expr)
 
-    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Live, :Crypto]}, :encode64]},
+    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Core]}, :encode_js]},
        [@anno], 
        [assign_expr]}
   end
@@ -413,11 +419,19 @@ defmodule Drab.Live.EExEngine do
       |> Enum.map(fn [_, expr_hash] -> expr_hash end)
   end
 
+  defp assigns_from_pattern(pattern) do
+    Enum.reduce(expression_hashes_from_pattern(pattern), [], fn(hash, acc) ->
+      {:expr, _, assigns} = Drab.Live.Cache.get(hash)
+      [assigns | acc]
+    end) 
+      |> List.flatten() 
+      |> Enum.uniq()
+  end
+
   @doc false
   def ampere_from_pattern(pattern) do
     Regex.run(~r/{{{{@drab-ampere:([^@}]+)/, pattern) |> List.last()
   end
-
 
   defp start_shadow_buffer(initial, partial) do
     case Agent.start_link(fn -> initial end, name: partial) do
@@ -425,7 +439,7 @@ defmodule Drab.Live.EExEngine do
         ret
       {:error, {:already_started, _}} ->
         raise EEx.SyntaxError, message: """
-          Exprected unexprected.
+          Expected unexprected.
           Shadow buffer Agent for #{partial} already started. Please report it as a bug in https://github.com/grych/drab
           """
     end

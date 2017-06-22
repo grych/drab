@@ -1,6 +1,7 @@
 defmodule Drab.Live do
   @moduledoc false
   import Drab.Core
+  require IEx
 
   use DrabModule
   def js_templates(),  do: ["drab.events.js", "drab.live.js"]
@@ -9,17 +10,19 @@ defmodule Drab.Live do
     # IO.inspect payload
     # decrypt assigns
     # TODO: maybe better to do it on demand, on poke/peek?
-    decrypted = for {k, v} <- payload["assigns"] || %{}, into: %{}, do: {k, Drab.Live.Crypto.decode64(v)}
-    Map.merge(payload, %{"assigns" => decrypted})
-      |> Map.put_new("value", payload["val"])
+
+    # decrypted = for {k, v} <- payload["assigns"] || %{}, into: %{}, do: {k, Drab.Live.Crypto.decode64(v)}
+    # Map.merge(payload, %{"assigns" => decrypted})
+    #   |> Map.put_new("value", payload["val"])
+    payload |> Map.put_new("value", payload["val"])
+    # payload
   end
 
   def transform_socket(socket, payload, state) do
-    # # store assigns in socket as well
+    # # store assigns in Drab Server
     priv = Map.merge(state.priv, %{
-      ampere_assigns: payload["assigns"],
-      amperes: payload["amperes"],
-      ampere_scripts: payload["scripts"]
+      __ampere_assigns: payload["__assigns"],
+      __amperes: payload["__amperes"]
     })
     Drab.pid(socket) |> Drab.set_priv(priv)
     socket
@@ -31,23 +34,40 @@ defmodule Drab.Live do
   end
 
   defp assigns(socket) do
-    socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:ampere_assigns)
+    socket 
+      |> Drab.pid() 
+      |> Drab.get_priv() 
+      |> Map.get(:__ampere_assigns)
   end
 
   defp amperes(socket) do
-    socket |> Drab.pid() |> Drab.get_priv() |> Map.get(:amperes)
+    socket 
+      |> Drab.pid() 
+      |> Drab.get_priv() 
+      |> Map.get(:__amperes)
   end
 
   def peek(socket, assign) when is_binary(assign) do
+    #TODO: think if it is needed to sign/encrypt
     assigns(socket)[assign]
+      # |> Drab.Live.Crypto.decode64()
   end
 
   def peek(socket, assign) when is_atom(assign), do: peek(socket, Atom.to_string(assign))
 
   def poke(socket, assigns) do
+    #TODO: takes milliseconds. Too long? The longest part is to create JSs
+    t1 = :os.system_time(:microsecond)
+    Drab.Live.Cache.get("uhezdaojrga4dk")
+    IO.inspect :os.system_time(:microsecond) - t1
+
     current_assigns = assigns(socket)
-    assigns_to_update = Map.new(assigns)
+    assigns_to_update = Enum.into(assigns, %{})
     assigns_to_update_keys = Map.keys(assigns_to_update)
+
+    updated_assigns = current_assigns
+      |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end)
+      |> Keyword.merge(assigns)
 
     app_module = Drab.Config.app_module()
     modules = {
@@ -57,19 +77,21 @@ defmodule Drab.Live do
       Module.concat(app_module, Gettext)
     }
 
+
     # TODO: check only amperes which contains the changed assigns
     amperes = amperes(socket)
 
     # construct the javascripts for update of amperes
     #TODO: group updates on one node
-    injected_updates = for ampere_hash <- amperes do
+    update_javascripts = for ampere_hash <- amperes do
       selector = "[drab-ampere='#{ampere_hash}']"
+
       case Drab.Live.Cache.get(ampere_hash) do
         {:expr, expr, assigns_in_expr} ->
           # change only if poked assign exist in this ampere
           #TODO: stay DRY
           if has_common?(assigns_in_expr, assigns_to_update_keys) do
-            safe = eval_expr(expr, modules, assigns_to_update, assigns_in_expr, current_assigns)
+            safe = eval_expr(expr, modules, updated_assigns)
             new_value = safe_to_encoded_js(safe)
 
             "Drab.update_drab_span(#{encode_js(selector)}, #{new_value})"
@@ -77,64 +99,64 @@ defmodule Drab.Live do
             nil
           end
         {:attribute, list} ->
-          for {attribute, pattern, exprs} <- list do
-            hash_and_value = Enum.map(exprs, fn hash -> 
-              {:expr, expr, assigns_in_expr} = Drab.Live.Cache.get(hash)
-
-              if has_common?(assigns_in_expr, assigns_to_update_keys) do
-                safe = eval_expr(expr, modules, assigns_to_update, assigns_in_expr, current_assigns)
+          for {attribute, pattern, exprs, assigns_in_ampere} <- list do
+            if has_common?(assigns_in_ampere, assigns_to_update_keys) do
+              evaluated_expressions = Enum.map(exprs, fn hash -> 
+                {:expr, expr, _} = Drab.Live.Cache.get(hash)
+                safe = eval_expr(expr, modules, updated_assigns)
                 new_value = safe_to_string(safe)
-
                 {hash, new_value}
-              else
+              end)
+              new_value_of_attribute = replace_pattern(pattern, evaluated_expressions) |> encode_js()
+
+              if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attribute) do
+                #TODO: special form, without atribute name
+                # ignored for now, let's think if it needs to be covered
+                # warning appears during compile-time
                 nil
+              else
+                "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{new_value_of_attribute})"
               end
-
-            end) |> Enum.filter(fn x -> x end)
-            new_value_of_attribute = replace_pattern(pattern, hash_and_value) |> encode_js()
-
-            if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attribute) do
-              #TODO: special form, without atribute name
-              # ignored for now, let's think if it needs to be covered
-              nil
             else
-              "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{new_value_of_attribute})"
+              nil
             end
           end
-        {:script, pattern, exprs} -> 
-          hash_and_value = Enum.map(exprs, fn hash ->
-            {:expr, expr, assigns_in_expr} = Drab.Live.Cache.get(hash)
-            if has_common?(assigns_in_expr, assigns_to_update_keys) do
-              safe = eval_expr(expr, modules, assigns_to_update, assigns_in_expr, current_assigns)
+        {:script, pattern, exprs, assigns_in_ampere} -> 
+          if has_common?(assigns_in_ampere, assigns_to_update_keys) do
+            hash_and_value = Enum.map(exprs, fn hash ->
+              {:expr, expr, _} = Drab.Live.Cache.get(hash)
+              safe = eval_expr(expr, modules, updated_assigns)
               new_value = safe_to_string(safe)
 
               {hash, new_value}
-            else
-              nil
-            end
-          end) |> Enum.filter(fn x -> x end)
-          new_script = replace_pattern(pattern, hash_and_value) |> encode_js()
-
-          "Drab.update_script(#{encode_js(selector)}, #{new_script})"
+            end)
+            new_script = replace_pattern(pattern, hash_and_value) |> encode_js()
+            "Drab.update_script(#{encode_js(selector)}, #{new_script})"
+          else
+            nil
+          end
         _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
-        # _ -> []
+        # _ -> nil
       end
-    end |> Enum.filter(fn x -> x end) |> List.flatten()
+    end |> List.flatten() |> Enum.filter(&(&1))
 
-    IO.inspect(injected_updates)
+    # IO.inspect(update_javascripts)
 
-    changes_assigns_js = changed_assigns_js_list(assigns_to_update)
-    ampere_updates = (changes_assigns_js ++ injected_updates) |> Enum.uniq()
-      
-    {:ok, _} = Drab.Core.exec_js(socket, ampere_updates |> Enum.join(";"))
+    assign_updates = assign_updates_js(assigns_to_update)
+    all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
+    {:ok, _} = Drab.Core.exec_js(socket, all_javascripts |> Enum.join(";"))
+    IO.inspect :os.system_time(:microsecond) - t1
 
-    assigns_to_update = for {k, v} <- assigns_to_update, into: %{}, do: {Atom.to_string(k), v}
+    # Save updated assigns in the Drab Server
+    assigns_to_update = for {k, v} <- assigns_to_update, into: %{} do
+      {Atom.to_string(k), v}
+    end
     updated_assigns = Map.merge(current_assigns, assigns_to_update)
-
-    #TODO: store in Drab
-    # Phoenix.Socket.assign(socket, :__ampere_assigns, updated_assigns)
     priv = socket |> Drab.pid() |> Drab.get_priv()
-    socket |> Drab.pid() |> Drab.set_priv(%{priv | ampere_assigns: updated_assigns})
+    socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: updated_assigns})
+
+    t2 = :os.system_time(:microsecond)
+    IO.inspect t2-t1
 
     socket
   end
@@ -145,13 +167,15 @@ defmodule Drab.Live do
     replace_pattern(new_pattern, rest)
   end
 
-  defp has_common?(lista, listb) do
-    if Enum.find(lista, fn xa -> Enum.find(listb, fn xb -> xa == xb end) end), do: true, else: false
+  defp has_common?(list1, list2) do
+    if Enum.find(list1, fn xa -> 
+      Enum.find(list2, fn xb -> xa == xb end) 
+    end), do: true, else: false
   end
 
-  defp eval_expr(expr, modules, assigns_to_update, assigns_in_expr, current_assigns) do
+  defp eval_expr(expr, modules, updated_assigns) do
     {safe, _assigns} = expr_with_imports(expr, modules)
-      |> Code.eval_quoted([assigns: assigns_for_expr(assigns_to_update, assigns_in_expr, current_assigns)])
+      |> Code.eval_quoted([assigns: updated_assigns])
     safe
   end
 
@@ -169,18 +193,18 @@ defmodule Drab.Live do
     end    
   end
 
-  #TODO: refactor, not very efficient
-  defp assigns_for_expr(assigns_in_poke, assigns_in_expr, assigns_in_page) do
-    # assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
-    missing_keys = assigns_in_expr -- Map.keys(assigns_in_poke)
-    assigns_in_page = for {k, v} <- assigns_in_page, into: %{}, do: {String.to_existing_atom(k), v}
-    stored_assigns = Enum.filter(assigns_in_page, fn {k, _} -> Enum.member?(missing_keys, k) end) |> Map.new()
-    Map.merge(stored_assigns, assigns_in_poke) |> Map.to_list()
-  end
+  # #TODO: refactor, not very efficient
+  # defp assigns_for_expr(assigns_in_poke, assigns_in_expr, assigns_in_page) do
+  #   # assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
+  #   missing_keys = assigns_in_expr -- Map.keys(assigns_in_poke)
+  #   assigns_in_page = for {k, v} <- assigns_in_page, into: %{}, do: {String.to_existing_atom(k), v}
+  #   stored_assigns = Enum.filter(assigns_in_page, fn {k, _} -> Enum.member?(missing_keys, k) end) |> Map.new()
+  #   Map.merge(stored_assigns, assigns_in_poke) |> Map.to_list()
+  # end
 
-  defp changed_assigns_js_list(assigns) do
+  defp assign_updates_js(assigns) do
     Enum.map(assigns, fn {k, v} -> 
-      "__drab.assigns[#{Drab.Core.encode_js(k)}] = #{Drab.Live.Crypto.encode64(v) |> Drab.Core.encode_js()}" 
+      "__drab.assigns[#{Drab.Core.encode_js(k)}] = #{Drab.Core.encode_js(v)}" 
     end)
   end
 
