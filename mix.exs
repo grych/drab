@@ -19,7 +19,7 @@ defmodule Drab.Mixfile do
 
   def application do
     #TODO: make it compatible with Phoenix 1.3
-    [mod: {DrabTestApp, []},
+    [mod: {Drab.Supervisor, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger]]
   end
 
@@ -28,7 +28,7 @@ defmodule Drab.Mixfile do
   defp elixirc_paths(_),     do: ["lib"]
 
   defp deps do
-    [{:phoenix, "~> 1.2.0"},
+    [{:phoenix, "~> 1.2"},
      {:phoenix_html, "~> 2.6"},
      {:phoenix_pubsub, "~> 1.0"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
