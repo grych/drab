@@ -82,7 +82,7 @@ defmodule Drab.Live.EExEngine do
   def handle_text({:safe, buffer}, text) do
     put_shadow_buffer(text, partial(buffer))
     {:safe, quote do
-      [unquote(buffer), unquote(text)]
+      [unquote(buffer) | unquote(text)]
     end}
   end
 
@@ -138,7 +138,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
     {quote do
-      [unquote(buffer), unquote(to_safe(expr, line))]
+      [unquote(buffer) | unquote(to_safe(expr, line))]
     end, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
   end
 
@@ -157,14 +157,11 @@ defmodule Drab.Live.EExEngine do
 
     buf = if found_assigns? do
       quote do
-        [unquote(buffer), 
-        unquote(span_begin),
-        unquote(to_safe(expr, line)),
-        unquote(span_end)]
+        [[[unquote(buffer) | unquote(span_begin)] | unquote(to_safe(expr, line))] | unquote(span_end)]
       end
     else 
       quote do
-        [unquote(buffer), unquote(to_safe(expr, line))]
+        [unquote(buffer) | unquote(to_safe(expr, line))]
       end
     end
 
@@ -189,7 +186,7 @@ defmodule Drab.Live.EExEngine do
     ampere_id = drab_id(html, tag)
 
     buf = quote do
-      [unquote(buffer), unquote(to_safe(expr, line))]
+      [unquote(buffer) | unquote(to_safe(expr, line))]
     end
 
     {buf, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
@@ -236,7 +233,7 @@ defmodule Drab.Live.EExEngine do
   #TODO: should really replace only last occurence in the whole nested list
   # now it assigns id to the innocent tags
   defp replace_in(string, tag) when is_binary(string) do
-    if String.contains?(string, @drab_id) || String.contains?(string, "drab-partial") do
+    if String.contains?(string, @drab_id) do
       string
     else
       # IO.inspect replace_last(string, find, replacement)
@@ -246,23 +243,29 @@ defmodule Drab.Live.EExEngine do
   end
   defp replace_in(list, tag) when is_list(list) do
     Enum.map(list, fn x -> replace_in(x, tag) end)
-    # replace_in(List.last(list),)
+    # replace_in(List.last(list), )
+    # list |> List.last() |> replace_in(tag)
   end
   defp replace_in(other, _), do: other
 
   defp inject_drab_id(buffer, tag) do
-    IO.puts ""
-    IO.inspect buffer |> List.last()
-    IO.inspect tag
-    IO.puts ""
-    Macro.prewalk(buffer, fn expr -> 
-      case expr do
-        {:|, x, list} ->
-          {:|, x, replace_in(list, tag)}
-        other -> other
-      end
-    end)
+    [last_expr] = buffer
+    {:|, a, list} = last_expr
+    [{:|, a, replace_in(list, tag)}]
   end
+  # defp inject_drab_id(buffer, tag) do
+  #   IO.puts ""
+  #   IO.inspect buffer 
+  #   IO.inspect tag
+  #   IO.puts ""
+  #   Macro.prewalk(buffer, fn expr -> 
+  #     case expr do
+  #       {:|, x, list} ->
+  #         {:|, x, replace_in(list, tag)}
+  #       other -> other
+  #     end
+  #   end)
+  # end
 
   # find the drab id in the last tag
   def drab_id(html, tag) do
