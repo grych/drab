@@ -6,6 +6,8 @@ defmodule Drab.Live do
   The idea is to reuse your Phoenix templates and let them live, to make a possibility to update assigns 
   on the living page, from the Elixir, without reloading the whole stuff.
 
+  Use `peek/2` to get the assign value, and `poke/2` to modify it directly in the displayed DOM tree.
+
   Drab.Live uses the modified EEx Engine (`Drab.Live.EExEngine`) to compile the template and indicate where assigns 
   were rendered. To enable it, rename the template you want to go live from extension `.eex` to `.drab`. Then, 
   add Drab Engine to the template engines in `config.exs`:
@@ -13,7 +15,91 @@ defmodule Drab.Live do
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
 
-  Now you may use `peek/2` to get the assign value, and `poke/2` to modify it directly in the displayed DOM tree.
+  ### Update Behaviours
+  There are different behaviours of `Drab.Live`, depends on where the expression with the updated assign lives.
+  For example, if the expression defines tag attribute, like `<span class="<%= @class %>">`, we don't want to
+  re-render the whole tag, as it might override changes you made with other Drab module, or even with Javascript.
+  Because of this, Drab finds the tag and updates only the required attributes.
+
+  #### Plain Text
+  If the expression in the template is given in any tag body, Drab will replace only the required part of the html.
+  Consider the template, with initial value of `1` (given in render function in the Controller, as usual):
+
+      <p>Chapter <%= @chapter_no %>.</p>
+
+  It renders to:
+
+      <p>Chapter <span drab-ampere=someid>1</span>.</p>
+  
+  This `<span>` over the expression is injected automatically by `Drab.Live.EExEngine`.
+  Updating the `@chapter_no` attribute in the Drab Commander, using `poke/2`:
+
+      chapter = peek(socket, :chapter_no)     # get the current value of `@chapter_no`
+      poke(socket, chapter_no: chapter + 1)   # push the new value to the browser
+
+  The above will change the `innerHTML` of the `<span drab-ampere=someid>` to "2":
+
+      <p>Chapter <span drab-ampere=someid>2</span>.</p>
+
+  #### Attributes
+  When the expression is defining the attribute of the tag, the behaviour if different. Let's assume there is 
+  a template with following html, rendered in the Controller with value of `@button` set to string `"btn-danger"`.
+
+      <button class="btn <%= @button %>">
+
+  It renders to:
+      
+      <button drab-ampere=someid class="btn btn-danger">
+
+  Again, you can see injected `drab-ampere` attribute. This allows Drab to indicate where to update the attribute.
+  Pushing the changes to the browser with:
+
+      poke socket, button: "btn btn-info"
+
+  will result with updated `class` attribute on the given tag. It is acomplished by rendering and running
+  `node.setAttribute("class", "btn btn-info")`.
+
+  Notice that the pattern where your expression lives is preserved: you may update only the partials of the
+  attribute value string.
+
+  #### Properties
+  Nowadays we deal more with Node proporties than attributes. This is why `Drab.Live` introduces the special syntax.
+  When using the dollar sign at the beginning of the attribute name, it will be treated as a property.
+
+      <button $hidden=<%= @hidden %>>
+
+  Updating `@hidden` in the Drab Commander with `poke/2` will change the value of the `hidden` property 
+  (without dollar sign!), by sending the update javascript, like `node['hidden'] = false`.
+
+  Aditially, Drab sets up all the properties defined that way when the page loads. Thanks to this, you
+  don't have to worry about the initial value.
+
+  Notice that `$property=<%= expression %>` *is the only available syntax*, you can not use pattern, apostrophes 
+  or quotation marks. Property must be solid bind to the expression.
+
+  #### Scripts
+  When the assign we want to change is inside the `<script></script>` tag, Drab will re-evaluate the whole
+  script after assigment change. Let's say you don't want to use `$property=<%=expression%>` syntax to define
+  the object property. You may want to render the javascript:
+
+      <script>
+        document.querySelectorAll("button").hidden = <%= @buttons_state %>
+      </script>
+
+  If you render the template in the Controller with `@button_state` set to `false`, the initial html will look like:
+
+      <script drab-ampere=someid>
+        document.querySelectorAll("button").hidden = false
+      </script>
+
+  Again, Drab injects some ID to know where to find its victim. After you `poke/2` the new value of `@button_state`,
+  Drab will re-render the whole script with a new value and will send a request to re-evaluate the script. 
+  Browser will run something like: `eval("document.querySelectorAll(\"button\").hidden = true")`.
+
+  ### Limitions
+  Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid. 
+  There are also some limits for defining attributes, properties, etc. See `Drab.Live.EExEngine` for a full
+  description.
   """
   import Drab.Core
   require IEx
@@ -38,10 +124,6 @@ defmodule Drab.Live do
     socket
   end
 
-  # def render_live(template, assigns \\ []) do
-  #   EEx.eval_file(template, [assigns: assigns], engine: Drab.Live.EExEngine)
-  # end
-
   @doc """
   Returns the current value of the assign or `nil` if not found.
 
@@ -56,16 +138,6 @@ defmodule Drab.Live do
 
   @doc """
   Updates the current page in the browser with new assigns.
-
-  There are several behaviours of the function, depends where the assign is:
-
-  * in the attribute (`<tag attr=<%= @assign %> ...>`) - updates the attribute of the given node
-  * in the property (`<tag attr$=<%= @assign %> ...>`) - updates the property of the given node
-  * in the script (`<script>console.log('<%= @assign %>')...`) - re-evaluate the whole script
-  * in the tag (`<tag><%= @assign %></tag>`) - updates the content of the tag
-
-  Because Drab.Live must parse the page to find out where to poke the assign, there are some limitations of usage.
-  Please check it in the `Drab.Live.EExEngine` description.
 
   Returns untouched socket.
 
