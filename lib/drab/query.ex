@@ -13,7 +13,7 @@ defmodule Drab.Query do
   @html_modifiers        ~r/html|append|before|after|insertAfter|insertBefore|htmlPrefilter|prepend|replaceWidth|wrap/i
 
   @moduledoc """
-  Drab module which provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
+  Drab Module which provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
   (`update/2`, `insert/2`, `delete/2`, `execute/2`) the selected DOM object.
 
   General syntax:
@@ -47,6 +47,7 @@ defmodule Drab.Query do
   use DrabModule
   def js_templates(), do: ["drab.events.js", "drab.query.js"]
 
+  @doc false
   def transform_payload(payload, _state) do
     #TODO: change jQuery sender API to %{sender:, event:}
     # payload = Map.merge(payload["sender"], %{"event" => payload["event"]})

@@ -273,7 +273,7 @@ defmodule Drab.Commander do
 
   @broadcasts ~w(same_url same_controller)a
   @doc """
-  Set up broadcasting options. It is used by Drab.Query bang functions, like `update!` or `insert!`.
+  Set up broadcasting options. It is used by bang functions, like `Drab.Live.poke!` or `Drab.Query.insert!`.
 
   * `:same_url` (default) - broadcasts will go to the browsers rendering the same url
   * `:same_controller` - broadcasted message will be received by all browsers, which renders the page generated 

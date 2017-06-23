@@ -1,25 +1,35 @@
 defmodule Drab.Live do
-  @moduledoc false
+  @moduledoc """
+  Drab Module to provide a live access and update of assigns of the template, which is currently rendered and displayed
+  in the browser.
+
+  The idea is to reuse your Phoenix templates and let them live, to make a possibility to update assigns 
+  on the living page, from the Elixir, without reloading the whole stuff.
+
+  Drab.Live uses the modified EEx Engine (`Drab.Live.EExEngine`) to compile the template and indicate where assigns 
+  were rendered. To enable it, rename the template you want to go live from extension `.eex` to `.drab`. Then, 
+  add Drab Engine to the template engines in `config.exs`:
+
+      config :phoenix, :template_engines,
+        drab: Drab.Live.Engine
+
+  Now you may use `peek/2` to get the assign value, and `poke/2` to modify it directly in the displayed DOM tree.
+  """
   import Drab.Core
   require IEx
 
   use DrabModule
+  @doc false
   def js_templates(),  do: ["drab.events.js", "drab.live.js"]
 
+  @doc false
   def transform_payload(payload, _state) do
-    # IO.inspect payload
-    # decrypt assigns
-    # TODO: maybe better to do it on demand, on poke/peek?
-
-    # decrypted = for {k, v} <- payload["assigns"] || %{}, into: %{}, do: {k, Drab.Live.Crypto.decode64(v)}
-    # Map.merge(payload, %{"assigns" => decrypted})
-    #   |> Map.put_new("value", payload["val"])
     payload |> Map.put_new("value", payload["val"])
-    # payload
   end
 
+  @doc false
   def transform_socket(socket, payload, state) do
-    # # store assigns in Drab Server
+    # store assigns in Drab Server
     priv = Map.merge(state.priv, %{
       __ampere_assigns: payload["__assigns"],
       __amperes: payload["__amperes"]
@@ -28,38 +38,59 @@ defmodule Drab.Live do
     socket
   end
 
-  # engine: Drab.Live.EExEngine
-  def render_live(template, assigns \\ []) do
-    EEx.eval_file(template, [assigns: assigns], engine: Drab.Live.EExEngine)
-  end
+  # def render_live(template, assigns \\ []) do
+  #   EEx.eval_file(template, [assigns: assigns], engine: Drab.Live.EExEngine)
+  # end
 
-  defp assigns(socket) do
-    socket 
-      |> Drab.pid() 
-      |> Drab.get_priv() 
-      |> Map.get(:__ampere_assigns)
-  end
+  @doc """
+  Returns the current value of the assign or `nil` if not found.
 
-  defp amperes(socket) do
-    socket 
-      |> Drab.pid() 
-      |> Drab.get_priv() 
-      |> Map.get(:__amperes)
-  end
-
-  def peek(socket, assign) when is_binary(assign) do
-    #TODO: think if it is needed to sign/encrypt
-    assigns(socket)[assign]
-      # |> Drab.Live.Crypto.decode64()
-  end
-
+      iex> peek(socket, :count)
+      42
+      iex> peek(socket, :nonexistent)
+      nil
+  """
+  #TODO: think if it is needed to sign/encrypt
+  def peek(socket, assign) when is_binary(assign), do: assigns(socket)[assign]
   def peek(socket, assign) when is_atom(assign), do: peek(socket, Atom.to_string(assign))
 
+  @doc """
+  Updates the current page in the browser with new assigns.
+
+  There are several behaviours of the function, depends where the assign is:
+
+  * in the attribute (`<tag attr=<%= @assign %> ...>`) - updates the attribute of the given node
+  * in the property (`<tag attr$=<%= @assign %> ...>`) - updates the property of the given node
+  * in the script (`<script>console.log('<%= @assign %>')...`) - re-evaluate the whole script
+  * in the tag (`<tag><%= @assign %></tag>`) - updates the content of the tag
+
+  Because Drab.Live must parse the page to find out where to poke the assign, there are some limitations of usage.
+  Please check it in the `Drab.Live.EExEngine` description.
+
+  Returns untouched socket.
+
+      iex> poke(socket, count: 42)
+      %Phoenix.Socket{ ...
+  """
   def poke(socket, assigns) do
-    #TODO: takes milliseconds. Too long? The longest part is to create JSs
-    t1 = :os.system_time(:microsecond)
-    Drab.Live.Cache.get("uhezdaojrga4dk")
-    IO.inspect :os.system_time(:microsecond) - t1
+    do_poke(socket, assigns, &Drab.Core.exec_js/2)
+  end
+
+  @doc """
+  The same as `poke/2`, but broadcasts the changes instead of pushing it to the current browser.
+
+  See `Drab.Commander.broadcasting/1` for broadcasting options.
+  """
+  def poke!(socket, assigns) do
+    do_poke(socket, assigns, &Drab.Core.broadcast_js/2)
+  end
+
+
+  defp do_poke(socket, assigns, function) do
+    #TODO: improve perfomance. Now it takes 10 ms
+    # t1 = :os.system_time(:microsecond)
+    # Drab.Live.Cache.get("uhezdaojrga4dk")
+    # IO.inspect :os.system_time(:microsecond) - t1
 
     current_assigns = assigns(socket)
     assigns_to_update = Enum.into(assigns, %{})
@@ -99,26 +130,33 @@ defmodule Drab.Live do
             nil
           end
         {:attribute, list} ->
-          for {attribute, pattern, exprs, assigns_in_ampere} <- list do
-            if has_common?(assigns_in_ampere, assigns_to_update_keys) do
-              evaluated_expressions = Enum.map(exprs, fn hash -> 
-                {:expr, expr, _} = Drab.Live.Cache.get(hash)
-                safe = eval_expr(expr, modules, updated_assigns)
-                new_value = safe_to_string(safe)
-                {hash, new_value}
-              end)
-              new_value_of_attribute = replace_pattern(pattern, evaluated_expressions) |> encode_js()
-
-              if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attribute) do
-                #TODO: special form, without atribute name
-                # ignored for now, let's think if it needs to be covered
-                # warning appears during compile-time
-                nil
-              else
-                "Drab.update_attribute(#{encode_js(selector)}, #{encode_js(attribute)}, #{new_value_of_attribute})"
-              end
-            else
+          for {type, attr_or_prop, pattern, exprs, assigns_in_ampere} <- list do
+            if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attr_or_prop) do
+              #TODO: special form, without atribute name
+              # ignored for now, let's think if it needs to be covered
+              # warning appears during compile-time
               nil
+            else
+              if has_common?(assigns_in_ampere, assigns_to_update_keys) do
+                evaluated_expressions = Enum.map(exprs, fn hash -> 
+                  {:expr, expr, _} = Drab.Live.Cache.get(hash)
+                  new_value = eval_expr(expr, modules, updated_assigns)
+                  # new_value = safe_to_string(safe)
+                  # new_value = safe
+                  {hash, new_value}
+                end)
+                new_value_of_attribute = case type do
+                  # update in pattern
+                  :attr -> 
+                    replace_pattern(pattern, evaluated_expressions) |> encode_js()
+                  :prop -> 
+                    {_, new_value} = evaluated_expressions |> List.first()
+                    new_value |> encode_js()
+                end
+                "Drab.update_#{type}(#{encode_js(selector)}, #{encode_js(attr_or_prop)}, #{new_value_of_attribute})"
+              else
+                nil
+              end
             end
           end
         {:script, pattern, exprs, assigns_in_ampere} -> 
@@ -140,12 +178,13 @@ defmodule Drab.Live do
       end
     end |> List.flatten() |> Enum.filter(&(&1))
 
-    # IO.inspect(update_javascripts)
+    IO.inspect(update_javascripts)
 
     assign_updates = assign_updates_js(assigns_to_update)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
-    {:ok, _} = Drab.Core.exec_js(socket, all_javascripts |> Enum.join(";"))
-    IO.inspect :os.system_time(:microsecond) - t1
+    # IO.inspect :os.system_time(:microsecond) - t1
+    {:ok, _} = function.(socket, all_javascripts |> Enum.join(";"))
+    # IO.inspect :os.system_time(:microsecond) - t1
 
     # Save updated assigns in the Drab Server
     assigns_to_update = for {k, v} <- assigns_to_update, into: %{} do
@@ -155,8 +194,8 @@ defmodule Drab.Live do
     priv = socket |> Drab.pid() |> Drab.get_priv()
     socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: updated_assigns})
 
-    t2 = :os.system_time(:microsecond)
-    IO.inspect t2-t1
+    # t2 = :os.system_time(:microsecond)
+    # IO.inspect :os.system_time(:microsecond) - t1
 
     socket
   end
@@ -214,4 +253,17 @@ defmodule Drab.Live do
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
+  defp assigns(socket) do
+    socket 
+      |> Drab.pid() 
+      |> Drab.get_priv() 
+      |> Map.get(:__ampere_assigns)
+  end
+
+  defp amperes(socket) do
+    socket 
+      |> Drab.pid() 
+      |> Drab.get_priv() 
+      |> Map.get(:__amperes)
+  end
 end

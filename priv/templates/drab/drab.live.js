@@ -5,6 +5,11 @@ Drab.add_payload(function(sender, event) {
   }
 })
 
+function set_property(node, attribute_name, attribute_value) {
+  var property = attribute_name.replace(/^\$/, "")
+  node[property] = attribute_value
+}
+
 Drab.on_load(function(resp, drab) {
   // extract information from all drabbed nodes and store it in global __drab
   var d = window.__drab
@@ -15,11 +20,27 @@ Drab.on_load(function(resp, drab) {
       d.amperes.push(drab_id)
     }
   })
+  // update the properties set in <tag $property=<%= %>>
+  for (var ampere in d.properties) {
+    var properties = d.properties[ampere]
+    for (var i = 0; i < properties.length; i ++) {
+      for (key in properties[i]) {
+        var node = document.querySelector("[drab-ampere='" + ampere + "']")
+        node.removeAttribute("$" + key)
+        node[key] = properties[i][key]
+      }
+    }
+  }
 })
 
-Drab.update_attribute = function(selector, attribute, new_value) {
+Drab.update_attr = function(selector, attribute_name, new_value) {
   node = document.querySelector(selector)
-  node.setAttribute(attribute, new_value)
+  node.setAttribute(attribute_name, new_value)
+}
+
+Drab.update_prop = function(selector, property_name, new_value) {
+  node = document.querySelector(selector)
+  set_property(node, property_name, new_value)
 }
 
 Drab.update_drab_span = function(selector, html) {

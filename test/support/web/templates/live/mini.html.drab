@@ -20,14 +20,9 @@
   Clickme <%=@class1%> <%=@class2%>
 </button>
 <br><br>
-<button id=b hidden=<%= @hidden %>>
+<button id=b $hidden=<%= @hidden %> $other=<%= @list %>>
   Other button  
 </button>
-
-<script>
-  var node = document.querySelector("#b")
-  node.hidden=<%= @hidden %>
-</script>
 
 <span id=before_label></span>
 

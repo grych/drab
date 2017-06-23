@@ -1,5 +1,7 @@
 defmodule Drab.Supervisor do
+  @moduledoc false
   use Application
+  require Logger
 
   def start(_type, _args) do
     import Supervisor.Spec
@@ -12,13 +14,16 @@ defmodule Drab.Supervisor do
     #   # worker(DrabTestApp.Worker, [arg1, arg2, arg3]),
     # ]
 
-    IO.puts "Starting Drab"
+    # Logger.info "Starting Drab"
 
     # Run Drab Test App endpoint, when running tests or development
     children = case Code.ensure_compiled(DrabTestApp) do
       {:error, :nofile} -> []
       {:module, DrabTestApp} -> [supervisor(DrabTestApp.Endpoint, [])]
-    end
+    end 
+
+    # Start ETS cache
+    Drab.Live.Cache.start()
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options

@@ -216,7 +216,7 @@ Visit [Demo Page](https://tg.pl/drab) for a live demo and more description.
 
 Visit [Docs with Examples](https://tg.pl/drab/docs) - documentation with short examples.
 
-# Tests and Sandbox
+## Tests and Sandbox
 
 Since 0.3.2, Drab is equipped with its own Phoenix Server for automatic integration tests and for sandboxing and play
 with it.

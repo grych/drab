@@ -1,6 +1,36 @@
 defmodule Drab.Live.EExEngine do
   @moduledoc """
+  This is an implementation of EEx.Engine that injects `Drab.Live` behaviour.
 
+  It parses the template during compile-time and inject Drab markers into it. Because of this, template must be
+  a proper HTML. Also, there are some rules to obey, see limitations below.
+
+  ### Limitations
+
+  #### Attributes
+  The attribute must be well defined, and you can't use the expression as an attribute name.
+
+  The following is valid:
+
+      <button class="btn <%= @button_class %>">
+      <a href="<%= build_href(@site) %>">
+
+  But following constructs are prohibited:
+
+      <tag <%="attr='" <> @value <> "'"%>>
+      <tag <%=build_attr(@name, @value)%>>
+  
+  The above will compile (with warnings), but it will not be correctly updated with `Drab.Live.poke`.
+
+  Also, the tag name can not be build with the expression.
+
+      <<%= @tag_name %> attr=value ...>
+
+  #### Scripts
+  Like above, tag name must be defined as `<script>` and can't be defined with the expression.
+
+  #### Properties
+  Property must be defined inside the tag, using strict `$property=<%= expression %>` syntax.
   """
 
   import Drab.Live.Crypto
@@ -34,8 +64,7 @@ defmodule Drab.Live.EExEngine do
       assign_js(assign)
     end) |> script_tag()
 
-    init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}}"
-    final = [script_tag(init_js), assigns_js, body, "\n</span>\n"]
+    init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}; window.#{@jsvar}.properties = {}}"
     put_shadow_buffer("\n</span>\n", partial)
 
     shadow = get_shadow_buffer(partial(body)) |> Floki.parse()
@@ -47,10 +76,13 @@ defmodule Drab.Live.EExEngine do
     # expression hash is alrady in cache:  hash, {:expr, expr, found_assigns}
     # drab_ampere -> {:attribute, [ { "attribute", "pattern", [ {:expr, ast, [assigns] ] } ], all_assigns_in_ampere}
     attributes = attributes_from_shadow(shadow)
+      # |> Enum.filter(fn {name, _} -> !String.starts_with?(name, "$") end)
     grouped_by_ampere = Enum.map(attributes, fn {attribute, pattern} ->
+      is_prop? = String.starts_with?(attribute, "$")
       {ampere_from_pattern(pattern), 
         {
-          attribute, 
+          (if is_prop?, do: :prop, else: :attr),
+          (if is_prop?, do: String.replace(attribute, ~r/^\$/, ""), else: attribute), 
           pattern, 
           expression_hashes_from_pattern(pattern),
           assigns_from_pattern(pattern)
@@ -62,7 +94,18 @@ defmodule Drab.Live.EExEngine do
       Drab.Live.Cache.set(ampere, {:attribute, list})
     end
 
-    # {ampere_from_pattern(script), script, expression_hashes_from_pattern(script)}
+    properties_js = attributes 
+      |> Enum.filter(fn {name, _} -> String.starts_with?(name, "$") end)
+      |> Enum.map(&property_js/1)
+      # |> property_js()
+    init_properties_js = attributes 
+      |> Enum.filter(fn {name, _} -> String.starts_with?(name, "$") end)
+      |> Enum.map(fn {_, pattern} ->
+        x = ampere_from_pattern(pattern)
+        "if (typeof #{@jsvar}.properties['#{x}'] == 'undefined') {#{@jsvar}.properties['#{x}'] = []};"
+      end)
+
+    # scripts
     for pattern <- scripts_from_shadow(shadow) do
       ampere = ampere_from_pattern(pattern)
       hashes = expression_hashes_from_pattern(pattern)
@@ -70,10 +113,14 @@ defmodule Drab.Live.EExEngine do
       Drab.Live.Cache.set(ampere, {:script, pattern, hashes, assigns})
     end
 
-    # Enum.map(scripts_from_shadow(shadow), fn {ampere, pattern_list} -> 
-    #   Drab.Live.Cache.set(ampere, {:script, })
-    #   # {ampere, pattern, expression_hashes_from_pattern(pattern)}
-    # end) |> IO.inspect()
+    final = [
+      script_tag(init_js), 
+      assigns_js, 
+      body, 
+      "\n</span>\n", 
+      script_tag(init_properties_js), 
+      script_tag(properties_js)
+    ]
 
     {:safe, final}
   end
@@ -168,11 +215,7 @@ defmodule Drab.Live.EExEngine do
     {buf, ["{{{{@drab-expr-hash:#{hash}}}}}"]}
   end
 
-
-
   # The expression is inside the attribute
-  # In this case we need to inject the attribute, `drab-attr-HASH`, refering to the tuple in the Cache,
-  # which contains expression, assigns and the attribute name
   defp inject_attribute(buffer, expr, _html, line) do
     found_assigns  = find_assigns(expr) |> Enum.sort()
     html = to_html(buffer) 
@@ -268,6 +311,7 @@ defmodule Drab.Live.EExEngine do
   # end
 
   # find the drab id in the last tag
+  @doc false
   def drab_id(html, tag) do
     r = ~r/<#{tag}[^<>]*#{@drab_id}\s*=\s*'(.*)'[^<>]*/isU
     did = Regex.scan(r, html) 
@@ -304,19 +348,23 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp assign_js(assign) do
-    ["#{@jsvar}.assigns['#{assign}'] = ", assign_expr(assign), ";"]
+    ["#{@jsvar}.assigns['#{assign}'] = ", encoded_assign(assign), ";"]
   end
 
-  defp assign_expr(assign) do
+
+  defp encoded_assign(assign) do
     # TODO: should not create AST directly
     assign_expr = {:@, [@anno], [{assign, [@anno], nil}]}
     assign_expr = handle_assign(assign_expr)
 
-    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Core]}, :encode_js]},
-       [@anno], 
-       [assign_expr]}
+    encoded_expr(assign_expr)
   end
 
+  defp encoded_expr(expr) do 
+    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Core]}, :encode_js]},
+       [@anno], 
+       [expr]}
+  end
   defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
   defp line_from_expr(_), do: nil
 
@@ -351,12 +399,12 @@ defmodule Drab.Live.EExEngine do
   defp do_to_html([head | rest]), do: do_to_html(head) ++ do_to_html(rest)
   defp do_to_html(_), do: []
 
-  def handle_assign({:@, meta, [{name, _, atom}]}) when is_atom(name) and is_atom(atom) do
+  defp handle_assign({:@, meta, [{name, _, atom}]}) when is_atom(name) and is_atom(atom) do
     quote line: meta[:line] || 0 do
       Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(name))
     end
   end
-  def handle_assign(arg), do: arg
+  defp handle_assign(arg), do: arg
 
   defp find_assigns(ast) do
     {_, result} = Macro.prewalk ast, [], fn node, acc ->
@@ -424,16 +472,33 @@ defmodule Drab.Live.EExEngine do
 
   defp assigns_from_pattern(pattern) do
     Enum.reduce(expression_hashes_from_pattern(pattern), [], fn(hash, acc) ->
-      {:expr, _, assigns} = Drab.Live.Cache.get(hash)
+      {:expr, _, assigns} = Drab.Live.Cache.dets_get(hash)
       [assigns | acc]
     end) 
-      |> List.flatten() 
+      |> List.flatten()
       |> Enum.uniq()
   end
 
   @doc false
   def ampere_from_pattern(pattern) do
     Regex.run(~r/{{{{@drab-ampere:([^@}]+)/, pattern) |> List.last()
+  end
+
+  defp property_js({name, pattern}) do
+    name = String.replace(name, ~r/^\$/, "")
+    ampere = ampere_from_pattern(pattern)
+    {:expr, expr, _} = expression_hashes_from_pattern(pattern) |> List.first() |> Drab.Live.Cache.dets_get()
+
+    # ["if (typeof #{@jsvar} == 'undefined') {#{@jsvar} = {}; };" <>
+    [
+      "#{@jsvar}.properties['#{ampere}'].push({#{name}: ", 
+      encoded_expr(expr),
+    "});"
+    ]
+
+    # [~s{Drab.update_prop("[#{@drab_id}='#{ampere}']", "#{name}", }, encoded_expr(expr), ~s{);}]
+    #     ["#{@jsvar}.assigns['#{assign}'] = ", encoded_assign(assign), ";"]
+    # ["#{@jsvar}.amperes['#{ampere}']"]
   end
 
   defp start_shadow_buffer(initial, partial) do

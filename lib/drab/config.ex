@@ -60,7 +60,7 @@ defmodule Drab.Config do
   Returns any config key for current main Application
 
       iex> Drab.app_config(:secret_key_base)
-      "bP1ZF+DDZiAVGuIigj3UuAzBhDmxHSboH9EEH575muSET1g18BPO4HeZnggJA/7q"
+      "bP1ZF+DDZiAVGuIixHSboET1g18BPO4HeZnggJA/7q"
   """
   def app_config(config_key) do
     Keyword.fetch!(app_env(), endpoint()) |> Keyword.fetch!(config_key)

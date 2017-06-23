@@ -14,9 +14,13 @@ defmodule DrabModule do
     quote do
       @behaviour DrabModule
 
+      @doc false
       def prerequisites(), do: []
+      @doc false
       def js_templates(),  do: []
+      @doc false
       def transform_payload(payload, _state), do: payload
+      @doc false
       def transform_socket(socket, _payload, _state), do: socket
 
       defoverridable [prerequisites: 0, js_templates: 0, transform_payload: 2, transform_socket: 3]

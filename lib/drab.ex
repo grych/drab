@@ -326,6 +326,7 @@ defmodule Drab do
       GenServer.call(pid, unquote(get_name))
     end
 
+    @doc false
     def unquote(update_name)(pid, new_value) do
       GenServer.cast(pid, {unquote(update_name), new_value})
     end
@@ -375,18 +376,12 @@ defmodule Drab do
     function.(socket, message,  m)    
   end
 
-  @doc """
-  Tokenize any valid Elixir data.
-
-  Returns signed (but not ciphered) string, which can be decrypted with `Drab.detokenize/2`
-  """
+  @doc false
   def tokenize(socket, what, salt \\ "drab token") do
     Phoenix.Token.sign(socket, salt, what)
   end
 
-  @doc """
-  Returns data decrypted from the token.
-  """
+  @doc false
   def detokenize(socket, token, salt \\ "drab token") do
     case Phoenix.Token.verify(socket, salt, token) do
       {:ok, detokenized} -> 
@@ -404,7 +399,7 @@ defmodule Drab do
   end
 
   # returns the drab_pid from socket
-  @doc false
+  @doc "Extract Drab PID from the socket"
   def pid(socket) do
     socket.assigns.__drab_pid
   end

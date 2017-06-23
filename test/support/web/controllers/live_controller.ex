@@ -13,7 +13,8 @@ defmodule DrabTestApp.LiveController do
 
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
-    render_live conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: true, label: "default"
+    render_live conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: true, label: "default",
+      list: [1,2,3]
   end
 
   defp render_live(conn, template, assigns) do
