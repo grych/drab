@@ -21,7 +21,6 @@ Drab.on_load(function(resp, drab) {
     }
   })
   // update the properties set in <tag $property=<%= %>>
-  console.log(d.properties)
   for (var ampere in d.properties) {
     var properties = d.properties[ampere]
     for (var i = 0; i < properties.length; i ++) {
@@ -29,8 +28,6 @@ Drab.on_load(function(resp, drab) {
         var node = document.querySelector("[drab-ampere='" + ampere + "']")
         node.removeAttribute("$" + key)
         node[key] = properties[i][key]
-        dupa
-        console.log(ampere + " set " + key + " to " + properties[i][key])
       }
     }
   }
