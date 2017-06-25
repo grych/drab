@@ -137,7 +137,7 @@ defmodule Drab.Live do
   def peek(socket, assign) when is_atom(assign), do: peek(socket, Atom.to_string(assign))
 
   @doc """
-  Updates the current page in the browser with new assigns.
+  Updates the current page in the browser with the new assigns value.
 
   Returns untouched socket.
 
@@ -152,6 +152,8 @@ defmodule Drab.Live do
   The same as `poke/2`, but broadcasts the changes instead of pushing it to the current browser.
 
   See `Drab.Commander.broadcasting/1` for broadcasting options.
+
+  Returns untouched socket.
   """
   def poke!(socket, assigns) do
     do_poke(socket, assigns, &Drab.Core.broadcast_js/2)
@@ -160,8 +162,7 @@ defmodule Drab.Live do
 
   defp do_poke(socket, assigns, function) do
     #TODO: improve perfomance. Now it takes 10 ms
-    # t1 = :os.system_time(:microsecond)
-    # Drab.Live.Cache.get("uhezdaojrga4dk")
+    t1 = :os.system_time(:microsecond)
     # IO.inspect :os.system_time(:microsecond) - t1
 
     current_assigns = assigns(socket)
@@ -266,8 +267,7 @@ defmodule Drab.Live do
     priv = socket |> Drab.pid() |> Drab.get_priv()
     socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: updated_assigns})
 
-    # t2 = :os.system_time(:microsecond)
-    # IO.inspect :os.system_time(:microsecond) - t1
+    IO.inspect :os.system_time(:microsecond) - t1
 
     socket
   end

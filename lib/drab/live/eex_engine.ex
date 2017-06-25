@@ -50,7 +50,8 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def init(opts) do
     partial = opts[:file] |> String.to_atom()
-    IO.puts "Compiling Drab partial: #{partial}"
+    Logger.info "Compiling Drab partial: #{partial}"
+    Drab.Live.Cache.start()
     buffer = ["\n<span drab-partial='#{partial}'>\n"]
     start_shadow_buffer(buffer, partial)
     {:safe, buffer}
@@ -94,12 +95,11 @@ defmodule Drab.Live.EExEngine do
       Drab.Live.Cache.set(ampere, {:attribute, list})
     end
 
-    properties_js = attributes 
+    properties = attributes
       |> Enum.filter(fn {name, _} -> String.starts_with?(name, "$") end)
+    properties_js = properties
       |> Enum.map(&property_js/1)
-      # |> property_js()
-    init_properties_js = attributes 
-      |> Enum.filter(fn {name, _} -> String.starts_with?(name, "$") end)
+    init_properties_js = properties 
       |> Enum.map(fn {_, pattern} ->
         x = ampere_from_pattern(pattern)
         "if (typeof #{@jsvar}.properties['#{x}'] == 'undefined') {#{@jsvar}.properties['#{x}'] = []};"
@@ -114,13 +114,16 @@ defmodule Drab.Live.EExEngine do
     end
 
     final = [
-      script_tag(init_js), 
-      assigns_js, 
-      body, 
-      "\n</span>\n", 
-      script_tag(init_properties_js), 
-      script_tag(properties_js)
+      script_tag(init_js) |
+      [assigns_js |
+      [body |
+      ["\n</span>\n" | 
+      [script_tag(init_properties_js) |
+      [script_tag(properties_js)]]]]]
     ]
+
+    # Reload the cache, in case it is while live reload in runtime
+    # Drab.Live.Cache.reload()
 
     {:safe, final}
   end
@@ -472,7 +475,7 @@ defmodule Drab.Live.EExEngine do
 
   defp assigns_from_pattern(pattern) do
     Enum.reduce(expression_hashes_from_pattern(pattern), [], fn(hash, acc) ->
-      {:expr, _, assigns} = Drab.Live.Cache.dets_get(hash)
+      {:expr, _, assigns} = Drab.Live.Cache.get(hash)
       [assigns | acc]
     end) 
       |> List.flatten()
@@ -487,18 +490,13 @@ defmodule Drab.Live.EExEngine do
   defp property_js({name, pattern}) do
     name = String.replace(name, ~r/^\$/, "")
     ampere = ampere_from_pattern(pattern)
-    {:expr, expr, _} = expression_hashes_from_pattern(pattern) |> List.first() |> Drab.Live.Cache.dets_get()
+    {:expr, expr, _} = expression_hashes_from_pattern(pattern) |> List.first() |> Drab.Live.Cache.get()
 
-    # ["if (typeof #{@jsvar} == 'undefined') {#{@jsvar} = {}; };" <>
     [
       "#{@jsvar}.properties['#{ampere}'].push({#{name}: ", 
       encoded_expr(expr),
     "});"
     ]
-
-    # [~s{Drab.update_prop("[#{@drab_id}='#{ampere}']", "#{name}", }, encoded_expr(expr), ~s{);}]
-    #     ["#{@jsvar}.assigns['#{assign}'] = ", encoded_assign(assign), ";"]
-    # ["#{@jsvar}.amperes['#{ampere}']"]
   end
 
   defp start_shadow_buffer(initial, partial) do
@@ -507,7 +505,7 @@ defmodule Drab.Live.EExEngine do
         ret
       {:error, {:already_started, _}} ->
         raise EEx.SyntaxError, message: """
-          Expected unexprected.
+          Expected unexpected.
           Shadow buffer Agent for #{partial} already started. Please report it as a bug in https://github.com/grych/drab
           """
     end

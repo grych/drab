@@ -7,28 +7,30 @@ defmodule Drab.Live.Cache do
   just delete it, but only with `mix clean` command, to ensure all Drab Live Templates will recompile.
   """
   @cache_file "priv/hashes_expressions.drab.cache"
-  @name __MODULE__
+  # @name __MODULE__
 
   require Logger
   #TODO: clean the table on mix clean
 
-  # This module is the DETS/ETS cache for Drab Live expressions, amperes, partials, and shadow buffers.
-  # DETS table is created and filled up during the compile-time. In the runtime, it starts ETS during system startup.
+  # This module is the DETS cache for Drab Live expressions, amperes, partials, and shadow buffers.
+  # DETS table is created and filled up during the compile-time.
 
   @doc false
   def start() do
-    {:ok, dets} = :dets.open_file(@cache_file, [type: :set])
-    cache = :ets.new(@name, [:set, :named_table])
-    :dets.to_ets(dets, cache)
-    :dets.close(dets)
-    Logger.info "Started #{@name} ETS"
+    if :dets.info(@cache_file) == :undefined do
+      {:ok, _} = :dets.open_file(@cache_file, [type: :set, ram_file: true])
+    end
     :ok
+  end
+
+  def stop() do
+    :dets.close(@cache_file)
   end
 
   # Runtime function. Lookup in the already opened ETS cache
   @doc false
   def get(k) do
-    val = case :ets.lookup(@name, k) do
+    val = case :dets.lookup(@cache_file, k) do
       [{_, v}] -> v
       [] -> nil
       _ -> raise "Can't find the expression or hash #{inspect k} in the Drab.Live.Cache"
@@ -36,36 +38,32 @@ defmodule Drab.Live.Cache do
     val
   end
 
-  # The following functions are supposed to be run only on the compile-time
   @doc false
   def set(k, v) do
-    {:ok, table} = :dets.open_file(@cache_file, [type: :set])
-    :dets.insert(table, {k, v})
-    # :ets.insert(@name, {k, v})
-    :dets.close(table)
+    :dets.insert(@cache_file, {k, v})
+    :dets.sync(@cache_file)
   end
 
   @doc false
   def add(k, v) do
-    {:ok, table} = :dets.open_file(@cache_file, [type: :set])
     list = get(k) || []
-    :dets.insert(table, {k, list ++ [v]})
-    # :ets.insert(@name, {k, list ++ [v]})
-    :dets.close(table)
+    :dets.insert(@cache_file, {k, list ++ [v]})
+    :dets.sync(@cache_file)
   end
 
-  @doc false
-  def dets_get(k) do
-    {:ok, table} = :dets.open_file(@cache_file, [type: :set])
-    val = case :dets.lookup(table, k) do
-      [{_, v}] -> v
-      [] -> nil
-      _ -> raise "Can't find the expression or hash #{inspect k} in the Drab.Live.Cache"
-    end
-    # [{_, v}] = :dets.lookup(table, k)
-    :dets.close(table)
-    val
-  end
+  # @doc false
+  # def dets_get(k) do
+  #   # {:ok, table} = :dets.open_file(@cache_file, [type: :set])
+  #   val = case :dets.lookup(@cache_file, k) do
+  #     [{_, v}] -> v
+  #     [] -> nil
+  #     _ -> raise "Can't find the expression or hash #{inspect k} in the Drab.Live.Cache"
+  #   end
+  #   # [{_, v}] = :dets.lookup(table, k)
+  #   # :dets.close(table)
+  #   # :dets.sync(@cache_file)
+  #   val
+  # end
 end
 
 

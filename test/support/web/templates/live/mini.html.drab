@@ -15,7 +15,7 @@
 
 <button></button>
 
-<%= raw "<button></button>" %>
+<%= raw "<button></button>" %> 
 
 <button drab-click=update_mini class="begin <%=@class1%> <%=@class2%> rest"  class1=<%=@class1%>>
   Clickme <%=@class1%> <%=@class2%>

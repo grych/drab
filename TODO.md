@@ -1,5 +1,8 @@
 
 ## 0.5.0
+Bugs:
+* it does not recompile after file change
+
 Changes:
 * keep Amperes in Drab, not in socket
 * remove Query from the default
