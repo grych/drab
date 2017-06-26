@@ -34,6 +34,7 @@ defmodule Drab.Live.EExEngine do
   """
 
   import Drab.Live.Crypto
+  # import Drab.Core
   use EEx.Engine
   require IEx
   require Logger
@@ -77,13 +78,12 @@ defmodule Drab.Live.EExEngine do
     # expression hash is alrady in cache:  hash, {:expr, expr, found_assigns}
     # drab_ampere -> {:attribute, [ { "attribute", "pattern", [ {:expr, ast, [assigns] ] } ], all_assigns_in_ampere}
     attributes = attributes_from_shadow(shadow)
-      # |> Enum.filter(fn {name, _} -> !String.starts_with?(name, "$") end)
     grouped_by_ampere = Enum.map(attributes, fn {attribute, pattern} ->
-      is_prop? = String.starts_with?(attribute, "$")
+      is_prop? = String.starts_with?(attribute, "@")
       {ampere_from_pattern(pattern), 
         {
           (if is_prop?, do: :prop, else: :attr),
-          (if is_prop?, do: String.replace(attribute, ~r/^\$/, ""), else: attribute), 
+          (if is_prop?, do: String.replace(attribute, ~r/^\@/, ""), else: attribute), 
           pattern, 
           expression_hashes_from_pattern(pattern),
           assigns_from_pattern(pattern)
@@ -96,14 +96,14 @@ defmodule Drab.Live.EExEngine do
     end
 
     properties = attributes
-      |> Enum.filter(fn {name, _} -> String.starts_with?(name, "$") end)
+      |> Enum.filter(fn {name, _} -> String.starts_with?(name, "@") end)
     properties_js = properties
       |> Enum.map(&property_js/1)
     init_properties_js = properties 
       |> Enum.map(fn {_, pattern} ->
         x = ampere_from_pattern(pattern)
         "if (typeof #{@jsvar}.properties['#{x}'] == 'undefined') {#{@jsvar}.properties['#{x}'] = []};"
-      end)
+      end) |> Enum.uniq()
 
     # scripts
     for pattern <- scripts_from_shadow(shadow) do
@@ -117,13 +117,10 @@ defmodule Drab.Live.EExEngine do
       script_tag(init_js) |
       [assigns_js |
       [body |
-      ["\n</span>\n" | 
+      ["\n</span>\n" |
       [script_tag(init_properties_js) |
       [script_tag(properties_js)]]]]]
     ]
-
-    # Reload the cache, in case it is while live reload in runtime
-    # Drab.Live.Cache.reload()
 
     {:safe, final}
   end
@@ -226,13 +223,43 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
     # Add drab indicator
-    tag = last_opened_tag(html)
-    buffer = inject_drab_id(buffer, tag)
-    html = to_html(buffer)
+    tag       = last_opened_tag(html)
+    buffer    = inject_drab_id(buffer, tag)
+    html      = to_html(buffer)
     ampere_id = drab_id(html, tag)
 
-    buf = quote do
-      [unquote(buffer) | unquote(to_safe(expr, line))]
+    attribute = find_attr_in_html(html)
+    # quots?    = attr_begins_with_quote?(html)
+
+    buf = if attribute && String.starts_with?(attribute, "@") do
+      # special form @property="<%=expr%>" can't contain anything except ", ' or =
+      unless proper_property(html) do
+        raise EEx.SyntaxError, message: """
+          Syntax Error in Drab Property special form for tag: <#{tag}>, property: #{attribute}
+
+          You can only combine one Elixir expression with the DOM Node property. 
+          Allowed:
+
+              <tag @property=<%=expression%>>
+              <tag @property="<%=expression%>">
+              <tag @property='<%=expression%>'>
+
+          Prohibited:
+
+              <tag @property="other text <%=expression%>">
+              <tag @property="<%=expression1%><%=expression2%>">
+
+          """
+      end
+      # if it is a property, encode it with JS safe
+      quote do
+        # [unquote(buffer) | unquote(to_safe(encoded_expr(expr), line))]
+        [unquote(buffer) | unquote(attribute |> String.replace(~r/^@/, ""))]
+      end
+    else
+      quote do
+        [unquote(buffer) | unquote(to_safe(expr, line))]
+      end
     end
 
     {buf, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
@@ -248,11 +275,7 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def find_attr_in_html(html) do
-    args_removed = html
-    |> String.split(~r/<\S+/)
-    |> List.last()
-    |> remove_full_args()
-    
+    args_removed = args_removed(html)
     if String.contains?(args_removed, "=") do
       args_removed
       |> String.split("=") 
@@ -263,6 +286,38 @@ defmodule Drab.Live.EExEngine do
     else
       nil
     end
+  end
+
+  @doc false
+  def proper_property(html) do
+    args_removed = args_removed(html)
+    if String.contains?(args_removed, "=") do
+      v = args_removed
+        |> String.split("=") 
+        |> List.last()
+      !Regex.match?(~r/[^\s'"]/, v)
+    else
+      false
+    end
+  end
+  # @doc false
+  # def attr_begins_with_quote?(html) do
+  #   args_removed = args_removed(html)
+  #   if String.contains?(args_removed, "=") do
+  #     v = args_removed
+  #     |> String.split("=") 
+  #     |> List.last()
+  #     Regex.match?(~r/\s*["']/, v)
+  #   else
+  #     nil
+  #   end
+  # end
+
+  defp args_removed(html) do
+    html
+    |> String.split(~r/<\S+/)
+    |> List.last()
+    |> remove_full_args()
   end
 
   @start_script    ~r/<\s*script[^<>]*>/i
@@ -488,15 +543,16 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp property_js({name, pattern}) do
-    name = String.replace(name, ~r/^\$/, "")
+    name = String.replace(name, ~r/^\@/, "")
     ampere = ampere_from_pattern(pattern)
     {:expr, expr, _} = expression_hashes_from_pattern(pattern) |> List.first() |> Drab.Live.Cache.get()
 
-    [
-      "#{@jsvar}.properties['#{ampere}'].push({#{name}: ", 
-      encoded_expr(expr),
-    "});"
-    ]
+    [ "#{@jsvar}.properties['#{ampere}'].push({'#{name}': " | [encoded_expr(expr) | ["});"]]]
+    # [ 
+    #   "Drab.update_prop('[#{@drab_id}=#{encode_js(ampere)}]', #{encode_js(name)}, ",
+    #   encoded_expr(expr),
+    #   ");"
+    # ]
   end
 
   defp start_shadow_buffer(initial, partial) do

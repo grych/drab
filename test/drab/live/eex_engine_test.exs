@@ -41,13 +41,62 @@ defmodule Drab.Live.EExEngineTest do
       {"<div><b>a</b><span><script a=\"b\" something\n=\n\"\nabc\n", "something"},
       {"<div><b>a</b><span something=", "something"},
       {"<div><b>a</b><span something = '", "something"},
-      {"<div><b>a</b><script something", nil},
-      {"<div><b>a</b><script", nil}
+      {"<div><b>a</b><script a=b something", nil},
+      {"<div><b>a</b><script else=\"else\" \nsomething   ", nil},
+      {"<div><b>a</b><script", nil},
+      {"<div><b>a</b><span a=\"b\" @something=", "@something"},
+      {"<div><b>a</b><span @something.else = '", "@something.else"},
     ]
     for {html, attribute} <- htmls do
       assert attribute == find_attr_in_html(html)
     end
   end
+
+  # test "attribute in quotes" do
+  #   htmls = [
+  #     {"<div><b>a</b><span><script a=\"b\" something=", false},
+  #     {"<div><b>a</b><span><script a=\"b\" something='", true},
+  #     {"<div><b>a</b><span><script a=\"b\" something = 'abc ", true},
+  #     {"<div><b>a</b><span><script a=\"b\" something\n=\n\"\nabc\n", true},
+  #     {"<div><b>a</b><span><script a=\"b\" something=\"", true},
+  #     {"<div><b>a</b><span><script a=\"b\" something = \"abc ", true},
+  #     {"<div><b>a</b><span><script a=\"b\" something\n=\n\"\nabc\n", true},
+  #     {"<div><b>a</b><span something=", false},
+  #     {"<div><b>a</b><span something = '", true},
+  #     {"<div><b>a</b><script a=b something", nil},
+  #     {"<div><b>a</b><script else=\"else\" \nsomething   ", nil},
+  #     {"<div><b>a</b><script", nil},
+  #     {"<div><b>a</b><span a=\"b\" @something=", false},
+  #     {"<div><b>a</b><span @something.else = '", true},
+  #   ]
+  #   for {html, quoted?} <- htmls do
+  #     assert quoted? == attr_begins_with_quote?(html)
+  #   end
+  # end
+
+  test "proper property" do
+    htmls = [
+      {"<div><b>a</b><span><script a=\"b\" @something=", true},
+      {"<div><b>a</b><span><script a=\"b\" @something='", true},
+      {"<div><b>a</b><span><script a=\"b\" @something = 'abc ", false},
+      {"<div><b>a</b><span><script a=\"b\" @something\n=\n\"\nabc\n", false},
+      {"<div><b>a</b><span><script a=\"b\" @something=\"", true},
+      {"<div><b>a</b><span><script a=\"b\" @something = \"abc ", false},
+      {"<div><b>a</b><span><script a=\"b\" @something\n=\n\"\nabc\n", false},
+      {"<div><b>a</b><span @something=", true},
+      {"<div><b>a</b><span @something = '", true},
+      {"<div><b>a</b><script a=b @something", false},
+      {"<div><b>a</b><script else=\"else\" \n@something   ", false},
+      {"<div><b>a</b><script a=b something", false},
+      {"<div><b>a</b><script else=\"else\" \nsomething   ", false},
+      {"<div><b>a</b><script", false},
+      {"<div><b>a</b><span a=\"b\" @something=", true},
+      {"<div><b>a</b><span @something.else = '", true},
+    ]
+    for {html, proper?} <- htmls do
+      assert proper? == proper_property(html)
+    end
+  end  
 
   test "attributes from shadow" do
     shadow = {"button",

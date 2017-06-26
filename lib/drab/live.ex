@@ -274,7 +274,9 @@ defmodule Drab.Live do
 
   defp replace_pattern(pattern, []), do: pattern
   defp replace_pattern(pattern, [{hash, value} | rest]) do
-    new_pattern = String.replace(pattern, ~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:#{hash}}}}}/, value, global: true)
+    new_pattern = String.replace(pattern, ~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:#{hash}}}}}/, 
+      to_string(value), 
+      global: true)
     replace_pattern(new_pattern, rest)
   end
 

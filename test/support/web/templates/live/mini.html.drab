@@ -16,18 +16,19 @@
 <button></button>
 
 <%= raw "<button></button>" %> 
-
+List: <%= @list %><br>
+Map:  <%= inspect @map %><br>
 <button drab-click=update_mini class="begin <%=@class1%> <%=@class2%> rest"  class1=<%=@class1%>>
   Clickme <%=@class1%> <%=@class2%>
 </button>
 <br><br>
-<button id=b $hidden=<%= @hidden %> $other=<%= @list %>>
+<button id=b @style.backgroundColor=<%= @color %>   @hidden="<%= @hidden %>" @other='<%= @list %>'>
   Other button  
 </button>
 
-<span id=before_label></span>
+<span @style.backgroundColor=<%= @color %> id=before_label></span>
 
-    <p>
+    <p @style.backgroundColor=<%= @color %>>
       <h2><span class="label label-<%= @label %>">Label: <%= @label %></span></h2>
     </p>
 
