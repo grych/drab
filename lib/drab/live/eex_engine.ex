@@ -30,7 +30,7 @@ defmodule Drab.Live.EExEngine do
   Like above, tag name must be defined as `<script>` and can't be defined with the expression.
 
   #### Properties
-  Property must be defined inside the tag, using strict `$property=<%= expression %>` syntax.
+  Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>` syntax.
   """
 
   import Drab.Live.Crypto

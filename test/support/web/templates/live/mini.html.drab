@@ -22,7 +22,7 @@ Map:  <%= inspect @map %><br>
   Clickme <%=@class1%> <%=@class2%>
 </button>
 <br><br>
-<button id=b @style.backgroundColor=<%= @color %>   @hidden="<%= @hidden %>" @other='<%= @list %>'>
+<button id=b @style.backgroundColor=<%= @color %> @hidden="<%= @hidden %>" @other='<%= @list %>'>
   Other button  
 </button>
 

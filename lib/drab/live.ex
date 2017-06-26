@@ -64,18 +64,26 @@ defmodule Drab.Live do
 
   #### Properties
   Nowadays we deal more with Node proporties than attributes. This is why `Drab.Live` introduces the special syntax.
-  When using the dollar sign at the beginning of the attribute name, it will be treated as a property.
+  When using the @ sign at the beginning of the attribute name, it will be treated as a property.
 
-      <button $hidden=<%= @hidden %>>
+      <button @hidden=<%= @hidden %>>
 
   Updating `@hidden` in the Drab Commander with `poke/2` will change the value of the `hidden` property 
   (without dollar sign!), by sending the update javascript, like `node['hidden'] = false`.
 
+  You may also dig deeper into the Node properties, using dot - like in JavaScript - to bind the expression
+  with the specific property. The good example is to set up `.style`:
+
+      <button @style.backgroundColor="<%= @color %>">
+
   Aditially, Drab sets up all the properties defined that way when the page loads. Thanks to this, you
   don't have to worry about the initial value.
 
-  Notice that `$property=<%= expression %>` *is the only available syntax*, you can not use pattern, apostrophes 
-  or quotation marks. Property must be solid bind to the expression.
+  Notice that `@property=<%= expression %>` *is the only available syntax*, you can not use string pattern or 
+  give more than one expression. Property must be solid bind to the expression.
+
+  The expression binded with the property *must be encodable to JS*, so, for example, tuples are not allowed here.
+  Please refer to `Poison` for more information about encoding JS.
 
   #### Scripts
   When the assign we want to change is inside the `<script></script>` tag, Drab will re-evaluate the whole
