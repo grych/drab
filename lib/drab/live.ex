@@ -105,8 +105,12 @@ defmodule Drab.Live do
   Browser will run something like: `eval("document.querySelectorAll(\"button\").hidden = true")`.
 
   ### Partials
-  If there are partial templates rendered within the main template, it is possible to modify the value of the assign
-  only within the given template.
+  Function `poke/2` and `peek/2` works on the default template - the one rendered with the Controller. In case there
+  are some child templates, rendered inside the main one, you need to specify the template name as a second argument
+  of `poke/3` and `peek/3` functions.
+
+  Assigns are archored within their partials. Manipulation of the assign outside the template it lives will raise
+  `ArgumentError` in case of `poke`, or return `nil` when `peeking' the value.
 
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid. 
@@ -138,7 +142,7 @@ defmodule Drab.Live do
   end
 
   @doc """
-  Returns the current value of the assign or `nil` if not found.
+  Returns the current value of the assign from the main partial or `nil` if not found.
 
       iex> peek(socket, :count)
       42
@@ -150,6 +154,14 @@ defmodule Drab.Live do
 
   @doc """
   Like `peek/2`, but takes partial name and returns assign from that specified partial.
+
+  The value is take from the current
+
+      iex> peek(socket, "users.html", :count)
+      42
+      iex> peek(socket, :count)
+      nil
+
   """
   def peek(socket, partial, assign) when is_binary(assign) do
     hash = if partial, do: partial_hash(socket, partial), else: index(socket)
@@ -195,6 +207,8 @@ defmodule Drab.Live do
 
   @doc """
   Like `poke!/2`, but limited only to the given partial name.
+
+  Raises `ArgumentError` when assign is not found within the partial.
 
   Returns untouched socket.
 
