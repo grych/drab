@@ -146,8 +146,16 @@ defmodule Drab.Live do
       nil
   """
   #TODO: think if it is needed to sign/encrypt
-  def peek(socket, assign) when is_binary(assign), do: assigns(socket)[assign]
-  def peek(socket, assign) when is_atom(assign), do: peek(socket, Atom.to_string(assign))
+  def peek(socket, assign), do: peek(socket, nil, assign)
+
+  @doc """
+  Like `peek/2`, but takes partial name and returns assign from that specified partial.
+  """
+  def peek(socket, partial, assign) when is_binary(assign) do
+    hash = if partial, do: partial_hash(socket, partial), else: index(socket)
+    assigns(socket, hash)[assign]
+  end
+  def peek(socket, partial, assign) when is_atom(assign), do: peek(socket, partial, Atom.to_string(assign))
 
   @doc """
   Updates the current page in the browser with the new assigns value.
@@ -158,7 +166,7 @@ defmodule Drab.Live do
       %Phoenix.Socket{ ...
   """
   def poke(socket, assigns) do
-    do_poke(socket, nil, assigns, &Drab.Core.exec_js/2)
+    do_poke(socket, index(socket), assigns, &Drab.Core.exec_js/2)
   end
 
   @doc """
@@ -182,7 +190,7 @@ defmodule Drab.Live do
   Returns untouched socket.
   """
   def poke!(socket, assigns) do
-    do_poke(socket, nil, assigns, &Drab.Core.broadcast_js/2)
+    do_poke(socket, index(socket), assigns, &Drab.Core.broadcast_js/2)
   end
 
   @doc """
@@ -203,11 +211,27 @@ defmodule Drab.Live do
     t1 = :os.system_time(:microsecond)
     # IO.inspect :os.system_time(:microsecond) - t1
 
-    partial = partial || index(socket)
+    # partial = partial || index(socket)
 
-    current_assigns = assigns(socket)
+    current_assigns = assigns(socket, partial)
+    current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
     assigns_to_update = Enum.into(assigns, %{})
     assigns_to_update_keys = Map.keys(assigns_to_update)
+
+    for as <- assigns_to_update_keys do
+      unless Enum.find(current_assigns_keys, fn key -> key === as end) do
+        raise ArgumentError, message: """
+          Assign @#{as} not found in Drab EEx Template
+
+          Please make sure all proper assigns have been set. If this
+          is a child template, ensure assigns are given explicitly by
+          the parent template as they are not automatically forwarded.
+
+          Available assigns:
+          #{inspect current_assigns_keys}
+          """
+      end
+    end
 
     updated_assigns = current_assigns
       |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end)
@@ -222,7 +246,7 @@ defmodule Drab.Live do
     }
 
     # TODO: check only amperes which contains the changed assigns
-    amperes = amperes(socket)
+    amperes = amperes(socket, partial)
 
     # construct the javascripts for update of amperes
     #TODO: group updates on one node
@@ -293,10 +317,12 @@ defmodule Drab.Live do
       end
     end |> List.flatten() |> Enum.filter(&(&1))
 
-    IO.inspect(update_javascripts)
 
-    assign_updates = assign_updates_js(assigns_to_update)
+    assign_updates = assign_updates_js(assigns_to_update, partial)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
+
+    IO.inspect(all_javascripts)
+
     # IO.inspect :os.system_time(:microsecond) - t1
     {:ok, _} = function.(socket, all_javascripts |> Enum.join(";"))
     # IO.inspect :os.system_time(:microsecond) - t1
@@ -306,8 +332,14 @@ defmodule Drab.Live do
       {Atom.to_string(k), v}
     end
     updated_assigns = Map.merge(current_assigns, assigns_to_update)
+    # IO.inspect current_assigns
+    # IO.inspect assigns_to_update
+    # IO.inspect updated_assigns
+
     priv = socket |> Drab.pid() |> Drab.get_priv()
-    socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: updated_assigns})
+    # partial_assigns = priv.__ampere_assigns[partial]
+    partial_assigns_updated = %{priv.__ampere_assigns | partial => updated_assigns}
+    socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: partial_assigns_updated})
 
     IO.inspect :os.system_time(:microsecond) - t1
 
@@ -357,9 +389,9 @@ defmodule Drab.Live do
   #   Map.merge(stored_assigns, assigns_in_poke) |> Map.to_list()
   # end
 
-  defp assign_updates_js(assigns) do
+  defp assign_updates_js(assigns, partial) do
     Enum.map(assigns, fn {k, v} -> 
-      "__drab.assigns[#{Drab.Core.encode_js(k)}] = #{Drab.Core.encode_js(v)}" 
+      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = #{Drab.Core.encode_js(v)}" 
     end)
   end
 
@@ -369,18 +401,20 @@ defmodule Drab.Live do
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
-  defp assigns(socket) do
+  defp assigns(socket, partial) do
     socket 
       |> Drab.pid() 
       |> Drab.get_priv() 
       |> Map.get(:__ampere_assigns)
+      |> Map.get(partial)
   end
 
-  defp amperes(socket) do
+  defp amperes(socket, partial) do
     socket 
       |> Drab.pid() 
       |> Drab.get_priv() 
       |> Map.get(:__amperes)
+      |> Map.get(partial)
   end
 
   defp index(socket) do

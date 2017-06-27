@@ -39,8 +39,8 @@ defmodule Drab.Live.EExEngine do
   require IEx
   require Logger
 
-  @jsvar           "__drab"
-  @drab_id         "drab-ampere"
+  @jsvar   "__drab"
+  @drab_id "drab-ampere"
 
   @anno (if :erlang.system_info(:otp_release) >= '19' do
     [generated: true]
@@ -76,10 +76,13 @@ defmodule Drab.Live.EExEngine do
     found_assigns = find_assigns(body)
     partial = partial(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
-      assign_js(assign)
+      assign_js(partial, assign)
     end) |> script_tag()
 
-    init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {assigns: {}, properties: {}}}"
+    init_js = """
+      if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {assigns: {}, properties: {}}};
+      window.#{@jsvar}.assigns['#{partial}'] = {};
+      """
     put_shadow_buffer("\n</span>\n", partial)
 
     shadow = get_shadow_buffer(partial(body)) |> Floki.parse()
@@ -267,7 +270,7 @@ defmodule Drab.Live.EExEngine do
       # if it is a property, encode it with JS safe
       quote do
         # [unquote(buffer) | unquote(to_safe(encoded_expr(expr), line))]
-        [unquote(buffer) | unquote(attribute |> String.replace(~r/^@/, ""))]
+        [unquote(buffer) | [unquote(attribute |> String.replace(~r/^@/, "")), "{{{{", unquote(to_safe(encoded_expr(expr), line)), "}}}}"]]
       end
     else
       quote do
@@ -418,8 +421,8 @@ defmodule Drab.Live.EExEngine do
     ["<script>", js, "</script>"]
   end
 
-  defp assign_js(assign) do
-    ["#{@jsvar}.assigns['#{assign}'] = ", encoded_assign(assign), ";"]
+  defp assign_js(partial, assign) do
+    ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = ", encoded_assign(assign), ";"]
   end
 
 

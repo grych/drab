@@ -14,7 +14,7 @@ defmodule DrabTestApp.LiveController do
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
     render_live conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: false, label: "default",
-      list: [1,2,3], map: %{a: 1, b: 2}, color: "blue"
+      list: [1,2,3], map: %{a: 1, b: 2}, color: "blue", link: "https://tg.pl/drab"
   end
 
   defp render_live(conn, template, assigns) do

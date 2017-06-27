@@ -7,7 +7,7 @@ Drab.add_payload(function(sender, event) {
 })
 
 function set_property(node, attribute_name, attribute_value) {
-  var property = node.getAttribute("@" + attribute_name)
+  var property = node.getAttribute("@" + attribute_name).replace(/{{{{.+}}}}$/, "")
   var path = property.split(".")
   var full = node
   var prev, last
@@ -19,14 +19,26 @@ function set_property(node, attribute_name, attribute_value) {
   prev[last] = attribute_value
 }
 
+function closest(el, fn) {
+  return el && (fn(el) ? el : closest(el.parentNode, fn))
+}
+
 Drab.on_load(function(resp, drab) {
   // extract information from all drabbed nodes and store it in global __drab
   var d = window.__drab
-  d.amperes = []
-  document.querySelectorAll("[drab-ampere]").forEach(function(node) {
+  d.amperes = {}
+  document.querySelectorAll("[drab-partial]").forEach(function(partial) {
+    var partial_id = partial.getAttribute("drab-partial")
+    d.amperes[partial_id] = []
+  })
+  document.querySelectorAll("[drab-partial] [drab-ampere]").forEach(function(node) {
     var drab_id = node.getAttribute("drab-ampere")
-    if (d.amperes.indexOf(drab_id) < 0) {
-      d.amperes.push(drab_id)
+    var partial = closest(node, function(el) {
+      return el.hasAttribute("drab-partial")
+    })
+    var partial_id = partial.getAttribute("drab-partial")
+    if (d.amperes[partial_id].indexOf(drab_id) < 0) {
+      d.amperes[partial_id].push(drab_id)
     }
   })
   // update the properties set in <tag @property=expression>

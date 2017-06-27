@@ -5,8 +5,6 @@
   // nothing
 </script>
 
-<%= render "partial1.html", in_partial: "in partial1" %>
-
 <span id=before_script></span>
 
 <script type="text/javascript">
