@@ -110,7 +110,7 @@ defmodule Drab.Live do
   of `poke/3` and `peek/3` functions.
 
   Assigns are archored within their partials. Manipulation of the assign outside the template it lives will raise
-  `ArgumentError` in case of `poke`, or return `nil` when `peeking' the value.
+  `ArgumentError` in case of `poke`, or return `nil` when `peeking` the value.
 
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid. 
