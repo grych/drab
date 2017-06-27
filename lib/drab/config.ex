@@ -5,6 +5,9 @@ defmodule Drab.Config do
   
   @doc """
   Returns the name of the client Phoenix Application
+
+      iex> Drab.Config.app_name()
+      :drab
   """
   def app_name() do
     Mix.Project.config()[:app] || raise """
@@ -14,6 +17,9 @@ defmodule Drab.Config do
 
   @doc """
   Returns the Endpoint of the client Phoenix Application
+
+      iex> Drab.Config.endpoint()  
+      DrabTestApp.Endpoint
   """
   def endpoint() do
     # IO.inspect app_env()
@@ -42,6 +48,9 @@ defmodule Drab.Config do
 
   @doc """
   Returns the Phoenix Application module atom
+
+      iex> Drab.Config.app_module()
+      DrabTestApp
   """
   def app_module() do
     Module.split(endpoint()) 
@@ -51,6 +60,9 @@ defmodule Drab.Config do
 
   @doc """
   Returns all environment for the default main Application
+
+      iex> is_list(Drab.Config.app_config())
+      true
   """
   def app_env() do
     Application.get_all_env(app_name()) 
@@ -68,17 +80,38 @@ defmodule Drab.Config do
 
   @doc """
   Returns the config for current main Application
+
+      iex> is_list(Drab.Config.app_config())
+      true
   """
   def app_config() do
     Keyword.fetch!(app_env(), endpoint())
   end
 
+  @doc """
+  Returns configured Drab.Live.Engine Extension. String with dot at the begin.
+
+  Example, for config:
+      
+      config :phoenix, :template_engines,
+        drab: Drab.Live.Engine
+
+  it will return ".drab"
+
+      iex> Drab.Config.drab_extension()
+      ".drab"
+  """
+  def drab_extension() do
+    {drab_ext, Drab.Live.Engine} = Application.get_env(:phoenix, :compiled_template_engines) 
+      |> Enum.find(fn {_, v} -> v == Drab.Live.Engine end)
+    "." <> to_string(drab_ext)
+  end
 
   @doc """
   Returns Drab configuration for the given atom.
 
       iex> Drab.Config.get(:templates_path)
-      "priv/templates/drab"
+      "test/support/priv/templates/drab"
   
   All the config values may be override in `config.exs`, for example:
 

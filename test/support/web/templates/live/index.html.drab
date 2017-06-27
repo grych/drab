@@ -2,8 +2,9 @@
 <div id="drab_pid"></div>
 
 <br>
-Users (<%= @count %>) count: <%= @count %>
+Users count: <%= @count %>
 <br>
+
 <%= render("users.html", users: @users) %>
 
 <br>
@@ -25,7 +26,19 @@ Users (<%= @count %>) count: <%= @count %>
 
 <br><br>
 
+<%= render("partial1.html", in_partial: "primary value for partial 1", color: "#E6E6E6", link: "https://tg.pl") %>
+<br>
+<%= render("partial2.html", in_partial: "primary value for partial 2", color: "#FFCC66", link: "https://tg.pl")%>
+<br>
 
-
-<%= "no assigns here" %>
-
+<button drab-click="update_in_partial1" class="btn btn-primary">
+  Update in Partial 1
+</button>
+<br>
+<button drab-click="update_in_partial2" class="btn btn-primary">
+  Update in Partial 2
+</button>
+<br>
+<button drab-click="update_in_both_partials" class="btn btn-primary">
+  Update in Both Partials
+</button>

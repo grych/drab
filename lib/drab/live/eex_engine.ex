@@ -50,11 +50,24 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def init(opts) do
-    partial = opts[:file] |> String.to_atom()
+    unless Path.basename(opts[:file],  Drab.Config.drab_extension()) 
+      |> Path.extname() 
+      |> String.downcase() == ".html" do
+        raise EEx.SyntaxError, message: """
+          Drab.Live may work only with html partials.
+
+          Invalid extension of file: #{opts[:file]}.
+          """
+    end
+    partial = opts[:file]
     Logger.info "Compiling Drab partial: #{partial}"
+    
+    partial_hash = hash(partial)
     Drab.Live.Cache.start()
-    buffer = ["\n<span drab-partial='#{partial}'>\n"]
-    start_shadow_buffer(buffer, partial)
+    Drab.Live.Cache.set({:partial, partial}, partial_hash)
+
+    buffer = ["\n<span drab-partial='#{partial_hash}'>\n"]
+    start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, it is on compile-time
     {:safe, buffer}
   end
 
@@ -66,7 +79,7 @@ defmodule Drab.Live.EExEngine do
       assign_js(assign)
     end) |> script_tag()
 
-    init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {}; window.#{@jsvar}.assigns = {}; window.#{@jsvar}.properties = {}}"
+    init_js = "if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {assigns: {}, properties: {}}}"
     put_shadow_buffer("\n</span>\n", partial)
 
     shadow = get_shadow_buffer(partial(body)) |> Floki.parse()

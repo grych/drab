@@ -104,6 +104,10 @@ defmodule Drab.Live do
   Drab will re-render the whole script with a new value and will send a request to re-evaluate the script. 
   Browser will run something like: `eval("document.querySelectorAll(\"button\").hidden = true")`.
 
+  ### Partials
+  If there are partial templates rendered within the main template, it is possible to modify the value of the assign
+  only within the given template.
+
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid. 
   There are also some limits for defining attributes, properties, etc. See `Drab.Live.EExEngine` for a full
@@ -126,7 +130,8 @@ defmodule Drab.Live do
     # store assigns in Drab Server
     priv = Map.merge(state.priv, %{
       __ampere_assigns: payload["__assigns"],
-      __amperes: payload["__amperes"]
+      __amperes: payload["__amperes"],
+      __index:   payload["__index"]
     })
     Drab.pid(socket) |> Drab.set_priv(priv)
     socket
@@ -153,7 +158,20 @@ defmodule Drab.Live do
       %Phoenix.Socket{ ...
   """
   def poke(socket, assigns) do
-    do_poke(socket, assigns, &Drab.Core.exec_js/2)
+    do_poke(socket, nil, assigns, &Drab.Core.exec_js/2)
+  end
+
+  @doc """
+  Like `poke/2`, but limited only to the given partial name.
+
+  Returns untouched socket.
+
+      iex> poke(socket, "user.html", name: "Bożywój")
+      %Phoenix.Socket{ ...
+  """
+  def poke(socket, partial, assigns) do
+    hash = partial_hash(socket, partial)
+    do_poke(socket, hash, assigns, &Drab.Core.exec_js/2)
   end
 
   @doc """
@@ -164,14 +182,28 @@ defmodule Drab.Live do
   Returns untouched socket.
   """
   def poke!(socket, assigns) do
-    do_poke(socket, assigns, &Drab.Core.broadcast_js/2)
+    do_poke(socket, nil, assigns, &Drab.Core.broadcast_js/2)
   end
 
+  @doc """
+  Like `poke!/2`, but limited only to the given partial name.
 
-  defp do_poke(socket, assigns, function) do
+  Returns untouched socket.
+
+      iex> poke!(socket, "user.html", name: "Bożywój")
+      %Phoenix.Socket{ ...
+  """
+  def poke!(socket, partial, assigns) do
+    hash = partial_hash(socket, partial)
+    do_poke(socket, hash, assigns, &Drab.Core.broadcast_js/2)
+  end
+
+  defp do_poke(socket, partial, assigns, function) do
     #TODO: improve perfomance. Now it takes 10 ms
     t1 = :os.system_time(:microsecond)
     # IO.inspect :os.system_time(:microsecond) - t1
+
+    partial = partial || index(socket)
 
     current_assigns = assigns(socket)
     assigns_to_update = Enum.into(assigns, %{})
@@ -189,7 +221,6 @@ defmodule Drab.Live do
       Module.concat(app_module, Gettext)
     }
 
-
     # TODO: check only amperes which contains the changed assigns
     amperes = amperes(socket)
 
@@ -206,7 +237,7 @@ defmodule Drab.Live do
             safe = eval_expr(expr, modules, updated_assigns)
             new_value = safe_to_encoded_js(safe)
 
-            "Drab.update_drab_span(#{encode_js(selector)}, #{new_value})"
+            "Drab.update_drab_span(#{encode_js(selector)}, #{new_value}, #{encode_js(partial)})"
           else
             nil
           end
@@ -234,7 +265,10 @@ defmodule Drab.Live do
                     {_, new_value} = evaluated_expressions |> List.first()
                     new_value |> encode_js()
                 end
-                "Drab.update_#{type}(#{encode_js(selector)}, #{encode_js(attr_or_prop)}, #{new_value_of_attribute})"
+                sel = encode_js(selector)
+                ap = encode_js(attr_or_prop)
+                pr = encode_js(partial)
+                "Drab.update_#{type}(#{sel}, #{ap}, #{new_value_of_attribute}, #{pr})"
               else
                 nil
               end
@@ -250,7 +284,7 @@ defmodule Drab.Live do
               {hash, new_value}
             end)
             new_script = replace_pattern(pattern, hash_and_value) |> encode_js()
-            "Drab.update_script(#{encode_js(selector)}, #{new_script})"
+            "Drab.update_script(#{encode_js(selector)}, #{new_script}, #{encode_js(partial)})"
           else
             nil
           end
@@ -347,5 +381,26 @@ defmodule Drab.Live do
       |> Drab.pid() 
       |> Drab.get_priv() 
       |> Map.get(:__amperes)
+  end
+
+  defp index(socket) do
+    socket 
+      |> Drab.pid() 
+      |> Drab.get_priv() 
+      |> Map.get(:__index)    
+  end
+
+  defp partial_hash(socket, partial_name) do
+    Drab.Live.Cache.get({:partial, partial_path(socket, partial_name)})
+  end
+
+  defp partial_path(socket, partial_name) do
+    templates_path(socket) <> partial_name <> Drab.Config.drab_extension()
+  end
+
+  defp templates_path(socket) do
+    view = Drab.get_view(socket)
+    {path, _, _} = view.__templates__()
+    path <> "/"
   end
 end

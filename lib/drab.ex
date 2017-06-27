@@ -391,11 +391,24 @@ defmodule Drab do
     end
   end
 
-  # returns the commander name for the given controller (assigned in token)
+  # returns the commander name for the given controller (assigned in socket)
   @doc false
   def get_commander(socket) do
     controller = socket.assigns.__controller
     controller.__drab__()[:commander]
+  end
+
+  # returns the controller name used with the socket
+  @doc false
+  def get_controller(socket) do
+    socket.assigns.__controller
+  end
+
+  # returns the view name used with the socket
+  @doc false
+  def get_view(socket) do
+    controller = socket.assigns.__controller
+    controller.__drab__()[:view]
   end
 
   # returns the drab_pid from socket

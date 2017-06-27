@@ -2,9 +2,6 @@ defmodule DrabTestApp.LiveCommander do
   @moduledoc false
   
   use Drab.Commander, modules: [Drab.Live]
-  # must insert view functions
-  # use DrabTestApp.Web, :view
-
   onload :page_loaded
 
   def page_loaded(socket) do
@@ -21,31 +18,32 @@ defmodule DrabTestApp.LiveCommander do
 
   def update_both(socket, _) do
     poke socket, users: ["Mieczysław", "Andżelika", "Brajanek"], count: 3
-    # poke socket, count: 3
-    # poke socket, user: "dupa"
-    # poke socket, count: 42
   end
 
   def update_count(socket, _) do
-    # IO.inspect socket
-    poke socket, count: 42
+    poke socket, count: 3
   end
 
   def update_list(socket, _) do
     poke socket, users: ["Mieczysław", "Andżelika", "Brajanek"]
-    # poke socket, user: "dupa"
-    # poke socket, count: 42
+  end
+
+  def update_in_partial1(socket, _) do
+    poke socket, "partial1.html", in_partial: "updated partial 1", color: "#66FFFF", link: "https://tg.pl/drab"
+  end
+
+  def update_in_partial2(socket, _) do
+    poke socket, "partial2.html", in_partial: "updated partial 2", color: "#FF6666", link: "https://tg.pl/drab/live"
+  end
+
+  def update_in_both_partials(socket, _) do
+    poke socket, in_partial: "updated both partials", color: "#FF8000"
   end
 
   def update_mini(socket, sender) do
-    # list = peek(socket, :list) ++ ["Zdzisław", "Andżelika", "Brajanek"]
-    # IO.inspect peek(socket, :list)
-    # socket = poke socket, list: list
-    # IO.inspect peek(socket, :list)
     IO.inspect sender
     poke socket, class1: "btn", class2: "btn-warning", full_class: "btn btn-danger", 
       hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
-    # poke socket, hidden: false, class2: "btn-warning"
   end
 
 end

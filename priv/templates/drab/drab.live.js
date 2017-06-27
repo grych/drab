@@ -1,7 +1,8 @@
 Drab.add_payload(function(sender, event) {
   return {
     __assigns: __drab.assigns,
-    __amperes: __drab.amperes
+    __amperes: __drab.amperes,
+    __index:   __drab.index
   }
 })
 
@@ -40,24 +41,64 @@ Drab.on_load(function(resp, drab) {
       }
     }
   }
+  // get the name of the main partial
+  d.index = document.querySelector("[drab-partial]").getAttribute("drab-partial")
 })
 
-Drab.update_attr = function(selector, attribute_name, new_value) {
-  node = document.querySelector(selector)
-  node.setAttribute(attribute_name, new_value)
+function set_attr(where, selector, attribute_name, new_value) {
+  where.querySelectorAll(selector).forEach(function(node) {
+    node.setAttribute(attribute_name, new_value)
+  })
 }
 
-Drab.update_prop = function(selector, property_name, new_value) {
-  node = document.querySelector(selector)
-  set_property(node, property_name, new_value)
+Drab.update_attr = function(selector, attribute_name, new_value, partial) {
+  if (partial != null) {
+    document.querySelectorAll('[drab-partial=' + partial + ']').forEach(function(part) {
+      set_attr(part, selector, attribute_name, new_value)
+    })
+  } else {
+    set_attr(document, selector, attribute_name, new_value)
+  }
 }
 
-Drab.update_drab_span = function(selector, html) {
-  document.querySelectorAll(selector).forEach(function(node) {
+function set_prop(where, selector, property_name, new_value) {
+  where.querySelectorAll(selector).forEach(function(node) {
+    set_property(node, property_name, new_value)
+  })
+}
+
+Drab.update_prop = function(selector, property_name, new_value, partial) {
+  if (partial != null) {
+    document.querySelectorAll('[drab-partial=' + partial + ']').forEach(function(part) {
+      set_prop(part, selector, property_name, new_value)
+    })
+  } else {
+    set_prop(document, selector, property_name, new_value)
+  }
+}
+
+function set_drab_span(where, selector, html) {
+  where.querySelectorAll(selector).forEach(function(node) {
     node.innerHTML = html
   })
 }
 
-Drab.update_script = function(selector, new_script) {
-  eval(new_script)
+Drab.update_drab_span = function(selector, html, partial) {
+  if (partial != null) {
+    document.querySelectorAll('[drab-partial=' + partial + ']').forEach(function(part) {
+      set_drab_span(part, selector, html)
+    })
+  } else {
+    set_drab_span(document, selector, html)
+  }
+}
+
+Drab.update_script = function(selector, new_script, partial) {
+  if (partial != null) {
+    if (document.querySelector('[drab-partial=' + partial + '] ' + selector) != null) {
+      eval(new_script)
+    }
+  } else {
+    eval(new_script)
+  }
 }
