@@ -109,8 +109,11 @@ defmodule Drab.Live do
   are some child templates, rendered inside the main one, you need to specify the template name as a second argument
   of `poke/3` and `peek/3` functions.
 
+  In case the template is not under the current (main) view, use `poke/4` and `peek/4` to specify the external
+  view name.
+
   Assigns are archored within their partials. Manipulation of the assign outside the template it lives will raise
-  `ArgumentError` in case of `poke`, or return `nil` when `peeking` the value.
+  `ArgumentError`.
 
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid. 
@@ -142,56 +145,82 @@ defmodule Drab.Live do
   end
 
   @doc """
-  Returns the current value of the assign from the main partial or `nil` if not found.
+  Returns the current value of the assign from the current (main) partial.
 
       iex> peek(socket, :count)
       42
       iex> peek(socket, :nonexistent)
-      nil
+      ** (ArgumentError) Assign @nonexistent not found in Drab EEx Template
   """
   #TODO: think if it is needed to sign/encrypt
-  def peek(socket, assign), do: peek(socket, nil, assign)
+  def peek(socket, assign), do: peek(socket, nil, nil, assign)
+
 
   @doc """
   Like `peek/2`, but takes partial name and returns assign from that specified partial.
 
-  The value is take from the current
+  Partial is taken from the current view.
 
       iex> peek(socket, "users.html", :count)
       42
-      iex> peek(socket, :count)
-      nil
-
   """
-  def peek(socket, partial, assign) when is_binary(assign) do
-    hash = if partial, do: partial_hash(socket, partial), else: index(socket)
-    assigns(socket, hash)[assign]
+  #TODO: think if it is needed to sign/encrypt
+  def peek(socket, partial, assign), do: peek(socket, nil, partial, assign)
+
+  @doc """
+  Like `peek/2`, but takes a view and a partial name and returns assign from that specified view/partial.
+
+      iex> peek(socket, MyApp.UserView, "users.html", :count)
+      42
+  """
+  def peek(socket, view, partial, assign) when is_binary(assign) do
+    view = view || Drab.get_view(socket)
+    hash = if partial, do: partial_hash(view, partial), else: index(socket)
+
+    current_assigns = assigns(socket, hash, partial)
+    current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
+
+    case current_assigns |> Map.fetch(assign) do
+      {:ok, val} -> val
+      :error -> assign_not_found!(assign, current_assigns_keys)
+    end
   end
-  def peek(socket, partial, assign) when is_atom(assign), do: peek(socket, partial, Atom.to_string(assign))
+
+  def peek(socket, view, partial, assign) when is_atom(assign) do 
+    peek(socket, view, partial, Atom.to_string(assign))
+  end
 
   @doc """
   Updates the current page in the browser with the new assigns value.
 
+  Raises `ArgumentError` when assign is not found within the partial.
   Returns untouched socket.
 
       iex> poke(socket, count: 42)
       %Phoenix.Socket{ ...
   """
   def poke(socket, assigns) do
-    do_poke(socket, index(socket), assigns, &Drab.Core.exec_js/2)
+    do_poke(socket, nil, nil, assigns, &Drab.Core.exec_js/2)
   end
 
   @doc """
   Like `poke/2`, but limited only to the given partial name.
 
-  Returns untouched socket.
-
       iex> poke(socket, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
   """
   def poke(socket, partial, assigns) do
-    hash = partial_hash(socket, partial)
-    do_poke(socket, hash, assigns, &Drab.Core.exec_js/2)
+    do_poke(socket, nil, partial, assigns, &Drab.Core.exec_js/2)
+  end
+
+  @doc """
+  Like `poke/3`, but searches for the partial within the given view.
+
+      iex> poke(socket, MyApp.UserView, "user.html", name: "Bożywój")
+      %Phoenix.Socket{ ...
+  """
+  def poke(socket, view, partial, assigns) do
+    do_poke(socket, view, partial, assigns, &Drab.Core.exec_js/2)
   end
 
   @doc """
@@ -199,51 +228,52 @@ defmodule Drab.Live do
 
   See `Drab.Commander.broadcasting/1` for broadcasting options.
 
+  Raises `ArgumentError` when assign is not found within the partial.
   Returns untouched socket.
+
+      iex> poke!(socket, name: "Bożywój")
+      %Phoenix.Socket{ ...
   """
   def poke!(socket, assigns) do
-    do_poke(socket, index(socket), assigns, &Drab.Core.broadcast_js/2)
+    do_poke(socket, nil, nil, assigns, &Drab.Core.broadcast_js/2)
   end
 
   @doc """
   Like `poke!/2`, but limited only to the given partial name.
 
-  Raises `ArgumentError` when assign is not found within the partial.
-
-  Returns untouched socket.
-
       iex> poke!(socket, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
   """
   def poke!(socket, partial, assigns) do
-    hash = partial_hash(socket, partial)
-    do_poke(socket, hash, assigns, &Drab.Core.broadcast_js/2)
+    do_poke(socket, nil, partial, assigns, &Drab.Core.broadcast_js/2)
   end
 
-  defp do_poke(socket, partial, assigns, function) do
+  @doc """
+  Like `poke!/3`, but searches for the partial within the given view.
+
+      iex> poke!(socket, MyApp.UserView, "user.html", name: "Bożywój")
+      %Phoenix.Socket{ ...
+  """
+  def poke!(socket, view, partial, assigns) do
+    do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
+  end
+
+  defp do_poke(socket, view, partial_name, assigns, function) do
     #TODO: improve perfomance. Now it takes 10 ms
     t1 = :os.system_time(:microsecond)
     # IO.inspect :os.system_time(:microsecond) - t1
 
-    # partial = partial || index(socket)
+    view = view || Drab.get_view(socket)
+    partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
 
-    current_assigns = assigns(socket, partial)
+    current_assigns = assigns(socket, partial, partial_name)
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
     assigns_to_update = Enum.into(assigns, %{})
     assigns_to_update_keys = Map.keys(assigns_to_update)
 
     for as <- assigns_to_update_keys do
       unless Enum.find(current_assigns_keys, fn key -> key === as end) do
-        raise ArgumentError, message: """
-          Assign @#{as} not found in Drab EEx Template
-
-          Please make sure all proper assigns have been set. If this
-          is a child template, ensure assigns are given explicitly by
-          the parent template as they are not automatically forwarded.
-
-          Available assigns:
-          #{inspect current_assigns_keys}
-          """
+        assign_not_found!(as, current_assigns_keys)
       end
     end
 
@@ -415,12 +445,18 @@ defmodule Drab.Live do
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
-  defp assigns(socket, partial) do
-    socket 
+  defp assigns(socket, partial, partial_name) do
+    case socket 
       |> Drab.pid() 
       |> Drab.get_priv() 
       |> Map.get(:__ampere_assigns)
-      |> Map.get(partial)
+      |> Map.fetch(partial) do
+        {:ok, val} -> val
+        :error -> raise ArgumentError, message: """
+          Drab is unable to find a partial #{partial_name || "main"}.
+          Please check the path or specify the View.
+          """
+      end
   end
 
   defp amperes(socket, partial) do
@@ -438,17 +474,29 @@ defmodule Drab.Live do
       |> Map.get(:__index)    
   end
 
-  defp partial_hash(socket, partial_name) do
-    Drab.Live.Cache.get({:partial, partial_path(socket, partial_name)})
+  defp partial_hash(view, partial_name) do
+    Drab.Live.Cache.get({:partial, partial_path(view, partial_name)})
   end
 
-  defp partial_path(socket, partial_name) do
-    templates_path(socket) <> partial_name <> Drab.Config.drab_extension()
+  defp partial_path(view, partial_name) do
+    templates_path(view) <> partial_name <> Drab.Config.drab_extension()
   end
 
-  defp templates_path(socket) do
-    view = Drab.get_view(socket)
+  defp templates_path(view) do
     {path, _, _} = view.__templates__()
     path <> "/"
+  end
+
+  defp assign_not_found!(assign, current_keys) do
+        raise ArgumentError, message: """
+          Assign @#{assign} not found in Drab EEx Template
+
+          Please make sure all proper assigns have been set. If this
+          is a child template, ensure assigns are given explicitly by
+          the parent template as they are not automatically forwarded.
+
+          Available assigns:
+          #{inspect current_keys}
+          """    
   end
 end

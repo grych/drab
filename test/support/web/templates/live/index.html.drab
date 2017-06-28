@@ -2,7 +2,9 @@
 <div id="drab_pid"></div>
 
 <br>
-Users count: <%= @count %>
+<span @style.backgroundColor="<%=@color%>">
+  Users count: <%= @count %>
+</span>
 <br>
 
 <%= render("users.html", users: @users) %>
@@ -28,7 +30,9 @@ Users count: <%= @count %>
 
 <%= render("partial1.html", in_partial: "primary value for partial 1", color: "#E6E6E6", link: "https://tg.pl") %>
 <br>
-<%= render("partial2.html", in_partial: "primary value for partial 2", color: "#FFCC66", link: "https://tg.pl")%>
+<%= render(DrabTestApp.Live2View, "partial2.html", in_partial: "primary value for partial 2", color: "#FFCC66", link: "https://tg.pl")%>
+<br>
+<%= render("partial3.html", color: "#E6E6E6", link: "https://tg.pl") %>
 <br>
 
 <button drab-click="update_in_partial1" class="btn btn-primary">
@@ -39,6 +43,14 @@ Users count: <%= @count %>
   Update in Partial 2
 </button>
 <br>
-<button drab-click="update_in_both_partials" class="btn btn-primary">
-  Update in Both Partials
+<button drab-click="update_in_partial2_bad" class="btn btn-primary">
+  Bad update in Partial 2
+</button>
+<br>
+<button drab-click="update_in_partial3" class="btn btn-primary">
+  Bad update in Partial 3
+</button>
+<br>
+<button drab-click="update_in_main_partial" class="btn btn-primary">
+  Update @color in main partial
 </button>

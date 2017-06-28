@@ -1,20 +1,17 @@
 
 ## 0.5.0
 Bugs:
-* it does not recompile after file change
 
 Changes:
-* keep Amperes in Drab, not in socket
 * remove Query from the default
 * new default module, not jQuery based
 * changesets for update/insert in the new base module
 * group JS commands to be launched in one step, if possible
 * DOM tree as a Map?
 * Query must work with Live
-* change url in the browser (smart?)
-* have a values of the <input> fields directly in the Commander Event Handler Function
+* have a values of the <input> fields from parent <form> directly in the Commander Event Handler Function - only if drab-send-params set in button
 * re-initiate JS event handler after changing the SPAN (inside it)
-* inside a <script> case
+* helper to change URL (smart?)
 
 ## 0.6.0
 Changes:

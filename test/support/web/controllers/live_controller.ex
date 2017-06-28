@@ -8,7 +8,7 @@ defmodule DrabTestApp.LiveController do
 
   def index(conn, _params) do
     users = ~w(Zdzisław Zofia Hendryk Stefan)
-    render_live conn, "index.html", users: users, count: length(users)
+    render_live conn, "index.html", users: users, count: length(users), color: "#ffffff"
   end
 
   def mini(conn, _params) do
@@ -18,9 +18,6 @@ defmodule DrabTestApp.LiveController do
   end
 
   defp render_live(conn, template, assigns) do
-    r = render(conn, template, assigns)
-    # IO.inspect(Phoenix.View.render_to_string DrabTestApp.LiveView, "index.html", assigns)
-    # IO.inspect r.assigns
-    r
+    render(conn, template, assigns)
   end
 end

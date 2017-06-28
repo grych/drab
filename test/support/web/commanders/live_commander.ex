@@ -33,15 +33,22 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   def update_in_partial2(socket, _) do
-    poke socket, "partial2.html", in_partial: "updated partial 2", color: "#FF6666", link: "https://tg.pl/drab/live"
+    poke socket,  DrabTestApp.Live2View, "partial2.html", in_partial: "updated partial 2", color: "#FF6666", link: "https://tg.pl/drab/live"
   end
 
-  def update_in_both_partials(socket, _) do
-    poke socket, in_partial: "updated both partials", color: "#FF8000"
+  def update_in_partial2_bad(socket, _) do
+    poke socket,"partial2.html", in_partial: "updated partial 2", color: "#FF6666", link: "https://tg.pl/drab/live"
+  end
+
+  def update_in_partial3(socket, _) do
+    poke socket, "partial3.html", in_partial: "updated partial 3", link: "https://tg.pl/"
+  end
+
+  def update_in_main_partial(socket, _) do
+    poke socket, color: "#aabbcc"
   end
 
   def update_mini(socket, sender) do
-    IO.inspect sender
     poke socket, class1: "btn", class2: "btn-warning", full_class: "btn btn-danger", 
       hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
   end

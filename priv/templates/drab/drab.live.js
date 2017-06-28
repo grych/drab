@@ -19,10 +19,6 @@ function set_property(node, attribute_name, attribute_value) {
   prev[last] = attribute_value
 }
 
-function closest(el, fn) {
-  return el && (fn(el) ? el : closest(el.parentNode, fn))
-}
-
 Drab.on_load(function(resp, drab) {
   // extract information from all drabbed nodes and store it in global __drab
   var d = window.__drab

@@ -12,7 +12,7 @@ defmodule Drab.Mixfile do
      deps: deps(),
      description: description(),
      package: package(),
-     docs: [main: "Drab", logo: "priv/static/drab-400.png", extras: ["README.md"]],
+     docs: [main: "Drab", logo: "priv/static/drab-400.png", extras: ["README.md"]], # , filter_prefix: "Drab."
      compilers: [:phoenix, :gettext] ++ Mix.compilers
      # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
    ]
@@ -35,7 +35,7 @@ defmodule Drab.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
-     {:ex_doc, "~> 0.14", only: :dev},
+     {:ex_doc, "~> 0.16", only: :dev},
      {:deppie, "~> 1.0"},
      {:hound, "~> 1.0"}, ### , only: [:dev, :test]
      {:floki, "~> 0.17.0"}

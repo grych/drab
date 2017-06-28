@@ -9,6 +9,10 @@
     })
     return uuid
   }
+
+  function closest(el, fn) {
+    return el && (fn(el) ? el : closest(el.parentNode, fn))
+  }
   
   window.Drab = {
     run: function(drab_return_token, drab_session_token, broadcast_topic) {
