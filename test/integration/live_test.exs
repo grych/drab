@@ -12,7 +12,7 @@ defmodule DrabTestApp.LiveTest do
     [socket: drab_socket()]
   end
 
-  describe "Drab.Modal" do
+  describe "Drab.Live" do
     test "simple poke and peek on global" do
       socket = drab_socket()
       poke(socket, count: 42)
@@ -107,6 +107,13 @@ defmodule DrabTestApp.LiveTest do
       poke socket, "partial1.html", link: "https://tg.pl/drab"
       assert attribute_value(partial1_href, "href") == "https://tg.pl/drab"
       assert attribute_value(partial2_href, "href") == "https://tg.pl/"
+    end
+
+    test "script test" do
+      socket = drab_socket()
+      poke socket, "partial1.html", in_partial: "partial1_updated"
+      test_val = Drab.Core.exec_js!(socket, "__drab_test")
+      assert test_val == "partial1_updated"
     end
   end
 end

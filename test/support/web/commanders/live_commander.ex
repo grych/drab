@@ -7,13 +7,6 @@ defmodule DrabTestApp.LiveCommander do
   def page_loaded(socket) do
     DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)
     DrabTestApp.IntegrationCase.add_pid(socket)
-
-    # socket |> Drab.Query.insert("<h3 id='page_loaded_indicator'>Page Loaded</h3>", after: "#begin")
-    # socket |> Drab.Query.insert("<h5>Drab Broadcast Topic: #{__drab__().broadcasting |> inspect}</h5>", 
-    #   after: "#page_loaded_indicator")
-    # p = inspect(socket.assigns.__drab_pid)
-    # pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
-    # socket |> Drab.Query.update(:text, set: pid_string, on: "#drab_pid")
   end
 
   def update_both(socket, _) do
