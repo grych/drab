@@ -321,6 +321,7 @@ defmodule Drab.Core do
 
   @doc false
   def store(socket) do
+    #TODO: error {:error, "The operation is insecure."}
     {:ok, store_token} = exec_js(socket, "Drab.get_drab_store_token()")
     detokenize_store(socket, store_token)
   end

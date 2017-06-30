@@ -31,8 +31,9 @@ defmodule DrabTestApp.Router do
     get "/tests/broadcast3", Broadcast3Controller, :index, as: :broadcast3
     get "/tests/broadcast4", Broadcast4Controller, :index, as: :broadcast4
 
-    get "/tests/live/mini", LiveController, :mini
-    get "/tests/live", LiveController, :index, as: :live
+    get "/tests/live/mini", LiveController, :mini,  as: :mini
+    get "/tests/live",      LiveController, :index, as: :live
+    get "/tests/live/query",LiveQueryController, :index, as: :live_query
   end
 
   # Other scopes may use custom stacks.

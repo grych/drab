@@ -20,7 +20,6 @@
 
       this.drab_return_token = drab_return_token
       this.drab_session_token = drab_session_token
-      // this.set_drab_store_token(drab_store_token)
       this.self = this
       this.myid = uuid()
       this.onload_launched = false
@@ -59,8 +58,6 @@
               drab.event_reply_table[message.finished]()
               delete drab.event_reply_table[message.finished]
             }
-            // update the store
-            // drab.drab_store_token = message.drab_store_token
           })
         })
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});

@@ -48,7 +48,7 @@ defmodule DrabTestApp.LiveCommander do
     poke socket, color: "#aabbcc"
   end
 
-  def update_mini(socket, sender) do
+  def update_mini(socket, _sender) do
     poke socket, class1: "btn", class2: "btn-warning", full_class: "btn btn-danger", 
       hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
   end

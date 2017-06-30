@@ -1,1 +1,1 @@
-return this.drab_store_token
+return Drab.drab_store_token

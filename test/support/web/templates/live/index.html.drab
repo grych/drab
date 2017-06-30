@@ -2,7 +2,7 @@
 <div id="drab_pid"></div>
 
 <br>
-<span @style.backgroundColor="<%=@color%>">
+<span id="color_main" @style.backgroundColor="<%=@color%>">
   Users count: <%= @count %>
 </span>
 <br>
