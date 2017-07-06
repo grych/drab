@@ -1,0 +1,7 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<hr>
+
+<button id="broadcast5_button" drab-click='broadcast5'>Broadcast to all of the above (except me)</button>
+<div id="broadcast_out"></div>

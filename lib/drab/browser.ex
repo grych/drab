@@ -125,7 +125,7 @@ defmodule Drab.Browser do
   Sends the log to the browser console for debugging.
   """
   def console(socket, log) do
-    do_console(socket, log, &Drab.push/4)
+    do_console(socket, log, &Drab.push/5)
     socket
   end
 
@@ -133,11 +133,11 @@ defmodule Drab.Browser do
   Broadcasts the log to the browser consoles for debugging/
   """
   def console!(socket, log) do
-    do_console(socket, log, &Drab.broadcast/4)
+    do_console(socket, log, &Drab.broadcast/5)
   end
 
   defp do_console(socket, log, push_or_broadcast_function) do
-    push_or_broadcast_function.(socket, self(), "console",  log: log)
+    push_or_broadcast_function.(socket, self(), nil, "console",  log: log)
   end
 
 end

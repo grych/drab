@@ -15,6 +15,10 @@
 
 <button></button>
 
+<form>
+
+<input id=a type=text value="<%= @class1 %>"><br>
+
 <%= raw "<button></button>" %> 
 List: <%= @list %><br>
 Map:  <%= inspect @map %><br>
@@ -25,6 +29,15 @@ Map:  <%= inspect @map %><br>
 <button id=b @style.backgroundColor=<%= @color %> @hidden="<%= @hidden %>" @other='<%= @list %>'>
   Other button  
 </button>
+
+<textarea name="text_area">Textarea with name</textarea>
+<select>
+  <option value=1>one</option>
+  <option value=2>one</option>
+</select>
+<input type="text" name="">
+
+</form>
 
 <span @style.backgroundColor=<%= @color %> id=before_label></span>
 
@@ -37,3 +50,4 @@ Map:  <%= inspect @map %><br>
     Class2: <%=@class2%>
   </b>
 </p>
+

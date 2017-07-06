@@ -341,40 +341,54 @@ defmodule Drab do
 
   @doc false
   def push_and_wait_for_response(socket, pid, message, payload \\ [], options \\ []) do
-    push(socket, pid, message, payload)
+    ref = make_ref()
+    push(socket, pid, ref, message, payload)
     timeout = options[:timeout] || Drab.Config.get(:browser_response_timeout)
     receive do
-      {:got_results_from_client, status, reply} -> 
+      {:got_results_from_client, status, ^ref, reply} -> 
         {status, reply}
       after timeout -> 
+        #TODO: message is still in a queue
         {:error, "timed out after #{timeout} ms."}
     end    
   end
 
   @doc false
   def push_and_wait_forever(socket, pid, message, payload \\ []) do
-    # TODO: timeout for modals
-    push(socket, pid, message, payload)
+    push(socket, pid, nil, message, payload)
     receive do
-      {:got_results_from_client, status, reply} -> 
+      {:got_results_from_client, status, _, reply} -> 
         {status, reply}
     end    
   end
 
   @doc false
-  def push(socket, pid, message, payload \\ []) do
-    do_push_or_broadcast(socket, pid, message, payload, &Phoenix.Channel.push/3)
+  def push(socket, pid, ref, message, payload \\ []) do
+    do_push_or_broadcast(socket, pid, ref, message, payload, &Phoenix.Channel.push/3)
   end
 
   @doc false
-  def broadcast(socket, pid, message, payload \\ []) do
-    do_push_or_broadcast(socket, pid, message, payload, &Phoenix.Channel.broadcast/3)
+  def broadcast(subject, pid, message, payload \\ [])
+  def broadcast(%Phoenix.Socket{} = socket, pid, message, payload) do
+    do_push_or_broadcast(socket, pid, nil, message, payload, &Phoenix.Channel.broadcast/3)
   end
 
-  defp do_push_or_broadcast(socket, pid, message, payload, function) do
-    m = payload |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, pid)})
-    function.(socket, message,  m)    
+  def broadcast(subject, _pid, message, payload) when is_binary(subject) do
+    Phoenix.Channel.Server.broadcast Drab.Config.pubsub(), "__drab:#{subject}", message, Map.new(payload)
   end
+
+  def broadcast(topics, _pid, _ref, message, payload) when is_list(topics) do
+    for topic <- topics do
+      broadcast(topic, nil, message, payload)
+    end
+    :ok
+  end
+
+  defp do_push_or_broadcast(socket, pid, ref, message, payload, function) do
+    m = payload |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, {pid, ref})})
+    function.(socket, message, m)    
+  end
+
 
   @doc false
   def tokenize(socket, what, salt \\ "drab token") do

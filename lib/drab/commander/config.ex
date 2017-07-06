@@ -12,5 +12,5 @@ defmodule Drab.Commander.Config do
     access_session: [],
     before_handler: [],
     after_handler: [],
-    broadcasting: :same_url
+    broadcasting: :same_path
 end

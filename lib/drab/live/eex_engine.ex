@@ -189,6 +189,7 @@ defmodule Drab.Live.EExEngine do
     {:safe, injected}
   end
 
+
   # The expression is inside the <script> tag
   defp inject_script(buffer, expr, line) do
     found_assigns  = find_assigns(expr)
@@ -270,6 +271,7 @@ defmodule Drab.Live.EExEngine do
       # if it is a property, encode it with JS safe
       quote do
         # [unquote(buffer) | unquote(to_safe(encoded_expr(expr), line))]
+        #TODO: to_safe is realy not required
         [unquote(buffer) | [unquote(attribute |> String.replace(~r/^@/, "")), "{{{{", unquote(to_safe(encoded_expr(expr), line)), "}}}}"]]
       end
     else
@@ -422,7 +424,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp assign_js(partial, assign) do
-    ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = ", encoded_assign(assign), ";"]
+    ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = '", encoded_assign(assign), "';"]
   end
 
 
@@ -431,7 +433,13 @@ defmodule Drab.Live.EExEngine do
     assign_expr = {:@, [@anno], [{assign, [@anno], nil}]}
     assign_expr = handle_assign(assign_expr)
 
-    encoded_expr(assign_expr)
+    base64_encoded_expr(assign_expr)
+  end
+
+  defp base64_encoded_expr(expr) do
+    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Live, :Crypto]}, :encode64]},
+       [@anno], 
+       [expr]}
   end
 
   defp encoded_expr(expr) do 
@@ -439,6 +447,7 @@ defmodule Drab.Live.EExEngine do
        [@anno], 
        [expr]}
   end
+
   defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
   defp line_from_expr(_), do: nil
 

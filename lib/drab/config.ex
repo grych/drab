@@ -33,6 +33,17 @@ defmodule Drab.Config do
     endpoint
   end
 
+  @doc """
+  Returns the PubSub module of the client Phoenix Application
+
+      iex> Drab.Config.pubsub()  
+      DrabTestApp.PubSub
+  """
+  def pubsub() do
+    #TODO: what if the module is called differently?
+    Module.concat(app_module(), PubSub)
+  end
+
   defp first_uppercase?(atom) do
     x = atom |> Atom.to_string() |> String.first()
     x == String.upcase(x)

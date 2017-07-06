@@ -94,8 +94,8 @@ defmodule Drab.Commander do
 
   ## Broadcasting options
 
-  Drab requests to update, insert or delete can be broadcasted. By default, broadcasts are sent to browsers
-  which view the same page (the same url), but it could be override by `broadcasting/1` macro.
+  All Drab function may be broadcaster. By default, broadcasts are sent to browsers sharing the same page 
+  (the same url), but it could be override by `broadcasting/1` macro.
 
   ## Modules
 
@@ -113,7 +113,7 @@ defmodule Drab.Commander do
   ## Using templates
 
   Drab injects function `render_to_string/2` into your Commander. It is a shorthand for 
-  `Phoenix.View.render_to_string/3` - Drab automatically chooses the correct View.
+  `Phoenix.View.render_to_string/3` - Drab automatically chooses the current View.
 
   ### Examples:
 
@@ -175,6 +175,13 @@ defmodule Drab.Commander do
       """
       def render_to_string(template, assigns) do
         view = __MODULE__.__drab__().view
+        Phoenix.View.render_to_string(view, template, assigns)
+      end
+
+      @doc """
+      A shordhand for `Phoenix.View.render_to_string/3. 
+      """
+      def render_to_string(view, template, assigns) do
         Phoenix.View.render_to_string(view, template, assigns)
       end
 
@@ -271,32 +278,42 @@ defmodule Drab.Commander do
     end
   end)
 
-  @broadcasts ~w(same_url same_controller)a
+  @broadcasts ~w(same_path same_controller)a
   @doc """
-  Set up broadcasting options. It is used by bang functions, like `Drab.Live.poke!` or `Drab.Query.insert!`.
+  Set up broadcasting listen subject for the current commander.
 
-  * `:same_url` (default) - broadcasts will go to the browsers rendering the same url
+  It is used by broadcasting functions, like `Drab.Live.poke!` or `Drab.Query.insert!`. When the browser connects
+  to Drab page, it gets the broadcasting subject from the commander. Then, it will receive all the broadcasts 
+  coming to this subject.
+
+  Default is `:same_path`
+
+  Options:
+
+  * `:same_path` (default) - broadcasts will go to the browsers rendering the same url
   * `:same_controller` - broadcasted message will be received by all browsers, which renders the page generated 
     by the same controller
   * `"topic"` - any topic you want to set, messages will go to the clients sharing this topic
   """
-  defmacro broadcasting(where) when is_atom(where) and where in @broadcasts do
+  defmacro broadcasting(subject) when is_atom(subject) and subject in @broadcasts do
     quote do
       broadcast_option = Map.get(@options, :broadcasting)
-      @options Map.put(@options, :broadcasting, unquote(where))
+      @options Map.put(@options, :broadcasting, unquote(subject))
     end
   end
 
-  defmacro broadcasting(where) when is_binary(where) do
+  defmacro broadcasting(subject) when is_binary(subject) do
     quote do
       broadcast_option = Map.get(@options, :broadcasting)
-      @options Map.put(@options, :broadcasting, unquote(where))
+      @options Map.put(@options, :broadcasting, unquote(subject))
     end
   end
 
   defmacro broadcasting(unknown_argument) do 
     raise CompileError, description: """
-      Invalid `broadcasting` option: #{inspect unknown_argument}.
+      invalid `broadcasting` option: #{inspect unknown_argument}.
+
+      Available: :same_path, :same_controller, "topic"
       """
   end
 

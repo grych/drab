@@ -79,7 +79,7 @@ defmodule Drab.Client do
   end
 
   # defp topic(:all, _, _), do: "all"
-  defp topic(:same_url, _, path), do: "same_url:#{path}"
-  defp topic(:same_controller, controller, _), do: "controller:#{inspect(controller)}"
-  defp topic(topic, _, _) when is_binary(topic), do: "topic:#{topic}"
+  defp topic(:same_path, _, path), do: Drab.Core.same_path(path)
+  defp topic(:same_controller, controller, _), do: Drab.Core.same_controller(controller)
+  defp topic(topic, _, _) when is_binary(topic), do: Drab.Core.same_topic(topic)
 end

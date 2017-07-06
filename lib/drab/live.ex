@@ -150,7 +150,11 @@ defmodule Drab.Live do
       iex> peek(socket, :count)
       42
       iex> peek(socket, :nonexistent)
-      ** (ArgumentError) Assign @nonexistent not found in Drab EEx Template
+      ** (ArgumentError) Assign @nonexistent not found in Drab EEx template
+
+  Notice that this is a value of the assign, and not the value of any node property or attribute. Assign
+  gets its value only while rendering the page or via `poke`. After changing the value of node attribute 
+  or property on the client side, the assign value will remain the same.
   """
   #TODO: think if it is needed to sign/encrypt
   def peek(socket, assign), do: peek(socket, nil, nil, assign)
@@ -181,7 +185,7 @@ defmodule Drab.Live do
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
 
     case current_assigns |> Map.fetch(assign) do
-      {:ok, val} -> val
+      {:ok, val} -> val #|> Drab.Live.Crypto.decode64()
       :error -> assign_not_found!(assign, current_assigns_keys)
     end
   end
@@ -365,7 +369,7 @@ defmodule Drab.Live do
     assign_updates = assign_updates_js(assigns_to_update, partial)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
 
-    IO.inspect(all_javascripts)
+    # IO.inspect(all_javascripts)
 
     # IO.inspect :os.system_time(:microsecond) - t1
     {:ok, _} = function.(socket, all_javascripts |> Enum.join(";"))
@@ -375,7 +379,10 @@ defmodule Drab.Live do
     assigns_to_update = for {k, v} <- assigns_to_update, into: %{} do
       {Atom.to_string(k), v}
     end
-    updated_assigns = Map.merge(current_assigns, assigns_to_update)
+    updated_assigns = for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
+      {k, Drab.Live.Crypto.encode64(v)}
+    end
+
     # IO.inspect current_assigns
     # IO.inspect assigns_to_update
     # IO.inspect updated_assigns
@@ -435,7 +442,7 @@ defmodule Drab.Live do
 
   defp assign_updates_js(assigns, partial) do
     Enum.map(assigns, fn {k, v} -> 
-      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = #{Drab.Core.encode_js(v)}" 
+      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{Drab.Live.Crypto.encode64(v)}'" 
     end)
   end
 
@@ -446,7 +453,7 @@ defmodule Drab.Live do
   defp safe_to_string(safe), do: to_string(safe)
 
   defp assigns(socket, partial, partial_name) do
-    case socket 
+    assigns = case socket 
       |> Drab.pid() 
       |> Drab.get_priv() 
       |> Map.get(:__ampere_assigns)
@@ -457,6 +464,9 @@ defmodule Drab.Live do
           Please check the path or specify the View.
           """
       end
+    for {name, value} <- assigns, into: %{} do
+      {name, Drab.Live.Crypto.decode64(value)}
+    end
   end
 
   defp amperes(socket, partial) do
@@ -489,7 +499,7 @@ defmodule Drab.Live do
 
   defp assign_not_found!(assign, current_keys) do
         raise ArgumentError, message: """
-          Assign @#{assign} not found in Drab EEx Template
+          Assign @#{assign} not found in Drab EEx template
 
           Please make sure all proper assigns have been set. If this
           is a child template, ensure assigns are given explicitly by

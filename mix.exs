@@ -62,5 +62,4 @@ defmodule Drab.Mixfile do
       }
     ]
   end
-
 end

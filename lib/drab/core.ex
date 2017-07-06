@@ -141,7 +141,7 @@ defmodule Drab.Core do
       iex> socket |> exec_js("for(i=0; i<1000000000; i++) {}")
       {:error, "timed out after 5000 ms."}
 
-      iex> socket |> exec_js("alert('hello from IEx!')", timeout: 500)               
+      iex> socket |> exec_js("alert('hello from IEx!')", timeout: 500)         
       {:error, "timed out after 500 ms."}
 
   """
@@ -185,35 +185,82 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Asynchronously broadcasts given javascript to all browsers, by default to all browsers connected to the same url.
-  See `Drab.Commander.broadcasting/1` to find out how to change the default behaviour.
+  Asynchronously broadcasts given javascript to all browsers listening on the given subject.
 
-      iex> Drab.Core.broadcast_js(socket, "alert('Broadcasted to all!')")
+  The subject is derived from the first argument, which could be:
+
+  * socket - in this case broadcasting option is derived from the setup in the commander. 
+    See `Drab.Commander.broadcasting/1` for the broadcasting options
+
+  * same_path(string) - sends the JS to browsers sharing (and configured as listening to same_path
+    in `Drab.Commander.broadcasting/1`) the same url
+
+  * same_commander(atom) - broadcast goes to all browsers configured with :same_commander
+
+  * same_topic(string) - broadcast goes to all browsers listening to this topic; notice: this
+    is internal Drab topic, not a Phoenix Socket topic
+
+  First argument may be a list of the above.
+
+  The second argument is a JavaScript string.
+
+  See `Drab.Commander.broadcasting/1` to find out how to change the listen subject.
+
+      iex> Drab.Core.broadcast_js(socket, "alert('Broadcasted!')")
+      {:ok, :broadcasted}
+      iex> Drab.Core.broadcast_js(same_path("/drab/live"), "alert('Broadcasted!')")
+      {:ok, :broadcasted}
+      iex> Drab.Core.broadcast_js(same_controller(MyApp.LiveController), "alert('Broadcasted!')")
+      {:ok, :broadcasted}
+      iex> Drab.Core.broadcast_js(same_topic("my_topic"), "alert('Broadcasted!')")
+      {:ok, :broadcasted}
+      iex> Drab.Core.broadcast_js([same_topic("my_topic"), same_path("/drab/live")], "alert('Broadcasted!')")
       {:ok, :broadcasted}
 
-  Always returns tuple `{:ok, :broadcasted}`
+  Returns `{:ok, :broadcasted}`
   """
-  def broadcast_js(socket, js, _options \\ []) do
-    Drab.broadcast(socket, self(), "broadcastjs", js: js)
-    {:ok, :broadcasted}
+  def broadcast_js(subject, js, _options \\ []) do
+    ret = Drab.broadcast(subject, self(), "broadcastjs", js: js)
+    {ret, :broadcasted}
   end
 
   @doc """
   Bang version of `Drab.Core.broadcast_js/3`
-
-  Returns `socket`
   """
-  def broadcast_js!(socket, js, _options \\ []) do
-    Drab.broadcast(socket, self(), "broadcastjs", js: js)
-    socket
+  def broadcast_js!(subject, js, _options \\ []) do
+    Drab.broadcast(subject, self(), "broadcastjs", js: js)
+    subject
   end
 
   @doc false
   def broadcastjs(socket, js) do
     Deppie.once("Drab.Core.broadcastjs/2 is depreciated. Please use Drab.Core.broadcast_js/3 instead")
-    _ = broadcast_js(socket, js)
+    broadcast_js(socket, js)
     socket
   end
+
+  @doc """
+  Helper for broadcasting functions, returns topic for a given URL path.
+
+      iex> same_path("/test/live")
+      "same_path:/test/live"
+  """
+  def same_path(url), do: "same_path:#{url}"
+
+  @doc """
+  Helper for broadcasting functions, returns topic for a given controller.
+
+      iex> same_controller(DrabTestApp.LiveController)
+      "controller:Elixir.DrabTestApp.LiveController"
+  """
+  def same_controller(controller), do: "controller:#{controller}"
+
+  @doc """
+  Helper for broadcasting functions, returns topic for a given topic string.
+      iex> same_topic("mytopic")
+      "topic:mytopic"
+  """
+  def same_topic(topic), do: "topic:#{topic}"
 
   @doc """
   Moved to `Drab.Browser.console/2`

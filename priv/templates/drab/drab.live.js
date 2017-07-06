@@ -1,8 +1,24 @@
 Drab.add_payload(function(sender, event) {
+  var params = {}
+  var form = closest(sender, function(el) {
+    return el.nodeName == "FORM"
+  })
+  if (form) {
+    console.log("form found")
+    var inputs = form.querySelectorAll("input, textarea, select")
+    var i = 0
+    inputs.forEach(function(input) {
+      // var key = $(this).attr("name") || $(this).attr("id") || "__undefined_" + i++
+      // vals[key] = $(this).val()
+      var key = input.name || input.id || "__undefined_" + i++
+      params[key] = input.value
+    })
+  }
   return {
     __assigns: __drab.assigns,
     __amperes: __drab.amperes,
-    __index:   __drab.index
+    __index:   __drab.index,
+    form:      params
   }
 })
 

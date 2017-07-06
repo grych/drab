@@ -18,25 +18,29 @@ defmodule Drab.Channel do
   def handle_in("execjs", %{"ok" => [sender_encrypted, reply]}, socket) do
     # sender contains PID of the process which sent the query
     # sender is waiting for the result
-    send(sender(socket, sender_encrypted), 
-      { :got_results_from_client, :ok, reply })
+    {sender, ref} = sender(socket, sender_encrypted)
+    send(sender, 
+      { :got_results_from_client, :ok, ref, reply })
 
     {:noreply, socket}
   end
 
   def handle_in("execjs", %{"error" => [sender_encrypted, reply]}, socket) do
-    send(sender(socket, sender_encrypted), 
-      { :got_results_from_client, :error, reply })
+    {sender, ref} = sender(socket, sender_encrypted)
+    send(sender, 
+      { :got_results_from_client, :error, ref, reply })
 
     {:noreply, socket}
   end
 
   def handle_in("modal", %{"ok" => [sender_encrypted, reply]}, socket) do
     # sends { "button_name", %{"Param" => "value"}}
-    send(sender(socket, sender_encrypted), 
+    {sender, ref} = sender(socket, sender_encrypted)
+    send(sender, 
       {
         :got_results_from_client,
         :ok,
+        ref,
         { 
           reply["button_clicked"] |> String.to_existing_atom, 
           reply["params"] |> Map.delete("__drab_modal_hidden_input")

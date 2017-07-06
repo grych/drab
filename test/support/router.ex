@@ -30,6 +30,7 @@ defmodule DrabTestApp.Router do
     get "/tests/broadcast2/different_url", Broadcast2Controller, :index, as: :different_url
     get "/tests/broadcast3", Broadcast3Controller, :index, as: :broadcast3
     get "/tests/broadcast4", Broadcast4Controller, :index, as: :broadcast4
+    get "/tests/broadcast5", Broadcast5Controller, :index, as: :broadcast5
 
     get "/tests/live/mini", LiveController, :mini,  as: :mini
     get "/tests/live",      LiveController, :index, as: :live

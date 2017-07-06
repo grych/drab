@@ -45,7 +45,7 @@ defmodule Drab.Waiter do
         %{selector: selector, event_name: event_name, drab_waiter_token: waiter_token}
       end
 
-      Drab.push(unquote(socket), self(), "register_waiters", waiters: with_tokens)
+      Drab.push(unquote(socket), self(), nil, "register_waiters", waiters: with_tokens)
 
       ret = receive do
         {:waiter, ref, sender} ->
@@ -56,7 +56,7 @@ defmodule Drab.Waiter do
       end
 
       # TODO: remove token from with_tokens to save bandwitdh
-      Drab.push(unquote(socket), self(), "unregister_waiters", waiters: with_tokens)
+      Drab.push(unquote(socket), self(), nil, "unregister_waiters", waiters: with_tokens)
 
       ret
     end
