@@ -4,7 +4,6 @@ Drab.add_payload(function(sender, event) {
     return el.nodeName == "FORM"
   })
   if (form) {
-    console.log("form found")
     var inputs = form.querySelectorAll("input, textarea, select")
     var i = 0
     inputs.forEach(function(input) {
@@ -33,6 +32,17 @@ function set_property(node, attribute_name, attribute_value) {
     last = part
   })
   prev[last] = attribute_value
+}
+
+function set_attr(where, selector, attribute_name, new_value) {
+  where.querySelectorAll(selector).forEach(function(node) {
+    node.setAttribute(attribute_name, new_value)
+    // exception for "value", set the property as well
+    //TODO: full list of exceptions
+    if (attribute_name == "value") {
+      node.value = new_value
+    }
+  })
 }
 
 Drab.on_load(function(resp, drab) {
@@ -68,12 +78,6 @@ Drab.on_load(function(resp, drab) {
   // get the name of the main partial
   d.index = document.querySelector("[drab-partial]").getAttribute("drab-partial")
 })
-
-function set_attr(where, selector, attribute_name, new_value) {
-  where.querySelectorAll(selector).forEach(function(node) {
-    node.setAttribute(attribute_name, new_value)
-  })
-}
 
 Drab.update_attr = function(selector, attribute_name, new_value, partial) {
   if (partial != null) {

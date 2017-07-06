@@ -41,6 +41,10 @@ defmodule DrabTestApp.LiveCommander do
     poke socket, color: "#aabbcc"
   end
 
+  def update_form(socket, sender) do
+    poke socket, out: sender.params
+  end
+
   def update_mini(socket, sender) do
     IO.inspect sender
     poke socket, class1: "btn", class2: "btn-warning",

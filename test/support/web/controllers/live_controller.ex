@@ -11,6 +11,11 @@ defmodule DrabTestApp.LiveController do
     render conn, "index.html", users: users, count: length(users), color: "#ffffff"
   end
 
+  def form(conn, _params) do
+    render conn, "form.html", text1: "text1 initial value", select1: "2", textarea1: "textarea initial value",
+      out: %{}
+  end
+
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
     render conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: false, label: "default",

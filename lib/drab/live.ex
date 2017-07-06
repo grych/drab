@@ -129,7 +129,9 @@ defmodule Drab.Live do
 
   @doc false
   def transform_payload(payload, _state) do
-    payload |> Map.put_new("value", payload["val"])
+    payload 
+      |> Map.put_new("value", payload["val"])
+      |> Map.put_new(:params, payload["form"])
   end
 
   @doc false
