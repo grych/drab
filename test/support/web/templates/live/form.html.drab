@@ -1,0 +1,20 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<input type="text" name="outsider" value="outside of the form"><br>
+
+<form>
+  <input type="text" name="text_input" value="<%= @text1 %>"><br>
+  <select id="select_input" @value="<%= @select1 %>">
+    <option value="1">One</option>
+    <option value="2">Two</option>
+    <option value="3">Three</option>
+  </select><br>
+  <textarea @value="<%= @textarea1 %>"></textarea><br>
+  <input type="text" value="<%= @text1 %>"><br>
+  <br>
+  <button id="update_form_button" drab-click="update_form">Get form values</button>
+</form>
+
+<br>
+<div id="out" @out=<%= @out %>><%= inspect @out %></div>
