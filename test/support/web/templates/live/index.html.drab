@@ -7,7 +7,15 @@
 </span>
 <br>
 
-<%= render("users.html", users: @users) %>
+<%= render("users.html", users: @users, count: @count, color: @color) %>
+
+<br>
+
+<%= for user <- @users do %>
+  <span @style.backgroundColor="<%=@color%>">
+    User of <%= @count %>: <%= render("user.html", user: user) %><br>
+  </span>
+<% end %>
 
 <br>
 

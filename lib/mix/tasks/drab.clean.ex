@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Drab.Clean do
   
   @doc false
   def run(args) do
-    File.rm "priv/hashes_expressions.drab.cache"
+    File.rm "priv/hashes_expressions.drab.cache.#{Mix.env()}"
     Mix.Task.run("clean", args)
   end
 

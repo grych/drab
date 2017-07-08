@@ -10,7 +10,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   def update_both(socket, _) do
-    poke socket, users: ["Mieczysław", "Andżelika", "Brajanek"], count: 3
+    poke socket, users: ["Mieczysław", "Andżelika", "Brajanek"], count: 3, color: "#66FFFF"
   end
 
   def update_count(socket, _) do

@@ -21,5 +21,5 @@ erl_crash.dump
 /node_modules
 /priv/static/
 /test/support/priv/static/
-/priv/*.drab.cache
+/priv/*.drab.cache*
 

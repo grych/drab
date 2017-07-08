@@ -23,7 +23,12 @@ defmodule Drab.Live.EExEngineTest do
     htmls = [
       {"<div><b>a</b><span \n a=b b='c' drab-ampere='drab_id' something>", "drab_id"},
       {"<div><b>a</b><span \n a=b b='c' drab-ampere='drab_id' something", "drab_id"},
+      {"<div><b>a</b><span drab-ampere='other'></span><b></b><span drab-ampere='drab_id' something", "drab_id"},
+      {"<div><b>a</b><span drab-ampere='other'></span><b></b><span drab-ampere='drab_id' something>a", "drab_id"},
+      {"<div><b>a</b><span drab-ampere='other'></span><b></b><span something", nil},
+      {"<div><b>a</b><span drab-ampere='other'></span><b></b><span something>", nil},
       {"<div><b>a</b><span \n a=b b='c' something", nil},
+      {"<div><b>a</b><span \n a=b b='c' something> a ", nil}
     ]
     for {html, drab_id} <- htmls do
       assert drab_id(html, "span") == drab_id

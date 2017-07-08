@@ -348,7 +348,21 @@ defmodule Drab.Live do
               end
             end
           end
-        {:script, pattern, exprs, assigns_in_ampere} -> 
+        # {:script, pattern, exprs, assigns_in_ampere} -> 
+        #   if has_common?(assigns_in_ampere, assigns_to_update_keys) do
+        #     hash_and_value = Enum.map(exprs, fn hash ->
+        #       {:expr, expr, _} = Drab.Live.Cache.get(hash)
+        #       safe = eval_expr(expr, modules, updated_assigns)
+        #       new_value = safe_to_string(safe)
+
+        #       {hash, new_value}
+        #     end)
+        #     new_script = replace_pattern(pattern, hash_and_value) |> encode_js()
+        #     "Drab.update_script(#{encode_js(selector)}, #{new_script}, #{encode_js(partial)})"
+        #   else
+        #     nil
+        #   end
+        {tag, pattern, exprs, assigns_in_ampere} when tag in [:textarea, :script] -> 
           if has_common?(assigns_in_ampere, assigns_to_update_keys) do
             hash_and_value = Enum.map(exprs, fn hash ->
               {:expr, expr, _} = Drab.Live.Cache.get(hash)
@@ -357,13 +371,13 @@ defmodule Drab.Live do
 
               {hash, new_value}
             end)
-            new_script = replace_pattern(pattern, hash_and_value) |> encode_js()
-            "Drab.update_script(#{encode_js(selector)}, #{new_script}, #{encode_js(partial)})"
+            new_value = replace_pattern(pattern, hash_and_value) |> encode_js()
+            "Drab.update_tag(#{encode_js(selector)}, #{new_value}, #{encode_js(partial)}, #{encode_js(tag)})"
           else
             nil
           end
+
         _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
-        # _ -> nil
       end
     end |> List.flatten() |> Enum.filter(&(&1))
 

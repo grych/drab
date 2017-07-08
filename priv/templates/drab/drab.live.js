@@ -105,7 +105,7 @@ Drab.update_prop = function(selector, property_name, new_value, partial) {
   }
 }
 
-function set_drab_span(where, selector, html) {
+function set_tag_html(where, selector, html) {
   where.querySelectorAll(selector).forEach(function(node) {
     node.innerHTML = html
   })
@@ -114,19 +114,33 @@ function set_drab_span(where, selector, html) {
 Drab.update_drab_span = function(selector, html, partial) {
   if (partial != null) {
     document.querySelectorAll('[drab-partial=' + partial + ']').forEach(function(part) {
-      set_drab_span(part, selector, html)
+      set_tag_html(part, selector, html)
     })
   } else {
-    set_drab_span(document, selector, html)
+    set_tag_html(document, selector, html)
   }
 }
 
-Drab.update_script = function(selector, new_script, partial) {
+function update_script(selector, new_script, partial) {
   if (partial != null) {
     if (document.querySelector('[drab-partial=' + partial + '] ' + selector) != null) {
       eval(new_script)
     }
   } else {
     eval(new_script)
+  }
+}
+
+Drab.update_tag = function(selector, html, partial, tag) {
+  if (tag == "script") {
+    update_script(selector, html, partial)
+  } else {
+    if (partial != null) {
+      document.querySelectorAll('[drab-partial=' + partial + ']').forEach(function(part) {
+        set_tag_html(part, selector, html)
+      })
+    } else {
+      set_tag_html(document, selector, html)
+    }
   }
 }

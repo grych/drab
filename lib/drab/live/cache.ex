@@ -17,20 +17,20 @@ defmodule Drab.Live.Cache do
 
   @doc false
   def start() do
-    if :dets.info(@cache_file) == :undefined do
-      {:ok, _} = :dets.open_file(@cache_file, [type: :set, ram_file: true])
+    if :dets.info(cache_file()) == :undefined do
+      {:ok, _} = :dets.open_file(cache_file(), [type: :set, ram_file: true])
     end
     :ok
   end
 
   def stop() do
-    :dets.close(@cache_file)
+    :dets.close(cache_file())
   end
 
   # Runtime function. Lookup in the already opened ETS cache
   @doc false
   def get(k) do
-    val = case :dets.lookup(@cache_file, k) do
+    val = case :dets.lookup(cache_file(), k) do
       [{_, v}] -> v
       [] -> nil
       _ -> raise "Can't find the expression or hash #{inspect k} in the Drab.Live.Cache"
@@ -40,15 +40,19 @@ defmodule Drab.Live.Cache do
 
   @doc false
   def set(k, v) do
-    :dets.insert(@cache_file, {k, v})
-    :dets.sync(@cache_file)
+    :dets.insert(cache_file(), {k, v})
+    :dets.sync(cache_file())
   end
 
   @doc false
   def add(k, v) do
     list = get(k) || []
-    :dets.insert(@cache_file, {k, list ++ [v]})
-    :dets.sync(@cache_file)
+    :dets.insert(cache_file(), {k, list ++ [v]})
+    :dets.sync(cache_file())
+  end
+
+  defp cache_file() do
+    "#{@cache_file}.#{Mix.env()}"
   end
 
   # @doc false

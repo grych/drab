@@ -10,7 +10,8 @@
     <option value="2">Two</option>
     <option value="3">Three</option>
   </select><br>
-  <textarea @value="<%= @textarea1 %>"></textarea><br>
+  <textarea><%= @textarea1 %></textarea><br>
+  <pre><%= @textarea1 %></pre><br>
   <input type="text" value="<%= @text1 %>"><br>
   <br>
   <button id="update_form_button" drab-click="update_form">Get form values</button>

@@ -8,7 +8,7 @@ defmodule DrabTestApp.LiveController do
 
   def index(conn, _params) do
     users = ~w(Zdzisław Zofia Hendryk Stefan)
-    render conn, "index.html", users: users, count: length(users), color: "#ffffff"
+    render conn, "index.html", users: users, count: length(users), color: "#eeeeaa"
   end
 
   def form(conn, _params) do
@@ -19,7 +19,7 @@ defmodule DrabTestApp.LiveController do
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
     render conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: false, label: "default",
-      list: [1,2,3], map: %{a: 1, b: 2}, color: "blue", link: "https://tg.pl/drab"
+      list: [1,2,3], map: %{a: 1, b: 2}, color: "blue", link: "https://tg.pl/drab", count: 42
   end
 
   # defp render_live(conn, template, assigns) do

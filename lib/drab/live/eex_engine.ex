@@ -39,8 +39,9 @@ defmodule Drab.Live.EExEngine do
   require IEx
   require Logger
 
-  @jsvar   "__drab"
-  @drab_id "drab-ampere"
+  @jsvar        "__drab"
+  @drab_id      "drab-ampere"
+  @special_tags ["script", "textarea"]
 
   @anno (if :erlang.system_info(:otp_release) >= '19' do
     [generated: true]
@@ -121,12 +122,12 @@ defmodule Drab.Live.EExEngine do
         "if (typeof #{@jsvar}.properties['#{x}'] == 'undefined') {#{@jsvar}.properties['#{x}'] = []};"
       end) |> Enum.uniq()
 
-    # scripts
-    for pattern <- scripts_from_shadow(shadow) do
+    # scripts, textareas and pres
+    for tag <- @special_tags, pattern <- tags_from_shadow(shadow, tag) do
       ampere = ampere_from_pattern(pattern)
       hashes = expression_hashes_from_pattern(pattern)
       assigns = assigns_from_pattern(pattern)
-      Drab.Live.Cache.set(ampere, {:script, pattern, hashes, assigns})
+      Drab.Live.Cache.set(ampere, {String.to_atom(tag), pattern, hashes, assigns})
     end
 
     final = [
@@ -179,8 +180,9 @@ defmodule Drab.Live.EExEngine do
     {injected, shadow} = if Regex.match?(~r/<\S+/, no_tags(html)) do
       inject_attribute(buffer, expr, line, html)
     else
-      if in_script?(html) do
-        inject_script(buffer, expr, line)
+      tag = in_tags(html, @special_tags)
+      if tag do
+        inject_tag(buffer, expr, line, tag)
       else
         inject_span(buffer, expr, line)
       end
@@ -191,12 +193,12 @@ defmodule Drab.Live.EExEngine do
 
 
   # The expression is inside the <script> tag
-  defp inject_script(buffer, expr, line) do
+  defp inject_tag(buffer, expr, line, tag) do
     found_assigns  = find_assigns(expr)
 
-    buffer = inject_drab_id(buffer, "script")
+    buffer = inject_drab_id(buffer, tag)
     html = to_html(buffer)
-    ampere_id = drab_id(html, "script")
+    ampere_id = drab_id(html, tag)
 
     hash = hash({expr, found_assigns})
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
@@ -338,63 +340,66 @@ defmodule Drab.Live.EExEngine do
     |> remove_full_args()
   end
 
-  @start_script    ~r/<\s*script[^<>]*>/i
-  @end_script      ~r/<\s*\/\s*script[^<>]*>/i
-  defp in_script?(html) do
-    # true if the expression is in <script></script>
-    count_matches(html, @start_script) > count_matches(html, @end_script)
+  defp in_tags(html, tags) do
+    Enum.find(tags, fn tag -> in_tag(html, tag) end)
+  end
+
+  # tag if the expression is in <tag></tag>
+  defp in_tag(html, tag) do
+    (count_matches(html, ~r/<\s*#{tag}[^<>]*>/i) > count_matches(html, ~r/<\s*\/\s*#{tag}[^<>]*>/i)) || nil
   end
 
   defp count_matches(html, regex) do
     regex |> Regex.scan(html) |> Enum.count()
   end
 
-  #TODO: should really replace only last occurence in the whole nested list
-  # now it assigns id to the innocent tags
-  defp replace_in(string, tag) when is_binary(string) do
+  defp replace_in(string, tag, id) when is_binary(string) do
     if String.contains?(string, @drab_id) do
       string
     else
       # IO.inspect replace_last(string, find, replacement)
-      replacement = "<#{tag} #{@drab_id}='#{uuid()}'"
+      replacement = "<#{tag} #{@drab_id}='#{id}'"
       replace_last(string, "<#{tag}", replacement)
     end
   end
-  defp replace_in(list, tag) when is_list(list) do
-    Enum.map(list, fn x -> replace_in(x, tag) end)
+  defp replace_in(list, tag, id) when is_list(list) do
+    Enum.map(list, fn x -> replace_in(x, tag, id) end)
     # replace_in(List.last(list), )
     # list |> List.last() |> replace_in(tag)
   end
-  defp replace_in(other, _), do: other
+  defp replace_in(other, _, _), do: other
 
-  defp inject_drab_id(buffer, tag) do
-    [last_expr] = buffer
-    {:|, a, list} = last_expr
-    [{:|, a, replace_in(list, tag)}]
+  def inject_drab_id(buffer, tag) do
+    if buffer |> to_html() |> drab_id(tag) do
+      buffer
+    else
+      [last_expr] = buffer
+      {:|, a, list} = last_expr
+      last_elem = List.last(list)
+      # replaced = replace_in(last_elem, tag, uuid())
+      replaced = replace_in(last_elem, tag, hash(buffer))
+      [{:|, a, List.replace_at(list, -1, replaced)}]
+      # replaced = replace_in(last_elem, tag, hash(buffer))
+    end
   end
-  # defp inject_drab_id(buffer, tag) do
-  #   IO.puts ""
-  #   IO.inspect buffer 
-  #   IO.inspect tag
-  #   IO.puts ""
-  #   Macro.prewalk(buffer, fn expr -> 
-  #     case expr do
-  #       {:|, x, list} ->
-  #         {:|, x, replace_in(list, tag)}
-  #       other -> other
-  #     end
-  #   end)
-  # end
 
   # find the drab id in the last tag
   @doc false
   def drab_id(html, tag) do
-    r = ~r/<#{tag}[^<>]*#{@drab_id}\s*=\s*'(.*)'[^<>]*/isU
-    did = Regex.scan(r, html) 
-    if did == [] do
-      nil
-    else
-      did |> List.last() |> List.last()
+    # r = ~r/<#{tag}[^<>]*#{@drab_id}\s*=\s*'(.*)'[^<>]*/isU
+    # did = Regex.scan(r, html) 
+    # if did == [] do
+    #   nil
+    # else
+    #   did |> List.last() |> List.last()
+    # end
+    tag = String.downcase(tag)
+    case Floki.find(html, tag) |> List.last() do
+      {^tag, attrs, _} ->
+        {_, val} = Enum.find(attrs, {nil, nil}, fn {name, _} -> name == @drab_id end)
+        val
+      _ -> 
+        nil
     end
   end
 
@@ -542,8 +547,17 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def scripts_from_shadow(shadow) do
-    for {"script", _, [script]} <- Floki.find(shadow, "script"), Regex.match?(~r/{{{{@\S+}}}}/, script) do
-      script
+    tags_from_shadow(shadow, "script")
+    # for {"script", _, [script]} <- Floki.find(shadow, "script"), Regex.match?(~r/{{{{@\S+}}}}/, script) do
+    #   script
+    # end
+  end
+
+  @doc false
+  def tags_from_shadow(shadow, tag) do
+    tag = String.downcase(tag)
+    for {^tag, _, [contents]} <- Floki.find(shadow, tag), Regex.match?(~r/{{{{@\S+}}}}/, contents) do
+      contents
     end
   end
 
