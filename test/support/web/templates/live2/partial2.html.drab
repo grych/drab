@@ -1,7 +1,7 @@
 <script>
   console.log("In partial2: <%= @in_partial %>")
 </script>
-<p id="partial2_color" @style.backgroundColor="<%=@color%>">
+<p id="partial2_color" @style.backgroundColor=<%=@color%>>
   Partial2 @in_partial: <%= @in_partial %>
   <br>
   <a id="partial2_href" href="<%= @link %>"><%= @link %></a>

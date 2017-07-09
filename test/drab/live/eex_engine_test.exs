@@ -82,21 +82,23 @@ defmodule Drab.Live.EExEngineTest do
   test "proper property" do
     htmls = [
       {"<div><b>a</b><span><script a=\"b\" @something=", true},
-      {"<div><b>a</b><span><script a=\"b\" @something='", true},
+      {"<div><b>a</b><span><script a=\"b\" @something='", false},
       {"<div><b>a</b><span><script a=\"b\" @something = 'abc ", false},
       {"<div><b>a</b><span><script a=\"b\" @something\n=\n\"\nabc\n", false},
-      {"<div><b>a</b><span><script a=\"b\" @something=\"", true},
+      {"<div><b>a</b><span><script a=\"b\" @something=\"", false},
       {"<div><b>a</b><span><script a=\"b\" @something = \"abc ", false},
       {"<div><b>a</b><span><script a=\"b\" @something\n=\n\"\nabc\n", false},
       {"<div><b>a</b><span @something=", true},
-      {"<div><b>a</b><span @something = '", true},
+      {"<div><b>a</b><span @something = ", true},
+      {"<div><b>a</b><span @something = '", false},
       {"<div><b>a</b><script a=b @something", false},
       {"<div><b>a</b><script else=\"else\" \n@something   ", false},
       {"<div><b>a</b><script a=b something", false},
       {"<div><b>a</b><script else=\"else\" \nsomething   ", false},
       {"<div><b>a</b><script", false},
       {"<div><b>a</b><span a=\"b\" @something=", true},
-      {"<div><b>a</b><span @something.else = '", true},
+      {"<div><b>a</b><span @something.else = ", true},
+      {"<div><b>a</b><span @something.else = '", false}
     ]
     for {html, proper?} <- htmls do
       assert proper? == proper_property(html)

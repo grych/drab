@@ -1,5 +1,5 @@
 <%= for user <- @users do %>
-  <span @style.backgroundColor="<%=@color%>">
+  <span @style.backgroundColor=<%=@color%>>
     User of <%= @count %>: <%= render("user.html", user: user) %><br>
   </span>
 <% end %>

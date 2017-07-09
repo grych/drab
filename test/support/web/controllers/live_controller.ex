@@ -8,7 +8,7 @@ defmodule DrabTestApp.LiveController do
 
   def index(conn, _params) do
     users = ~w(Zdzisław Zofia Hendryk Stefan)
-    render conn, "index.html", users: users, count: length(users), color: "#eeeeaa"
+    render conn, "index.html", users: users, count: length(users), color: "#ffffff"
   end
 
   def form(conn, _params) do

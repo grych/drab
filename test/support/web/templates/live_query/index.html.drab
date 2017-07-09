@@ -2,5 +2,5 @@
 <div id="drab_pid"></div>
 
 <br>
-  <a id="live_query_a" href="<%= @href %>" @style.backgroundColor="<%=@color%>"><%= @link %></a>
+  <a id="live_query_a" href="<%= @href %>" @style.backgroundColor=<%=@color%>><%= @link %></a>
 <br>

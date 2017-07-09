@@ -1,6 +1,9 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
+<a href="<%= @color %>" id=a @style.backgroundColor=<%= @color %> @dupa=<%=[1, 2, 3]%> color="black red <%=@color%>">SPAN</a>
+
 <%= if true do %>
-  <a href="<%= @color %>" id=a @style.backgroundColor=<%= @color %> color="black red <%=@color%>">SPAN</a>
+  <a href="<%= @color %>" id=b @style.backgroundColor=<%= @color %> @dupa=<%=[1, 2, 3]%> color="black red <%=@color%>">SPAN</a>
+  <a href="<%= @color %>">next</a>
 <% end %>

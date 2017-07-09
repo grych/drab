@@ -301,7 +301,7 @@ defmodule Drab.Live do
     # construct the javascripts for update of amperes
     #TODO: group updates on one node
     update_javascripts = for ampere_hash <- amperes do
-      selector = "[drab-ampere='#{ampere_hash}']"
+      # ampere_hash = "[drab-ampere='#{ampere_hash}']"
 
       case Drab.Live.Cache.get(ampere_hash) do
         {:expr, expr, assigns_in_expr} ->
@@ -311,13 +311,13 @@ defmodule Drab.Live do
             safe = eval_expr(expr, modules, updated_assigns)
             new_value = safe_to_encoded_js(safe)
 
-            "Drab.update_drab_span(#{encode_js(selector)}, #{new_value}, #{encode_js(partial)})"
+            "Drab.update_drab_span(#{encode_js(ampere_hash)}, #{new_value}, #{encode_js(partial)})"
           else
             nil
           end
         {:attribute, list} ->
-          for {type, attr_or_prop, pattern, exprs, assigns_in_ampere} <- list do
-            if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attr_or_prop) do
+          for {type, attr, pattern, exprs, assigns_in_ampere} <- list do
+            if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attr) do
               #TODO: special form, without atribute name
               # ignored for now, let's think if it needs to be covered
               # warning appears during compile-time
@@ -325,6 +325,7 @@ defmodule Drab.Live do
             else
               if has_common?(assigns_in_ampere, assigns_to_update_keys) do
                 evaluated_expressions = Enum.map(exprs, fn hash -> 
+                  IO.inspect hash
                   {:expr, expr, _} = Drab.Live.Cache.get(hash)
                   new_value = eval_expr(expr, modules, updated_assigns)
                   # new_value = safe_to_string(safe)
@@ -339,8 +340,8 @@ defmodule Drab.Live do
                     {_, new_value} = evaluated_expressions |> List.first()
                     new_value |> encode_js()
                 end
-                sel = encode_js(selector)
-                ap = encode_js(attr_or_prop)
+                sel = encode_js(ampere_hash)
+                ap = encode_js(attr)
                 pr = encode_js(partial)
                 "Drab.update_#{type}(#{sel}, #{ap}, #{new_value_of_attribute}, #{pr})"
               else
@@ -358,7 +359,7 @@ defmodule Drab.Live do
         #       {hash, new_value}
         #     end)
         #     new_script = replace_pattern(pattern, hash_and_value) |> encode_js()
-        #     "Drab.update_script(#{encode_js(selector)}, #{new_script}, #{encode_js(partial)})"
+        #     "Drab.update_script(#{encode_js(ampere_hash)}, #{new_script}, #{encode_js(partial)})"
         #   else
         #     nil
         #   end
@@ -372,7 +373,7 @@ defmodule Drab.Live do
               {hash, new_value}
             end)
             new_value = replace_pattern(pattern, hash_and_value) |> encode_js()
-            "Drab.update_tag(#{encode_js(selector)}, #{new_value}, #{encode_js(partial)}, #{encode_js(tag)})"
+            "Drab.update_tag(#{encode_js(ampere_hash)}, #{new_value}, #{encode_js(partial)}, #{encode_js(tag)})"
           else
             nil
           end
