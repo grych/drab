@@ -68,7 +68,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set({:partial, partial}, partial_hash)
 
     buffer = ["\n<span drab-partial='#{partial_hash}'>\n"]
-    start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, it is on compile-time
+    start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, only in compile-time
     {:safe, buffer}
   end
 
@@ -173,6 +173,7 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
     html = to_html(buffer)
+
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
 
@@ -187,6 +188,7 @@ defmodule Drab.Live.EExEngine do
         inject_span(buffer, expr, line)
       end
     end
+
     put_shadow_buffer(shadow, partial(buffer))
     {:safe, injected}
   end
@@ -196,7 +198,7 @@ defmodule Drab.Live.EExEngine do
   defp inject_tag(buffer, expr, line, tag) do
     found_assigns  = find_assigns(expr)
 
-    buffer = inject_drab_id(buffer, tag)
+    buffer = inject_drab_id(buffer, expr, tag)
     html = to_html(buffer)
     ampere_id = drab_id(html, tag)
 
@@ -243,18 +245,20 @@ defmodule Drab.Live.EExEngine do
 
     # Add drab indicator
     tag       = last_opened_tag(html)
-    buffer    = inject_drab_id(buffer, tag)
+    # if it is inside the expression, do not assign ID
+    buffer    = if partial(buffer), do: inject_drab_id(buffer, expr, tag), else: buffer
     html      = to_html(buffer)
     ampere_id = drab_id(html, tag)
 
     attribute = find_attr_in_html(html)
     # quots?    = attr_begins_with_quote?(html)
+    # IO.inspect attribute
 
     buf = if attribute && String.starts_with?(attribute, "@") do
       # special form @property="<%=expr%>" can't contain anything except ", ' or =
       unless proper_property(html) do
         raise EEx.SyntaxError, message: """
-          Syntax Error in Drab Property special form for tag: <#{tag}>, property: #{attribute}
+          syntax error in Drab property special form for tag: <#{tag}>, property: #{attribute}
 
           You can only combine one Elixir expression with the DOM Node property. 
           Allowed:
@@ -271,10 +275,14 @@ defmodule Drab.Live.EExEngine do
           """
       end
       # if it is a property, encode it with JS safe
+      property = attribute |> String.replace(~r/^@/, "")
       quote do
         # [unquote(buffer) | unquote(to_safe(encoded_expr(expr), line))]
         #TODO: to_safe is realy not required
-        [unquote(buffer) | [unquote(attribute |> String.replace(~r/^@/, "")), "{{{{", unquote(to_safe(encoded_expr(expr), line)), "}}}}"]]
+        [unquote(buffer) | [unquote(property), 
+          "{{{{", 
+          unquote(to_safe(encoded_expr(expr), line)), 
+          "}}}}"]]
       end
     else
       quote do
@@ -369,7 +377,7 @@ defmodule Drab.Live.EExEngine do
   end
   defp replace_in(other, _, _), do: other
 
-  def inject_drab_id(buffer, tag) do
+  def inject_drab_id(buffer, expr, tag) do
     if buffer |> to_html() |> drab_id(tag) do
       buffer
     else
@@ -377,7 +385,7 @@ defmodule Drab.Live.EExEngine do
       {:|, a, list} = last_expr
       last_elem = List.last(list)
       # replaced = replace_in(last_elem, tag, uuid())
-      replaced = replace_in(last_elem, tag, hash(buffer))
+      replaced = replace_in(last_elem, tag, hash({buffer, expr}))
       [{:|, a, List.replace_at(list, -1, replaced)}]
       # replaced = replace_in(last_elem, tag, hash(buffer))
     end
@@ -478,8 +486,8 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-
-  defp to_html(body), do: do_to_html(body) |> List.flatten() |> Enum.join()
+  @doc false
+  def to_html(body), do: do_to_html(body) |> List.flatten() |> Enum.join()
 
   defp do_to_html([]), do: []
   defp do_to_html(body) when is_binary(body), do: [body]

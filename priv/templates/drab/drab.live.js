@@ -21,30 +21,6 @@ Drab.add_payload(function(sender, event) {
   }
 })
 
-function set_property(node, attribute_name, attribute_value) {
-  var property = node.getAttribute("@" + attribute_name).replace(/{{{{.+}}}}$/, "")
-  var path = property.split(".")
-  var full = node
-  var prev, last
-  path.forEach(function(part) {
-    prev = full
-    full = full[part]
-    last = part
-  })
-  prev[last] = attribute_value
-}
-
-function set_attr(where, selector, attribute_name, new_value) {
-  where.querySelectorAll(selector).forEach(function(node) {
-    node.setAttribute(attribute_name, new_value)
-    // exception for "value", set the property as well
-    //TODO: full list of exceptions
-    if (attribute_name == "value") {
-      node.value = new_value
-    }
-  })
-}
-
 Drab.on_load(function(resp, drab) {
   // extract information from all drabbed nodes and store it in global __drab
   var d = window.__drab
@@ -78,6 +54,30 @@ Drab.on_load(function(resp, drab) {
   // get the name of the main partial
   d.index = document.querySelector("[drab-partial]").getAttribute("drab-partial")
 })
+
+function set_property(node, attribute_name, attribute_value) {
+  var property = node.getAttribute("@" + attribute_name).replace(/{{{{.+}}}}$/, "")
+  var path = property.split(".")
+  var full = node
+  var prev, last
+  path.forEach(function(part) {
+    prev = full
+    full = full[part]
+    last = part
+  })
+  prev[last] = attribute_value
+}
+
+function set_attr(where, selector, attribute_name, new_value) {
+  where.querySelectorAll(selector).forEach(function(node) {
+    node.setAttribute(attribute_name, new_value)
+    // exception for "value", set the property as well
+    //TODO: full list of exceptions
+    if (attribute_name == "value") {
+      node.value = new_value
+    }
+  })
+}
 
 Drab.update_attr = function(selector, attribute_name, new_value, partial) {
   if (partial != null) {
@@ -119,6 +119,7 @@ Drab.update_drab_span = function(selector, html, partial) {
   } else {
     set_tag_html(document, selector, html)
   }
+  Drab.set_event_handlers(selector)
 }
 
 function update_script(selector, new_script, partial) {
