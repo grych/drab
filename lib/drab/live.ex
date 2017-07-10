@@ -74,7 +74,7 @@ defmodule Drab.Live do
   You may also dig deeper into the Node properties, using dot - like in JavaScript - to bind the expression
   with the specific property. The good example is to set up `.style`:
 
-      <button @style.backgroundColor="<%= @color %>">
+      <button @style.backgroundColor=<%= @color %>>
 
   Aditially, Drab sets up all the properties defined that way when the page loads. Thanks to this, you
   don't have to worry about the initial value.
@@ -82,7 +82,7 @@ defmodule Drab.Live do
   Notice that `@property=<%= expression %>` *is the only available syntax*, you can not use string pattern or 
   give more than one expression. Property must be solid bind to the expression.
 
-  The expression binded with the property *must be encodable to JS*, so, for example, tuples are not allowed here.
+  The expression binded with the property *must be encodable to JSON*, so, for example, tuples are not allowed here.
   Please refer to `Poison` for more information about encoding JS.
 
   #### Scripts
@@ -188,7 +188,7 @@ defmodule Drab.Live do
 
     case current_assigns |> Map.fetch(assign) do
       {:ok, val} -> val #|> Drab.Live.Crypto.decode64()
-      :error -> assign_not_found!(assign, current_assigns_keys)
+      :error -> raise_assign_not_found(assign, current_assigns_keys)
     end
   end
 
@@ -229,40 +229,39 @@ defmodule Drab.Live do
     do_poke(socket, view, partial, assigns, &Drab.Core.exec_js/2)
   end
 
-  @doc """
-  The same as `poke/2`, but broadcasts the changes instead of pushing it to the current browser.
+  # @doc """
+  # The same as `poke/2`, but broadcasts the changes instead of pushing it to the current browser.
 
-  See `Drab.Commander.broadcasting/1` for broadcasting options.
+  # See `Drab.Commander.broadcasting/1` for broadcasting options.
 
-  Raises `ArgumentError` when assign is not found within the partial.
-  Returns untouched socket.
+  # Raises `ArgumentError` when assign is not found within the partial.
+  # Returns socket.
 
-      iex> poke!(socket, name: "Bożywój")
-      %Phoenix.Socket{ ...
-  """
-  def poke!(socket, assigns) do
-    do_poke(socket, nil, nil, assigns, &Drab.Core.broadcast_js/2)
-  end
+  #     iex> poke_bcast(socket, name: "Bożywój")
 
-  @doc """
-  Like `poke!/2`, but limited only to the given partial name.
+  # Broadcasting the assign changes may be dangerous for other users!
+  # """
+  # def poke_bcast(socket, assigns) do
+  #   do_poke(socket, nil, nil, assigns, &Drab.Core.broadcast_js/2)
+  # end
 
-      iex> poke!(socket, "user.html", name: "Bożywój")
-      %Phoenix.Socket{ ...
-  """
-  def poke!(socket, partial, assigns) do
-    do_poke(socket, nil, partial, assigns, &Drab.Core.broadcast_js/2)
-  end
+  # @doc """
+  # Like `poke_bcast/2`, but limited only to the given partial name.
 
-  @doc """
-  Like `poke!/3`, but searches for the partial within the given view.
+  #     iex> poke_bcast(socket, "user.html", name: "Bożywój")
+  # """
+  # def poke_bcast(socket, partial, assigns) do
+  #   do_poke(socket, nil, partial, assigns, &Drab.Core.broadcast_js/2)
+  # end
 
-      iex> poke!(socket, MyApp.UserView, "user.html", name: "Bożywój")
-      %Phoenix.Socket{ ...
-  """
-  def poke!(socket, view, partial, assigns) do
-    do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
-  end
+  # @doc """
+  # Like `poke_bcast/3`, but searches for the partial within the given view.
+
+  #     iex> poke_bcast(socket, MyApp.UserView, "user.html", name: "Bożywój")
+  # """
+  # def poke_bcast(socket, view, partial, assigns) do
+  #   do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
+  # end
 
   defp do_poke(socket, view, partial_name, assigns, function) do
     #TODO: improve perfomance. Now it takes 10 ms
@@ -279,7 +278,7 @@ defmodule Drab.Live do
 
     for as <- assigns_to_update_keys do
       unless Enum.find(current_assigns_keys, fn key -> key === as end) do
-        assign_not_found!(as, current_assigns_keys)
+        raise_assign_not_found(as, current_assigns_keys)
       end
     end
 
@@ -318,14 +317,12 @@ defmodule Drab.Live do
         {:attribute, list} ->
           for {type, attr, pattern, exprs, assigns_in_ampere} <- list do
             if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attr) do
-              #TODO: special form, without atribute name
-              # ignored for now, let's think if it needs to be covered
+              #TODO: not allowed, attribute name not found
               # warning appears during compile-time
               nil
             else
               if has_common?(assigns_in_ampere, assigns_to_update_keys) do
                 evaluated_expressions = Enum.map(exprs, fn hash -> 
-                  IO.inspect hash
                   {:expr, expr, _} = Drab.Live.Cache.get(hash)
                   new_value = eval_expr(expr, modules, updated_assigns)
                   # new_value = safe_to_string(safe)
@@ -349,20 +346,6 @@ defmodule Drab.Live do
               end
             end
           end
-        # {:script, pattern, exprs, assigns_in_ampere} -> 
-        #   if has_common?(assigns_in_ampere, assigns_to_update_keys) do
-        #     hash_and_value = Enum.map(exprs, fn hash ->
-        #       {:expr, expr, _} = Drab.Live.Cache.get(hash)
-        #       safe = eval_expr(expr, modules, updated_assigns)
-        #       new_value = safe_to_string(safe)
-
-        #       {hash, new_value}
-        #     end)
-        #     new_script = replace_pattern(pattern, hash_and_value) |> encode_js()
-        #     "Drab.update_script(#{encode_js(ampere_hash)}, #{new_script}, #{encode_js(partial)})"
-        #   else
-        #     nil
-        #   end
         {tag, pattern, exprs, assigns_in_ampere} when tag in [:textarea, :script] -> 
           if has_common?(assigns_in_ampere, assigns_to_update_keys) do
             hash_and_value = Enum.map(exprs, fn hash ->
@@ -378,7 +361,7 @@ defmodule Drab.Live do
             nil
           end
 
-        _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache"
+        _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache."
       end
     end |> List.flatten() |> Enum.filter(&(&1))
 
@@ -400,12 +383,7 @@ defmodule Drab.Live do
       {k, Drab.Live.Crypto.encode64(v)}
     end
 
-    # IO.inspect current_assigns
-    # IO.inspect assigns_to_update
-    # IO.inspect updated_assigns
-
     priv = socket |> Drab.pid() |> Drab.get_priv()
-    # partial_assigns = priv.__ampere_assigns[partial]
     partial_assigns_updated = %{priv.__ampere_assigns | partial => updated_assigns}
     socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: partial_assigns_updated})
 
@@ -447,15 +425,6 @@ defmodule Drab.Live do
       unquote(expr)
     end    
   end
-
-  # #TODO: refactor, not very efficient
-  # defp assigns_for_expr(assigns_in_poke, assigns_in_expr, assigns_in_page) do
-  #   # assigns_in_expr = String.split(assigns_in_expr) |> Enum.map(&String.to_existing_atom/1)
-  #   missing_keys = assigns_in_expr -- Map.keys(assigns_in_poke)
-  #   assigns_in_page = for {k, v} <- assigns_in_page, into: %{}, do: {String.to_existing_atom(k), v}
-  #   stored_assigns = Enum.filter(assigns_in_page, fn {k, _} -> Enum.member?(missing_keys, k) end) |> Map.new()
-  #   Map.merge(stored_assigns, assigns_in_poke) |> Map.to_list()
-  # end
 
   defp assign_updates_js(assigns, partial) do
     Enum.map(assigns, fn {k, v} -> 
@@ -514,7 +483,7 @@ defmodule Drab.Live do
     path <> "/"
   end
 
-  defp assign_not_found!(assign, current_keys) do
+  defp raise_assign_not_found(assign, current_keys) do
         raise ArgumentError, message: """
           Assign @#{assign} not found in Drab EEx template
 

@@ -32,10 +32,10 @@ defmodule Drab.Core do
   ## Event handler functions
 
   The event handler function receives two parameters:
-  * `socket`     - the websocket used to communicate back to the page by `Drab.Query` functions
-  * `dom_sender` - a map contains information of the object which sent the event; keys are binary strings
+  * `socket` - the websocket used to communicate back to the page by `Drab.Query` functions
+  * `sender` - a map contains information of the object which sent the event; keys are binary strings
 
-  The `dom_sender` map:
+  The `sender` map:
 
       %{
         "id"      => "sender object ID attribute",
@@ -47,14 +47,23 @@ defmodule Drab.Core do
         "data"    => "a map with sender object 'data-xxxx' attributes, where 'xxxx' are the keys",
         "event"   => "a map with choosen properties of `event` object"
         "drab_id" => "internal"
+        "form"    => "a map of values of the sourrounding form"
       }
 
   Example:
 
-      def button_clicked(socket, dom_sender) do
+      def button_clicked(socket, sender) do
         # using Drab.Query
-        socket |> update(:text, set: "clicked", on: this(dom_sender))
+        socket |> update(:text, set: "clicked", on: this(sender))
       end
+
+  `sender` may contain more fields, depending on the used Drab module. Refer to module documentation for more.
+
+  ### Form values
+
+  If the sender object is inside a <form> tag, it sends the "form" map, which contains values of all the inputs
+  found withing the form. Keys of that map are "name" attribute of the input or, if not found, an "id"
+  attribute. If neither "name" or "id" is given, the value of the form is not included.
 
   ## Running Elixir code from the Browser
 

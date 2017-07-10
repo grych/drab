@@ -10,7 +10,7 @@
     <option value="2">Two</option>
     <option value="3">Three</option>
   </select><br>
-  <textarea><%= @textarea1 %></textarea><br>
+  <textarea name="textarea"><%= @textarea1 %></textarea><br>
   <pre><%= @textarea1 %></pre><br>
   <input type="text" value="<%= @text1 %>"><br>
   <br>

@@ -282,7 +282,7 @@ defmodule Drab.Commander do
   @doc """
   Set up broadcasting listen subject for the current commander.
 
-  It is used by broadcasting functions, like `Drab.Live.poke!` or `Drab.Query.insert!`. When the browser connects
+  It is used by broadcasting functions, like `Drab.Live.poke_bcast` or `Drab.Query.insert!`. When the browser connects
   to Drab page, it gets the broadcasting subject from the commander. Then, it will receive all the broadcasts 
   coming to this subject.
 

@@ -27,7 +27,7 @@ defmodule Drab.Live.EExEngine do
       <<%= @tag_name %> attr=value ...>
 
   #### Scripts
-  Like above, tag name must be defined as `<script>` and can't be defined with the expression.
+  Like above, tag name must be defined as `<script>`, and can't be defined with the expression.
 
   #### Properties
   Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>` syntax.
@@ -67,7 +67,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.start()
     Drab.Live.Cache.set({:partial, partial}, partial_hash)
 
-    buffer = ["\n<span drab-partial='#{partial_hash}'>\n"]
+    buffer = ["\n<drab drab-partial='#{partial_hash}'>\n"]
     start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, only in compile-time
     {:safe, buffer}
   end
@@ -115,17 +115,7 @@ defmodule Drab.Live.EExEngine do
       Drab.Live.Cache.set(ampere, {:attribute, Enum.uniq(existing ++ list)})
     end
 
-    # properties = attributes
-    #   |> Enum.filter(fn {name, _} -> String.starts_with?(name, "@") end)
-    # properties_js = properties
-    #   |> Enum.map(&property_js/1)
-    # init_properties_js = properties 
-    #   |> Enum.map(fn {_, pattern} ->
-    #     x = ampere_from_pattern(pattern)
-    #     "if (typeof #{@jsvar}.properties['#{x}'] == 'undefined') {#{@jsvar}.properties['#{x}'] = []};"
-    #   end) |> Enum.uniq()
-
-    # scripts, textareas and pres
+    # scripts, textareas 
     for tag <- @special_tags, pattern <- tags_from_shadow(shadow, tag) do
       ampere = ampere_from_pattern(pattern)
       hashes = expression_hashes_from_pattern(pattern)
@@ -137,9 +127,7 @@ defmodule Drab.Live.EExEngine do
       script_tag(init_js) |
       [assigns_js |
       [body |
-      ["\n</span>\n"]]]
-      # [script_tag(init_properties_js) |
-      # [script_tag(properties_js)]]]]
+      ["\n</drab>\n"]]]
     ]
 
     {:safe, final}
@@ -314,7 +302,7 @@ defmodule Drab.Live.EExEngine do
 
   defp partial(body) do
     html = to_html(body)
-    p = Regex.run ~r/<span.*drab-partial='([^']+)'/i, html
+    p = Regex.run ~r/<drab.*drab-partial='([^']+)'/i, html
     #TODO: possibly dangerous - returning nil when partial not found
     # but should be OK as we use shadow buffer only for attributes and scripts
     if p, do: List.last(p) |> String.to_atom(), else: nil
@@ -347,18 +335,6 @@ defmodule Drab.Live.EExEngine do
       false
     end
   end
-  # @doc false
-  # def attr_begins_with_quote?(html) do
-  #   args_removed = args_removed(html)
-  #   if String.contains?(args_removed, "=") do
-  #     v = args_removed
-  #     |> String.split("=") 
-  #     |> List.last()
-  #     Regex.match?(~r/\s*["']/, v)
-  #   else
-  #     nil
-  #   end
-  # end
 
   defp args_removed(html) do
     html
@@ -413,13 +389,6 @@ defmodule Drab.Live.EExEngine do
   # find the drab id in the last tag
   @doc false
   def drab_id(html, tag) do
-    # r = ~r/<#{tag}[^<>]*#{@drab_id}\s*=\s*'(.*)'[^<>]*/isU
-    # did = Regex.scan(r, html) 
-    # if did == [] do
-    #   nil
-    # else
-    #   did |> List.last() |> List.last()
-    # end
     tag = String.downcase(tag)
     case Floki.find(html, tag) |> List.last() do
       {^tag, attrs, _} ->
@@ -610,14 +579,6 @@ defmodule Drab.Live.EExEngine do
   def ampere_from_pattern(pattern) do
     Regex.run(~r/{{{{@drab-ampere:([^@}]+)/, pattern) |> List.last()
   end
-
-  # defp property_js({name, pattern}) do
-  #   name = String.replace(name, ~r/^\@/, "")
-  #   ampere = ampere_from_pattern(pattern)
-  #   {:expr, expr, _} = expression_hashes_from_pattern(pattern) |> List.first() |> Drab.Live.Cache.get()
-
-  #   [ "#{@jsvar}.properties['#{ampere}'].push({'#{name}': " | [encoded_expr(expr) | ["});"]]]
-  # end
 
   defp start_shadow_buffer(initial, partial) do
     case Agent.start_link(fn -> initial end, name: partial) do

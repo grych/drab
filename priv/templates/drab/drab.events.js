@@ -40,6 +40,20 @@ function payload(sender, event) {
 
 // default payload contains sender information and some info about event
 function default_payload(sender, event) {
+  var params = {}
+  var form = closest(sender, function(el) {
+    return el.nodeName == "FORM"
+  })
+  if (form) {
+    var inputs = form.querySelectorAll("input, textarea, select")
+    var i = 0
+    inputs.forEach(function(input) {
+      var key = input.name || input.id || false
+      if (key) {
+        params[key] = input.value
+      }
+    })
+  }
   return {
     // by default, we pass back some sender properties
     id:       sender.id,
@@ -69,7 +83,8 @@ function default_payload(sender, event) {
       pageY:    event.pageY,
       screenX:  event.screenX,
       screenY:  event.screenY
-    }
+    },
+    form:      params
   }
 }
 
