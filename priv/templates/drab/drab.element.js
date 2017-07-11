@@ -1,0 +1,110 @@
+function get_element_attributes(element) {
+  var ret = {}
+  for (var i = 0; i < element.attributes.length; i++) {
+    var att = element.attributes[i]
+    ret[att.name] = att.value
+  }
+  return ret
+}
+
+function to_array(dom_list) {
+  var ret = []
+  for (var i = 0; i < dom_list.length; i++) {
+    ret.push(dom_list[i])
+  }
+  return ret
+}
+
+function to_map(element) {
+  var ret = {}
+  for (var key in element) {
+    if (element[key]) {
+      ret[key] = element[key]
+    }
+  }
+  return ret
+}
+
+function default_properties(element) {
+  return {
+    drab_id:      element.getAttribute("drab-id"),
+    id:           element.id,
+    attributes:   get_element_attributes(element),
+    className:    element.className,
+    classList:    to_array(element.classList),
+    // clientHeight: element.clientHeight, //int
+    // clientLeft:   element.clientLeft,
+    // clientTop:    element.clientTop,
+    // clientWidth:  element.clientWidth,
+    // contentEditable: element.contentEditable,
+    dataset:      element.dataset,
+    // dir:          element.dir,
+    // lang:         element.lang,
+    // offsetHeight: element.offsetHeight,
+    // offsetLeft:   element.offsetLeft,
+    // offsetParent: element.offsetParent,
+    // offsetTop:    element.offsetTop,
+    // offsetWidth:  element.offsetWidth,
+    // id:           element.id,
+    innerHTML:    element.innerHTML,
+    innerText:    element.innerText,
+    // localName:    element.localName,
+    name:         element.name,
+    // outerHTML:    element.outerHTML,
+    // outerText:    element.outerText,
+    // scrollHeight: element.scrollHeight,
+    // scrollLeft:   element.scrollLeft,
+    // scrollTop:    element.scrollTop,
+    // scrollWidth:  element.scrollWidth,
+    style:        to_map(element.style),
+    // tagName:      element.tagName,
+    // tabIndex:     element.tabIndex,
+    // title:        element.title,
+    // defaultValue: element.defaultValue,
+    // disabled:     element.disabled,
+    // maxLength:    element.maxLength,
+    // readOnly:     element.readOnly,
+    // size:         element.size,
+    // type:         element.type,
+    value:        element.value
+  }
+}
+
+
+Drab.query = function(selector, what, where) {
+  var searchie = where || document
+  var ret = {}
+  searchie.querySelectorAll(selector).forEach(function(element) {
+    var id = element.id
+    var id_selector
+    if (id) {
+      id_selector = "#" + id
+    } else {
+      var drab_id = Drab.setid(element)
+      id_selector = "[drab-id='" + drab_id + "']"
+    }
+    ret[id_selector] = {}
+    if (what.length != 0) {
+      for (var i in what) {
+        var property = what[i]
+        switch(property) {
+          case "attributes": 
+            ret[id_selector][property] = get_element_attributes(element)
+            break
+          case "style": 
+            ret[id_selector][property] = to_map(element.style)
+            break
+          case "classList": 
+            ret[id_selector][property] = to_array(element.classList)
+            break
+          default:
+            ret[id_selector][property] = element[property]
+            break
+        }
+      }
+    } else {
+      ret[id_selector] = default_properties(element)
+    }
+  })
+  return ret
+}

@@ -43,7 +43,7 @@ defmodule Drab.Core do
         "class"   => "sender object 'class' attribute",
         "text"    => "sender node 'text'",
         "html"    => "sender node 'html', result of running .html() on the node",
-        "val"     => "sender object value",
+        "value"   => "sender object value",
         "data"    => "a map with sender object 'data-xxxx' attributes, where 'xxxx' are the keys",
         "event"   => "a map with choosen properties of `event` object"
         "drab_id" => "internal"

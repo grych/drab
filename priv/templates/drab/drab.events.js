@@ -62,7 +62,7 @@ function default_payload(sender, event) {
     classes:  sender.classList,
     text:     sender.innerText,
     html:     sender.innerHTML,
-    val:      sender.value,
+    value:    sender.value,
     data:     sender.dataset,
     drab_id:  sender.getAttribute("drab-id"),
     event: {
@@ -102,6 +102,7 @@ Drab.setid = function(whom) {
   } else {
     do_setid(whom)
   }
+  return whom.getAttribute("drab-id")
 }
 
 function update_event_handler(node, event, func) {

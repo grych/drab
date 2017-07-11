@@ -57,7 +57,9 @@ defmodule Drab.Query do
     d = Enum.map(d, fn {k, v} -> 
       {k, Drab.Core.decode_js(v)}
     end) |> Map.new()
+    
     Map.merge(payload, %{"data" => d})
+      |> Map.put_new("val", payload["value"])
   end
 
   @doc """

@@ -1,0 +1,6 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<button class="btn btn-success" id="button1" value="is there a button value?" data-d1="1" data-d2="[1, 2]" data-d3="d3">
+  Click me
+</button>

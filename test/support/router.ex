@@ -19,10 +19,10 @@ defmodule DrabTestApp.Router do
     pipe_through :browser # Use the default browser stack
 
     get "/", PageController, :index, as: :index
-    get "/tests/core", PageController, :core, as: :core
-    get "/tests/query", QueryController, :query, as: :query
-    get "/tests/modal", QueryController, :modal, as: :modal
-    get "/tests/waiter", PageController, :waiter, as: :waiter
+    get "/tests/core",    PageController, :core, as: :core
+    get "/tests/query",   QueryController, :query, as: :query
+    get "/tests/modal",   QueryController, :modal, as: :modal
+    get "/tests/waiter",  PageController, :waiter, as: :waiter
     get "/tests/browser", PageController, :browser, as: :browser
 
     get "/tests/broadcast1", Broadcast1Controller, :index, as: :broadcast1
@@ -36,6 +36,8 @@ defmodule DrabTestApp.Router do
     get "/tests/live",      LiveController, :index, as: :live
     get "/tests/live/form", LiveController, :form, as: :form
     get "/tests/live/query",LiveQueryController, :index, as: :live_query
+
+    get "/tests/element",   ElementController, :index, as: :element
   end
 
   # Other scopes may use custom stacks.
