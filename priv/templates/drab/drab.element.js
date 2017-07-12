@@ -57,7 +57,7 @@ function default_properties(element) {
     // scrollTop:    element.scrollTop,
     // scrollWidth:  element.scrollWidth,
     style:        to_map(element.style),
-    // tagName:      element.tagName,
+    tagName:      element.tagName,
     // tabIndex:     element.tabIndex,
     // title:        element.title,
     // defaultValue: element.defaultValue,
@@ -107,4 +107,48 @@ Drab.query = function(selector, what, where) {
     }
   })
   return ret
+}
+
+function isObject(val) {
+    if (val === null) { return false;}
+    return ( (typeof val === 'function') || (typeof val === 'object') );
+}
+
+Drab.set_prop = function(selector, what, where) {
+  var searchie = where || document
+  var i = 0
+  searchie.querySelectorAll(selector).forEach(function(element) {
+    for (var property in what) {
+      var value = what[property]
+      switch(property) {
+        case "attributes":
+          for (var p in value) { element.setAttribute(p, value[p]) }
+          break
+        case "style":
+          for (var p in value) { element[property][p] = value[p] }
+          break
+        case "dataset":
+          for (var p in value) { element[property][p] = value[p] }
+          break
+        default:
+          element[property] = what[property]
+          break
+      }
+
+      // var inner = what[property]
+      // if (inner === Object(inner)) {
+      //   for (var p in inner) {
+      //     if (property == "attributes") {
+      //       element.setAttribute(p, inner[p])
+      //     } else {
+      //       element[property][p] = inner[p]
+      //     }
+      //   }
+      // } else {
+      //   element[property] = what[property]
+      // }
+      i ++
+    }
+  })
+  return i
 }

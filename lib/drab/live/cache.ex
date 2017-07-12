@@ -17,9 +17,9 @@ defmodule Drab.Live.Cache do
 
   @doc false
   def start() do
-    if :dets.info(cache_file()) == :undefined do
+    # if :dets.info(cache_file()) == :undefined do
       {:ok, _} = :dets.open_file(cache_file(), [type: :set, ram_file: true])
-    end
+    # end
     :ok
   end
 

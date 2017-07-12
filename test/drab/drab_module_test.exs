@@ -14,14 +14,14 @@ defmodule Drab.DrabModuleTest do
 
     test "templates" do
       assert DrabModule.all_templates_for([]) == ["drab.core.js"]
-      assert DrabModule.all_templates_for([Drab.Query]) == ["drab.core.js", "drab.events.js", "drab.query.js"]
+      assert DrabModule.all_templates_for([Drab.Query]) == ["drab.core.js", "drab.events.js"]
       assert DrabModule.all_templates_for([Drab.Live]) == ["drab.core.js", "drab.events.js", "drab.live.js"]
       assert DrabModule.all_templates_for([Drab.Waiter]) == ["drab.core.js", "drab.events.js", "drab.waiter.js"]
-      assert DrabModule.all_templates_for([Drab.Modal]) == ["drab.core.js", "drab.events.js", "drab.query.js", "drab.modal.js"]
+      assert DrabModule.all_templates_for([Drab.Modal]) == ["drab.core.js", "drab.events.js", "drab.modal.js"]
       assert DrabModule.all_templates_for([Drab.Query, Drab.Live]) == 
-        ["drab.core.js", "drab.events.js", "drab.live.js", "drab.query.js"]
+        ["drab.core.js", "drab.events.js", "drab.live.js"]
       assert DrabModule.all_templates_for([Drab.Modal, Drab.Live]) == 
-        ["drab.core.js", "drab.events.js", "drab.live.js", "drab.query.js", "drab.modal.js"]
+        ["drab.core.js", "drab.events.js", "drab.live.js", "drab.modal.js"]
     end
   end
 end

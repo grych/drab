@@ -405,4 +405,40 @@ defmodule Drab.Core do
         %{}
     end
   end
+
+  @doc """
+  Finds the DOM object which triggered the event. To be used only in event handlers.
+
+      def button_clicked(socket, sender) do
+        set_prop socket, this(sender), innerText: "already clicked"
+        set_prop socket, this(sender), disabled: true
+      end        
+
+  Do not use it with with broadcast functions (`Drab.Query.update!`, `Drab.Core.broadcast_js`, etc),
+  because it returns the *exact* DOM object in *exact* browser. In case if you want to broadcast, use 
+  `this!/1` instead.
+
+  """
+  def this(sender) do
+    "[drab-id=#{sender["drab_id"]}]"
+  end
+
+  @doc """
+  Like `this/1`, but returns object ID, so it may be used with broadcasting functions.
+
+      def button_clicked(socket, sender) do
+        socket |> update!(:text, set: "alread clicked", on: this!(sender))
+        socket |> update!(attr: "disabled", set: true, on: this!(sender))
+      end
+
+  Raises exception when being used on the object without an ID.
+  """
+  def this!(sender) do
+    id = sender["id"]
+    unless id, do: raise ArgumentError, """
+    Try to use Drab.Core.this!/1 on DOM object without an ID:
+    #{inspect(sender)}
+    """ 
+    "##{id}"
+  end
 end

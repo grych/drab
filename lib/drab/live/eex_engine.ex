@@ -22,15 +22,39 @@ defmodule Drab.Live.EExEngine do
   
   The above will compile (with warnings), but it will not be correctly updated with `Drab.Live.poke`.
 
-  Also, the tag name can not be build with the expression.
+  The tag name can not be build with the expression.
 
       <<%= @tag_name %> attr=value ...>
 
+  Nested expressions are not valid in the attribute pattern. The following is not allowed:
+
+      <tag attribute="<%= if clause do %><%= expression %><% end %>">
+
+  Do a flat expression instead:
+
+      <tag attribute="<%= if clause, do: expression %>">
+
+
   #### Scripts
-  Like above, tag name must be defined as `<script>`, and can't be defined with the expression.
+  Tag name must be defined in the template as `<script>`, and can't be defined with the expression.
+
+  Nested expressions are not valid in the script pattern. The following is not allowed:
+
+      <script>
+        <%= if clause do %>
+          <%= expression %>
+        <% end %>>
+      </script>
+
+  Do a flat expression instead:
+
+      <script>
+        <%= if clause, do: expression %>
+      </script>
 
   #### Properties
   Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>` syntax.
+  One property may be bound only to the one assign.
   """
 
   import Drab.Live.Crypto
@@ -67,7 +91,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.start()
     Drab.Live.Cache.set({:partial, partial}, partial_hash)
 
-    buffer = ["\n<drab drab-partial='#{partial_hash}'>\n"]
+    buffer = ["\n<span drab-partial='#{partial_hash}'>\n"]
     start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, only in compile-time
     {:safe, buffer}
   end
@@ -127,8 +151,13 @@ defmodule Drab.Live.EExEngine do
       script_tag(init_js) |
       [assigns_js |
       [body |
-      ["\n</drab>\n"]]]
+      ["\n</span>\n"]]]
     ]
+
+    #TODO: check if in the expression of attribute or script or textarea
+    # there is another expression, like
+    #    [[{:|, [], ["", "\n"]}],
+    # "<span drab-ampere='geztcmbqgu3tqnq'>"]}],
 
     {:safe, final}
   end
@@ -168,8 +197,8 @@ defmodule Drab.Live.EExEngine do
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
 
-    # Decide if the expression is inside the tag or not
-    {injected, shadow} = if Regex.match?(~r/<\S+/, no_tags(html)) do
+    # check if the expression is inside the tag or not
+    {injected, shadow} = if Regex.match?(~r/<\S+/s, no_tags(html)) do
       inject_attribute(buffer, expr, line, html)
     else
       tag = in_tags(html, @special_tags)
@@ -302,7 +331,7 @@ defmodule Drab.Live.EExEngine do
 
   defp partial(body) do
     html = to_html(body)
-    p = Regex.run ~r/<drab.*drab-partial='([^']+)'/i, html
+    p = Regex.run ~r/<span.*drab-partial='([^']+)'/is, html
     #TODO: possibly dangerous - returning nil when partial not found
     # but should be OK as we use shadow buffer only for attributes and scripts
     if p, do: List.last(p) |> String.to_atom(), else: nil
@@ -338,7 +367,7 @@ defmodule Drab.Live.EExEngine do
 
   defp args_removed(html) do
     html
-    |> String.split(~r/<\S+/)
+    |> String.split(~r/<\S+/s)
     |> List.last()
     |> remove_full_args()
   end
@@ -349,7 +378,7 @@ defmodule Drab.Live.EExEngine do
 
   # tag if the expression is in <tag></tag>
   defp in_tag(html, tag) do
-    (count_matches(html, ~r/<\s*#{tag}[^<>]*>/i) > count_matches(html, ~r/<\s*\/\s*#{tag}[^<>]*>/i)) || nil
+    (count_matches(html, ~r/<\s*#{tag}[^<>]*>/si) > count_matches(html, ~r/<\s*\/\s*#{tag}[^<>]*>/si)) || nil
   end
 
   defp count_matches(html, regex) do
@@ -372,7 +401,7 @@ defmodule Drab.Live.EExEngine do
   end
   defp replace_in(other, _, _), do: other
 
-  def inject_drab_id(buffer, expr, tag) do
+  defp inject_drab_id(buffer, expr, tag) do
     if buffer |> to_html() |> drab_id(tag) do
       buffer
     else
@@ -401,9 +430,9 @@ defmodule Drab.Live.EExEngine do
 
   defp remove_full_args(string) do
     string
-    |> String.replace(~r/\S+\s*=\s*'[^']*'/, "")
-    |> String.replace(~r/\S+\s*=\s*"[^"]*"/, "")
-    |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/, "")
+    |> String.replace(~r/\S+\s*=\s*'[^']*'/s, "")
+    |> String.replace(~r/\S+\s*=\s*"[^"]*"/s, "")
+    |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/s, "")
   end
 
   # replace last occurence of pattern in the string
@@ -416,7 +445,7 @@ defmodule Drab.Live.EExEngine do
     item
   end
 
-  defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/, "")
+  defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/s, "")
 
 
   defp script_tag([]), do: []
@@ -503,11 +532,11 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def last_opened_tag(html) do
-    html = String.replace(html, ~r/<.*>/, "", global: true)
-    Regex.scan(~r/<\s*([^\s<>\/]+)/, html)
+    html = String.replace(html, ~r/<.*>/s, "", global: true)
+    Regex.scan(~r/<\s*([^\s<>\/]+)/s, html)
       |> List.last()
       |> List.last()
-      |> String.replace(~r/\s+.*/, "")
+      |> String.replace(~r/\s+.*/s, "")
   end
 
 

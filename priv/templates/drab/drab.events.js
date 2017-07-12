@@ -63,7 +63,7 @@ function default_payload(sender, event) {
     text:     sender.innerText,
     html:     sender.innerHTML,
     value:    sender.value,
-    data:     sender.dataset,
+    dataset:  sender.dataset,
     drab_id:  sender.getAttribute("drab-id"),
     event: {
       altKey:   event.altKey,

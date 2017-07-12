@@ -2,5 +2,9 @@
 <div id="drab_pid"></div>
 
 <button class="btn btn-success" id="button1" value="is there a button value?" data-d1="1" data-d2="[1, 2]" data-d3="d3">
-  Click me
+  Button
 </button>
+<br>
+<input id="input1" value="input1 value">
+<br>
+<a href="http://tg.pl">tg.pl</a>

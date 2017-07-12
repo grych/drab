@@ -13,7 +13,7 @@ defmodule Drab.Query do
   @html_modifiers        ~r/html|append|before|after|insertAfter|insertBefore|htmlPrefilter|prepend|replaceWidth|wrap/i
 
   @moduledoc """
-  Drab Module which provides interface to DOM objects on the server side. You may query (`select/2`) or manipulate 
+  Drab Module which provides interface to jQuery on the server side. You may query (`select/2`) or manipulate 
   (`update/2`, `insert/2`, `delete/2`, `execute/2`) the selected DOM object.
 
   General syntax:
@@ -45,7 +45,7 @@ defmodule Drab.Query do
 
   # Drab behaviour
   use DrabModule
-  def js_templates(), do: ["drab.events.js", "drab.query.js"]
+  def js_templates(), do: ["drab.events.js"]
 
   @doc false
   def transform_payload(payload, _state) do
@@ -53,7 +53,7 @@ defmodule Drab.Query do
     # payload = Map.merge(payload["sender"], %{"event" => payload["event"]})
 
     # decode data values, just like jquery does
-    d = payload["data"] || %{}
+    d = payload["dataset"] || %{}
     d = Enum.map(d, fn {k, v} -> 
       {k, Drab.Core.decode_js(v)}
     end) |> Map.new()
@@ -62,42 +62,20 @@ defmodule Drab.Query do
       |> Map.put_new("val", payload["value"])
   end
 
-  @doc """
-  Finds the DOM object which triggered the event. To be used only in event handlers.
+  # @doc """
+  # Moved to `Drab.Core.this/1`
+  # """
+  # def this(sender) do
+  #   Drab.Core.this(sender)
+  # end
 
-      def button_clicked(socket, dom_sender) do
-        socket |> update(:text, set: "alread clicked", on: this(dom_sender))
-        socket |> update(attr: "disabled", set: true, on: this(dom_sender))
-      end        
-
-  Do not use it with with broadcast functions (`Drab.Query.update!`, `Drab.Query.insert`, `Drab.Query.delete`, 
-  `Drab.Query.execute!`), because it returns the *exact* DOM object. In case if you want to broadcast, use 
-  `Drab.Query.this!/1` instead.
-
-  """
-  def this(dom_sender) do
-    "[drab-id=#{dom_sender["drab_id"]}]"
-  end
-
-  @doc """
-  Like `Drab.Query.this/1`, but returns CSS ID of the object, so it may be used with broadcasting functions.
-
-      def button_clicked(socket, dom_sender) do
-        socket |> update!(:text, set: "alread clicked", on: this!(dom_sender))
-        socket |> update!(attr: "disabled", set: true, on: this!(dom_sender))
-      end
-
-  Raises exception when being used on the object without an ID.
-  """
-  def this!(dom_sender) do
-    id = dom_sender["id"]
-    unless id, do: raise ArgumentError, """
-    Try to use Drab.Query.this!/1 on DOM object without an ID:
-    #{inspect(dom_sender)}
-    """ 
-    "##{id}"
-  end
-
+  # @doc """
+  # Moved to `Drab.Core.this!/1`
+  # """
+  # def this!(sender) do
+  #   Drab.Core.this!(sender)
+  # end
+  
   @doc """
   Returns a value get by executing jQuery `method` on selected DOM object, or
   a Map of %{name|id|__undefined_[INCREMENT]: value} when `method` name is plural, or a Map of 
