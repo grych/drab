@@ -264,7 +264,7 @@ defmodule Drab.Live do
 
   defp do_poke(socket, view, partial_name, assigns, function) do
     #TODO: improve perfomance. Now it takes 10 ms
-    t1 = :os.system_time(:microsecond)
+    # t1 = :os.system_time(:microsecond)
     # IO.inspect :os.system_time(:microsecond) - t1
 
     view = view || Drab.get_view(socket)
@@ -368,7 +368,7 @@ defmodule Drab.Live do
     assign_updates = assign_updates_js(assigns_to_update, partial)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
 
-    IO.inspect(all_javascripts)
+    # IO.inspect(all_javascripts)
 
     # IO.inspect :os.system_time(:microsecond) - t1
     {:ok, _} = function.(socket, all_javascripts |> Enum.join(";"))
@@ -386,7 +386,7 @@ defmodule Drab.Live do
     partial_assigns_updated = %{priv.__ampere_assigns | partial => updated_assigns}
     socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: partial_assigns_updated})
 
-    IO.inspect :os.system_time(:microsecond) - t1
+    # IO.inspect :os.system_time(:microsecond) - t1
 
     socket
   end

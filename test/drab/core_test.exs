@@ -6,7 +6,7 @@ defmodule Drab.CoreTest do
 
   test "this/1 should return drab_id" do
     dom_sender = %{ "drab_id" => "DRAB_ID"}
-    assert Drab.Core.this(dom_sender) == "[drab-id=DRAB_ID]"
+    assert Drab.Core.this(dom_sender) == "[drab-id=\"DRAB_ID\"]"
   end
 
   test "this!/1 should return id" do
