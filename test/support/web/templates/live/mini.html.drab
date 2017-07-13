@@ -2,10 +2,11 @@
 <div 
 id="drab_pid"></div>
 
-<a href="<%= if true do %>
-<%= @color %>
-<% end %>
-" id=a>SPAN</a>
+<a href="<%= if true, do: @color %>"
+ id=a>SPAN</a>
 
+<%= if true do %>
+<%= String.upcase(@color) %>
+<% end %>
 <%= "nothing here" %>
 

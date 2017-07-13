@@ -7,4 +7,12 @@
 <br>
 <input id="input1" value="input1 value">
 <br>
+<input id="input2" value="input2 value">
+<br>
+<input value="input3 value">
+<br>
 <a href="http://tg.pl">tg.pl</a>
+<br>
+<textarea>textarea value</textarea>
+<br>
+

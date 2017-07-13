@@ -134,21 +134,18 @@ Drab.set_prop = function(selector, what, where) {
           element[property] = what[property]
           break
       }
-
-      // var inner = what[property]
-      // if (inner === Object(inner)) {
-      //   for (var p in inner) {
-      //     if (property == "attributes") {
-      //       element.setAttribute(p, inner[p])
-      //     } else {
-      //       element[property][p] = inner[p]
-      //     }
-      //   }
-      // } else {
-      //   element[property] = what[property]
-      // }
-      i ++
     }
+    i ++
+  })
+  return i
+}
+
+Drab.insert_html = function(selector, position, html, where) {
+  var searchie = where || document
+  var i = 0
+  searchie.querySelectorAll(selector).forEach(function(element) {
+    element.insertAdjacentHTML(position, html)
+    i++
   })
   return i
 }

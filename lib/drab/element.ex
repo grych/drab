@@ -292,5 +292,53 @@ defmodule Drab.Element do
     set_prop! socket, selector, %{"dataset" => Map.new(dataset)}
   end
 
+  @doc """
+  Parses the specified text as HTML and inserts the resulting nodes into the DOM tree at a specified position.
+
+  Position is the position relative to the element found by the selector, and must be one of the following strings
+  or atoms:
+
+  * `:beforebegin` - before the found element
+  * `:afterbegin` - inside the element, before its first child
+  * `:beforeend` - inside the element, after its last child
+  * `:afterend` - after the element itself
+
+  Visit https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML for more information.
+
+  Returns tuple `{:ok, number}` with number of updated elements or `{:error, description}`.
+
+  Examples:
+
+      ex> insert_html(socket, "div", :beforebegin, "<b>MORE</b>")
+      {:ok, 3}
+  """
+  def insert_html(socket, selector, position, html) do
+    exec_js(socket, insert_js(selector, position, html))
+  end
+
+  @doc """
+  Exception-throwing version of insert_html/4
+  """
+  def insert_html!(socket, selector, position, html) do
+    exec_js!(socket, insert_js(selector, position, html))
+  end
+
+  @doc """
+  Broadcasting version of `insert_html/4`.
+
+  It does exactly the same as `insert_html/4`, but instead of pushing the message to the current browser, 
+  it broadcasts it to all connected users.
+
+  Always returns `{:ok, :broadcasted}`.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
+  """
+  def broadcast_insert(subject, selector, position, html) do
+    broadcast_js(subject, insert_js(selector, position, html))
+  end
+
+  defp insert_js(selector, position, html) do
+    "Drab.insert_html(#{encode_js(selector)}, #{encode_js(position)}, #{encode_js(html)})"
+  end
 
 end

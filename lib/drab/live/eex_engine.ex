@@ -52,6 +52,9 @@ defmodule Drab.Live.EExEngine do
         <%= if clause, do: expression %>
       </script>
 
+  #### Textareas
+  As above, you can not use nested expressions inside the textarea tag.
+
   #### Properties
   Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>` syntax.
   One property may be bound only to the one assign.
@@ -90,6 +93,7 @@ defmodule Drab.Live.EExEngine do
     partial_hash = hash(partial)
     Drab.Live.Cache.start()
     Drab.Live.Cache.set({:partial, partial}, partial_hash)
+    Drab.Live.Cache.set({:partial, partial_hash}, partial)
 
     buffer = ["\n<span drab-partial='#{partial_hash}'>\n"]
     start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, only in compile-time
@@ -216,6 +220,10 @@ defmodule Drab.Live.EExEngine do
 
   # The expression is inside the <script> tag
   defp inject_tag(buffer, expr, line, tag) do
+    if contains_nested_expression?(expr) do
+      raise_nested_expression(buffer, line)
+    end
+
     found_assigns  = find_assigns(expr)
 
     buffer = inject_drab_id(buffer, expr, tag)
@@ -258,6 +266,10 @@ defmodule Drab.Live.EExEngine do
 
   # The expression is inside the attribute
   defp inject_attribute(buffer, expr, _html, line) do
+    if contains_nested_expression?(expr) do
+      raise_nested_expression(buffer, line)
+    end
+
     found_assigns  = find_assigns(expr) |> Enum.sort()
     html = to_html(buffer) 
     hash = hash({expr, found_assigns})
@@ -528,6 +540,50 @@ defmodule Drab.Live.EExEngine do
       end
     end
     result |> Enum.uniq() |> Enum.sort()
+  end
+
+  defp contains_nested_expression?(expr) do
+    {_, acc} = Macro.prewalk expr, [], fn node, acc ->
+      case node do
+        {atom, _, params} when is_atom(atom) and is_list(params) ->
+          found = Enum.find params, fn param -> 
+            case param do
+              string when is_binary(string) -> String.contains?(string, "<span #{@drab_id}='")
+              _ -> false
+            end
+          end
+          {node, [found | acc]}
+        _ -> 
+          {node, acc}
+      end
+    end
+    Enum.find acc, fn x -> !is_nil(x) end
+  end
+
+  defp raise_nested_expression(buffer, line) do
+    raise EEx.SyntaxError, message: """
+      nested exceptions are not allowed in attributes, properties, scripts or textareas
+
+      The following are not allowed:
+
+          <script>
+            <%= if clause do %>
+              <%= expression %>
+            <% end %>>
+          </script>
+
+          <tag attribute="<%= if clause do %><%= expression %><% end %>">
+
+      Do a flat expression instead:
+
+          <script>
+            <%= if clause do
+              expression 
+            end %>
+          </script>
+
+          <tag attribute="<%= if clause, do: expression %>">
+      """, file: Drab.Live.Cache.get({:partial, partial(buffer)}), line: line
   end
 
   @doc false
