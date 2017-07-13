@@ -1,7 +1,7 @@
 
 ## 0.5.0
 Bugs:
-* dets sometimes raises argument exception
+* insert and innerHTML should re-assing drab events
 
 Changes:
 * remove Query from the default
@@ -13,7 +13,7 @@ Changes:
 * have a values of the <input> fields from parent <form> directly in the Commander Event Handler Function - only if drab-send-params set in button
 * re-initiate JS event handler after changing the SPAN (inside it)
 * helper to change URL (smart?)
-* use <%- %> to not drab the specific one
+* use <%/ %> to not drab the specific one
 * change of broadcast (without socket)
 
 

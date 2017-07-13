@@ -420,7 +420,7 @@ defmodule Drab.Core do
 
   """
   def this(sender) do
-    "[drab-id=#{sender["drab_id"]}]"
+    "[drab-id='#{sender["drab_id"]}']"
   end
 
   @doc """
