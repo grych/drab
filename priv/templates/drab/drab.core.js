@@ -39,6 +39,7 @@ Drab.on_connect(function(resp, drab) {
   drab.channel.push("onconnect", { 
     drab_store_token: Drab.drab_store_token,
     payload: payload()
+    // payload: {}
   })
 
   // initialize onload on server side, just once

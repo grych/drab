@@ -1,12 +1,7 @@
-<div id="begin"></div>
-<div 
-id="drab_pid"></div>
+<div id="begin" style="display: none;"></div>
+<div id="drab_pid" style="display: none;"></div>
 
-<a href="<%= if true, do: @color %>"
- id=a>SPAN</a>
 
-<%= if true do %>
-<%= String.upcase(@color) %>
-<% end %>
-<%= "nothing here" %>
-
+<a href="https://<%= @url%>" class="btn btn-success" @style.width=<%= @width%>>
+  Visit <%= @url %>
+</a>

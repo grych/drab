@@ -2,6 +2,8 @@
 ## 0.5.0
 Bugs:
 * insert and innerHTML should re-assing drab events
+* think if drab_store shouldn't be page or controller/based
+* jqueryless payload()
 
 Changes:
 * remove Query from the default

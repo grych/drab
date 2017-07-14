@@ -7,8 +7,7 @@ defmodule Drab.Commander.Config do
     onload: nil,
     onconnect: nil,
     ondisconnect: nil,
-    # by default load Drab.Query and Drab.Modal
-    modules: [Drab.Query, Drab.Modal, Drab.Waiter],
+    modules: [Drab.Live, Drab.Element],
     access_session: [],
     before_handler: [],
     after_handler: [],

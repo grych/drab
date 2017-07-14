@@ -1,7 +1,7 @@
 defmodule DrabTestApp.QueryCommander do
   @moduledoc false
   
-  use Drab.Commander, modules: [Drab.Query, Drab.Modal]
+  use Drab.Commander, modules: [Drab.Modal]
 
   onload :page_loaded
 

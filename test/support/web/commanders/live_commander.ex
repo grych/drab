@@ -1,7 +1,7 @@
 defmodule DrabTestApp.LiveCommander do
   @moduledoc false
   
-  use Drab.Commander, modules: [Drab.Live]
+  use Drab.Commander, modules: [Drab.Live, Drab.Element]
   onload :page_loaded
 
   def page_loaded(socket) do

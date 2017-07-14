@@ -23,9 +23,9 @@ defmodule Drab.Commander do
   done by running JS method `Drab.run_handler()`. See `Drab.Core` for this method description.
 
   The event handler function receives two parameters:
-  * `socket` - the websocket used to communicate back to the page by `Drab.Query` functions
-  * `argument` - an argument used in JS Drab.run_handler() method; when using Drab.Query module it is
-    the `dom_sender` map (see `Drab.Query` for full description)
+  * `socket` - the websocket used to communicate back to the page 
+  * `argument` - an argument used in JS Drab.run_handler() method; when lauching an event via 
+    `drab-handler=function` atrribute, it is a map describing the sender object
 
   ## Callbacks 
 
@@ -102,7 +102,7 @@ defmodule Drab.Commander do
   Drab is modular. You my choose which modules to use in the specific Commander by using `:module` option
   in `use Drab.Commander` directive. 
   There is one required module, which is loaded always and can't be disabled: `Drab.Code`. By default, modules
-  `Drab.Query` and `Drab.Modal` are loaded. The following code:
+  `Drab.Live` and `Drab.Element` are loaded. The following code:
 
       use Drab.Commander, modules: [Drab.Query]
 
