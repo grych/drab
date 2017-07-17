@@ -1,3 +1,51 @@
+# v0.5.0
+***This version is a major update***. The default module, `Drab.Query` has been replaced with `Drab.Live` and `Drab.Element`. Drab is not jQuery dependent by default anymore.
+
+## New modules
+
+### `Drab.Live` 
+Allows to remotely (from the server side) replace the value of the assign in the displayed paged, without re-rendering and reloading the page.
+
+Such template:
+
+```html
+<a href="https://<%= @url%>" @style.backgroundColor=<%= @color%>>
+  <%= @url %>
+</a>
+```
+
+can be updates live with `poke/2`:
+
+```elixir
+poke socket, url: "tg.pl/drab", color: "red"
+```
+
+### `Drab.Element`
+Query and update displayed page from the server side.
+
+```elixir
+set_prop socket, "p", style: %{"backgroundColor" => "red"} # awesome effect
+```
+
+## Broadcasting
+Broadcasting functions now get `subject` instead of `socket`. There is no need to have an active socket to broadcast anymore. Useful when broadcasting from background servers or `ondisconnect` callback.
+
+## Form parameters in sender
+If the event launching element is inside a `<FORM>`, it gets a values of all input elements within that form. This is a map, where keys are the element's `name` or `id`.
+
+## Upgrading from 0.4
+Add `Drab.Query` and `Drab.Modal` to your commanders:
+
+```elixir
+use Drab.Commander, module: [Drab.Query, Drab.Modal]
+```
+
+## Depreciations
+All soft depreciations up to 0.4.1 became hard.
+
+
+
+
 ## v0.4.1 - 2017-05-25
 
 ### New:
