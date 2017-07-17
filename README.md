@@ -328,7 +328,7 @@ Finished in 120.9 seconds
 Randomized with seed 934572
 ```
 
-# Contact
+## Contact
 
 (c)2016-2017 Tomek "Grych" Gryszkiewicz, 
 <grych@tg.pl>

@@ -1,18 +1,18 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.4.1"
+  @version "0.5.0"
   
   def project do
     [app: :drab,
      version: @version,
-     elixir: "~> 1.3",
+     elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      elixirc_paths: elixirc_paths(Mix.env),
      deps: deps(),
      description: description(),
      package: package(),
-     docs: [main: "Drab", logo: "priv/static/drab-400.png", extras: ["README.md"]], # , filter_prefix: "Drab."
+     docs: [main: "Drab", logo: "priv/static/drab-400.png", extras: ["README.md", "LICENSE.md", "CHANGELOG.md"]], # , filter_prefix: "Drab."
      compilers: [:phoenix, :gettext] ++ Mix.compilers
      # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
    ]

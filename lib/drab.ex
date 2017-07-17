@@ -27,15 +27,12 @@ defmodule Drab do
 
         # Drab Callbacks
         def page_loaded(socket) do
-          socket |> update(:html, set: "Welcome to Phoenix+Drab!", on: "div.jumbotron h2")
-          socket |> update(:html, 
-                set: "Please visit <a href='https://tg.pl/drab'>Drab</a> page for more examples and description",
-                on:  "div.jumbotron p.lead")
+          set_prop socket, "div.jumbotron h2", innerHTML: "This page has been DRABBED"
         end
 
         # Drab Events
-        def button_clicked(socket, dom_sender) do
-          socket |> update(:text, set: "alread clicked", on: this(dom_sender))
+        def button_clicked(socket, sender) do
+          set_prop socket, this(sender), innerText: "already clicked"
         end
 
       end
