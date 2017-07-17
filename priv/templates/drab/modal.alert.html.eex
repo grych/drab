@@ -1,0 +1,19 @@
+<div id="_drab_modal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog <%= class %>" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title"><%= title %></h4>
+      </div>
+      <div class="modal-body">
+        <form>
+          <p><%= body %></p>
+          <input id="__drab_modal_hidden_input" type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <%= buttons %>
+      </div>
+    </div>
+  </div>
+</div>

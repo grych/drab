@@ -1,0 +1,1 @@
+<button id="_drab_modal_button_cancel" type="button" class="btn btn-danger" data-dismiss="modal"><%= label %></button>
