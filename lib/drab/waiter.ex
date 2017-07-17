@@ -19,7 +19,7 @@ defmodule Drab.Waiter do
   # @behaviour Drab
   use DrabModule
   # def prerequisites(), do: []
-  def js_templates(), do: ["drab.events.js", "drab.waiter.js"]
+  def js_templates(), do: ["drab.waiter.js"]
 
   @doc """
   Main Waiter loop. 

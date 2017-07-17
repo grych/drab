@@ -1,1 +1,0 @@
-return sessionStorage.drab_store_token

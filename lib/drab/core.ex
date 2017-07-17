@@ -127,7 +127,7 @@ defmodule Drab.Core do
   # @behaviour Drab
   use DrabModule  
   # def prerequisites(), do: []
-  def js_templates(), do: ["drab.core.js"]
+  def js_templates(), do: ["drab.core.js", "drab.events.js"]
 
   @doc """
   Synchronously executes the given javascript on the client side. 

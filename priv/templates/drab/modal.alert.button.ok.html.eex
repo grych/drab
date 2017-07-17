@@ -1,1 +1,0 @@
-<button id="_drab_modal_button_ok" name="ok" type="submit" class="btn btn-primary drab-modal-button" data-dismiss="modal"><%= label %></button>

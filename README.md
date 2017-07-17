@@ -1,4 +1,4 @@
-[![phoenix logo](https://raw.githubusercontent.com/grych/drab-poc/master/web/static/assets/images/drab-banner.png)](https://tg.pl/drab)
+[![drab logo](https://raw.githubusercontent.com/grych/drab-poc/master/web/static/assets/images/drab-banner.png)](https://tg.pl/drab)
 
 [![hex.pm version](https://img.shields.io/hexpm/v/drab.svg)](https://hex.pm/packages/drab)
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/drab.svg?style=flat)](https://hex.pm/packages/drab)
@@ -17,31 +17,28 @@ logic to the server-side, to eliminate Javascript and Ajax calls.
 
 ```html
 <div class="progress">
-  <div class="progress-bar" role="progressbar" style="width:0%">
+  <div class="progress-bar <%= @progress_bar_class %>" role="progressbar" @style.width=<%= "#{@bar_width}%" %>>
+    <%= "#{@bar_width}%" %>
   </div>
 </div>
-<button drab-click="perform_long_process">Click to start processing</button>
+<button class="btn btn-primary" drab-click="perform_long_process">
+  <%= @long_process_button_text %>
+</button>
 ```
 
 * Server side:
 
 ```elixir
-def perform_long_process(socket, dom_sender) do
-  steps = MyLongProcess.number_of_steps()
+def perform_long_process(socket, _sender) do
+  poke socket, progress_bar_class: "progress-bar-danger", long_process_button_text: "Processing..."
+
+  steps = :rand.uniform(100)
   for i <- 1..steps do
-    MyLongProcess.perform_step(i)
-    # update the progress bar after each of MyLongProcess steps
-    socket 
-      |> update(
-          css: "width", 
-          set: "#{i * 100 / steps}%", 
-          on: ".progress-bar")
-      |> update(
-          :html,         
-          set: "#{Float.round(i * 100 / steps, 2)}%", 
-          on: ".progress-bar")
+    Process.sleep(:rand.uniform(500)) #simulate real work
+    poke socket, bar_width: Float.round(i * 100 / steps, 2)
   end
-  socket |> insert(class: "progress-bar-success", into: ".progress-bar")
+
+  poke socket, progress_bar_class: "progress-bar-success", long_process_button_text: "Click me to restart"
 end
 ```
 
@@ -49,7 +46,7 @@ end
 
   1. Erlang ~> 19
 
-  2. Elixir ~> 1.3
+  2. Elixir ~> 1.4
 
   3. Phoenix ~> 1.2
 
@@ -61,7 +58,7 @@ end
 
 ```elixir
 def deps do
-  [{:drab, "~> 0.3"}]
+  [{:drab, "~> 0.5"}]
 end
 ```
 
@@ -70,7 +67,57 @@ $ mix deps.get
 $ mix compile
 ```
 
-  2. Add `jquery` and `boostrap` to `package.json`:
+  2. Initialize Drab client library by adding to the layout page (`web/templates/layout/app.html.eex`)
+
+```html
+<%= Drab.Client.js(@conn) %>
+```
+    
+  just after the following line:
+
+```html
+<script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+```
+    
+  3. Initialize Drab sockets by adding the following to `web/channels/user_socket.ex`:
+
+```elixir
+use Drab.Socket
+```
+
+  4. Add Drab template engine to `config.exs`:
+
+```elixir
+config :phoenix, :template_engines,
+  drab: Drab.Live.Engine
+```
+
+  5. Add `:drab` to applications started by default in `mix.exs`:
+
+```elixir
+def application do
+  [mod: {MyApp, []},
+   applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext, :drab]]
+end
+```
+
+  6. To enable live reload on Drab pages, add `.drab` extension to live reload patterns in `dev.exs`:
+
+```elixir
+config :my_app, MyApp.Endpoint,
+  live_reload: [
+    patterns: [
+      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
+      ~r{priv/gettext/.*(po)$},
+      ~r{web/views/.*(ex)$},
+      ~r{web/templates/.*(eex|drab)$}
+    ]
+  ]
+```
+
+#### If you want to use Drab.Query (jQuery based module):
+
+  1. Add `jquery` and `boostrap` to `package.json`:
 
 ```json
 "dependencies": {
@@ -79,10 +126,7 @@ $ mix compile
 }
 ```
 
-  You may ommit this step if you are not planning to use DOM, jQuery, Drab.Query and Drab.Modal -
-  [see Domless Drab](https://tg.pl/drab/nojquery)
-
-  3. Add jQuery as a global at the end of `brunch-config.js`:
+  2. Add jQuery as a global at the end of `brunch-config.js`:
 
 ```javascript
 npm: {globals: {
@@ -92,44 +136,23 @@ npm: {globals: {
 }}
 ```
 
-  You may ommit this step if you are not planning to use DOM, jQuery, Drab.Query and Drab.Modal -
-  [see Domless Drab](https://tg.pl/drab/nojquery)
-
-  4. And install it:
+  3. And install it:
 
 ```bash
 $ npm install && node_modules/brunch/bin/brunch build 
 ```
 
-  5. Initialize Drab client library by adding to the layout page (`web/templates/layout/app.html.eex`)
 
-```html
-<%= Drab.Client.js(@conn) %>
-```
-    
-    just after the following line:
-
-```html
-<script src="<%= static_path(@conn, "/js/app.js") %>"></script>
-```
-    
-  6. Initialize Drab sockets by adding the following to `web/channels/user_socket.ex`:
-
-```elixir
-use Drab.Socket
-```
-
-Congratullations! You have installed Drab and you can proceed with your own Commanders.
+Congratullations! You have installed Drab and you can proceed with your own commanders.
 
 ## Usage
 
 All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. 
 Think about it as a controller for the live pages. Commanders should be placed in `web/commanders` directory.
 
-To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your application 
-controller. 
+To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your controller. 
 
-Remember the difference: `controller` renders the page while `commander` works on the live page.
+Remember the difference: `controller` renders the page, while `commander` works on the live page.
 
   1. Generate the page Commander. Commander name should correspond to controller, so PageController should have 
   PageCommander:
@@ -142,22 +165,31 @@ Add the following line to your Example.PageController:
     use Drab.Controller 
 ```
 
-  2. As described in the previous task, add `Drab.Controller` to your page Controller 
-  (eg. `web/controllers/page_controller.ex` in the default app):
+  2. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
 
 ```elixir
-defmodule DrabExample.PageController do
+defmodule MyApp.PageController do
   use Example.Web, :controller
   use Drab.Controller 
 
   def index(conn, _params) do
-    render conn, "index.html"
+    render conn, "index.html", welcome_text: "Welcome to Phoenix!"
   end
 end    
 ```
 
-  3. Edit the commander file `web/commanders/page_commander.ex` and add some real action - the `onload` callback 
-  which fires when the browser connects to Drab.
+  Also add `@welcome_text` assing to `render/3` in index action, to be used in a future.
+
+  3. Rename the template from `web/templates/page/index.html.eex` to `index.html.drab`
+
+  4. Edit the template `web/templates/page/index.html.drab` and change the fixed welcome text to the assign:
+
+```html
+<div class="jumbotron">
+  <h2><%= @welcome_text %></h2>
+```
+
+  3. Edit the commander file `web/commanders/page_commander.ex` and add some real action - the `onload` callback, which fires when the browser connects to the Drab server:
 
 ```elixir
 defmodule DrabExample.PageCommander do
@@ -167,137 +199,138 @@ defmodule DrabExample.PageCommander do
 
   # Drab Callbacks
   def page_loaded(socket) do
-    socket 
-      |> update(:html, set: "Welcome to Phoenix+Drab!", on: "div.jumbotron h2")
-      |> update(:html, 
-          set: "Please visit <a href='https://tg.pl/drab'>Drab</a> page for more examples and description",
-          on:  "div.jumbotron p.lead")
+    poke socket, welcome_text: "This page has been drabbed"
+    set_prop socket, "div.jumbotron p.lead", 
+      innerHTML: "Please visit <a href='https://tg.pl/drab'>Drab</a> page for more"
   end
 end
 ```
 
-Function `update/3` (shorthand for `Drab.Query.update/3`) with `:html` parameter sets the HTML of DOM object, 
-analogically to `$().html()` on the client side.
+The `poke/2` function updates the assign. The `set_prop/3` updates any property of the DOM object. All is done live, without reloading the page.
 
-Finally! Run the phoenix server and enjoy working on the Dark Side of the web.
-
-### All above is available for download [here](https://github.com/grych/drab-example)
-
-## Drab Events
-
-* Client-side: assign the events directly in HTML, using `drab-event=event_name` and `drab-handler='event_handler'` 
-combination of attributes, when `event_name` is the JS event name and `event_handler` is the function name 
-in the Commander. This function will be fired on event. There is also a shorthand for this: 
-`drab-[event_name]=event_handler` (currently: click, change, keyup, keydown are defined). Example:
-
-```html
-<button drab-click='button_clicked'>Clickme!</button>
-```
-
-* Server-side: when clicked, this button will launch the following action on the corresponding commander:
+  4. Run `iex -S mix phoenix.server`. Go to `http://localhost:4000` to see the changed web page. Now you may play with this page live, directly from the `iex`! Observe the instruction given when your browser connects to the page:
 
 ```elixir
-defmodule Example.PageCommander do
-  use Drab.Commander
+[debug] 
+    Started Drab for same_path:/, handling events in DrabExample.PageCommander
+    You may debug Drab functions in IEx by copy/paste the following:
+import Drab.{Core, Element, Live}
+socket = Drab.get_socket(pid("0.653.0"))
 
-  # Drab Events
-  def button_clicked(socket, dom_sender) do
-    socket 
-      |> update(:text, set: "alread clicked", on: this(dom_sender))
-  end
-end
+    Examples:
+socket |> exec_js("alert('hello from IEx!')")
+socket |> poke(count: 42)
+
 ```
 
-As you probably guess, this changes button description (`Drab.Query.update/3` used with `:text`).
+As instructed, copy and paste those to lines, and check out yourself how could you remote control the displayed page:
+
+```elixir
+iex> poke socket, welcome_text: "WOW, this is nice"
+%Phoenix.Socket{...}
+
+iex> query socket, "div.jumbotron h2", :innerText
+{:ok,
+ %{"[drab-id='425d4f73-9c14-4189-992b-41539377c9eb']" => %{"innerText" => "WOW, this is nice"}}}
+
+iex> set_style socket, "div.jumbotron", backgroundColor: "red"
+{:ok, 1}
+```
+
+
+### The example above is available [here](https://github.com/grych/drab-example)
+
 
 ## What now?
 
 Visit [Demo Page](https://tg.pl/drab) for a live demo and more description.
 
-Visit [Docs with Examples](https://tg.pl/drab/docs) - documentation with short examples.
+Visit [Documentation](https://hexdocs.pm/drab) page.
+
 
 ## Tests and Sandbox
 
 Since 0.3.2, Drab is equipped with its own Phoenix Server for automatic integration tests and for sandboxing and play
 with it.
 
-## Sandbox
+### Sandbox
 
 * clone Drab from github:
 
-````shell
+```shell
 git clone git@github.com:grych/drab.git
 cd drab
-````
+```
 
 * get deps and node modules:
 
-````shell
+```shell
 mix deps.get
 npm install && node_modules/brunch/bin/brunch build
-````
+```
 
 * start Phoenix with Drab:
 
-````shell
+```shell
 iex -S mix phoenix.server
-````
+```
 
 * open the browser and navigate to http://localhost:4000
 
 * follow the instructions in IEx to play with Drab functions:
 
-````elixir
-import Drab.Core; import Drab.Query; import Drab.Modal; import Drab.Waiter
-socket = Drab.get_socket(pid("0.443.0"))
+```elixir
+import Drab.{Core, Live, Element, Query, Waiter}
+socket = Drab.get_socket(pid("0.784.0"))
 
-iex(5)> socket |> alert("Title", "WOW!")                                          
-{:ok, %{}}
-iex(6)> socket |> select(:text, from: "h3")
-"Drab Tests"
-iex(7)> socket |> update(:text, set: "It is set from IEx, wow!", on: "h3")  
-%Phoenix.Socket{assigns: %{__action: :index, .........
-````
+iex> query socket, "h3", :innerText
+{:ok,
+ %{"#header" => %{"innerText" => "Drab Tests"},
+   "#page_loaded_indicator" => %{"innerText" => "Page Loaded"}}}
 
-## Tests
+iex> set_prop socket, "h3", innerText: "Updated from IEx"
+{:ok, 2}
 
-Most of the Drab tests are integration (end-to-end) tests, thus they require automated browser. Drab uses 
-`chromedriver`, which must be run while you run tests.
+iex> exec_js socket, "alert('You do like alerts!')"
+{:ok, nil}
+```
+
+### Tests
+
+Most of the Drab tests are integration (end-to-end) tests, thus they require automated browser. Drab uses `chromedriver`, which must be run while you run tests.
 
 * clone Drab from github:
 
-````shell
+```shell
 git clone git@github.com:grych/drab.git
 cd drab
-````
+```
 
 * get deps and node modules:
 
-````shell
+```shell
 mix deps.get
 npm install && node_modules/brunch/bin/brunch build
-````
+```
 
 * run `chromedriver` 
 
 * run tests:
 
-````shell
-$ mix test
-Compiling 29 files (.ex)
+```shell
+kim:grych<~/drab>% mix test                 
+Compiling 23 files (.ex)
+........................................
 
-Generated drab app
-.......................................................................
+Finished in 120.9 seconds
+123 tests, 0 failures
 
-Finished in 149.4 seconds
-71 tests, 0 failures
+Randomized with seed 934572
+```
 
-Randomized with seed 277485
-````
+# Contact
 
-## Contact
-
-(c)2016 Tomek "Grych" Gryszkiewicz, 
+(c)2016-2017 Tomek "Grych" Gryszkiewicz, 
 <grych@tg.pl>
 
 

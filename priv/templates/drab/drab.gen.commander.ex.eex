@@ -1,18 +1,16 @@
 defmodule <%= module %>Commander do
   use Drab.Commander
-  # Drab Events
-  # place your event handers here
+  # place your event handlers here
   #
-  # def button_clicked(socket, dom_sender) end
-  #   socket |> update(:html, set: "Clicked the button!", on: "#output_div")
+  # def button_clicked(socket, sender) end
+  #   set_prop socket, "#output_div", innerHTML: "Clicked the button!"
   # end
   #
-  # Drab Callbacks
-  # to run onload callback, use :onload directive:
+  # place you callbacks here
   #
-  # use Drab.Commander, onload: :page_loaded 
+  # onload: :page_loaded 
   #
   # def page_loaded(socket) do
-  #   socket |> update(:html, set: "Welcome to Phoenix+Drab!", on: "div.jumbotron h2")
+  #   set_prop socket, "div.jumbotron h2", innerText: "This page has been drabbed"
   # end
 end

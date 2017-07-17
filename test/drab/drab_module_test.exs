@@ -13,7 +13,7 @@ defmodule Drab.DrabModuleTest do
     end
 
     test "templates" do
-      assert DrabModule.all_templates_for([]) == ["drab.core.js"]
+      assert DrabModule.all_templates_for([]) == ["drab.core.js", "drab.events.js"]
       assert DrabModule.all_templates_for([Drab.Query]) == ["drab.core.js", "drab.events.js"]
       assert DrabModule.all_templates_for([Drab.Live]) == ["drab.core.js", "drab.events.js", "drab.live.js"]
       assert DrabModule.all_templates_for([Drab.Waiter]) == ["drab.core.js", "drab.events.js", "drab.waiter.js"]

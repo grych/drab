@@ -377,6 +377,7 @@ defmodule Drab do
     Phoenix.Channel.Server.broadcast Drab.Config.pubsub(), "__drab:#{subject}", message, Map.new(payload)
   end
 
+  @doc false
   def broadcast(topics, _pid, _ref, message, payload) when is_list(topics) do
     for topic <- topics do
       broadcast(topic, nil, message, payload)

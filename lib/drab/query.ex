@@ -45,7 +45,7 @@ defmodule Drab.Query do
 
   # Drab behaviour
   use DrabModule
-  def js_templates(), do: ["drab.events.js"]
+  # def js_templates(), do: []
 
   @doc false
   def transform_payload(payload, _state) do

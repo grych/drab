@@ -125,7 +125,7 @@ defmodule Drab.Live do
 
   use DrabModule
   @doc false
-  def js_templates(),  do: ["drab.events.js", "drab.live.js"]
+  def js_templates(),  do: ["drab.live.js"]
 
   @doc false
   def transform_payload(payload, _state) do

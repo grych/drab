@@ -8,6 +8,7 @@ Drab.add_payload(function(sender, event) {
 
 Drab.on_load(function(resp, drab) {
   // extract information from all drabbed nodes and store it in global __drab
+  if (typeof window.__drab == 'undefined') {window.__drab = {assigns: {}}};
   var d = window.__drab
   d.amperes = {}
   d.properties = {}
@@ -31,7 +32,9 @@ Drab.on_load(function(resp, drab) {
   // update the properties set in <tag @property=expression>
   set_properties(document)
   // get the name of the main partial
-  d.index = document.querySelector("[drab-partial]").getAttribute("drab-partial")
+  if (document.querySelector("[drab-partial]")) {
+    d.index = document.querySelector("[drab-partial]").getAttribute("drab-partial")
+  }
 })
 
 function set_properties(where) {

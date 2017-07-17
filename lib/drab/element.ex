@@ -13,7 +13,7 @@ defmodule Drab.Element do
   use DrabModule
 
   @doc false
-  def js_templates(),  do: ["drab.events.js", "drab.element.js"]
+  def js_templates(),  do: ["drab.element.js"]
 
   @doc false
   def transform_payload(payload, _state) do
