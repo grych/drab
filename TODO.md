@@ -4,19 +4,6 @@ Bugs:
 * insert and innerHTML should re-assing drab events
 * think if drab_store shouldn't be page or controller/based
 
-Changes:
-* remove Query from the default
-* new default module, not jQuery based
-* changesets for update/insert in the new base module
-* group JS commands to be launched in one step, if possible
-* DOM tree as a Map?
-* Query must work with Live
-* have a values of the <input> fields from parent <form> directly in the Commander Event Handler Function - only if drab-send-params set in button
-* re-initiate JS event handler after changing the SPAN (inside it)
-* helper to change URL (smart?)
-* use <%/ %> to not drab the specific one
-* change of broadcast (without socket)
-
 
 ## 0.5.1
 
@@ -30,13 +17,17 @@ Changes:
 
 ## Future
 Changes:
-* broadcast to all except you (really?)
 * benchmarks (compare to AJAX)
 * extract Drab Store and Session to standalone module (loaded by default)
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
 * before_handler (etc), only: should accept a list or atom (currently list only)
-* technical socket? for broadcasts from drab server
 * cumulate drab related assigns in socket to one map `__drab`
+
+Changes:
+* group JS commands to be launched in one step, if possible
+* re-initiate JS event handler after changing the SPAN (inside it)
+* helper to change URL (smart?)
+* use <%/ %> to not drab the specific one
 
 Bugs:
 * spawn_link in handler does not terminate the spawned process
