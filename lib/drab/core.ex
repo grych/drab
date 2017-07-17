@@ -186,12 +186,12 @@ defmodule Drab.Core do
     end
   end
 
-  @doc false
-  def execjs(socket, js) do
-    Deppie.once("Drab.Core.execjs/2 is depreciated. Please use Drab.Core.exec_js/3 instead")
-    {_, result} = exec_js(socket, js)
-    result
-  end
+  # @doc false
+  # def execjs(socket, js) do
+  #   Deppie.once("Drab.Core.execjs/2 is depreciated. Please use Drab.Core.exec_js/3 instead")
+  #   {_, result} = exec_js(socket, js)
+  #   result
+  # end
 
   @doc """
   Asynchronously broadcasts given javascript to all browsers listening on the given subject.
@@ -241,12 +241,12 @@ defmodule Drab.Core do
     subject
   end
 
-  @doc false
-  def broadcastjs(socket, js) do
-    Deppie.once("Drab.Core.broadcastjs/2 is depreciated. Please use Drab.Core.broadcast_js/3 instead")
-    broadcast_js(socket, js)
-    socket
-  end
+  # @doc false
+  # def broadcastjs(socket, js) do
+  #   Deppie.once("Drab.Core.broadcastjs/2 is depreciated. Please use Drab.Core.broadcast_js/3 instead")
+  #   broadcast_js(socket, js)
+  #   socket
+  # end
 
   @doc """
   Helper for broadcasting functions, returns topic for a given URL path.
@@ -271,25 +271,25 @@ defmodule Drab.Core do
   """
   def same_topic(topic), do: "topic:#{topic}"
 
-  @doc """
-  Moved to `Drab.Browser.console/2`
-  """
-  def console(socket, log) do
-    Deppie.once """
-    Drab.Core.console/2 is depreciated. Use Drab.Browser.console/2 instead.
-    """
-    Drab.Browser.console(socket, log)
-  end
+  # @doc """
+  # Moved to `Drab.Browser.console/2`
+  # """
+  # def console(socket, log) do
+  #   Deppie.once """
+  #   Drab.Core.console/2 is depreciated. Use Drab.Browser.console/2 instead.
+  #   """
+  #   Drab.Browser.console(socket, log)
+  # end
 
-  @doc """
-  Moved to `Drab.Browser.console!/2`
-  """
-  def console!(socket, log) do
-    Deppie.once """
-    Drab.Core.console!/2 is depreciated. Use Drab.Browser.console!/2 instead.
-    """
-    Drab.Browser.console!(socket, log)
-  end
+  # @doc """
+  # Moved to `Drab.Browser.console!/2`
+  # """
+  # def console!(socket, log) do
+  #   Deppie.once """
+  #   Drab.Core.console!/2 is depreciated. Use Drab.Browser.console!/2 instead.
+  #   """
+  #   Drab.Browser.console!(socket, log)
+  # end
 
   @doc false
   def encode_js(value), do: Poison.encode!(value)

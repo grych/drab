@@ -434,9 +434,9 @@ defmodule Drab do
     module.__drab__()
   end
 
-  @doc false
-  def config() do
-    Drab.Config.config()
-  end
+  # @doc false
+  # def config() do
+  #   Drab.Config.config()
+  # end
 
 end
