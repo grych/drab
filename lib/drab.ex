@@ -37,9 +37,6 @@ defmodule Drab do
 
       end
 
-  Drab treats browser page as a database, allows you to read and change the data there. Please refer to `Drab.Query` documentation to 
-  find out how `Drab.Query.select/2` or `Drab.Query.update/2` works.
-
   ## Debugging Drab in IEx
 
   When started with iex (`iex -S mix phoenix.server`) Drab shows the helpful message on how to debug its functions:
@@ -70,10 +67,11 @@ defmodule Drab do
   ## Modules
 
   Drab is modular. You may choose which modules to use in the specific Commander by using `:module` option
-  in `use Drab.Commander` directive. By default, `Drab.Query` and `Drab.Modal` are loaded, but you may override it using 
-  options with `use Drab.Commander` directive.
+  in `use Drab.Commander` directive. By default, `Drab.Live` and `Drab.Element` are loaded, but you may override it 
+  using  `modules` option with `use Drab.Commander` directive.
 
-  Every module must have the corresponding javascript template, which is added to the client code in case the module is loaded.
+  Every module must have the corresponding javascript template, which is added to the client code in case 
+  the module is loaded.
   """
 
   require Logger

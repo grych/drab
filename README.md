@@ -240,13 +240,15 @@ iex> set_style socket, "div.jumbotron", backgroundColor: "red"
 
 ### The example above is available [here](https://github.com/grych/drab-example)
 
-
 ## What now?
 
 Visit [Demo Page](https://tg.pl/drab) for a live demo and more description.
 
 Visit [Documentation](https://hexdocs.pm/drab) page.
 
+## Getting help
+
+There is a Drab's thread on [elixirforum.com](https://elixirforum.com/t/drab-phoenix-library-for-server-side-dom-access/3277), please address questions there.
 
 ## Tests and Sandbox
 
@@ -297,7 +299,7 @@ iex> exec_js socket, "alert('You do like alerts!')"
 
 ### Tests
 
-Most of the Drab tests are integration (end-to-end) tests, thus they require automated browser. Drab uses `chromedriver`, which must be run while you run tests.
+Most of the Drab tests are integration (end-to-end) tests, thus they require automated browser. Drab uses [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/), which must be running while you run tests.
 
 * clone Drab from github:
 
@@ -318,7 +320,7 @@ npm install && node_modules/brunch/bin/brunch build
 * run tests:
 
 ```shell
-kim:grych<~/drab>% mix test                 
+% mix test                 
 Compiling 23 files (.ex)
 ........................................
 

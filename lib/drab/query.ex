@@ -211,9 +211,11 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Like `Drab.Query.update/2`, but broadcasts to all currently connected browsers.
+  Like `Drab.Query.update/2`, but broadcasts instead of pushing the change.
 
   Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return socket.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
   def update!(socket, options) do
     do_update(socket, @broadcast, options)
@@ -353,9 +355,11 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Like `Drab.Query.insert/2`, but broadcast to all currently connected browsers.
+  Like `Drab.Query.insert/2`, but broadcasts instead of pushing the change.
 
   Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return socket.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
   def insert!(socket, options) do
     do_insert(socket, @broadcast, options)
@@ -409,9 +413,11 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Like `Dom.Query.delete/2`, but broadcasts to all currently connected browsers.
+  Like `Dom.Query.delete/2`, but broadcasts instead of pushing the change.
 
-  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
+  Broadcast functions are asynchronous, do not wait for the reply from browsers.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
   def delete!(socket, options) do
     do_delete(socket, @broadcast, options)
@@ -460,9 +466,11 @@ defmodule Drab.Query do
   end
 
   @doc """
-  Like `Drab.Query.execute/2`, but broadcasts to all currently connected browsers, which have the same URL opened.
+  Like `Drab.Query.execute/2`, but broadcasts instead of pushing the change.
 
-  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return `:sent`.
+  Broadcast functions are asynchronous, do not wait for the reply from browsers.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
   def execute!(socket, options) do
     do_execute(socket, @broadcast, options)

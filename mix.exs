@@ -44,7 +44,7 @@ defmodule Drab.Mixfile do
 
   defp description() do
     """
-    Plugin to the Phoenix Framework to query and manipulate User Interface in the browser directly from Elixir.
+    Plugin to the Phoenix Framework to access the User Interface in the browser directly from the server side.
     """
   end
 
@@ -57,7 +57,6 @@ defmodule Drab.Mixfile do
       licenses: ["MIT"],
       links: %{
         "GitHub" => "https://github.com/grych/drab", 
-        "Docs with Examples" => "https://tg.pl/drab/docs", 
         "Home" => "https://tg.pl/drab"
       }
     ]

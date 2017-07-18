@@ -235,6 +235,8 @@ defmodule Drab.Core do
 
   @doc """
   Bang version of `Drab.Core.broadcast_js/3`
+
+  Returns subject.
   """
   def broadcast_js!(subject, js, _options \\ []) do
     Drab.broadcast(subject, self(), "broadcastjs", js: js)

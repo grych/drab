@@ -76,10 +76,11 @@ defmodule Drab.Channel do
       end) |> Enum.join(", ")
 
       module_examples = %{
-        Drab.Live   => "socket |> poke(count: 42)",
-        Drab.Query  => "socket |> select(:htmls, from: \"h4\")",
-        Drab.Modal  => "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
-        Drab.Core   => "socket |> exec_js(\"alert('hello from IEx!')\")"
+        Drab.Live     => "socket |> poke(count: 42)",
+        Drab.Element  => "socket |> set_style(backgroundColor: \"red\")",
+        Drab.Query    => "socket |> select(:htmls, from: \"h4\")",
+        Drab.Modal    => "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
+        Drab.Core     => "socket |> exec_js(\"alert('hello from IEx!')\")"
       }
       examples = Enum.map(modules, fn module -> 
         module_examples[module]

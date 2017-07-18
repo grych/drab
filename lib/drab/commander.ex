@@ -294,6 +294,8 @@ defmodule Drab.Commander do
   * `:same_controller` - broadcasted message will be received by all browsers, which renders the page generated 
     by the same controller
   * `"topic"` - any topic you want to set, messages will go to the clients sharing this topic
+
+  See `Drab.Core.broadcast_js/2` for more.
   """
   defmacro broadcasting(subject) when is_atom(subject) and subject in @broadcasts do
     quote do
