@@ -2,12 +2,12 @@
 ## 0.5.0
 Bugs:
 * insert and innerHTML should re-assing drab events
-* think if drab_store shouldn't be page or controller/based
 
 
 ## 0.5.1
-* broadcast to multiple subjects (done)
-* browser offset to UTC (done)
+* Browser.update_url_bar
+* update documentation form Drab.Client
+* Live.poke - better error message when partial not found
 
 * Also, instead of 'broadcasting' a change to all browsers, why not do what Phoenix.pubsub does? Allow you to override an outgoing message (then in your time broadcast example you could 'catch' the outgoing message and reformat it?)
 
@@ -28,6 +28,8 @@ Changes:
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
 * before_handler (etc), only: should accept a list or atom (currently list only)
 * cumulate drab related assigns in socket to one map `__drab`
+* think if drab_store shouldn't be page or controller/based
+* commander per template
 
 Changes:
 * group JS commands to be launched in one step, if possible
