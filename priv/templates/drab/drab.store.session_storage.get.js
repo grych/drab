@@ -1,1 +1,1 @@
-return sessionStorage.drab_store_token
+return sessionStorage.drab_store_token;

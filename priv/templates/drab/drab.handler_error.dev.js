@@ -1,1 +1,1 @@
-alert(<%= message %>)
+alert(<%= message %>);

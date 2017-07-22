@@ -1,1 +1,1 @@
-return localStorage.drab_store_token
+return localStorage.drab_store_token;

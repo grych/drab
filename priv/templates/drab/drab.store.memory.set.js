@@ -1,1 +1,1 @@
-Drab.drab_store_token = token
+Drab.drab_store_token = token;

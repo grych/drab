@@ -1,1 +1,1 @@
-sessionStorage.drab_store_token = token
+sessionStorage.drab_store_token = token;

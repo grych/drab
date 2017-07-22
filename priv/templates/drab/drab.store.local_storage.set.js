@@ -1,1 +1,1 @@
-localStorage.drab_store_token = token
+localStorage.drab_store_token = token;
