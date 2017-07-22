@@ -3,9 +3,11 @@ const EVENTS_TO_DISABLE = <%= Drab.Config.get(:events_to_disable_while_processin
 
 Drab.disable_drab_objects = function (disable) {
   <%= if Drab.Config.get(:disable_controls_when_disconnected) do %>
-    document.querySelectorAll("[drab-event]").forEach(function (element) {
+    var found =  document.querySelectorAll("[drab-event]");
+    for (var i = 0; i < found.length; i++) {
+      var element = found[i];
       element['disabled'] = disable;
-    });
+    };
   <% end %>
 };
 
@@ -33,9 +35,11 @@ function payload(sender, event) {
   } else {
     p = {};
   }
-  Drab.additional_payloads.forEach(function (fx) {
+
+  for (var i = 0; i < Drab.additional_payloads.length; i++) {
+    var fx = Drab.additional_payloads[i];
     p = Object.assign(p, fx(sender, event));
-  });
+  };
   return p;
 }
 
@@ -47,13 +51,13 @@ function default_payload(sender, event) {
   });
   if (form) {
     var inputs = form.querySelectorAll("input, textarea, select");
-    var i = 0;
-    inputs.forEach(function (input) {
+    for (var i = 0; i < inputs.length; i++) {
+      var input = inputs[i];
       var key = input.name || input.id || false;
       if (key) {
         params[key] = input.value;
       }
-    });
+    };
   }
   return {
     // by default, we pass back some sender properties
@@ -97,9 +101,9 @@ function do_setid(whom) {
 
 Drab.setid = function (whom) {
   if (Array.isArray(whom)) {
-    whom.forEach(function (x) {
-      do_setid(x);
-    });
+    for (var i = 0; i < whom.length; i ++) {
+      do_setid(whom[i]);
+    };
   } else {
     do_setid(whom);
   }
@@ -119,7 +123,8 @@ Drab.set_event_handlers = function (obj) {
   var drab_objects_shortcut = [];
 
   // first serve the shortcut controls by adding the longcut attrbutes
-  EVENTS.forEach(function (ev) {
+  for (var i = 0; i < EVENTS.length; i++) {
+    var ev = EVENTS[i];
     if (obj) {
       var o = document.querySelector(obj);
       if (o) {
@@ -129,11 +134,12 @@ Drab.set_event_handlers = function (obj) {
       drab_objects_shortcut = document.querySelectorAll("[drab-" + ev + "]");
     }
     // console.log(drab_objects_shortcut)
-    drab_objects_shortcut.forEach(function (node) {
+    for (var i = 0; i < drab_objects_shortcut.length; i++) {
+      var node = drab_objects_shortcut[i];
       node.setAttribute("drab-event", ev);
       node.setAttribute("drab-handler", node.getAttribute("drab-" + ev));
-    });
-  });
+    };
+  };
 
   if (obj) {
     var o = document.querySelector(obj);
@@ -145,25 +151,29 @@ Drab.set_event_handlers = function (obj) {
   }
 
   var events_to_disable = EVENTS_TO_DISABLE;
-  drab_objects.forEach(function (node) {
+
+
+  for (var i = 0; i < drab_objects.length; i++) {
+    var node = drab_objects[i];
     if (node.getAttribute("drab-handler")) {
 
       var event_handler_function = function (event) {
         // disable current control - will be re-enabled after finish
+        var n = this;
         <%= if Drab.Config.get(:disable_controls_while_processing) do %>
           if (events_to_disable.indexOf(event_name) >= 0) {
-            node['disabled'] = true;
+            n['disabled'] = true;
           }
         <% end %>
-        Drab.setid(node);
+        Drab.setid(n);
         // send the message back to the server
         Drab.run_handler(
           event_name,
-          node.getAttribute("drab-handler"), 
-          payload(node, event)
+          n.getAttribute("drab-handler"), 
+          payload(n, event)
           <%= if Drab.Config.get(:disable_controls_while_processing) do %>
             , function() {
-                node['disabled'] = false
+                n['disabled'] = false
               }
           <% end %>
         );
@@ -185,7 +195,7 @@ Drab.set_event_handlers = function (obj) {
     } else {
       console.log("Drab Error: drab-event definded without drab-handler", this);
     }
-  });
+  };
 };
 
 Drab.on_load(function (drab) {

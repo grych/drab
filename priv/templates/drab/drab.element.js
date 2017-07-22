@@ -73,7 +73,9 @@ function default_properties(element) {
 Drab.query = function (selector, what, where) {
   var searchie = where || document;
   var ret = {};
-  searchie.querySelectorAll(selector).forEach(function (element) {
+  var found = searchie.querySelectorAll(selector);
+  for (var i = 0; i < found.length; i++) {
+    var element = found[i];
     var id = element.id;
     var id_selector;
     if (id) {
@@ -84,8 +86,8 @@ Drab.query = function (selector, what, where) {
     }
     ret[id_selector] = {};
     if (what.length != 0) {
-      for (var i in what) {
-        var property = what[i];
+      for (var j in what) {
+        var property = what[j];
         switch (property) {
           case "attributes":
             ret[id_selector][property] = get_element_attributes(element);
@@ -104,7 +106,7 @@ Drab.query = function (selector, what, where) {
     } else {
       ret[id_selector] = default_properties(element);
     }
-  });
+  };
   return ret;
 };
 
@@ -118,7 +120,9 @@ function isObject(val) {
 Drab.set_prop = function (selector, what, where) {
   var searchie = where || document;
   var i = 0;
-  searchie.querySelectorAll(selector).forEach(function (element) {
+  var found = searchie.querySelectorAll(selector);
+  for (i = 0; i < found.length; i++) {
+    var element = found[i];
     for (var property in what) {
       var value = what[property];
       switch (property) {
@@ -142,18 +146,18 @@ Drab.set_prop = function (selector, what, where) {
           break;
       }
     }
-    i++;
-  });
+  };
   return i;
 };
 
 Drab.insert_html = function (selector, position, html, where) {
   var searchie = where || document;
   var i = 0;
-  searchie.querySelectorAll(selector).forEach(function (element) {
+  var found = searchie.querySelectorAll(selector);
+  for (i = 0; i < found.length; i++) {
+    var element = found[i];
     element.insertAdjacentHTML(position, html);
-    i++;
-  });
+  };
   return i;
 };
 
