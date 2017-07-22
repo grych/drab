@@ -35,11 +35,9 @@ function payload(sender, event) {
   } else {
     p = {};
   }
-
-  for (var i = 0; i < Drab.additional_payloads.length; i++) {
-    var fx = Drab.additional_payloads[i];
+  Drab.additional_payloads.forEach(function (fx) {
     p = Object.assign(p, fx(sender, event));
-  };
+  });
   return p;
 }
 
@@ -101,8 +99,9 @@ function do_setid(whom) {
 
 Drab.setid = function (whom) {
   if (Array.isArray(whom)) {
-    for (var i = 0; i < whom.length; i ++) {
-      do_setid(whom[i]);
+    for (var i = 0; i < whom.length; i++) {
+      var x = whom[i]
+      do_setid(x);
     };
   } else {
     do_setid(whom);
@@ -123,8 +122,7 @@ Drab.set_event_handlers = function (obj) {
   var drab_objects_shortcut = [];
 
   // first serve the shortcut controls by adding the longcut attrbutes
-  for (var i = 0; i < EVENTS.length; i++) {
-    var ev = EVENTS[i];
+  EVENTS.forEach(function (ev) {
     if (obj) {
       var o = document.querySelector(obj);
       if (o) {
@@ -139,7 +137,7 @@ Drab.set_event_handlers = function (obj) {
       node.setAttribute("drab-event", ev);
       node.setAttribute("drab-handler", node.getAttribute("drab-" + ev));
     };
-  };
+  });
 
   if (obj) {
     var o = document.querySelector(obj);
