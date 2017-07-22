@@ -28,10 +28,10 @@
 
       var drab = this;
 
-      // launch all on_load functions
-      drab.load.forEach(function (fx) {
+      for (var i = 0; i < drab.load.length; i++) {
+        fx = drab.load[i];
         fx(drab);
-      });
+      }
 
       this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", { params: { __drab_return: drab_return_token } });
       this.socket.connect();
@@ -45,9 +45,10 @@
         // for(var f of drab.connected) {
         //   f(resp, drab)
         // }
-        drab.connected.forEach(function (fx) {
-          fx(resp, drab);
-        });
+        for (var c = 0; c < drab.connected.length; c++) {
+          var fxc = drab.connected[c];
+          fxc(resp, drab);
+        }
         drab.already_connected = true;
         // event is sent after Drab finish processing the event
         drab.channel.on("event", function (message) {
@@ -61,9 +62,10 @@
       // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
       this.socket.onClose(function (event) {
-        drab.disconnected.forEach(function (fx) {
-          fx(drab);
-        });
+        for (var di = 0; di < drab.disconnected.length; di++) {
+          var fxd = drab.disconnected[di];
+          fxd(drab);
+        }
       });
     },
     // 
@@ -121,7 +123,7 @@
       Drab.Template.render_template(template, [])
     end)
   %>
-  
+
   Drab.run('<%= controller_and_action %>', '<%= drab_session_token %>', '<%= broadcast_topic %>');
 })();
 
