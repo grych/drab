@@ -5,7 +5,7 @@ Fixes:
 * New `:main_phoenix_app` config item, in case the app name can't be read from `mix.exs` (#25)
 
 Changes:
-* sender[:params] contains params normalized to controller type params (#24)
+* `sender[:params]` contains params normalized to controller type params (#24)
 
       %{"_csrf" =>
       "1234", "user[id]" => "42", "user[email]" => "test@test.com",
