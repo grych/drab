@@ -1,10 +1,10 @@
 # v0.5.1
-Fixes:
+### Fixes:
 * Transpiled all JS templates, and removed all occurences of `forEach` (#22)
 * Radio buttons not reported correctly in `sender["form"]` (#23)
 * New `:main_phoenix_app` config item, in case the app name can't be read from `mix.exs` (#25)
 
-Changes:
+### Changes:
 * `sender[:params]` contains params normalized to controller type params (#24)
 
       %{"_csrf" =>
@@ -18,7 +18,7 @@ Changes:
       "user" => %{"account" => %{"address" => %{"street" => "123 Any Street"},
       "id" => "99"}, "email" => "test@test.com", "id" => "42"}}
 
-New features:
+### New features:
 * `Core.Browser.set_url/2` to manipulate the browser's URL bar
 
 # v0.5.0
