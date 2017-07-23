@@ -10,8 +10,10 @@ defmodule Drab.Config do
       :drab
   """
   def app_name() do
-    Mix.Project.config()[:app] || raise """
-      Can't find the main application name. Please check your mix.exs
+    get(:main_phoenix_app) || Mix.Project.config()[:app] || raise """
+      Can't find the main application name. Please check your mix.exs or set the name in confix.exs:
+
+          config :drab, main_phoenix_app: :my_app
       """
   end
 
@@ -144,6 +146,7 @@ defmodule Drab.Config do
     closed, and local storage is kept forever
   * `browser_response_timeout` - timeout, after which all functions querying/updating browser UI will give up; integer
     in milliseconds or `:infinity`
+  * `main_phoenix_app` - a name of your Phoenix application (atom); if not set it gets it from the `mix.exs`
   """
   def get(:templates_path), do: 
     Application.get_env(:drab, :templates_path, "priv/templates/drab")
@@ -153,6 +156,7 @@ defmodule Drab.Config do
   def get(:socket), do:                             Application.get_env(:drab, :socket, "/socket")
   def get(:drab_store_storage), do:                 Application.get_env(:drab, :drab_store_storage, :session_storage)
   def get(:browser_response_timeout), do:           Application.get_env(:drab, :browser_response_timeout, 5000)
+  def get(:main_phoenix_app), do:                   Application.get_env(:drab, :main_phoenix_app, nil)
   def get(_), do: nil
 
   # @doc """

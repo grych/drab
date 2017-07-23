@@ -56,7 +56,13 @@ function default_payload(sender, event) {
       var input = inputs[i];
       var key = input.name || input.id || false;
       if (key) {
-        params[key] = input.value;
+        if (input.type == "radio") {
+          if (input.checked) {
+            params[key] = input.value;
+          }
+        } else {
+          params[key] = input.value;
+        }
       }
     };
   }

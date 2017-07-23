@@ -8,6 +8,8 @@ defmodule Drab.Client do
   after the line which loads app.js:
 
       <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+
+  at the very end of the layout (after template rendering functions).
   """
 
   import Drab.Template

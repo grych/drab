@@ -128,12 +128,6 @@ defmodule Drab.Live do
   def js_templates(),  do: ["drab.live.js"]
 
   @doc false
-  def transform_payload(payload, _state) do
-    payload 
-      |> Map.put_new(:params, payload["form"])
-  end
-
-  @doc false
   def transform_socket(socket, payload, state) do
     # store assigns in Drab Server
     priv = Map.merge(state.priv, %{

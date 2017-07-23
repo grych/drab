@@ -1,3 +1,23 @@
+# v0.5.1
+Fixes:
+* Transpiled all JS templates, and removed all occurences of `forEach` (#22)
+* Radio buttons not reported correctly in `sender["form"]` (#23)
+* New `:main_phoenix_app` config item, in case the app name can't be read from `mix.exs` (#25)
+
+Changes:
+* sender[:params] contains params normalized to controller type params (#24)
+
+    %{"_csrf" =>
+      "1234", "user[id]" => "42", "user[email]" => "test@test.com",
+      "user[account][id]" => "99", "user[account][address][street]" =>
+      "123 Any Street"}
+
+    becomes:
+
+    %{"_csrf" => "1234",
+      "user" => %{"account" => %{"address" => %{"street" => "123 Any Street"},
+      "id" => "99"}, "email" => "test@test.com", "id" => "42"}}
+
 # v0.5.0
 ***This version is a major update***. The default module, `Drab.Query` has been replaced with `Drab.Live` and `Drab.Element`. Drab is not jQuery dependent by default anymore.
 

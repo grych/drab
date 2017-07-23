@@ -48,6 +48,7 @@ defmodule Drab.Core do
         "event"   => "a map with choosen properties of `event` object"
         "drab_id" => "internal"
         "form"    => "a map of values of the sourrounding form"
+        :params   => "a map of values of the sourrounding form, normalized to controller type params"
       }
 
   Example:
@@ -128,6 +129,21 @@ defmodule Drab.Core do
   use DrabModule  
   # def prerequisites(), do: []
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
+
+  @doc false
+  def transform_payload(payload, _state) do
+    payload 
+      |> Map.put_new(:params, payload["form"] |> normalize_params())
+  end
+
+  @doc false
+  def normalize_params(params) do
+    Enum.reduce(params, "", fn {k, v}, acc ->
+      acc <> k <> "=" <> v <> "&"
+    end)
+    |> String.trim_trailing("&")
+    |> Plug.Conn.Query.decode()
+  end
 
   @doc """
   Synchronously executes the given javascript on the client side. 

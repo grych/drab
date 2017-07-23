@@ -28,4 +28,12 @@ defmodule Drab.CoreTest do
     assert Drab.Core.encode_js(%{a: 1}) == "{\"a\":1}"
   end
   
+  test "normalize_params" do
+    assert normalize_params(%{"_csrf" =>
+      "1234", "user[id]" => "42", "user[email]" => "test@test.com",
+      "user[account][id]" => "99", "user[account][address][street]" =>
+      "123 Any Street"}) == %{"_csrf" => "1234",
+      "user" => %{"account" => %{"address" => %{"street" => "123 Any Street"},
+      "id" => "99"}, "email" => "test@test.com", "id" => "42"}}
+  end
 end
