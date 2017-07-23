@@ -10,11 +10,14 @@ defmodule Drab.Config do
       :drab
   """
   def app_name() do
-    get(:main_phoenix_app) || Mix.Project.config()[:app] || raise """
-      Can't find the main application name. Please check your mix.exs or set the name in confix.exs:
+    get(:main_phoenix_app) || case Code.ensure_loaded(Mix.Project) do
+      {:module, Mix.Project} -> Mix.Project.config()[:app]
+      {:error, _} -> raise """
+        Can't find the main application name. Please check your mix.exs or set the name in confix.exs:
 
-          config :drab, main_phoenix_app: :my_app
-      """
+            config :drab, main_phoenix_app: :my_app
+        """
+    end 
   end
 
   @doc """
