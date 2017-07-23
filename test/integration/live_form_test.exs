@@ -29,8 +29,9 @@ defmodule DrabTestApp.LiveForm do
       poke socket, text1: "text1 updated value",
                    textarea1: "textarea updated value",
                    select1: 3
+      Drab.Element.set_prop socket, "input[name=radio][value='3']", checked: true
       click_and_wait("update_form_button")
-      assert peek(socket, :out) == %{"radio" => "2",
+      assert peek(socket, :out) == %{"radio" => "3",
                                     "textarea" => "textarea updated value", 
                                     "select_input" => "3", 
                                     "text_input" => "text1 updated value"}
