@@ -160,7 +160,6 @@ Drab.set_event_handlers = function (obj) {
 
   var events_to_disable = EVENTS_TO_DISABLE;
 
-
   for (var i = 0; i < drab_objects.length; i++) {
     var node = drab_objects[i];
     if (node.getAttribute("drab-handler")) {
@@ -169,7 +168,7 @@ Drab.set_event_handlers = function (obj) {
         // disable current control - will be re-enabled after finish
         var n = this;
         <%= if Drab.Config.get(:disable_controls_while_processing) do %>
-          if (events_to_disable.indexOf(event_name) >= 0) {
+          if (events_to_disable.indexOf(event.type) >= 0) {
             n['disabled'] = true;
           }
         <% end %>
