@@ -1,6 +1,9 @@
 # v0.5.1
 Fixes:
-* Transpiled all JS templates, and removed all occurences of `forEach` #22
+* Transpiled all JS templates, and removed all occurences of `forEach` 
+  
+  Resolves #22
+
 * Radio buttons not reported correctly in `sender["form"]` (#23)
 * New `:main_phoenix_app` config item, in case the app name can't be read from `mix.exs` (#25)
 
