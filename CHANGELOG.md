@@ -18,6 +18,9 @@ Changes:
       "user" => %{"account" => %{"address" => %{"street" => "123 Any Street"},
       "id" => "99"}, "email" => "test@test.com", "id" => "42"}}
 
+New features:
+* `Core.Browser.set_url/2` to manipulate the browser's URL bar
+
 # v0.5.0
 ***This version is a major update***. The default module, `Drab.Query` has been replaced with `Drab.Live` and `Drab.Element`. Drab is not jQuery dependent by default anymore.
 

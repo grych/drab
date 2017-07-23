@@ -17,7 +17,8 @@ defmodule DrabTestApp.LiveForm do
       socket = drab_socket()
       assert peek(socket, :out) == %{}
       click_and_wait("update_form_button")
-      assert peek(socket, :out) == %{"textarea" => "textarea initial value", 
+      assert peek(socket, :out) == %{"radio" => "2",
+                                    "textarea" => "textarea initial value", 
                                     "select_input" => "2", 
                                     "text_input" =>  "text1 initial value"}
     end
@@ -29,7 +30,8 @@ defmodule DrabTestApp.LiveForm do
                    textarea1: "textarea updated value",
                    select1: 3
       click_and_wait("update_form_button")
-      assert peek(socket, :out) == %{"textarea" => "textarea updated value", 
+      assert peek(socket, :out) == %{"radio" => "2",
+                                    "textarea" => "textarea updated value", 
                                     "select_input" => "3", 
                                     "text_input" => "text1 updated value"}
     end

@@ -136,6 +136,26 @@ defmodule Drab.Browser do
     do_console(socket, log, &Drab.broadcast/5)
   end
 
+  @doc """
+  Replaces the URL in the browser navigation bar for the given URL.
+
+  The new URL can be absolute or relative to the current path. It must have the same origin as the current one.
+
+      iex> Drab.Browser.set_url socket, "/servers/1"
+      {:ok, nil}
+
+      iex> Drab.Browser.set_url socket, "http://google.com/"              
+      {:error,
+       "Failed to execute 'pushState' on 'History': A history state object with URL 'http://google.com/' 
+        cannot be created in a document with origin 'http://localhost:4000' and URL 'http://localhost:4000/'."}
+
+  """
+  def set_url(socket, url) do
+    exec_js socket, """
+    window.history.pushState({}, "", #{Drab.Core.encode_js(url)});
+    """
+  end
+
   defp do_console(socket, log, push_or_broadcast_function) do
     push_or_broadcast_function.(socket, self(), nil, "console",  log: log)
   end

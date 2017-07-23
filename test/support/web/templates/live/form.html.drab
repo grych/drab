@@ -14,6 +14,10 @@
   <pre><%= @textarea1 %></pre><br>
   <input type="text" value="<%= @text1 %>"><br>
   <br>
+  <input type="radio" name="radio" value="1">
+  <input type="radio" name="radio" value="2" checked>
+  <input type="radio" name="radio" value="3">
+  <br>
   <button id="update_form_button" drab-click="update_form">Get form values</button>
 </form>
 
