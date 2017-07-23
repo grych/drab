@@ -190,7 +190,7 @@ Drab.set_event_handlers = function (obj) {
 
       // options. Wraps around event_handler_function, eg. debounce(event_handler_function, 500)
       var options = node.getAttribute("drab-options");
-      matched = /(\w+)\s*\((.*)\)/.exec(options);
+      var matched = /(\w+)\s*\((.*)\)/.exec(options);
       if (matched) {
         var fname = matched[1];
         var fargs = matched[2].replace(/^\s+|\s+$/g, ''); // strip whitespace

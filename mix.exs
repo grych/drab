@@ -12,7 +12,8 @@ defmodule Drab.Mixfile do
      deps: deps(),
      description: description(),
      package: package(),
-     docs: [main: "Drab", logo: "priv/static/drab-400.png", extras: ["README.md", "LICENSE.md", "CHANGELOG.md"]], # , filter_prefix: "Drab."
+     docs: [main: "Drab", logo: "priv/static/drab-400.png", 
+      extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"]], # , filter_prefix: "Drab."
      compilers: [:phoenix, :gettext] ++ Mix.compilers
      # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
    ]

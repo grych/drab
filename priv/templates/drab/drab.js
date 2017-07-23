@@ -1,4 +1,5 @@
 (function () {
+  "use strict";
   function uuid() {
     // borrowed from http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
     var d = new Date().getTime();
@@ -29,7 +30,7 @@
       var drab = this;
 
       for (var i = 0; i < drab.load.length; i++) {
-        fx = drab.load[i];
+        var fx = drab.load[i];
         fx(drab);
       }
 

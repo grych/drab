@@ -21,7 +21,7 @@ Drab.on_connect(function (resp, drab) {
   }
 
   drab.channel.on("modal", function (message) {
-    $modal = $(MODAL);
+    var $modal = $(MODAL);
     $(MODAL_FORM).on("submit", function () {
       $(MODAL).data("clicked", true); // prevents double send
       modal_button_clicked(message, "ok");

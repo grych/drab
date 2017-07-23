@@ -62,7 +62,7 @@ function set_properties(where) {
   for (var ampere in d.properties) {
     var properties = d.properties[ampere];
     for (var j = 0; j < properties.length; j++) {
-      for (key in properties[j]) {
+      for (var key in properties[j]) {
         var amps = where.querySelectorAll("[drab-ampere='" + ampere + "']")
         for (var k = 0; k < amps.length; k++) {
           var n = amps[k];

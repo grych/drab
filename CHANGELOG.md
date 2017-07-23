@@ -1,3 +1,5 @@
+# CHANGELOG
+
 # v0.5.1
 ### Fixes:
 * Transpiled all JS templates, and removed all occurences of `forEach` (#22)

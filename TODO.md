@@ -4,9 +4,7 @@ Bugs:
 * insert and innerHTML should re-assing drab events
 
 
-## 0.5.1
-* Browser.update_url_bar
-* update documentation form Drab.Client
+## 0.5.2
 * Live.poke - better error message when partial not found
 
 * Also, instead of 'broadcasting' a change to all browsers, why not do what Phoenix.pubsub does? Allow you to override an outgoing message (then in your time broadcast example you could 'catch' the outgoing message and reformat it?)
@@ -34,7 +32,6 @@ Changes:
 Changes:
 * group JS commands to be launched in one step, if possible
 * re-initiate JS event handler after changing the SPAN (inside it)
-* helper to change URL (smart?)
 * use <%/ %> to not drab the specific one
 
 
