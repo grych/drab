@@ -50,6 +50,8 @@ end
 
   3. Phoenix ~> 1.2
 
+  4. Brunch
+
 ## Installation
 
   So far the process of the installation is rather manually, in the future will be automatized.
