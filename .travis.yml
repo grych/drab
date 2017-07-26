@@ -25,11 +25,9 @@ before_script:
   # - nohup chromedriver &
   - ps -ef|grep chrome
   - sleep 3
-  - mkdir -p $HOME/src
   - wget http://selenium-release.storage.googleapis.com/2.48/selenium-server-standalone-2.48.2.jar
   - nohup java -jar selenium-server-standalone-2.48.2.jar &
   - echo "Running with Selenium..."
-  - cd 
 
   # - chromedriver &
   # - ps -ef|grep chrome
