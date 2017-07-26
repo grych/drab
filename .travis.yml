@@ -37,7 +37,7 @@ before_script:
   - mix deps.get
   - nvm install 6.2 && nvm use 6.2
 script:
-  - WEBDRIVER="chrome_driver" mix test
+  - WEBDRIVER="chrome" mix test
 after_script:
   - cd $TRAVIS_BUILD_DIR
   - MIX_ENV=docs mix inch.report
