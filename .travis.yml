@@ -1,10 +1,10 @@
 # addons:
 #   chrome: stable
 #   apt:
-#     sources:
-#       - google-chrome
-#     packages:
-#       - google-chrome-stable
+    sources:
+      - google-chrome
+    packages:
+      - google-chrome-stable
 language: elixir
 matrix:
   include:
@@ -41,14 +41,14 @@ before_script:
   # - sudo cp chromedriver /usr/local/bin/
   # - sudo chmod +x /usr/local/bin/chromedriver
   # - /usr/local/bin/chromedriver &
-  - "export DISPLAY=:99.0"
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  - export DISPLAY=:99.0
+  - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
   - bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
 
-  - mix deps.get
+  - mix deps.get 
   - nvm install 6.2 && nvm use 6.2
 script:
-  - mix test
+  - MIX_ENV=test mix test test/integration/core_test.exs
 # after_script:
 #   - cd $TRAVIS_BUILD_DIR
 #   - MIX_ENV=docs mix inch.report
