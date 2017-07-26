@@ -30,7 +30,7 @@ before_script:
   - sudo apt-get --only-upgrade install google-chrome-stable
   - sudo cp chromedriver /usr/local/bin/
   - sudo chmod +x /usr/local/bin/chromedriver
-  - /usr/local/bin/chromedriver &
+  - /usr/local/bin/chromedriver
   - mix deps.get
   - nvm install 6.2 && nvm use 6.2
 script:
