@@ -7,12 +7,12 @@ addons:
 language: elixir
 matrix:
   include:
-    - otp_release: 18.3
-      elixir: 1.4
+    # - otp_release: 18.3
+    #   elixir: 1.4
     - otp_release: 19.3
       elixir: 1.4
-    - otp_release: 20.0
-      elixir: 1.4
+    # - otp_release: 20.0
+    #   elixir: 1.4
 sudo: false
 env:
   - ELIXIR_ASSERT_TIMEOUT=2000
@@ -21,7 +21,7 @@ before_script:
   - nvm install 6.2 && nvm use 6.2
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
-  - npm i -g npm@^3
+  - chromedriver &
   - sleep 3
 script:
   - mix test
@@ -29,4 +29,4 @@ after_script:
   - cd $TRAVIS_BUILD_DIR
   - MIX_ENV=docs mix inch.report
 
-  
+
