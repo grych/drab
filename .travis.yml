@@ -14,7 +14,7 @@ matrix:
       elixir: 1.4
 #     # - otp_release: 20.0
 #     #   elixir: 1.4
-# sudo: required
+sudo: required
 # dist: trusty
 env:
   - WEBDRIVER=selenium
@@ -34,12 +34,12 @@ before_script:
   # - chromedriver &
   # - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
   # - sleep 3
-  # - wget http://chromedriver.storage.googleapis.com/2.7/chromedriver_linux64.zip
-  # - unzip chromedriver_linux64.zip
-  # - sudo apt-get install libnss3
-  # - sudo apt-get --only-upgrade install google-chrome-stable
-  # - sudo cp chromedriver /usr/local/bin/
-  # - sudo chmod +x /usr/local/bin/chromedriver
+  - wget http://chromedriver.storage.googleapis.com/2.7/chromedriver_linux64.zip
+  - unzip chromedriver_linux64.zip
+  - sudo apt-get install libnss3
+  - sudo apt-get --only-upgrade install google-chrome-stable
+  - sudo cp chromedriver /usr/local/bin/
+  - sudo chmod +x /usr/local/bin/chromedriver
   # - /usr/local/bin/chromedriver &
   - export DISPLAY=:99.0
   - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
