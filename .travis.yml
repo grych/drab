@@ -22,9 +22,15 @@ before_script:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
   - nohup google-chrome-stable &
-  - nohup chromedriver &
+  # - nohup chromedriver &
   - ps -ef|grep chrome
   - sleep 3
+  - mkdir -p $HOME/src
+  - wget http://selenium-release.storage.googleapis.com/2.48/selenium-server-standalone-2.48.2.jar
+  - nohup java -jar selenium-server-standalone-2.48.2.jar &
+  - echo "Running with Selenium..."
+  - cd 
+
   # - chromedriver &
   # - ps -ef|grep chrome
   # - chromedriver &
