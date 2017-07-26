@@ -1,28 +1,23 @@
 language: elixir
+
+elixir:
+  - 1.4
+otp_release:
+  - 18.3
+
+env:
+  - WEBDRIVER=selenium
+
 matrix:
-  include:
-#     # - otp_release: 18.3
-#     #   elixir: 1.4
-    - otp_release: 19.3
-      elixir: 1.4
-#     # - otp_release: 20.0
-#     #   elixir: 1.4
-sudo: required
-dist: trusty
-before_install:
- - sudo apt-get update
- - sudo apt-get install chromium-chromedriver
+  exclude:
+    - elixir: 1.4
+      otp_release: 17.4
+    - elixir: 1.4
+      otp_release: 18.3
+
 before_script:
-  - "export PATH=$PATH:/usr/lib/chromium-browser/"
   - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
-  - mix deps.get 
-  - nvm install 6.2 && nvm use 6.2
-script:
-  - mix test test/integration/core_test.exs
-# after_script:
-#   - cd $TRAVIS_BUILD_DIR
-#   - MIX_ENV=docs mix inch.report
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  - bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
 
-
+script: mix test test/integration/core_test.exs:17
