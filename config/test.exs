@@ -11,8 +11,8 @@ config :logger, level: :warn
 
 # phantomjs does not work correctly, shows some JS circular errors
 # config :hound, driver: "chrome_driver"
-config :hound, driver: "selenium"
-config :hound, browser: "chrome"
+# config :hound, driver: "selenium"
+# config :hound, browser: "chrome"
 # config :hound, driver: "phantomjs"
 
 # config :drab, 

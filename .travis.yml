@@ -1,33 +1,33 @@
-addons:
-  chrome: stable
-  apt:
-    sources:
-      - google-chrome
-    packages:
-      - google-chrome-stable
+# addons:
+#   chrome: stable
+#   apt:
+#     sources:
+#       - google-chrome
+#     packages:
+#       - google-chrome-stable
 language: elixir
-matrix:
-  include:
-    # - otp_release: 18.3
-    #   elixir: 1.4
-    - otp_release: 19.3
-      elixir: 1.4
-    # - otp_release: 20.0
-    #   elixir: 1.4
-sudo: required
-dist: trusty
+# matrix:
+#   include:
+#     # - otp_release: 18.3
+#     #   elixir: 1.4
+#     - otp_release: 19.3
+#       elixir: 1.4
+#     # - otp_release: 20.0
+#     #   elixir: 1.4
+# sudo: required
+# dist: trusty
 env:
-  - ELIXIR_ASSERT_TIMEOUT=2000
+  - WEBDRIVER=selenium
 before_script:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - nohup google-chrome-stable &
-  # - nohup chromedriver &
-  - ps -ef|grep chrome
-  - sleep 3
-  - wget http://selenium-release.storage.googleapis.com/2.48/selenium-server-standalone-2.48.2.jar
-  - nohup java -jar selenium-server-standalone-2.48.2.jar &
-  - echo "Running with Selenium..."
+  # - export DISPLAY=:99.0
+  # - sh -e /etc/init.d/xvfb start
+  # - nohup google-chrome-stable &
+  # # - nohup chromedriver &
+  # - ps -ef|grep chrome
+  # - sleep 3
+  # - wget http://selenium-release.storage.googleapis.com/2.48/selenium-server-standalone-2.48.2.jar
+  # - nohup java -jar selenium-server-standalone-2.48.2.jar &
+  # - echo "Running with Selenium..."
 
   # - chromedriver &
   # - ps -ef|grep chrome
@@ -41,12 +41,16 @@ before_script:
   # - sudo cp chromedriver /usr/local/bin/
   # - sudo chmod +x /usr/local/bin/chromedriver
   # - /usr/local/bin/chromedriver &
+  - "export DISPLAY=:99.0"
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  - bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
+
   - mix deps.get
   - nvm install 6.2 && nvm use 6.2
 script:
   - mix test
-after_script:
-  - cd $TRAVIS_BUILD_DIR
-  - MIX_ENV=docs mix inch.report
+# after_script:
+#   - cd $TRAVIS_BUILD_DIR
+#   - MIX_ENV=docs mix inch.report
 
 
