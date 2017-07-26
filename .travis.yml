@@ -1,4 +1,5 @@
 language: elixir
+dist: precise
 
 elixir:
   - 1.4
