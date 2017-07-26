@@ -8,7 +8,7 @@ defmodule <%= module %>Commander do
   #
   # place you callbacks here
   #
-  # onload: :page_loaded 
+  # onload :page_loaded 
   #
   # def page_loaded(socket) do
   #   set_prop socket, "div.jumbotron h2", innerText: "This page has been drabbed"
