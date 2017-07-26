@@ -16,8 +16,8 @@ matrix:
 #     #   elixir: 1.4
 sudo: required
 # dist: trusty
-env:
-  - WEBDRIVER=selenium
+# env:
+#   - WEBDRIVER=selenium
 before_script:
   # - export DISPLAY=:99.0
   # - sh -e /etc/init.d/xvfb start
@@ -37,13 +37,17 @@ before_script:
   - wget http://chromedriver.storage.googleapis.com/2.7/chromedriver_linux64.zip
   - unzip chromedriver_linux64.zip
   - sudo apt-get install libnss3
-  - sudo apt-get --only-upgrade install google-chrome-stable
+  # - sudo apt-get --only-upgrade install google-chrome-stable
   - sudo cp chromedriver /usr/local/bin/
   - sudo chmod +x /usr/local/bin/chromedriver
-  # - /usr/local/bin/chromedriver &
+  - /usr/local/bin/chromedriver --port=9515 &
   - export DISPLAY=:99.0
   - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
-  - bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
+  # - bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
+  - whereis google-chrome
+  - whereis google-chrome-stable
+  - whereis chromedriver
+
 
   - mix deps.get 
   - nvm install 6.2 && nvm use 6.2
