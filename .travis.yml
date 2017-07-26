@@ -1,3 +1,9 @@
+addons:
+  apt:
+    sources:
+      - google-chrome
+    packages:
+      - google-chrome-stable
 language: elixir
 matrix:
   include:
@@ -13,6 +19,10 @@ env:
 before_script:
   - mix deps.get
   - nvm install 6.2 && nvm use 6.2
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - npm i -g npm@^3
+  - sleep 3
 script:
   - mix test
 after_script:
