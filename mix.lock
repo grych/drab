@@ -12,6 +12,7 @@
   "hound": {:hex, :hound, "1.0.3", "bf1859fcb855bf7a3b84c632ba68f04c43bfeb16efebf0080b6c1efb960c30c6", [:mix], [{:hackney, "~> 1.5", [hex: :hackney, optional: false]}, {:poison, ">= 1.4.0", [hex: :poison, optional: false]}]},
   "httpoison": {:hex, :httpoison, "0.11.1", "d06c571274c0e77b6cc50e548db3fd7779f611fbed6681fd60a331f66c143a0b", [:mix], [{:hackney, "~> 1.7.0", [hex: :hackney, optional: false]}]},
   "idna": {:hex, :idna, "4.0.0", "10aaa9f79d0b12cf0def53038547855b91144f1bfcc0ec73494f38bb7b9c4961", [:rebar3], []},
+  "inch_ex": {:hex, :inch_ex, "0.5.6", "418357418a553baa6d04eccd1b44171936817db61f4c0840112b420b8e378e67", [:mix], [{:poison, "~> 1.5 or ~> 2.0 or ~> 3.0", [hex: :poison, optional: false]}]},
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], []},
   "mime": {:hex, :mime, "1.1.0", "01c1d6f4083d8aa5c7b8c246ade95139620ef8effb009edde934e0ec3b28090a", [:mix], []},
   "mimerl": {:hex, :mimerl, "1.0.2", "993f9b0e084083405ed8252b99460c4f0563e41729ab42d9074fd5e52439be88", [:rebar3], []},
