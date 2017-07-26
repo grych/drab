@@ -6,12 +6,12 @@
 #     packages:
 #       - google-chrome-stable
 language: elixir
-# matrix:
-#   include:
+matrix:
+  include:
 #     # - otp_release: 18.3
 #     #   elixir: 1.4
-#     - otp_release: 19.3
-#       elixir: 1.4
+    - otp_release: 19.3
+      elixir: 1.4
 #     # - otp_release: 20.0
 #     #   elixir: 1.4
 # sudo: required
