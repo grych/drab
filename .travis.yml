@@ -18,11 +18,10 @@ sudo: required
 dist: trusty
 env:
   - ELIXIR_ASSERT_TIMEOUT=2000
-  - WEBDRIVER="chrome_driver"
 before_script:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
-  - chromedriver &
+  # - chromedriver &
   - ps -ef|grep chrome
   # - chromedriver &
   # - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
@@ -37,7 +36,7 @@ before_script:
   - mix deps.get
   - nvm install 6.2 && nvm use 6.2
 script:
-  - mix test
+  - WEBDRIVER="chrome_driver" mix test
 after_script:
   - cd $TRAVIS_BUILD_DIR
   - MIX_ENV=docs mix inch.report
