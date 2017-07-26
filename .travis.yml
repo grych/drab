@@ -1,6 +1,6 @@
-# addons:
-#   chrome: stable
-#   apt:
+addons:
+  chrome: stable
+  apt:
     sources:
       - google-chrome
     packages:
