@@ -19,10 +19,14 @@ dist: trusty
 env:
   - ELIXIR_ASSERT_TIMEOUT=2000
 before_script:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - chromedriver &
+  - npm install -g phantomjs
+  - nohup phantomjs -w &
+  - echo "Running with PhantomJs..."
   - sleep 3
+  # - export DISPLAY=:99.0
+  # - sh -e /etc/init.d/xvfb start
+  # - chromedriver &
+  # - sleep 3
   # - chromedriver &
   # - ps -ef|grep chrome
   # - chromedriver &
