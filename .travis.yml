@@ -1,5 +1,7 @@
 language: elixir
-dist: precise
+dist: trusty
+addons:
+  chrome: stable
 
 elixir:
   - 1.4
