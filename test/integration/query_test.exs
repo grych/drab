@@ -347,7 +347,7 @@ defmodule DrabTestApp.QueryTest do
     end
   end
 
-  describe "Drab.Query insert" do
+  describe "Drab.Query delete" do
     defp setup_delete() do 
       {drab_socket(), "#delete1_div", find_element(:id, "delete1_div")}
     end
@@ -401,7 +401,7 @@ defmodule DrabTestApp.QueryTest do
     end     
   end
 
-  describe "Drab.Query insert" do
+  describe "Drab.Query delete" do
     defp setup_execute() do 
       {drab_socket(), "#execute1_input", find_element(:id, "execute1_input")}
     end
