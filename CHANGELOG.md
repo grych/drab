@@ -1,8 +1,11 @@
 # CHANGELOG
 
 # v0.5.2
+Fixed on Elixir 1.4 due to elixir-lang/elixir#6391
+
 ### Fixes:
 * #26, #27, #30, #33
+
 
 # v0.5.1
 ### Fixes:
