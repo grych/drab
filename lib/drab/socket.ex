@@ -28,7 +28,7 @@ defmodule Drab.Socket do
       channel "__drab:*", Drab.Channel
 
       def connect(%{"__drab_return" => controller_and_action_token}, socket) do
-        case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token) do
+        case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token, max_age: 86400) do
           {:ok, [__controller: controller, __action: action, __assigns: assigns] = controller_and_action} ->
             own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
             socket_plus_external_assings = %Phoenix.Socket{socket | assigns: own_plus_external_assigns}

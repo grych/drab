@@ -118,7 +118,7 @@ defmodule Drab.Waiter do
 
   @doc false
   def detokenize_waiter(socket, token) do
-    {:ok, {pid, ref}} = Phoenix.Token.verify(socket, "drab_waiter_token", token)
+    {:ok, {pid, ref}} = Phoenix.Token.verify(socket, "drab_waiter_token", token, max_age: 86400)
     {pid, ref}
   end
 end
