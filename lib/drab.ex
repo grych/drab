@@ -263,7 +263,7 @@ defmodule Drab do
   end
 
   defp check_handler_existence!(commander_module, handler) do
-    unless function_exists?(commander_module, handler) do
+    unless function_exported?(commander_module, String.to_existing_atom(handler), 2) do
       raise "Drab can't find the handler: \"#{commander_module}.#{handler}/2\"."
     end    
   end
@@ -326,13 +326,6 @@ defmodule Drab do
       GenServer.cast(pid, {unquote(update_name), new_value})
     end
   end)
-
-  @doc false
-  def function_exists?(module_name, function_name) do
-    module_name.__info__(:functions) 
-      |> Enum.map(fn {f, _} -> Atom.to_string(f) end)
-      |> Enum.member?(function_name)
-  end
 
   @doc false
   def push_and_wait_for_response(socket, pid, message, payload \\ [], options \\ []) do

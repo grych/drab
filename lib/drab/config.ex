@@ -58,8 +58,8 @@ defmodule Drab.Config do
   defp is_endpoint?(module) when is_atom(module) do
     {loaded, _} = Code.ensure_loaded(module)
     loaded == :module 
-      && Drab.function_exists?(module, "struct_url") 
-      && Drab.function_exists?(module, "url")
+      && function_exported?(module, :struct_url, 0)
+      && function_exported?(module, :url, 0)
   end
 
   @doc """

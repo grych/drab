@@ -26,11 +26,6 @@ defmodule DrabTest do
       assert Drab.callbacks_for(:anycase, []) == []
     end
 
-    test "function_exists?" do
-      assert Drab.function_exists?(DrabTest, "function") == true
-      assert Drab.function_exists?(DrabTest, "nofunction") == false
-    end
-
     test "application config" do
       assert Drab.Config.app_name() == :drab
       assert Drab.Config.endpoint() == DrabTestApp.Endpoint
