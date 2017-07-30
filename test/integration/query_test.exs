@@ -401,7 +401,7 @@ defmodule DrabTestApp.QueryTest do
     end     
   end
 
-  describe "Drab.Query delete" do
+  describe "Drab.Query execute" do
     defp setup_execute() do 
       {drab_socket(), "#execute1_input", find_element(:id, "execute1_input")}
     end
