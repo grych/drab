@@ -81,6 +81,9 @@ defmodule Drab do
 
   defstruct store: %{}, session: %{}, commander: nil, socket: nil, priv: %{}
 
+  @env Mix.env()
+  defp env(), do: @env
+
   @doc false
   def start_link(socket) do
     GenServer.start_link(__MODULE__, 
@@ -278,7 +281,7 @@ defmodule Drab do
 
     if socket do
       js = Drab.Template.render_template(
-        "drab.handler_error.#{Atom.to_string(Mix.env)}.js", 
+        "drab.handler_error.#{Atom.to_string(env())}.js", 
         message: Drab.Core.encode_js(error))
       {:ok, _} = Drab.Core.exec_js(socket, js)
     end

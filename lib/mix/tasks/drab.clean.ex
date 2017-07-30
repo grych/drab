@@ -6,10 +6,13 @@ defmodule Mix.Tasks.Drab.Clean do
   @moduledoc """
   A task to clean up both compiled binaries and the Drab cache. Use it instead of `mix clean`
   """
+
+  @env Mix.env()
+  defp env(), do: @env
   
   @doc false
   def run(args) do
-    File.rm "priv/hashes_expressions.drab.cache.#{Mix.env()}"
+    File.rm "priv/hashes_expressions.drab.cache.#{env()}"
     Mix.Task.run("clean", args)
   end
 
