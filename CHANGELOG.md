@@ -1,10 +1,11 @@
 # CHANGELOG
 
 # v0.5.2
-Fixed on Elixir 1.4 due to elixir-lang/elixir#6391
+This is a small update to make Drab compatible with Elixir 1.5. 
+Due to an issue with 1.5.0 (elixir-lang/elixir#6391) Elixir version is fixed on 1.4 or >= 1.5.1.
 
 ### Fixes:
-* #26, #27, #30, #33
+* #26, #27, #30, #31, #33
 
 
 # v0.5.1
