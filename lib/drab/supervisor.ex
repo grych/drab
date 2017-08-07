@@ -18,7 +18,7 @@ defmodule Drab.Supervisor do
 
     # Run Drab Test App endpoint, when running tests or development
     children = case Code.ensure_compiled(DrabTestApp) do
-      {:error, :nofile} -> []
+      {:error, _} -> []
       {:module, DrabTestApp} -> [supervisor(DrabTestApp.Endpoint, [])]
     end 
 
