@@ -14,26 +14,27 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
   def run(args) do
     [module] = validate_args!(args)
 
-    binding = Mix.Phoenix.inflect(module)
-    path    = binding[:path]
+    inf = Mix.Phoenix.inflect(module)
+    module = web_module(inf)
+    path = inf[:path]
 
     # Drab requires Phoenix, so I can use its brilliant helpers
-    Mix.Phoenix.check_module_name_availability!(binding[:module] <> "Commander")
-    check_controller_existence!(path, binding[:module])
+    Mix.Phoenix.check_module_name_availability!(module <> "Commander")
+    check_controller_existence!(path, module)
 
-    copy_from paths(), "priv/templates/drab/", binding, [
-      {:eex, "drab.gen.commander.ex.eex", "web/commanders/#{path}_commander.ex"}
+    copy_from paths(), "priv/templates/drab/", [module: module], [
+      {:eex, "drab.gen.commander.ex.eex", "#{web_path()}/commanders/#{path}_commander.ex"}
     ]
 
     Mix.shell.info """
 
-    Add the following line to your #{binding[:module]}Controller:
+    Add the following line to your #{module}Controller:
         use Drab.Controller 
     """
   end
 
   defp check_controller_existence!(path, module) do
-    controller_file = "web/controllers/#{path}_controller.ex"
+    controller_file = "#{web_path()}/controllers/#{path}_controller.ex"
     unless File.exists?(controller_file) do
       unless Mix.shell.yes?("Can't find corresponding #{module}Controller in #{controller_file}. Proceed? ") do
         Mix.raise "Aborted"
@@ -54,6 +55,25 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
   defp paths do
     [".", :drab]
   end
+
+  defp web_module(inflected) do
+    if phoenix12?() do
+      inflected[:module]
+    else
+      "#{inflected[:web_module]}.#{inflected[:alias]}"
+    end
+  end
+
+  defp web_path() do
+    if phoenix12?() do
+      "web"
+    else
+      #TODO: read web path from Phoenix View :root
+      "lib/#{Drab.Config.app_name()}_web"
+    end
+  end
+
+  defp phoenix12?(), do: Regex.match?(~r/^1.2/, Application.spec(:phoenix, :vsn) |> to_string())
 
   if Regex.match?(~r/^1.2/, Application.spec(:phoenix, :vsn) |> to_string()) do
     defp copy_from(paths, source_path, binding, mapping) do

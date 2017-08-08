@@ -1,12 +1,12 @@
 defmodule <%= module %>Commander do
   use Drab.Commander
-  # place your event handlers here
+  # Place your event handlers here
   #
   # def button_clicked(socket, sender) do
   #   set_prop socket, "#output_div", innerHTML: "Clicked the button!"
   # end
   #
-  # place you callbacks here
+  # Place you callbacks here
   #
   # onload :page_loaded 
   #
