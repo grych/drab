@@ -171,7 +171,7 @@ defmodule Drab.Commander do
       end
 
       @doc """
-      A shordhand for `Phoenix.View.render_to_string/3. Injects the corresponding view.
+      A shordhand for `Phoenix.View.render_to_string/3`. Injects the corresponding view.
       """
       def render_to_string(template, assigns) do
         view = __MODULE__.__drab__().view
@@ -179,7 +179,7 @@ defmodule Drab.Commander do
       end
 
       @doc """
-      A shordhand for `Phoenix.View.render_to_string/3. 
+      A shordhand for `Phoenix.View.render_to_string/3`. 
       """
       def render_to_string(view, template, assigns) do
         Phoenix.View.render_to_string(view, template, assigns)
