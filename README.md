@@ -55,7 +55,7 @@ end
 
 ## Installation
 
-  So far the process of the installation is rather manually, in the future will be automatized.
+  So far the process of the installation is rather manual. In the future it will be automated.
 
   1. Add `drab` to your list of dependencies in `mix.exs` in your Phoenix application and install it:
 
@@ -146,19 +146,18 @@ $ npm install && node_modules/brunch/bin/brunch build
 ```
 
 
-Congratullations! You have installed Drab and you can proceed with your own commanders.
+Congratulations! You have installed Drab and you can proceed with your own commanders.
 
 ## Usage
 
 All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. 
 Think about it as a controller for the live pages. Commanders should be placed in `web/commanders` directory.
 
-To enable Drab on the specific pages, you need to add the directive `use Drab.Controller` to your controller. 
+To enable Drab on specific pages, you need to add the directive `use Drab.Controller` to your controller.
 
 Remember the difference: `controller` renders the page, while `commander` works on the live page.
 
-  1. Generate the page Commander. Commander name should correspond to controller, so PageController should have 
-  PageCommander:
+  1. Generate the page Commander. The commander name should correspond to the controller, so PageController should have PageCommander:
 
 ```bash
 $ mix drab.gen.commander Page
@@ -181,7 +180,7 @@ defmodule MyApp.PageController do
 end    
 ```
 
-  Also add `@welcome_text` assing to `render/3` in index action, to be used in a future.
+  Also add the `@welcome_text` assign to `render/3` in index action, to be used in the future.
 
   3. Rename the template from `web/templates/page/index.html.eex` to `index.html.drab`
 
@@ -211,7 +210,7 @@ end
 
 The `poke/2` function updates the assign. The `set_prop/3` updates any property of the DOM object. All is done live, without reloading the page.
 
-  4. Run `iex -S mix phoenix.server`. Go to `http://localhost:4000` to see the changed web page. Now you may play with this page live, directly from the `iex`! Observe the instruction given when your browser connects to the page:
+  4. Run `iex -S mix phoenix.server`. Go to `http://localhost:4000` to see the changed web page. Now you may play with this page live, directly from `iex`! Observe the instruction given when your browser connects to the page:
 
 ```elixir
 [debug] 
