@@ -2,7 +2,7 @@ defmodule Drab.Template do
   require IEx
   require Logger
 
-  @drab_templates "priv/templates/drab"
+  @drab_templates "/templates/drab"
 
   @moduledoc false
 
@@ -10,7 +10,8 @@ defmodule Drab.Template do
   # TODO: find a way to compile also user additional templates
   Logger.info "Compiling Drab Templates"
 
-  drab_templates = Path.join(@drab_templates, "*") |> Path.wildcard()
+  drab_templates = Path.join([:code.priv_dir(:drab) |> to_string(), @drab_templates, "*"]) |> Path.wildcard()
+
   for template_with_path <- drab_templates do
     @external_resource template_with_path
 

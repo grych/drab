@@ -56,7 +56,7 @@ function default_payload(sender, event) {
       var input = inputs[i];
       var key = input.name || input.id || false;
       if (key) {
-        if (input.type == "radio") {
+        if (input.type == "radio" || input.type == 'checkbox') {
           if (input.checked) {
             params[key] = input.value;
           }
@@ -125,7 +125,7 @@ function update_event_handler(node, event, func) {
   node["on" + event] = func;
 }
 
-// set up the controls with drab handlers
+// re-read event handlers
 Drab.set_event_handlers = function (obj) {
   var drab_objects = [];
   var drab_objects_shortcut = [];

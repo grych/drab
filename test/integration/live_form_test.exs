@@ -20,7 +20,8 @@ defmodule DrabTestApp.LiveForm do
       assert peek(socket, :out) == %{"radio" => "2",
                                     "textarea" => "textarea initial value", 
                                     "select_input" => "2", 
-                                    "text_input" =>  "text1 initial value"}
+                                    "text_input" =>  "text1 initial value",
+                                    "checkbox1" => "1"}
     end
 
     test "poking should update form" do
@@ -30,11 +31,14 @@ defmodule DrabTestApp.LiveForm do
                    textarea1: "textarea updated value",
                    select1: 3
       Drab.Element.set_prop socket, "input[name=radio][value='3']", checked: true
+      Drab.Element.set_prop socket, "input[name=checkbox3][value='3']", checked: true
       click_and_wait("update_form_button")
       assert peek(socket, :out) == %{"radio" => "3",
                                     "textarea" => "textarea updated value", 
                                     "select_input" => "3", 
-                                    "text_input" => "text1 updated value"}
+                                    "text_input" => "text1 updated value",
+                                    "checkbox1" => "1",
+                                    "checkbox3" => "3"}
     end
 
   end

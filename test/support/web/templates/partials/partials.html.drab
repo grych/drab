@@ -1,0 +1,13 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<%= @live_partial1 %>
+<br>
+<%= @button1_placeholder %>
+<br>
+<div id="button2_placeholder"></div>
+<br>
+<div id="button3_placeholder"></div>
+<br>
+<div id="partial2"></div>
+<br>

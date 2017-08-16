@@ -6,7 +6,7 @@ defmodule Drab.Live do
   The idea is to reuse your Phoenix templates and let them live, to make a possibility to update assigns 
   on the living page, from the Elixir, without reloading the whole stuff.
 
-  Use `peek/2` to get the assign value, and `poke/2` to modify it directly in the displayed DOM tree.
+  Use `peek/2` to get the assign value, and `poke/2` to modify it directly in the DOM tree.
 
   Drab.Live uses the modified EEx Engine (`Drab.Live.EExEngine`) to compile the template and indicate where assigns 
   were rendered. To enable it, rename the template you want to go live from extension `.eex` to `.drab`. Then, 
@@ -190,7 +190,7 @@ defmodule Drab.Live do
   end
 
   @doc """
-  Updates the current page in the browser with the new assigns value.
+  Updates the current page in the browser with the new assign value.
 
   Raises `ArgumentError` when assign is not found within the partial.
   Returns untouched socket.
@@ -265,6 +265,9 @@ defmodule Drab.Live do
     partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
 
     current_assigns = assigns(socket, partial, partial_name)
+    # IO.puts "current assigns:"
+    # IO.inspect current_assigns
+
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
     assigns_to_update = Enum.into(assigns, %{})
     assigns_to_update_keys = Map.keys(assigns_to_update)
@@ -361,6 +364,7 @@ defmodule Drab.Live do
 
     assign_updates = assign_updates_js(assigns_to_update, partial)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
+    all_javascripts = all_javascripts ++ ["Drab.enable_drab_live(#{encode_js(partial)})"]
 
     # IO.inspect(all_javascripts)
 
@@ -435,6 +439,7 @@ defmodule Drab.Live do
     assigns = case socket 
       |> Drab.pid() 
       |> Drab.get_priv() 
+      # |> IO.inspect()
       |> Map.get(:__ampere_assigns)
       |> Map.fetch(partial) do
         {:ok, val} -> val

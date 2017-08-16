@@ -7,6 +7,10 @@ defmodule Drab.Live.EExEngine do
 
   ### Limitations
 
+  #### Avalibility of assigns
+  To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format. Passing it 
+  to `render` in the controller is not enough.
+
   #### Attributes
   The attribute must be well defined, and you can't use the expression as an attribute name.
 
@@ -462,7 +466,7 @@ defmodule Drab.Live.EExEngine do
 
   defp script_tag([]), do: []
   defp script_tag(js) do
-    ["<script>", js, "</script>"]
+    ["<script drab-script>", js, "</script>"]
   end
 
   defp assign_js(partial, assign) do

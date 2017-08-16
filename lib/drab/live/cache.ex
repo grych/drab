@@ -6,7 +6,7 @@ defmodule Drab.Live.Cache do
   Drab.Live store internal information in the file `priv/hashes_expressions.drab.cache`. To clean up the cach,
   just delete it, but only with `mix clean` command, to ensure all Drab Live Templates will recompile.
   """
-  @cache_file "priv/hashes_expressions.drab.cache"
+  @cache_file "hashes_expressions.drab.cache"
   # @name __MODULE__
 
   require Logger
@@ -55,8 +55,9 @@ defmodule Drab.Live.Cache do
     :dets.sync(cache_file())
   end
 
-  defp cache_file() do
-    "#{@cache_file}.#{env()}"
+  @doc false
+  def cache_file() do
+    "#{Path.join(Drab.Config.app_name() |> :code.priv_dir() |> to_string(), @cache_file)}.#{env()}"
   end
 end
 

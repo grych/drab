@@ -34,6 +34,7 @@ Pages for Integration Tests: <br>
 <a href="/tests/browser">Drab.Browser</a><br>
 <a href="/tests/live">Drab.Live</a><br>
 <a href="/tests/live/form">Drab.Live and form</a><br>
+<a href="/tests/live/partials">Partials and HTML injecting</a><br>
 <a href="/tests/live/query">Drab.Live + Drab.Query</a><br>
 <a href="/tests/element">Drab.Element</a><br>
 <br>

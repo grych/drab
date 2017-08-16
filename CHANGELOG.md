@@ -1,5 +1,17 @@
 # CHANGELOG
 
+Fixes:
+* #37
+* #40 (updated documentation for Drab.Live.EExEngine)
+* #41
+* #34 and #38
+
+# v0.5.3
+Phoenix 1.3 compatibility
+* bugfixes (#19, #36).
+* `drab.gen.commander` works both with Phoenix 1.2 and 1.3
+
+
 # v0.5.2
 This is a small update to make Drab compatible with Elixir 1.5. 
 Due to an issue with 1.5.0 (elixir-lang/elixir#6391) Elixir version is fixed on 1.4 or >= 1.5.1.

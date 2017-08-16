@@ -23,7 +23,4 @@ defmodule DrabTestApp.LiveController do
       url: "elixirforum.com", width: nil
   end
 
-  # defp render_live(conn, template, assigns) do
-  #   render(conn, template, assigns)
-  # end
 end

@@ -14,14 +14,27 @@ Drab.on_load(function (resp, drab) {
   var d = window.__drab;
   d.amperes = {};
   d.properties = {};
-  var found = document.querySelectorAll("[drab-partial]");
+
+  search_for_drab(document);
+
+  // update the properties set in <tag @property=expression>
+  set_properties(document);
+  // get the name of the main partial
+  if (document.querySelector("[drab-partial]")) {
+    d.index = document.querySelector("[drab-partial]").getAttribute("drab-partial");
+  }
+});
+
+function search_for_drab(where) {
+  var d = window.__drab;
+  var found = where.querySelectorAll("[drab-partial]");
   for (var i = 0; i < found.length; i ++) {
     var partial = found[i];
     var partial_id = partial.getAttribute("drab-partial");
     d.amperes[partial_id] = [];
   };
 
-  found = document.querySelectorAll("[drab-partial] [drab-ampere]");
+  found = where.querySelectorAll("[drab-partial] [drab-ampere]");
   for (var i = 0; i < found.length; i++) {
     var node = found[i];
     var drab_id = node.getAttribute("drab-ampere");
@@ -33,13 +46,7 @@ Drab.on_load(function (resp, drab) {
       d.amperes[partial_id].push(drab_id);
     }
   };
-  // update the properties set in <tag @property=expression>
-  set_properties(document);
-  // get the name of the main partial
-  if (document.querySelector("[drab-partial]")) {
-    d.index = document.querySelector("[drab-partial]").getAttribute("drab-partial");
-  }
-});
+}
 
 function set_properties(where) {
   var d = window.__drab;
@@ -194,3 +201,13 @@ Drab.update_tag = function (ampere_hash, html, partial, tag) {
   }
 };
 
+Drab.enable_drab_live = function(partial) {
+  var partial_node = document.querySelector('[drab-partial="' + partial + '"]');
+  var scripts = partial_node.querySelectorAll("script[drab-script]");
+  for (var i = 0; i < scripts.length; i++) {
+    var script = scripts[i];
+    eval(script.innerText);
+  }
+  search_for_drab(partial_node);
+  Drab.set_event_handlers('[drab-partial="' + partial + '"]');
+}

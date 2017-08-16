@@ -18,6 +18,10 @@
   <input type="radio" name="radio" value="2" checked>
   <input type="radio" name="radio" value="3">
   <br>
+  <input type="checkbox" id="checkbox1" name="checkbox1" value="1" checked>
+  <input type="checkbox" id="checkbox1" name="checkbox2" value="2">
+  <input type="checkbox" id="checkbox1" name="checkbox3" value="3">
+  <br>
   <button id="update_form_button" drab-click="update_form">Get form values</button>
 </form>
 
