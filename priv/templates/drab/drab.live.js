@@ -25,6 +25,17 @@ Drab.on_load(function (resp, drab) {
   }
 });
 
+Drab.on_change(function(selector) {
+  var partial_node = document.querySelector(selector);
+  var scripts = partial_node.querySelectorAll("script[drab-script]");
+  for (var i = 0; i < scripts.length; i++) {
+    var script = scripts[i];
+    eval(script.innerText);
+  }
+  search_for_drab(partial_node);
+});
+
+
 function search_for_drab(where) {
   var d = window.__drab;
   var found = where.querySelectorAll("[drab-partial]");
@@ -171,7 +182,7 @@ Drab.update_drab_span = function (ampere_hash, html, partial) {
       set_properties(node);
     };
   }
-  Drab.set_event_handlers(selector(ampere_hash));
+  Drab.enable_drab_on(selector(ampere_hash));
 };
 
 function update_script(ampere_hash, new_script, partial) {
@@ -201,13 +212,3 @@ Drab.update_tag = function (ampere_hash, html, partial, tag) {
   }
 };
 
-Drab.enable_drab_live = function(partial) {
-  var partial_node = document.querySelector('[drab-partial="' + partial + '"]');
-  var scripts = partial_node.querySelectorAll("script[drab-script]");
-  for (var i = 0; i < scripts.length; i++) {
-    var script = scripts[i];
-    eval(script.innerText);
-  }
-  search_for_drab(partial_node);
-  Drab.set_event_handlers('[drab-partial="' + partial + '"]');
-}

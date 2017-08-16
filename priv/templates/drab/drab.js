@@ -43,9 +43,6 @@
         console.log("Unable to join the Drab Channel", resp);
       }).receive("ok", function (resp) {
         // launch on_connect
-        // for(var f of drab.connected) {
-        //   f(resp, drab)
-        // }
         for (var c = 0; c < drab.connected.length; c++) {
           var fxc = drab.connected[c];
           fxc(resp, drab);
@@ -94,6 +91,7 @@
     connected: [],
     disconnected: [],
     load: [],
+    change: [],
     additional_payloads: [],
     event_reply_table: {},
     on_connect: function (f) {
@@ -104,6 +102,9 @@
     },
     on_load: function (f) {
       this.load.push(f);
+    },
+    on_change: function(f) {
+      this.change.push(f);
     },
     add_payload: function (f) {
       this.additional_payloads.push(f);

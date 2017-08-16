@@ -143,7 +143,7 @@ Drab.set_prop = function (selector, what, where) {
           break;
         case "innerHTML":
           element[property] = what[property];
-          Drab.set_event_handlers(selector);
+          Drab.enable_drab_on(selector);
           break;
         default:
           element[property] = what[property];
@@ -162,7 +162,7 @@ Drab.insert_html = function (selector, position, html, where) {
     var element = found[i];
     element.insertAdjacentHTML(position, html);
   };
-  Drab.set_event_handlers(selector);
+  Drab.enable_drab_on(selector);
   return i;
 };
 

@@ -577,7 +577,7 @@ defmodule Drab.Query do
     method_javascripted = Atom.to_string(method) <> arguments
     # update events only when running .html() method
     update_events = if Regex.match?(@html_modifiers, method_javascripted) do
-      "Drab.set_event_handlers('#{selector}')"
+      "Drab.enable_drab_on('#{selector}')"
     else 
       ""
     end

@@ -125,6 +125,14 @@ function update_event_handler(node, event, func) {
   node["on" + event] = func;
 }
 
+Drab.enable_drab_on = function(selector) {
+  for (var i = 0; i < Drab.change.length; i++) {
+    var fx = Drab.change[i];
+    fx(selector);
+  }
+  Drab.set_event_handlers(selector);
+}
+
 // re-read event handlers
 Drab.set_event_handlers = function (obj) {
   var drab_objects = [];
