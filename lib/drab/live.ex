@@ -113,13 +113,18 @@ defmodule Drab.Live do
   view name.
 
   Assigns are archored within their partials. Manipulation of the assign outside the template it lives will raise
-  `ArgumentError`. Partials are not hierachical, eg. modifying the assign in the main partial will not update assigns
-  in the child partials, even if they exist there.
+  `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign in the main partial will not update 
+  assigns in the child partials, even if they exist there.
 
   #### Rendering partials in a runtime
   There is a possibility add the partial to the DOM tree in a runtime, using `render_to_string/2` helper:
 
       poke socket, live_partial1: render_to_string("partial1.html", color: "#aaaabb")
+
+  But remember that assigns are assigned to the partials, so after adding it to the page, manipulation 
+  must be done within the added partial:
+
+      poke socket, "partial1.html", color: "red"
 
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid. 
