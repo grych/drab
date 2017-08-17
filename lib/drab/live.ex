@@ -116,7 +116,7 @@ defmodule Drab.Live do
   `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign in the main partial will not update 
   assigns in the child partials, even if they exist there.
 
-  #### Rendering partials in a runtime
+  #### Rendering partial templates in a runtime
   There is a possibility add the partial to the DOM tree in a runtime, using `render_to_string/2` helper:
 
       poke socket, live_partial1: render_to_string("partial1.html", color: "#aaaabb")

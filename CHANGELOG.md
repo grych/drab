@@ -1,6 +1,14 @@
 # CHANGELOG
 
-Fixes:
+# v0.5.4
+Fixes for adding templates in a runtime.
+
+```elixir
+poke socket, live_partial1: render_to_string("partial1.html", color: "#aaaabb")
+poke socket, "partial1.html", color: "red"
+```
+
+### Fixes:
 * #37
 * #40 (updated documentation for Drab.Live.EExEngine)
 * #41
