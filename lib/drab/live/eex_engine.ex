@@ -156,9 +156,9 @@ defmodule Drab.Live.EExEngine do
     end
 
     final = [
-      script_tag(init_js) |
+      body |
+      [script_tag(init_js) |
       [assigns_js |
-      [body |
       ["\n</span>\n"]]]
     ]
 

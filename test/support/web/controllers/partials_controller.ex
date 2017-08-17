@@ -8,7 +8,7 @@ defmodule DrabTestApp.PartialsController do
 
 
   def partials(conn, _params) do
-    render conn, "partials.html", live_partial1: "before",
+    render conn, "partials.html", live_partial1: "before", live_partial2: "before",
       button1_placeholder: "here be button"
   end
 

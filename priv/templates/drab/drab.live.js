@@ -19,6 +19,7 @@ Drab.on_load(function (resp, drab) {
 
   // update the properties set in <tag @property=expression>
   set_properties(document);
+
   // get the name of the main partial
   if (document.querySelector("[drab-partial]")) {
     d.index = document.querySelector("[drab-partial]").getAttribute("drab-partial");
@@ -26,15 +27,22 @@ Drab.on_load(function (resp, drab) {
 });
 
 Drab.on_change(function(selector) {
-  var partial_node = document.querySelector(selector);
-  var scripts = partial_node.querySelectorAll("script[drab-script]");
+  // console.log("change");
+  var node = document.querySelector(selector);
+
+  search_for_drab(node);
+  set_properties(node);
+  run_drab_scripts_on(node);
+  // console.log(__drab.properties.gmzdgmjtg4yta[0]["style.backgroundcolor"]);
+});
+
+function run_drab_scripts_on(node) {
+  var scripts = node.querySelectorAll("script[drab-script]");
   for (var i = 0; i < scripts.length; i++) {
     var script = scripts[i];
     eval(script.innerText);
   }
-  search_for_drab(partial_node);
-});
-
+}
 
 function search_for_drab(where) {
   var d = window.__drab;
@@ -57,42 +65,48 @@ function search_for_drab(where) {
       d.amperes[partial_id].push(drab_id);
     }
   };
+
+  // console.log(where)
+  found = where.querySelectorAll("[drab-ampere]");
+  for (var i = 0; i < found.length; i++) {
+    var node = found[i];
+    // find the properties
+    var drab_id = node.getAttribute("drab-ampere");
+    if (!d.properties[drab_id]) {
+      d.properties[drab_id] = {};
+    }
+    for (var j = 0; j < node.attributes.length; j++) {
+      var attr_name = node.attributes[j].name;
+      if (attr_name.startsWith("@")) {
+        // if the property is not defined before
+        var prop_name = attr_name.replace(/^@/, "");
+        if (!d.properties[drab_id][prop_name]) {
+          d.properties[drab_id][prop_name] = 
+            JSON.parse(node.attributes[j].value.replace(/^[^{]*{{{{/, "").replace(/}}}}$/, ""));
+        }
+      }
+    }
+  };
 }
 
 function set_properties(where) {
   var d = window.__drab;
 
-  var found = document.querySelectorAll("[drab-ampere]");
-  for (var i = 0; i < found.length; i++) {
-    var node = found[i];
-    // find the properties
-    var drab_id = node.getAttribute("drab-ampere");
-    d.properties[drab_id] = [];
-    for (var j = 0; j < node.attributes.length; j++) {
-      var attr_name = node.attributes[j].name;
-      if (attr_name.startsWith("@")) {
-        var p = {};
-        p[attr_name.replace(/^@/, "")] = JSON.parse(node.attributes[j].value.replace(/^[^{]*{{{{/, "").replace(/}}}}$/, ""));
-        d.properties[drab_id].push(p);
-      }
-    }
-  };
   for (var ampere in d.properties) {
     var properties = d.properties[ampere];
-    for (var j = 0; j < properties.length; j++) {
-      for (var key in properties[j]) {
-        var amps = where.querySelectorAll("[drab-ampere='" + ampere + "']")
-        for (var k = 0; k < amps.length; k++) {
-          var n = amps[k];
-          set_property(n, key, properties[j][key]);
-        };
+    for (var key in properties) {
+      var amps = where.querySelectorAll("[drab-ampere='" + ampere + "']")
+      for (var k = 0; k < amps.length; k++) {
+        var n = amps[k];
+        set_property(n, key, properties[key]);
       }
     }
   }
 }
 
-function set_property(node, attribute_name, attribute_value) {
+function set_property(node, attribute_name, new_value) {
   var property = node.getAttribute("@" + attribute_name).replace(/{{{{.+}}}}$/, "");
+  var drab_id = node.getAttribute("drab-ampere");
   var path = property.split(".");
   var full = node;
   var prev, last;
@@ -102,7 +116,8 @@ function set_property(node, attribute_name, attribute_value) {
     full = full[part];
     last = part;
   }
-  prev[last] = attribute_value;
+  prev[last] = new_value;
+  window.__drab.properties[drab_id][attribute_name] = new_value;
 }
 
 function selector(ampere_hash) {

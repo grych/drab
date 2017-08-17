@@ -1,4 +1,4 @@
-defmodule DrabTestApp.LiveForm do
+defmodule DrabTestApp.LiveFormTest do
   import Drab.Live
   use DrabTestApp.IntegrationCase
 

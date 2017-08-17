@@ -9,5 +9,10 @@
 <br>
 <div id="button3_placeholder"></div>
 <br>
-<div id="partial2"></div>
+<div id="partial2_placeholder"></div>
 <br>
+<button id="button4" drab-click="change_partial2">Change partial 2</button>
+<br>
+<div id="partial4_placeholder"></div>
+<br>
+<button id="button5" drab-click="change_partial4">Change partial 4</button>

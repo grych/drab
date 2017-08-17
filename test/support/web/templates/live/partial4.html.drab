@@ -1,0 +1,5 @@
+<p id="partial4_color" @style.backgroundColor=<%= @color %>>
+  Partial4 @in_partial: <%= @in_partial %>
+  <br>
+  <a id="partial4_href" href="<%= @link %>"><%= @link %></a>
+</p>
