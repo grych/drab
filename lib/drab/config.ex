@@ -46,7 +46,16 @@ defmodule Drab.Config do
   """
   def pubsub() do
     #TODO: what if the module is called differently?
-    Module.concat(app_module(), PubSub)
+    # Module.concat(app_module(), PubSub)
+    with {:ok, pubsub_conf} <- Keyword.fetch(Drab.Config.app_config(), :pubsub),
+         {:ok, name} <- Keyword.fetch(pubsub_conf, :name)
+    do
+      name
+    else
+      _ -> raise """
+      Can't find the PubSub module. Please ensure that it exists in the config.exs
+      """
+    end
   end
 
   defp first_uppercase?(atom) do
@@ -69,6 +78,7 @@ defmodule Drab.Config do
       DrabTestApp
   """
   def app_module() do
+    # in 1.3 app module is not under the endpoint
     Module.split(endpoint()) 
     |> Enum.drop(-1)
     |> Module.concat()

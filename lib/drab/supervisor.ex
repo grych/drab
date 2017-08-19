@@ -22,7 +22,7 @@ defmodule Drab.Supervisor do
       {:module, DrabTestApp} -> [supervisor(DrabTestApp.Endpoint, [])]
     end 
 
-    # Start ETS cache
+    # Start DETS cache
     Drab.Live.Cache.start()
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
