@@ -70,7 +70,7 @@ $ mix deps.get
 $ mix compile
 ```
 
-  2. Initialize Drab client library by adding to the layout page (`web/templates/layout/app.html.eex`)
+  2. Initialize Drab client library by adding to the layout page (`app.html.eex`)
 
 ```html
 <%= Drab.Client.js(@conn) %>
@@ -81,8 +81,8 @@ $ mix compile
 ```html
 <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
 ```
-    
-  3. Initialize Drab sockets by adding the following to `web/channels/user_socket.ex`:
+
+  3. Initialize Drab sockets by adding the following to `user_socket.ex`:
 
 ```elixir
 use Drab.Socket
@@ -103,6 +103,8 @@ def application do
    applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext, :drab]]
 end
 ```
+
+  It is not needed if you are running Phoenix 1.3
 
   6. To enable live reload on Drab pages, add `.drab` extension to live reload patterns in `dev.exs`:
 
