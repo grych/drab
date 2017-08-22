@@ -3,8 +3,8 @@ defmodule Drab.Live.Cache do
   This is the Drab.Live internal cache module. It doesn't expose any API.
 
   ### Cache File
-  Drab.Live store internal information in the file `priv/hashes_expressions.drab.cache`. To clean up the cach,
-  just delete it, but only with `mix clean` command, to ensure all Drab Live Templates will recompile.
+  Drab.Live stores internal information in the file `priv/hashes_expressions.drab.cache`. To clean up the cache
+  just delete it, but only with the `mix clean` command, to ensure all Drab.Live templates will recompile.
   """
   @cache_file "hashes_expressions.drab.cache"
   # @name __MODULE__
@@ -60,5 +60,3 @@ defmodule Drab.Live.Cache do
     "#{Path.join(Drab.Config.app_name() |> :code.priv_dir() |> to_string(), @cache_file)}.#{env()}"
   end
 end
-
-

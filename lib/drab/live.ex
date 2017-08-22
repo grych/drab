@@ -3,13 +3,13 @@ defmodule Drab.Live do
   Drab Module to provide a live access and update of assigns of the template, which is currently rendered and displayed
   in the browser.
 
-  The idea is to reuse your Phoenix templates and let them live, to make a possibility to update assigns 
+  The idea is to reuse your Phoenix templates and let them live, to make a possibility to update assigns
   on the living page, from the Elixir, without reloading the whole stuff.
 
   Use `peek/2` to get the assign value, and `poke/2` to modify it directly in the DOM tree.
 
-  Drab.Live uses the modified EEx Engine (`Drab.Live.EExEngine`) to compile the template and indicate where assigns 
-  were rendered. To enable it, rename the template you want to go live from extension `.eex` to `.drab`. Then, 
+  Drab.Live uses the modified EEx Engine (`Drab.Live.EExEngine`) to compile the template and indicate where assigns
+  were rendered. To enable it, rename the template you want to go live from extension `.eex` to `.drab`. Then,
   add Drab Engine to the template engines in `config.exs`:
 
       config :phoenix, :template_engines,
@@ -30,7 +30,7 @@ defmodule Drab.Live do
   It renders to:
 
       <p>Chapter <span drab-ampere=someid>1</span>.</p>
-  
+
   This `<span>` over the expression is injected automatically by `Drab.Live.EExEngine`.
   Updating the `@chapter_no` attribute in the Drab Commander, using `poke/2`:
 
@@ -42,13 +42,13 @@ defmodule Drab.Live do
       <p>Chapter <span drab-ampere=someid>2</span>.</p>
 
   #### Attributes
-  When the expression is defining the attribute of the tag, the behaviour if different. Let's assume there is 
+  When the expression is defining the attribute of the tag, the behaviour if different. Let's assume there is
   a template with following html, rendered in the Controller with value of `@button` set to string `"btn-danger"`.
 
       <button class="btn <%= @button %>">
 
   It renders to:
-      
+
       <button drab-ampere=someid class="btn btn-danger">
 
   Again, you can see injected `drab-ampere` attribute. This allows Drab to indicate where to update the attribute.
@@ -63,12 +63,12 @@ defmodule Drab.Live do
   attribute value string.
 
   #### Properties
-  Nowadays we deal more with Node proporties than attributes. This is why `Drab.Live` introduces the special syntax.
+  Nowadays we deal more with Node properties than attributes. This is why `Drab.Live` introduces the special syntax.
   When using the @ sign at the beginning of the attribute name, it will be treated as a property.
 
       <button @hidden=<%= @hidden %>>
 
-  Updating `@hidden` in the Drab Commander with `poke/2` will change the value of the `hidden` property 
+  Updating `@hidden` in the Drab Commander with `poke/2` will change the value of the `hidden` property
   (without dollar sign!), by sending the update javascript, like `node['hidden'] = false`.
 
   You may also dig deeper into the Node properties, using dot - like in JavaScript - to bind the expression
@@ -76,10 +76,10 @@ defmodule Drab.Live do
 
       <button @style.backgroundColor=<%= @color %>>
 
-  Aditially, Drab sets up all the properties defined that way when the page loads. Thanks to this, you
+  Additionally, Drab sets up all the properties defined that way when the page loads. Thanks to this, you
   don't have to worry about the initial value.
 
-  Notice that `@property=<%= expression %>` *is the only available syntax*, you can not use string pattern or 
+  Notice that `@property=<%= expression %>` *is the only available syntax*, you can not use string pattern or
   give more than one expression. Property must be solid bind to the expression.
 
   The expression binded with the property *must be encodable to JSON*, so, for example, tuples are not allowed here.
@@ -101,7 +101,7 @@ defmodule Drab.Live do
       </script>
 
   Again, Drab injects some ID to know where to find its victim. After you `poke/2` the new value of `@button_state`,
-  Drab will re-render the whole script with a new value and will send a request to re-evaluate the script. 
+  Drab will re-render the whole script with a new value and will send a request to re-evaluate the script.
   Browser will run something like: `eval("document.querySelectorAll(\"button\").hidden = true")`.
 
   ### Partials
@@ -113,7 +113,7 @@ defmodule Drab.Live do
   view name.
 
   Assigns are archored within their partials. Manipulation of the assign outside the template it lives will raise
-  `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign in the main partial will not update 
+  `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign in the main partial will not update
   assigns in the child partials, even if they exist there.
 
   #### Rendering partial templates in a runtime
@@ -121,13 +121,13 @@ defmodule Drab.Live do
 
       poke socket, live_partial1: render_to_string("partial1.html", color: "#aaaabb")
 
-  But remember that assigns are assigned to the partials, so after adding it to the page, manipulation 
+  But remember that assigns are assigned to the partials, so after adding it to the page, manipulation
   must be done within the added partial:
 
       poke socket, "partial1.html", color: "red"
 
   ### Limitions
-  Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid. 
+  Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid.
   There are also some limits for defining attributes, properties, etc. See `Drab.Live.EExEngine` for a full
   description.
   """
@@ -159,7 +159,7 @@ defmodule Drab.Live do
       ** (ArgumentError) Assign @nonexistent not found in Drab EEx template
 
   Notice that this is a value of the assign, and not the value of any node property or attribute. Assign
-  gets its value only while rendering the page or via `poke`. After changing the value of node attribute 
+  gets its value only while rendering the page or via `poke`. After changing the value of node attribute
   or property on the client side, the assign value will remain the same.
   """
   #TODO: think if it is needed to sign/encrypt
@@ -196,7 +196,7 @@ defmodule Drab.Live do
     end
   end
 
-  def peek(socket, view, partial, assign) when is_atom(assign) do 
+  def peek(socket, view, partial, assign) when is_atom(assign) do
     peek(socket, view, partial, Atom.to_string(assign))
   end
 
@@ -329,7 +329,7 @@ defmodule Drab.Live do
               nil
             else
               if has_common?(assigns_in_ampere, assigns_to_update_keys) do
-                evaluated_expressions = Enum.map(exprs, fn hash -> 
+                evaluated_expressions = Enum.map(exprs, fn hash ->
                   {:expr, expr, _} = Drab.Live.Cache.get(hash)
                   new_value = eval_expr(expr, modules, updated_assigns)
                   # new_value = safe_to_string(safe)
@@ -338,9 +338,9 @@ defmodule Drab.Live do
                 end)
                 new_value_of_attribute = case type do
                   # update in pattern
-                  :attr -> 
+                  :attr ->
                     replace_pattern(pattern, evaluated_expressions) |> encode_js()
-                  :prop -> 
+                  :prop ->
                     {_, new_value} = evaluated_expressions |> List.first()
                     new_value |> encode_js()
                 end
@@ -353,7 +353,7 @@ defmodule Drab.Live do
               end
             end
           end
-        {tag, pattern, exprs, assigns_in_ampere} when tag in [:textarea, :script] -> 
+        {tag, pattern, exprs, assigns_in_ampere} when tag in [:textarea, :script] ->
           if has_common?(assigns_in_ampere, assigns_to_update_keys) do
             hash_and_value = Enum.map(exprs, fn hash ->
               {:expr, expr, _} = Drab.Live.Cache.get(hash)
@@ -402,15 +402,15 @@ defmodule Drab.Live do
 
   defp replace_pattern(pattern, []), do: pattern
   defp replace_pattern(pattern, [{hash, value} | rest]) do
-    new_pattern = String.replace(pattern, ~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:#{hash}}}}}/, 
-      to_string(value), 
+    new_pattern = String.replace(pattern, ~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:#{hash}}}}}/,
+      to_string(value),
       global: true)
     replace_pattern(new_pattern, rest)
   end
 
   defp has_common?(list1, list2) do
-    if Enum.find(list1, fn xa -> 
-      Enum.find(list2, fn xb -> xa == xb end) 
+    if Enum.find(list1, fn xa ->
+      Enum.find(list2, fn xb -> xa == xb end)
     end), do: true, else: false
   end
 
@@ -423,7 +423,7 @@ defmodule Drab.Live do
   defp expr_with_imports(expr, modules) do
     #TODO: find it in the web.ex
     {view, router_helpers, error_helpers, gettext} = modules
-    quote do 
+    quote do
       import unquote(view)
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
       use Phoenix.HTML
@@ -431,12 +431,12 @@ defmodule Drab.Live do
       import unquote(error_helpers)
       import unquote(gettext)
       unquote(expr)
-    end    
+    end
   end
 
   defp assign_updates_js(assigns, partial) do
-    Enum.map(assigns, fn {k, v} -> 
-      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{Drab.Live.Crypto.encode64(v)}'" 
+    Enum.map(assigns, fn {k, v} ->
+      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{Drab.Live.Crypto.encode64(v)}'"
     end)
   end
 
@@ -447,9 +447,9 @@ defmodule Drab.Live do
   defp safe_to_string(safe), do: to_string(safe)
 
   defp assigns(socket, partial, partial_name) do
-    assigns = case socket 
-      |> Drab.pid() 
-      |> Drab.get_priv() 
+    assigns = case socket
+      |> Drab.pid()
+      |> Drab.get_priv()
       # |> IO.inspect()
       |> Map.get(:__ampere_assigns)
       |> Map.fetch(partial) do
@@ -465,18 +465,18 @@ defmodule Drab.Live do
   end
 
   defp amperes(socket, partial) do
-    socket 
-      |> Drab.pid() 
-      |> Drab.get_priv() 
+    socket
+      |> Drab.pid()
+      |> Drab.get_priv()
       |> Map.get(:__amperes)
       |> Map.get(partial)
   end
 
   defp index(socket) do
-    socket 
-      |> Drab.pid() 
-      |> Drab.get_priv() 
-      |> Map.get(:__index)    
+    socket
+      |> Drab.pid()
+      |> Drab.get_priv()
+      |> Map.get(:__index)
   end
 
   defp partial_hash(view, partial_name) do
@@ -502,6 +502,6 @@ defmodule Drab.Live do
 
           Available assigns:
           #{inspect current_keys}
-          """    
+          """
   end
 end

@@ -4,7 +4,7 @@ defmodule Drab.Core do
   works on pure Phoenix.
 
       defmodule DrabPoc.JquerylessCommander do
-        use Drab.Commander, modules: [] 
+        use Drab.Commander, modules: []
 
         def clicked(socket, payload) do
           socket |> console("You've sent me this: #{payload |> inspect}")
@@ -21,7 +21,7 @@ defmodule Drab.Core do
 
   Clicking such button launches `DrabExample.PageCommander.button_clicked/2` on the Phoenix server.
 
-  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For this event 
+  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For this event
   an attribute `drab-EVENT_NAME` must be set. The following like is an equivalent for the previous one:
 
       <button drab-click='button_clicked'>clickme</button>
@@ -69,7 +69,7 @@ defmodule Drab.Core do
   ## Running Elixir code from the Browser
 
   There is the Javascript method `Drab.run_handler()` in global `Drab` object, which allows you to run the Elixir
-  function defined in the Commander. 
+  function defined in the Commander.
 
       Drab.run_handler(event_name, function_name, argument)
 
@@ -87,52 +87,52 @@ defmodule Drab.Core do
         Clickme
       </button>
 
-  The code above runs function named `clicked` in the corresponding Commander, with 
+  The code above runs function named `clicked` in the corresponding Commander, with
   the argument `%{"click" => "clickety-click}"`
 
   ## Store
 
-  Analogically to Plug, Drab can store the values in its own session. To avoid confusion with the Plug Session session, 
-  it is called a Store. You can use functions: `put_store/3` and `get_store/2` to read and write the values 
+  Analogically to Plug, Drab can store the values in its own session. To avoid confusion with the Plug Session session,
+  it is called a Store. You can use functions: `put_store/3` and `get_store/2` to read and write the values
   in the Store. It works exactly the same way as a "normal", Phoenix session.
 
-  * By default, Drab Store is kept in browser Local Storage. This means it is gone when you close the browser 
+  * By default, Drab Store is kept in browser Local Storage. This means it is gone when you close the browser
     or the tab. You may set up where to keep the data with drab_store_storage config entry.
-  * Drab Store is not the Plug Session! This is a different entity. Anyway, you have an access 
+  * Drab Store is not the Plug Session! This is a different entity. Anyway, you have an access
     to the Plug Session (details below).
   * Drab Store is stored on the client side and it is signed, but - as the Plug Session cookie - not ciphered.
 
   ## Session
 
-  Although Drab Store is a different entity than Plug Session (used in Controllers), there is a way 
-  to access the Session. First, you need to whitelist the keys you wan to access in `access_session/1` macro 
-  in the Commander (you may give it a list of atoms or a single atom). Whitelisting is due to security: 
-  it is kept in Token, on the client side, and it is signed but not encrypted. 
+  Although Drab Store is a different entity than Plug Session (used in Controllers), there is a way
+  to access the Session. First, you need to whitelist the keys you want to access in `access_session/1` macro
+  in the Commander (you may give it a list of atoms or a single atom). Whitelisting is due to security:
+  it is kept in Token, on the client side, and it is signed but not encrypted.
 
       defmodule DrabPoc.PageCommander do
         use Drab.Commander
 
-        onload :page_loaded, 
+        onload :page_loaded,
         access_session :drab_test
 
         def page_loaded(socket) do
-          socket 
+          socket
           |> update(:val, set: get_session(socket, :drab_test), on: "#show_session_test")
         end
       end
 
-  There is not way to update session from Drab. Session is read-only.
+  There is no way to update the session from Drab. Session is read-only.
   """
   require Logger
 
   # @behaviour Drab
-  use DrabModule  
+  use DrabModule
   # def prerequisites(), do: []
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
 
   @doc false
   def transform_payload(payload, _state) do
-    payload 
+    payload
       |> Map.put_new(:params, payload["form"] |> normalize_params())
   end
 
@@ -146,9 +146,9 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Synchronously executes the given javascript on the client side. 
+  Synchronously executes the given javascript on the client side.
 
-  Returns tuple `{status, return_value}`, where status could be `:ok` or `:error`, and return value 
+  Returns tuple `{status, return_value}`, where status could be `:ok` or `:error`, and return value
   contains the output computed by the Javascript or the error message.
 
   ### Options
@@ -157,7 +157,7 @@ defmodule Drab.Core do
 
   ### Examples
 
-      iex> socket |> exec_js("2 + 2")                   
+      iex> socket |> exec_js("2 + 2")
       {:ok, 4}
 
       iex> socket |> exec_js("not_existing_function()")
@@ -166,7 +166,7 @@ defmodule Drab.Core do
       iex> socket |> exec_js("for(i=0; i<1000000000; i++) {}")
       {:error, "timed out after 5000 ms."}
 
-      iex> socket |> exec_js("alert('hello from IEx!')", timeout: 500)         
+      iex> socket |> exec_js("alert('hello from IEx!')", timeout: 500)
       {:error, "timed out after 500 ms."}
 
   """
@@ -186,11 +186,11 @@ defmodule Drab.Core do
         ** (Drab.JSExecutionError) nonexistent is not defined
             (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
 
-        iex> socket |> exec_js!("for(i=0; i<1000000000; i++) {}")                       
+        iex> socket |> exec_js!("for(i=0; i<1000000000; i++) {}")
         ** (Drab.JSExecutionError) timed out after 5000 ms.
             (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
 
-        iex> socket |> exec_js!("for(i=0; i<10000000; i++) {}", timeout: 1000)         
+        iex> socket |> exec_js!("for(i=0; i<10000000; i++) {}", timeout: 1000)
         ** (Drab.JSExecutionError) timed out after 1000 ms.
             lib/drab/core.ex:114: Drab.Core.exec_js!/3
 
@@ -214,7 +214,7 @@ defmodule Drab.Core do
 
   The subject is derived from the first argument, which could be:
 
-  * socket - in this case broadcasting option is derived from the setup in the commander. 
+  * socket - in this case broadcasting option is derived from the setup in the commander.
     See `Drab.Commander.broadcasting/1` for the broadcasting options
 
   * same_path(string) - sends the JS to browsers sharing (and configured as listening to same_path
@@ -341,7 +341,7 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Saves the key => value in the Store. Returns unchanged socket. 
+  Saves the key => value in the Store. Returns unchanged socket.
 
       put_store(socket, :counter, 1)
   """
@@ -410,16 +410,16 @@ defmodule Drab.Core do
   def tokenize_store(socket, store) do
     Drab.tokenize(socket, store, "drab_store_token")
   end
- 
+
   defp detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
 
   defp detokenize_store(socket, drab_store_token) do
     # we just ignore wrong token and defauklt the store to %{}
     # this is because it is read on connect, and raising here would cause infinite reconnects
     case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token, max_age: 86400) do
-      {:ok, drab_store} -> 
+      {:ok, drab_store} ->
         drab_store
-      {:error, _reason} -> 
+      {:error, _reason} ->
         %{}
     end
   end
@@ -430,10 +430,10 @@ defmodule Drab.Core do
       def button_clicked(socket, sender) do
         set_prop socket, this(sender), innerText: "already clicked"
         set_prop socket, this(sender), disabled: true
-      end        
+      end
 
   Do not use it with with broadcast functions (`Drab.Query.update!`, `Drab.Core.broadcast_js`, etc),
-  because it returns the *exact* DOM object in *exact* browser. In case if you want to broadcast, use 
+  because it returns the *exact* DOM object in *exact* browser. In case if you want to broadcast, use
   `this!/1` instead.
 
   """
@@ -456,7 +456,7 @@ defmodule Drab.Core do
     unless id, do: raise ArgumentError, """
     Try to use Drab.Core.this!/1 on DOM object without an ID:
     #{inspect(sender)}
-    """ 
+    """
     "##{id}"
   end
 end
