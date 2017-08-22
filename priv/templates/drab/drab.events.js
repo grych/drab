@@ -192,6 +192,7 @@ Drab.set_event_handlers = function (obj) {
               }
           <% end %>
         );
+        return false; // prevent default
       };
 
       var event_name = node.getAttribute("drab-event");

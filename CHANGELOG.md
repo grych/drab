@@ -4,6 +4,8 @@
 
 ### Fixes:
 * #20 (broadcasting in Phx 1.3)
+* #47 (docs and error message updated)
+* #45 (button inside for submits in Firefox)
 
 
 # v0.5.4
