@@ -11,13 +11,19 @@ defmodule Drab.Config do
   """
   def app_name() do
     get(:main_phoenix_app) || case Code.ensure_loaded(Mix.Project) do
-      {:module, Mix.Project} -> Mix.Project.config()[:app]
-      {:error, _} -> raise """
-        Can't find the main application name. Please check your mix.exs or set the name in confix.exs:
+      {:module, Mix.Project} -> Mix.Project.config()[:app] || raise_app_not_found()
+      {:error, _} -> raise_app_not_found()
+    end 
+  end
+
+  defp raise_app_not_found() do
+    raise """
+        drab can't find the main Phoenix application name.
+
+        Please check your mix.exs or set the name in confix.exs:
 
             config :drab, main_phoenix_app: :my_app
         """
-    end 
   end
 
   @doc """
@@ -45,15 +51,13 @@ defmodule Drab.Config do
       DrabTestApp.PubSub
   """
   def pubsub() do
-    #TODO: what if the module is called differently?
-    # Module.concat(app_module(), PubSub)
     with {:ok, pubsub_conf} <- Keyword.fetch(Drab.Config.app_config(), :pubsub),
          {:ok, name} <- Keyword.fetch(pubsub_conf, :name)
     do
       name
     else
       _ -> raise """
-      Can't find the PubSub module. Please ensure that it exists in the config.exs
+      Can't find the PubSub module. Please ensure that it exists in config.exs.
       """
     end
   end

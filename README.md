@@ -120,6 +120,13 @@ config :my_app, MyApp.Endpoint,
   ]
 ```
 
+  7. If your application is **under the umbrella project**, Drab is not able to find its name. In this case, add the app name to the `config.exs`:
+
+```elixir
+config :drab,
+  main_phoenix_app: :my_app
+```
+
 #### If you want to use Drab.Query (jQuery based module):
 
   1. Add `jquery` and `boostrap` to `package.json`:

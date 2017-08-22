@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# v0.5.5
+
+### Fixes:
+* #20 (broadcasting in Phx 1.3)
+
+
 # v0.5.4
 Fixes for adding templates in a runtime.
 

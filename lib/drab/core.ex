@@ -51,6 +51,12 @@ defmodule Drab.Core do
         :params   => "a map of values of the sourrounding form, normalized to controller type params"
       }
 
+  The `event` map contains choosen properties of `event` object: 
+
+      altKey, data, key, keyCode, metaKey, shiftKey, ctrlKey, type, which, 
+      clientX, clientY, offsetX, offsetY, pageX, pageY, screenX, screenY
+
+
   Example:
 
       def button_clicked(socket, sender) do

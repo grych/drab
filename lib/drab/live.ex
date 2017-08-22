@@ -293,6 +293,7 @@ defmodule Drab.Live do
       |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end)
       |> Keyword.merge(assigns)
 
+    #TODO: check how it works in P13, when app_module is different than web_app_module
     app_module = Drab.Config.app_module()
     modules = {
       socket.assigns.__controller.__drab__().view,
