@@ -4,7 +4,7 @@ defmodule Drab.Commander do
   @moduledoc """
   Drab Commander is a module to keep event handlers.
 
-  All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. Think about 
+  All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. Think about
   it as a controller for the live pages. Commanders should be placed in `web/commanders` directory. Commander must
   have a corresponding controller.
 
@@ -23,17 +23,17 @@ defmodule Drab.Commander do
   done by running JS method `Drab.run_handler()`. See `Drab.Core` for this method description.
 
   The event handler function receives two parameters:
-  * `socket` - the websocket used to communicate back to the page 
-  * `argument` - an argument used in JS Drab.run_handler() method; when lauching an event via 
+  * `socket` - the websocket used to communicate back to the page
+  * `argument` - an argument used in JS Drab.run_handler() method; when lauching an event via
     `drab-handler=function` atrribute, it is a map describing the sender object
 
-  ## Callbacks 
+  ## Callbacks
 
-  Callbacks are an automatic events which are launched by the system. They are defined by the macro in the 
+  Callbacks are an automatic events which are launched by the system. They are defined by the macro in the
   Commander module:
 
       defmodule DrabExample.PageCommander do
-        use Drab.Commander 
+        use Drab.Commander
 
         onload :page_loaded
         onconnect :connected
@@ -66,19 +66,19 @@ defmodule Drab.Commander do
       end
 
   #### `onconnect`
-  Launched every time client browser connects to the server, including reconnects after server 
+  Launched every time client browser connects to the server, including reconnects after server
   crash, network broken etc
 
 
   #### `onload`
-  Launched only once after page loaded and connects to the server - exactly the same like `onconnect`, 
+  Launched only once after page loaded and connects to the server - exactly the same like `onconnect`,
   but launches only once, not after every reconnect
 
-  #### `ondisconnect` 
+  #### `ondisconnect`
   Launched every time client browser disconnects from the server, it may be a network disconnect,
   closing the browser, navigate back. Disconnect callback receives Drab Store as an argument
 
-  #### `before_handler` 
+  #### `before_handler`
   Runs before the event handler. If any of before callbacks return `false` or `nil`, corresponding event
   will not be launched. If there are more callbacks for specified event handler function, all are processed
   in order or appearance, then system checks if any of them returned false
@@ -88,19 +88,19 @@ defmodule Drab.Commander do
       before_handler :check_status, except: [:set_status]
       before_handler :check_status, only:   [:update_db]
 
-  #### `after_handler` 
+  #### `after_handler`
   Runs after the event handler. Gets return value of the event handler function as a third argument.
   Can be filtered by `:only` or `:except` options, analogically to `before_handler`
 
   ## Broadcasting options
 
-  All Drab function may be broadcaster. By default, broadcasts are sent to browsers sharing the same page 
+  All Drab function may be broadcaster. By default, broadcasts are sent to browsers sharing the same page
   (the same url), but it could be override by `broadcasting/1` macro.
 
   ## Modules
 
   Drab is modular. You my choose which modules to use in the specific Commander by using `:module` option
-  in `use Drab.Commander` directive. 
+  in `use Drab.Commander` directive.
   There is one required module, which is loaded always and can't be disabled: `Drab.Code`. By default, modules
   `Drab.Live` and `Drab.Element` are loaded. The following code:
 
@@ -112,7 +112,7 @@ defmodule Drab.Commander do
 
   ## Using templates
 
-  Drab injects function `render_to_string/2` into your Commander. It is a shorthand for 
+  Drab injects function `render_to_string/2` into your Commander. It is a shorthand for
   `Phoenix.View.render_to_string/3` - Drab automatically chooses the current View.
 
   ### Examples:
@@ -130,7 +130,7 @@ defmodule Drab.Commander do
 
   defmacro __using__(options) do
     opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
-    modules = Enum.map(opts.modules, fn x -> 
+    modules = Enum.map(opts.modules, fn x ->
       case x do
         # TODO: don't like this hack
         {:__aliases__, _, m} -> Module.concat(m)
@@ -144,7 +144,7 @@ defmodule Drab.Commander do
       import Drab.Core
 
       o = Enum.into(unquote(options) || [], %{commander: __MODULE__})
-      Enum.each([:onload, :onconnect, :ondisconnect, :access_session], fn macro_name -> 
+      Enum.each([:onload, :onconnect, :ondisconnect, :access_session], fn macro_name ->
         if o[macro_name] do
           IO.warn("""
             Defining #{macro_name} handler in the use statement has been depreciated. Please use corresponding macro instead.
@@ -163,7 +163,7 @@ defmodule Drab.Commander do
 
       unquote do
         # opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
-        modules_to_import |> Enum.map(fn module -> 
+        modules_to_import |> Enum.map(fn module ->
           quote do
             import unquote(module)
           end
@@ -179,7 +179,7 @@ defmodule Drab.Commander do
       end
 
       @doc """
-      A shordhand for `Phoenix.View.render_to_string/3`. 
+      A shordhand for `Phoenix.View.render_to_string/3`.
       """
       def render_to_string(view, template, assigns) do
         Phoenix.View.render_to_string(view, template, assigns)
@@ -197,7 +197,7 @@ defmodule Drab.Commander do
     end
   end
 
-  Enum.each([:onload, :onconnect, :ondisconnect], fn macro_name -> 
+  Enum.each([:onload, :onconnect, :ondisconnect], fn macro_name ->
     @doc """
     Sets up the callback for #{macro_name}. Receives handler function name as an atom.
 
@@ -221,7 +221,7 @@ defmodule Drab.Commander do
   end)
 
   @doc """
-  Drab may allow an access to specified Plug Session values. For this, you must whitelist the keys of the 
+  Drab may allow an access to specified Plug Session values. For this, you must whitelist the keys of the
   session map. Only this keys will be available to `Drab.Core.get_session/2`
 
       defmodule MyApp.MyCommander do
@@ -229,7 +229,7 @@ defmodule Drab.Commander do
 
         access_session [:user_id, :counter]
       end
-  
+
   Keys are whitelisted due to security reasons. Session token is stored on the client-side and it is signed, but
   not encrypted.
   """
@@ -253,7 +253,7 @@ defmodule Drab.Commander do
       """
   end
 
-  Enum.each([:before_handler, :after_handler], fn macro_name -> 
+  Enum.each([:before_handler, :after_handler], fn macro_name ->
     @doc """
     Sets up the callback for #{macro_name}. Receives handler function name as an atom and options.
 
@@ -282,16 +282,16 @@ defmodule Drab.Commander do
   @doc """
   Set up broadcasting listen subject for the current commander.
 
-  It is used by broadcasting functions, like `Drab.Live.poke_bcast` or `Drab.Query.insert!`. When the browser connects
-  to Drab page, it gets the broadcasting subject from the commander. Then, it will receive all the broadcasts 
-  coming to this subject.
+  It is used by broadcasting functions, like `Drab.Element.broadcast_prop/3` or `Drab.Query.insert!/2`.
+  When the browser connects to Drab page, it gets the broadcasting subject from the commander. Then,
+  it will receive all the broadcasts coming to this subject.
 
   Default is `:same_path`
 
   Options:
 
   * `:same_path` (default) - broadcasts will go to the browsers rendering the same url
-  * `:same_controller` - broadcasted message will be received by all browsers, which renders the page generated 
+  * `:same_controller` - broadcasted message will be received by all browsers, which renders the page generated
     by the same controller
   * `"topic"` - any topic you want to set, messages will go to the clients sharing this topic
 
@@ -311,7 +311,7 @@ defmodule Drab.Commander do
     end
   end
 
-  defmacro broadcasting(unknown_argument) do 
+  defmacro broadcasting(unknown_argument) do
     raise CompileError, description: """
       invalid `broadcasting` option: #{inspect unknown_argument}.
 

@@ -51,9 +51,9 @@ defmodule Drab.Core do
         :params   => "a map of values of the sourrounding form, normalized to controller type params"
       }
 
-  The `event` map contains choosen properties of `event` object: 
+  The `event` map contains choosen properties of `event` object:
 
-      altKey, data, key, keyCode, metaKey, shiftKey, ctrlKey, type, which, 
+      altKey, data, key, keyCode, metaKey, shiftKey, ctrlKey, type, which,
       clientX, clientY, offsetX, offsetY, pageX, pageY, screenX, screenY
 
 
@@ -128,6 +128,32 @@ defmodule Drab.Core do
       end
 
   There is no way to update the session from Drab. Session is read-only.
+
+  ## Broadcasting
+
+  You may use Drab for broadcasting changes to all connected browsers. Drab uses a *subject* for distinguishing
+  browsers, which are allowed to receive the change.
+
+  Broadcasting function receives `socket` or `subject` as the first argument. If `socket` is used, function
+  derives the `subject` from the commander configuration. See `Drab.Commander.broadcasting/1` to learn how to
+  configure the broadcasting options.
+
+  Broadcasting functions may be launched without the `socket` given. In this case, you need to define it manually,
+  using helper functions: `Drab.Core.same_path/1`, `Drab.Core.same_topic/1` and `Drab.Core.same_controller/1`.
+  See `broadcast_js/3` for more.
+
+  List of broadcasting functions:
+    * `Drab.Core`:
+      * `Drab.Core.broadcast_js/3`
+      * `Drab.Core.broadcast_js!/3`
+    * `Drab.Element`:
+      * `Drab.Element.broadcast_insert/4`
+      * `Drab.Element.broadcast_prop/3`
+    * `Drab.Query`:
+      * `Drab.Query.delete!/2`
+      * `Drab.Query.execute/2`, `Drab.Query.execute/3`
+      * `Drab.Query.insert!/2`, `Drab.Query.insert!/3`
+      * `Drab.Query.update!/2`, `Drab.Query.update!/3`
   """
   require Logger
 
@@ -208,15 +234,8 @@ defmodule Drab.Core do
     end
   end
 
-  # @doc false
-  # def execjs(socket, js) do
-  #   Deppie.once("Drab.Core.execjs/2 is depreciated. Please use Drab.Core.exec_js/3 instead")
-  #   {_, result} = exec_js(socket, js)
-  #   result
-  # end
-
   @doc """
-  Asynchronously broadcasts given javascript to all browsers listening on the given subject.
+  Asynchronously executes the javascript on all the browsers listening on the given subject.
 
   The subject is derived from the first argument, which could be:
 

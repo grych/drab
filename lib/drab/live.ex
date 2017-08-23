@@ -63,7 +63,7 @@ defmodule Drab.Live do
   attribute value string.
 
   #### Properties
-  Nowadays we deal more with Node properties than attributes. This is why `Drab.Live` introduces the special syntax.
+  Nowadays we deal more with node properties than attributes. This is why `Drab.Live` introduces the special syntax.
   When using the @ sign at the beginning of the attribute name, it will be treated as a property.
 
       <button @hidden=<%= @hidden %>>

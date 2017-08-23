@@ -4,8 +4,10 @@
 
 ### Fixes:
 * #20 (broadcasting in Phx 1.3)
-* #47 (docs and error message updated)
+* #42 (changing assigns inside form_for resets input values)
+* #44 (docs for broadcasting)
 * #45 (button inside for submits in Firefox)
+* #47 (docs and error message updated)
 
 
 # v0.5.4
