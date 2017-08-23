@@ -19,7 +19,7 @@ defmodule Drab.Channel do
     # sender contains PID of the process which sent the query
     # sender is waiting for the result
     {sender, ref} = sender(socket, sender_encrypted)
-    send(sender, 
+    send(sender,
       { :got_results_from_client, :ok, ref, reply })
 
     {:noreply, socket}
@@ -27,7 +27,7 @@ defmodule Drab.Channel do
 
   def handle_in("execjs", %{"error" => [sender_encrypted, reply]}, socket) do
     {sender, ref} = sender(socket, sender_encrypted)
-    send(sender, 
+    send(sender,
       { :got_results_from_client, :error, ref, reply })
 
     {:noreply, socket}
@@ -36,13 +36,13 @@ defmodule Drab.Channel do
   def handle_in("modal", %{"ok" => [sender_encrypted, reply]}, socket) do
     # sends { "button_name", %{"Param" => "value"}}
     {sender, ref} = sender(socket, sender_encrypted)
-    send(sender, 
+    send(sender,
       {
         :got_results_from_client,
         :ok,
         ref,
-        { 
-          reply["button_clicked"] |> String.to_existing_atom, 
+        {
+          reply["button_clicked"] |> String.to_existing_atom,
           reply["params"] |> Map.delete("__drab_modal_hidden_input")
         }
       })
@@ -70,7 +70,7 @@ defmodule Drab.Channel do
     if IEx.started? do
       commander = Drab.get_commander(socket)
       modules = DrabModule.all_modules_for(commander.__drab__().modules)
-      groupped = Enum.map(modules, fn module -> 
+      grouped = Enum.map(modules, fn module ->
         [_ | rest] = Module.split(module)
         Enum.join(rest, ".")
       end) |> Enum.join(", ")
@@ -82,7 +82,7 @@ defmodule Drab.Channel do
         Drab.Modal    => "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
         Drab.Core     => "socket |> exec_js(\"alert('hello from IEx!')\")"
       }
-      examples = Enum.map(modules, fn module -> 
+      examples = Enum.map(modules, fn module ->
         module_examples[module]
       end) |> Enum.filter(fn x -> !is_nil(x) end)
 
@@ -92,9 +92,9 @@ defmodule Drab.Channel do
 
           Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{inspect(commander)}
           You may debug Drab functions in IEx by copy/paste the following:
-      import Drab.{#{groupped}}
+      import Drab.{#{grouped}}
       socket = Drab.get_socket(pid("#{pid_string}"))
-      
+
           Examples:
       #{examples |> Enum.join("\n")}
       """
@@ -104,14 +104,14 @@ defmodule Drab.Channel do
   end
 
   def handle_in("event", %{
-      "event" => event_name, 
-      "payload" => payload, 
+      "event" => event_name,
+      "payload" => payload,
       "event_handler_function" => event_handler_function,
       "reply_to" => reply_to
       }, socket) do
     # event name is currently not used (0.2.0)
     verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket)
-  end   
+  end
 
   defp verify_and_cast(event_name, params, socket) do
     p = [event_name, socket] ++ params

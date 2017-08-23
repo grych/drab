@@ -1,6 +1,6 @@
 defmodule Drab.Client do
   @moduledoc """
-  Enable Drab on the browser side. Must be included in HTML template, for example 
+  Enable Drab on the browser side. Must be included in HTML template, for example
   in `web/templates/layout/app.html.eex`:
 
       <%= Drab.Client.js(@conn) %>
@@ -17,7 +17,7 @@ defmodule Drab.Client do
 
   @doc """
   Generates JS code which runs Drab. Passes controller and action name, tokenized for safety.
-  Runs only when the controller which renders current action has been compiled
+  Runs only when the controller which renders the current action has been compiled
   with `use Drab.Controller`.
 
   Optional argument may be a list of parameters which will be added to assigns to the socket.
@@ -26,7 +26,7 @@ defmodule Drab.Client do
       <%= Drab.Client.js(@conn) %>
       <%= Drab.Client.js(@conn, user_id: 4, any_other: "test") %>
 
-  Please remember that your parameters are passed to the browser as Phoenix Token. Token is signed, 
+  Please remember that your parameters are passed to the browser as Phoenix Token. Token is signed,
   but not ciphered. Do not put any secret data in it.
 
   On the browser side, there is a global object `Drab`, which you may use to create your own channels
@@ -40,9 +40,9 @@ defmodule Drab.Client do
     # Enable Drab only if Controller compiles with `use Drab.Controller`
     # in this case controller contains function `__drab__/0`
     if Enum.member?(controller.__info__(:functions), {:__drab__, 0}) do
-      controller_and_action = Phoenix.Token.sign(conn, "controller_and_action", 
-                              [__controller: controller, 
-                               __action: Phoenix.Controller.action_name(conn), 
+      controller_and_action = Phoenix.Token.sign(conn, "controller_and_action",
+                              [__controller: controller,
+                               __action: Phoenix.Controller.action_name(conn),
                                __assigns: assigns])
       commander = controller.__drab__()[:commander]
       broadcast_topic = topic(commander.__drab__().broadcasting, controller, conn.request_path)
@@ -52,8 +52,8 @@ defmodule Drab.Client do
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
       access_session = commander.__drab__().access_session
-      session = access_session 
-        |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end) 
+      session = access_session
+        |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end)
         |> Enum.into(%{})
       # Logger.debug("**** #{inspect session}")
 
@@ -75,7 +75,7 @@ defmodule Drab.Client do
         #{js}
       </script>
       """
-    else 
+    else
       ""
     end
   end
