@@ -1,20 +1,8 @@
 
-## 0.5.0
-Bugs:
-* insert and innerHTML should re-assing drab events
-
-
-## 0.5.2
-* Live.poke - better error message when partial not found
-
-* Also, instead of 'broadcasting' a change to all browsers, why not do what Phoenix.pubsub does? Allow you to override an outgoing message (then in your time broadcast example you could 'catch' the outgoing message and reformat it?)
-
-* should take Safe in all html related functions
-* use MapSet in the live.ex
-
-## 0.6.0
-Changes:
-* support Phoenix 1.3
+# v0.6.0
+* Elixir 1.6 and Phoenix 1.3
+* use <%/ %> to not drab the specific one
+* remove depreciations
 
 ## Bugs:
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
@@ -28,12 +16,13 @@ Changes:
 * cumulate drab related assigns in socket to one map `__drab`
 * think if drab_store shouldn't be page or controller/based
 * commander per template
+* Also, instead of 'broadcasting' a change to all browsers, why not do what Phoenix.pubsub does? Allow you to override an outgoing message (then in your time broadcast example you could 'catch' the outgoing message and reformat it?)
+* should take Safe in all html related functions
+* use MapSet in the live.ex
 
 Changes:
 * group JS commands to be launched in one step, if possible
 * re-initiate JS event handler after changing the SPAN (inside it)
-* use <%/ %> to not drab the specific one
-
 
 Bugs:
 * spawn_link in handler does not terminate the spawned process
