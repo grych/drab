@@ -54,3 +54,5 @@
 <button drab-click="update_in_main_partial" class="btn btn-primary">
   Update @color in main partial
 </button>
+<br>
+<img src="<%= static_path(@conn, "/conn/should/not/be/in/assigns")%>">

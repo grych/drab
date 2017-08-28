@@ -27,3 +27,5 @@
 
 <br>
 <div id="out" @out=<%= @out %>><%= inspect @out %></div>
+<br>
+<br>

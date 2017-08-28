@@ -26,13 +26,13 @@ defmodule DrabTestApp.LiveTest do
       end
       assert_raise ArgumentError, fn ->
         peek(socket, :nonexits)
-      end  
+      end
       assert_raise ArgumentError, fn ->
         poke(socket, "partial3.html", color: "red")
-      end  
+      end
       assert_raise ArgumentError, fn ->
         peek(socket, "partial3.html", :color)
-      end  
+      end
     end
 
     test "change assign in main should not touch partial" do
@@ -114,6 +114,16 @@ defmodule DrabTestApp.LiveTest do
       poke socket, "partial1.html", in_partial: "partial1_updated"
       test_val = Drab.Core.exec_js!(socket, "__drab_test")
       assert test_val == "partial1_updated"
+    end
+
+    test "conn should not be available" do
+      socket = drab_socket()
+      assert_raise ArgumentError, fn ->
+        poke(socket, conn: "whatever")
+      end
+      assert_raise ArgumentError, fn ->
+        peek(socket, :conn)
+      end
     end
   end
 end

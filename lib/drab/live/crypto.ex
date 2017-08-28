@@ -19,25 +19,27 @@ defmodule Drab.Live.Crypto do
 
   @doc false
   def encode64(term) do
-    term |> :erlang.term_to_binary() |> Base.url_encode64()
+    # term |> :erlang.term_to_binary() |> Base.url_encode64()
+    term |> encrypt()
   end
 
   @doc false
   def decode64(string) do
-    string |> Base.url_decode64!() |> :erlang.binary_to_term()
+    # string |> Base.url_decode64!() |> :erlang.binary_to_term()
+    string |> decrypt()
   end
 
   @doc false
   def encrypt(term) do
     {secret, sign_secret} = keys()
-    MessageEncryptor.encrypt(term, secret, sign_secret)
+    MessageEncryptor.encrypt(:erlang.term_to_binary(term), secret, sign_secret)
   end
 
   @doc false
   def decrypt(crypted) do
     {secret, sign_secret} = keys()
     {:ok, decrypted} = MessageEncryptor.decrypt(crypted, secret, sign_secret)
-    decrypted
+    :erlang.binary_to_term(decrypted)
   end
 
   @doc false

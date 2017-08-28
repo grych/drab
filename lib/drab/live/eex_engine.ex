@@ -8,7 +8,7 @@ defmodule Drab.Live.EExEngine do
   ### Limitations
 
   #### Avalibility of assigns
-  To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format. Passing it 
+  To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format. Passing it
   to `render` in the controller is not enough.
 
   #### Attributes
@@ -23,7 +23,7 @@ defmodule Drab.Live.EExEngine do
 
       <tag <%="attr='" <> @value <> "'"%>>
       <tag <%=build_attr(@name, @value)%>>
-  
+
   The above will compile (with warnings), but it will not be correctly updated with `Drab.Live.poke`.
 
   The tag name can not be build with the expression.
@@ -82,8 +82,8 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def init(opts) do
-    unless Path.basename(opts[:file],  Drab.Config.drab_extension()) 
-      |> Path.extname() 
+    unless Path.basename(opts[:file],  Drab.Config.drab_extension())
+      |> Path.extname()
       |> String.downcase() == ".html" do
         raise EEx.SyntaxError, message: """
           Drab.Live may work only with html partials.
@@ -93,7 +93,7 @@ defmodule Drab.Live.EExEngine do
     end
     partial = opts[:file]
     Logger.info "Compiling Drab partial: #{partial}"
-    
+
     partial_hash = hash(partial)
     Drab.Live.Cache.start()
     Drab.Live.Cache.set({:partial, partial}, partial_hash)
@@ -105,7 +105,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   @doc false
-  def handle_body({:safe, body}) do 
+  def handle_body({:safe, body}) do
     found_assigns = find_assigns(body)
     partial = partial(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
@@ -129,13 +129,13 @@ defmodule Drab.Live.EExEngine do
     attributes = attributes_from_shadow(shadow)
     grouped_by_ampere = Enum.map(attributes, fn {attribute, pattern} ->
       # is_prop? = String.starts_with?(attribute, "@")
-      {ampere_from_pattern(pattern), 
+      {ampere_from_pattern(pattern),
         {
           :attr,
           # (if is_prop?, do: :prop, else: :attr),
-          # (if is_prop?, do: String.replace(attribute, ~r/^\@/, ""), else: attribute), 
+          # (if is_prop?, do: String.replace(attribute, ~r/^\@/, ""), else: attribute),
           attribute,
-          pattern, 
+          pattern,
           expression_hashes_from_pattern(pattern),
           assigns_from_pattern(pattern)
         }
@@ -147,7 +147,7 @@ defmodule Drab.Live.EExEngine do
       Drab.Live.Cache.set(ampere, {:attribute, Enum.uniq(existing ++ list)})
     end
 
-    # scripts, textareas 
+    # scripts, textareas
     for tag <- @special_tags, pattern <- tags_from_shadow(shadow, tag) do
       ampere = ampere_from_pattern(pattern)
       hashes = expression_hashes_from_pattern(pattern)
@@ -259,7 +259,7 @@ defmodule Drab.Live.EExEngine do
       quote do
         [[[unquote(buffer) | unquote(span_begin)] | unquote(to_safe(expr, line))] | unquote(span_end)]
       end
-    else 
+    else
       quote do
         [unquote(buffer) | unquote(to_safe(expr, line))]
       end
@@ -275,7 +275,7 @@ defmodule Drab.Live.EExEngine do
     end
 
     found_assigns  = find_assigns(expr) |> Enum.sort()
-    html = to_html(buffer) 
+    html = to_html(buffer)
     hash = hash({expr, found_assigns})
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
@@ -302,7 +302,7 @@ defmodule Drab.Live.EExEngine do
         raise EEx.SyntaxError, message: """
           syntax error in Drab property special form for tag: <#{tag}>, property: #{attribute}
 
-          You can only combine one Elixir expression with the DOM Node property. 
+          You can only combine one Elixir expression with the DOM Node property.
           Allowed:
 
               <tag @property=<%#=expression%>>
@@ -322,7 +322,7 @@ defmodule Drab.Live.EExEngine do
       property = String.replace(attribute, ~r/^@/, "")
       {:attribute, attributes} = Drab.Live.Cache.get(ampere_id) || {:attribute, []}
       updated = [{:prop, property, "", [hash], found_assigns} | attributes] |> Enum.uniq()
-  
+
       Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
       Drab.Live.Cache.set(ampere_id, {:attribute, updated})
 
@@ -331,9 +331,9 @@ defmodule Drab.Live.EExEngine do
         #TODO: to_safe is realy not required
         [unquote(buffer) | [
           "'",
-          unquote(property), 
-          "{{{{", 
-          unquote(encoded_expr(expr)), 
+          unquote(property),
+          "{{{{",
+          unquote(encoded_expr(expr)),
           "}}}}'"]]
       end
     else
@@ -358,11 +358,11 @@ defmodule Drab.Live.EExEngine do
     args_removed = args_removed(html)
     if String.contains?(args_removed, "=") do
       args_removed
-      |> String.split("=") 
+      |> String.split("=")
       |> take_at(-2)
       |> String.split(~r/\s+/)
       |> Enum.filter(fn x -> x != "" end)
-      |> List.last()      
+      |> List.last()
     else
       nil
     end
@@ -373,7 +373,7 @@ defmodule Drab.Live.EExEngine do
     args_removed = args_removed(html)
     if String.contains?(args_removed, "=") do
       v = args_removed
-        |> String.split("=") 
+        |> String.split("=")
         |> List.last()
       !Regex.match?(~r/[^\s]/, v)
     else
@@ -439,7 +439,7 @@ defmodule Drab.Live.EExEngine do
       {^tag, attrs, _} ->
         {_, val} = Enum.find(attrs, {nil, nil}, fn {name, _} -> name == @drab_id end)
         val
-      _ -> 
+      _ ->
         nil
     end
   end
@@ -484,13 +484,13 @@ defmodule Drab.Live.EExEngine do
 
   defp base64_encoded_expr(expr) do
     {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Live, :Crypto]}, :encode64]},
-       [@anno], 
+       [@anno],
        [expr]}
   end
 
-  defp encoded_expr(expr) do 
+  defp encoded_expr(expr) do
     {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Core]}, :encode_js]},
-       [@anno], 
+       [@anno],
        [expr]}
   end
 
@@ -539,25 +539,26 @@ defmodule Drab.Live.EExEngine do
     {_, result} = Macro.prewalk ast, [], fn node, acc ->
       case node do
         {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]} when is_atom(name) ->
-          {node, [name | acc]} 
+          {node, [name | acc]}
         _ -> {node, acc}
       end
     end
-    result |> Enum.uniq() |> Enum.sort()
+    #TODO: maybe @conn should be switched on in config?
+    result |> Enum.uniq() |> Enum.sort() |> Enum.reject(&(&1 == :conn))
   end
 
   defp contains_nested_expression?(expr) do
     {_, acc} = Macro.prewalk expr, [], fn node, acc ->
       case node do
         {atom, _, params} when is_atom(atom) and is_list(params) ->
-          found = Enum.find params, fn param -> 
+          found = Enum.find params, fn param ->
             case param do
               string when is_binary(string) -> String.contains?(string, "<span #{@drab_id}='")
               _ -> false
             end
           end
           {node, [found | acc]}
-        _ -> 
+        _ ->
           {node, acc}
       end
     end
@@ -582,7 +583,7 @@ defmodule Drab.Live.EExEngine do
 
           <script>
             <%= if clause do
-              expression 
+              expression
             end %>
           </script>
 
@@ -601,19 +602,19 @@ defmodule Drab.Live.EExEngine do
 
 
   defp do_attributes_from_shadow([]), do: []
-  defp do_attributes_from_shadow([head | rest]) do 
+  defp do_attributes_from_shadow([head | rest]) do
     do_attributes_from_shadow(head) ++ do_attributes_from_shadow(rest)
   end
-  defp do_attributes_from_shadow({_, attributes, children}) when is_list(attributes) do 
+  defp do_attributes_from_shadow({_, attributes, children}) when is_list(attributes) do
     attributes ++ do_attributes_from_shadow(children)
   end
   defp do_attributes_from_shadow(_), do: []
 
   @doc false
-  def attributes_from_shadow(shadow) do 
-    do_attributes_from_shadow(shadow) 
+  def attributes_from_shadow(shadow) do
+    do_attributes_from_shadow(shadow)
       |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
-      |> Enum.filter(fn {name, _} -> 
+      |> Enum.filter(fn {name, _} ->
         n = Regex.match?(~r/{{{{@\S+}}}}/, name)
         n && Logger.warn """
           Unknown attribute found in HTML Template.
@@ -630,7 +631,7 @@ defmodule Drab.Live.EExEngine do
           """
         !n
         end)
-      |> Enum.filter(fn {name, _} -> !String.starts_with?(name, "@") end) 
+      |> Enum.filter(fn {name, _} -> !String.starts_with?(name, "@") end)
   end
 
   @doc false
@@ -659,7 +660,7 @@ defmodule Drab.Live.EExEngine do
     Enum.reduce(expression_hashes_from_pattern(pattern), [], fn(hash, acc) ->
       {:expr, _, assigns} = Drab.Live.Cache.get(hash)
       [assigns | acc]
-    end) 
+    end)
       |> List.flatten()
       |> Enum.uniq()
   end
@@ -671,7 +672,7 @@ defmodule Drab.Live.EExEngine do
 
   defp start_shadow_buffer(initial, partial) do
     case Agent.start_link(fn -> initial end, name: partial) do
-      {:ok, _} = ret -> 
+      {:ok, _} = ret ->
         ret
       {:error, {:already_started, _}} ->
         raise EEx.SyntaxError, message: """
@@ -686,7 +687,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp put_shadow_buffer(content, partial) do
-    partial && Agent.update(partial, &[content | &1]) 
+    partial && Agent.update(partial, &[content | &1])
   end
 
   defp get_shadow_buffer(partial) do

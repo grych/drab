@@ -15,6 +15,11 @@ defmodule Drab.Live do
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
 
+  ### @conn
+  Despite `@conn` is always available in Phoenix templates, Drab excludes it from the live assigns. This is due
+  both to the security and the performance reasons. Trying to `poke` or `peek` `@conn` assign always raise
+  `ArgumentError`.
+
   ### Update Behaviours
   There are different behaviours of `Drab.Live`, depends on where the expression with the updated assign lives.
   For example, if the expression defines tag attribute, like `<span class="<%= @class %>">`, we don't want to

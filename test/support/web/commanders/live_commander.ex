@@ -1,6 +1,6 @@
 defmodule DrabTestApp.LiveCommander do
   @moduledoc false
-  
+
   use Drab.Commander, modules: [Drab.Live, Drab.Element]
   onload :page_loaded
 
@@ -30,7 +30,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   def update_in_partial2_bad(socket, _) do
-    poke socket,"partial2.html", in_partial: "updated partial 2", color: "#FF6666", link: "https://tg.pl/drab/live"
+    poke socket, "partial2.html", in_partial: "updated partial 2", color: "#FF6666", link: "https://tg.pl/drab/live"
   end
 
   def update_in_partial3(socket, _) do
