@@ -1,7 +1,7 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.5.4"
-  
+  @version "0.5.5"
+
   def project do
     [app: :drab,
      version: @version,
@@ -12,7 +12,7 @@ defmodule Drab.Mixfile do
      deps: deps(),
      description: description(),
      package: package(),
-     docs: [main: "Drab", logo: "priv/static/drab-400.png", 
+     docs: [main: "Drab", logo: "priv/static/drab-400.png",
       extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"]], # , filter_prefix: "Drab."
      compilers: [:phoenix, :gettext] ++ Mix.compilers
      # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
@@ -58,7 +58,7 @@ defmodule Drab.Mixfile do
       maintainers: ["Tomek Gryszkiewicz"],
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/grych/drab", 
+        "GitHub" => "https://github.com/grych/drab",
         "Home" => "https://tg.pl/drab"
       }
     ]

@@ -4,10 +4,10 @@
 
 ### Fixes:
 * #20 (broadcasting in Phx 1.3)
-* #42 (changing assigns inside form_for resets input values)
 * #44 (docs for broadcasting)
 * #45 (button inside for submits in Firefox)
 * #47 (docs and error message updated)
+* #51 (removed @conn from living assigns, encrypts assigns)
 
 
 # v0.5.4
@@ -31,7 +31,7 @@ Phoenix 1.3 compatibility
 
 
 # v0.5.2
-This is a small update to make Drab compatible with Elixir 1.5. 
+This is a small update to make Drab compatible with Elixir 1.5.
 Due to an issue with 1.5.0 (elixir-lang/elixir#6391) Elixir version is fixed on 1.4 or >= 1.5.1.
 
 ### Fixes:
@@ -66,7 +66,7 @@ Due to an issue with 1.5.0 (elixir-lang/elixir#6391) Elixir version is fixed on 
 
 ## New modules
 
-### `Drab.Live` 
+### `Drab.Live`
 Allows to remotely (from the server side) replace the value of the assign in the displayed paged, without re-rendering and reloading the page.
 
 Such template:
@@ -139,13 +139,13 @@ Depreciations:
 Bug fixes:
 
 * `execute!` allows string as the method with parameters
-* reverted back the timeout for `execjs/2` - it caused troubles and it is not really needed; in case of the 
+* reverted back the timeout for `execjs/2` - it caused troubles and it is not really needed; in case of the
   connectivity failure the whole Drab will die anyway
 
 ## 0.3.3 (2017-05-03)
 
 * precompile Drab templates for better performance; user templates are still interpreted on the fly
-* choose the behaviour for broadcasting functions: now may send to `:same_url`, `:same_controller` or to user 
+* choose the behaviour for broadcasting functions: now may send to `:same_url`, `:same_controller` or to user
   defined `"topic"`
 * timeout for `execjs/2` (and so for the most of Drab.Query functions); default is 5000 ms and can be changed
   with `config :drab, timeout: xxx|:infinity`
@@ -180,7 +180,7 @@ socket |> select(:htmls, from: ".qs_2")
 # %{"first_span" => "First span with class qs_2", "second_span" => "Second span with class qs_2"}
 ````
 
-* depreciated `Drab.Endpoint`; Drab now injects in the `UserSocket` with `use Drab.Socket` (#8). Now 
+* depreciated `Drab.Endpoint`; Drab now injects in the `UserSocket` with `use Drab.Socket` (#8). Now
   it is possible to share Drab socket with your code (create your channels)
 
 * moved Commander setup to macros instead of use options
@@ -195,7 +195,7 @@ access_session :userid
 
 ### New features:
 
-* `Drab.Waiter` module adds ability to wait for an user response in your function, so you can have a reply 
+* `Drab.Waiter` module adds ability to wait for an user response in your function, so you can have a reply
   and continue processing.
 
 ````elixir
@@ -206,13 +206,13 @@ return = waiter(socket) do
   on "selector2", "event_name2", fn (sender) ->
     # run when that event is triggered on selector2
   end
-  on_timeout 5000, fn -> 
+  on_timeout 5000, fn ->
     # run after timeout, default: infinity
   end
 end
 ````
 
-* `before_handler` callback (to run before each handler); do not process the even handler if `before_handler` 
+* `before_handler` callback (to run before each handler); do not process the even handler if `before_handler`
   returns nil or false
 
 ````elixir
