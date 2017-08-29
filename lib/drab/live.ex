@@ -277,6 +277,12 @@ defmodule Drab.Live do
     # t1 = :os.system_time(:microsecond)
     # IO.inspect :os.system_time(:microsecond) - t1
 
+    if Enum.member?(Keyword.keys(assigns), :conn) do
+      raise ArgumentError, message: """
+        assign @conn is read only.
+        """
+    end
+
     view = view || Drab.get_view(socket)
     partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
 

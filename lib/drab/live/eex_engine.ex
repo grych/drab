@@ -543,8 +543,7 @@ defmodule Drab.Live.EExEngine do
         _ -> {node, acc}
       end
     end
-    #TODO: maybe @conn should be switched on in config?
-    result |> Enum.uniq() |> Enum.sort() |> Enum.reject(&(&1 == :conn))
+    result |> Enum.uniq() |> Enum.sort()
   end
 
   defp contains_nested_expression?(expr) do

@@ -116,14 +116,12 @@ defmodule DrabTestApp.LiveTest do
       assert test_val == "partial1_updated"
     end
 
-    test "conn should not be available" do
+    test "conn should be read only" do
       socket = drab_socket()
       assert_raise ArgumentError, fn ->
         poke(socket, conn: "whatever")
       end
-      assert_raise ArgumentError, fn ->
-        peek(socket, :conn)
-      end
+      assert %Plug.Conn{} = peek(socket, :conn)
     end
   end
 end
