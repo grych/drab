@@ -1,5 +1,8 @@
 # CHANGELOG
 
+# v0.5.6
+Reverted back #51 - `@conn` is available again.
+
 # v0.5.5
 
 ### Fixes:
