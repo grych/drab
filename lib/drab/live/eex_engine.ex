@@ -205,6 +205,11 @@ defmodule Drab.Live.EExEngine do
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
 
+    if partial(buffer) == :guzdmmrvga4de do
+      IO.puts "in mini:"
+      IO.inspect expr
+    end
+
     # check if the expression is inside the tag or not
     {injected, shadow} = if Regex.match?(~r/<\S+/s, no_tags(html)) do
       inject_attribute(buffer, expr, line, html)
@@ -255,6 +260,9 @@ defmodule Drab.Live.EExEngine do
     span_begin = "<span #{@drab_id}='#{hash}'>"
     span_end   = "</span>"
 
+    # span_begin = "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"
+    # span_end   = "{{{{/@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"
+
     buf = if found_assigns? do
       quote do
         [[[unquote(buffer) | unquote(span_begin)] | unquote(to_safe(expr, line))] | unquote(span_end)]
@@ -280,7 +288,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
     # Add drab indicator
-    tag       = last_opened_tag(html)
+    tag       = last_naked_tag(html)
     # if it is inside the expression, do not assign ID
     # buffer    = if partial(buffer), do: inject_drab_id(buffer, expr, tag), else: buffer
     buffer    = inject_drab_id(buffer, expr, tag)
@@ -392,7 +400,7 @@ defmodule Drab.Live.EExEngine do
     Enum.find(tags, fn tag -> in_tag(html, tag) end)
   end
 
-  # tag if the expression is in <tag></tag>
+  # true if the expression is in <tag></tag>
   defp in_tag(html, tag) do
     (count_matches(html, ~r/<\s*#{tag}[^<>]*>/si) > count_matches(html, ~r/<\s*\/\s*#{tag}[^<>]*>/si)) || nil
   end
@@ -422,12 +430,10 @@ defmodule Drab.Live.EExEngine do
       buffer
     else
       [last_expr] = buffer
-      {:|, a, list} = last_expr
+      {:|, meta, list} = last_expr
       last_elem = List.last(list)
-      # replaced = replace_in(last_elem, tag, uuid())
       replaced = replace_in(last_elem, tag, hash({buffer, expr}))
-      [{:|, a, List.replace_at(list, -1, replaced)}]
-      # replaced = replace_in(last_elem, tag, hash(buffer))
+      [{:|, meta, List.replace_at(list, -1, replaced)}]
     end
   end
 
@@ -591,7 +597,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   @doc false
-  def last_opened_tag(html) do
+  def last_naked_tag(html) do
     html = String.replace(html, ~r/<.*>/s, "", global: true)
     Regex.scan(~r/<\s*([^\s<>\/]+)/s, html)
       |> List.last()
@@ -599,6 +605,13 @@ defmodule Drab.Live.EExEngine do
       |> String.replace(~r/\s+.*/s, "")
   end
 
+  @doc false
+  def last_closed_tag(html) do
+    Regex.scan(~r/<\s*([^\s<>\/]+)>/s, html)
+      |> List.last()
+      |> List.last()
+      |> String.replace(~r/\s+.*/s, "")
+  end
 
   defp do_attributes_from_shadow([]), do: []
   defp do_attributes_from_shadow([head | rest]) do

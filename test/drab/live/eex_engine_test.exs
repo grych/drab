@@ -17,10 +17,27 @@ defmodule Drab.Live.EExEngineTest do
       {"<div   ", "div"}
     ]
     for {html, tag} <- htmls do
-      assert last_opened_tag(html) == tag
+      assert last_naked_tag(html) == tag
     end
   end
 
+  test "last closed tag" do
+    htmls = [
+      {"<div><b>a</b><span><script a=\"b\" something", "span"},
+      {"<div><b>a</b><span><script a=\"b\"", "span"},
+      {"<div><b>a</b><span \n a=b b='c' something", "div"},
+      {"<div\n><b \na=1>\na</b><span \n a=b b='c' something", "div"},
+      {"<div><b>a</b\n><span \n a=b b='c' something", "div"},
+      {"<div><b>a</b><script a=\"b\"", "div"},
+      {"<div><script", "div"},
+      {"<div", nil},
+      {"<div \n", nil},
+      {"<div   ", nil}
+    ]
+    for {html, tag} <- htmls do
+      assert last_closed_tag(html) == tag
+    end
+  end
   test "drab id" do
     htmls = [
       {"<div><b>a</b><span \n a=b b='c' drab-ampere='drab_id' something>", "drab_id"},
@@ -108,7 +125,7 @@ defmodule Drab.Live.EExEngineTest do
     for {html, proper?} <- htmls do
       assert proper? == proper_property(html)
     end
-  end  
+  end
 
   test "attributes from shadow" do
     shadow = {"button",
