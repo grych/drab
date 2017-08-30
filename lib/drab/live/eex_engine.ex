@@ -65,7 +65,7 @@ defmodule Drab.Live.EExEngine do
   """
 
   import Drab.Live.Crypto
-  # import Drab.Core
+  import Drab.Live.HTML
   use EEx.Engine
   require IEx
   require Logger
@@ -92,9 +92,9 @@ defmodule Drab.Live.EExEngine do
           """
     end
     partial = opts[:file]
-    Logger.info "Compiling Drab partial: #{partial}"
-
     partial_hash = hash(partial)
+    Logger.info "Compiling Drab partial: #{partial} (#{partial_hash})"
+
     Drab.Live.Cache.start()
     Drab.Live.Cache.set({:partial, partial}, partial_hash)
     Drab.Live.Cache.set({:partial, partial_hash}, partial)
@@ -106,6 +106,9 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_body({:safe, body}) do
+    body = List.flatten(body)
+    IO.inspect body
+
     found_assigns = find_assigns(body)
     partial = partial(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
@@ -156,10 +159,10 @@ defmodule Drab.Live.EExEngine do
     end
 
     final = [
-      body |
-      [script_tag(init_js) |
-      [assigns_js |
-      ["\n</span>\n"]]]
+      body,
+      script_tag(init_js),
+      assigns_js,
+      "\n</span>\n"
     ]
 
     #TODO: check if in the expression of attribute or script or textarea
@@ -174,7 +177,7 @@ defmodule Drab.Live.EExEngine do
   def handle_text({:safe, buffer}, text) do
     put_shadow_buffer(text, partial(buffer))
     {:safe, quote do
-      [unquote(buffer) | unquote(text)]
+      [unquote(buffer), unquote(text)]
     end}
   end
 
@@ -205,10 +208,10 @@ defmodule Drab.Live.EExEngine do
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
 
-    if partial(buffer) == :guzdmmrvga4de do
-      IO.puts "in mini:"
-      IO.inspect expr
-    end
+    # if partial(buffer) == :guzdmmrvga4de do
+    #   IO.puts "in mini:"
+    #   IO.inspect expr
+    # end
 
     # check if the expression is inside the tag or not
     {injected, shadow} = if Regex.match?(~r/<\S+/s, no_tags(html)) do
@@ -243,7 +246,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
     {quote do
-      [unquote(buffer) | unquote(to_safe(expr, line))]
+      [unquote(buffer), unquote(to_safe(expr, line))]
     end, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
   end
 
@@ -254,22 +257,30 @@ defmodule Drab.Live.EExEngine do
     found_assigns  = find_assigns(expr)
     found_assigns? = found_assigns != []
 
+    # tag = last_opened_tag(to_html(buffer)) || raise EEx.SyntaxError, message: """
+    #   Can't find the parent tag for an expression.
+    #   """
+    # IO.inspect buffer
+    # buffer = inject_drab_id(buffer, expr, tag)
+    # html = to_html(buffer)
+    # ampere_id = drab_id(html, tag)
+
     hash = hash({expr, found_assigns})
     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
-    span_begin = "<span #{@drab_id}='#{hash}'>"
-    span_end   = "</span>"
+    # span_begin = "<span #{@drab_id}='#{hash}'>"
+    # span_end   = "</span>"
 
-    # span_begin = "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"
-    # span_end   = "{{{{/@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"
+    span_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
+    span_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
 
     buf = if found_assigns? do
       quote do
-        [[[unquote(buffer) | unquote(span_begin)] | unquote(to_safe(expr, line))] | unquote(span_end)]
+        [unquote(buffer), unquote(span_begin), unquote(to_safe(expr, line)), unquote(span_end)]
       end
     else
       quote do
-        [unquote(buffer) | unquote(to_safe(expr, line))]
+        [unquote(buffer), unquote(to_safe(expr, line))]
       end
     end
 
@@ -337,7 +348,7 @@ defmodule Drab.Live.EExEngine do
       quote do
         # [unquote(buffer) | unquote(to_safe(encoded_expr(expr), line))]
         #TODO: to_safe is realy not required
-        [unquote(buffer) | [
+        [unquote(buffer), [
           "'",
           unquote(property),
           "{{{{",
@@ -346,7 +357,7 @@ defmodule Drab.Live.EExEngine do
       end
     else
       quote do
-        [unquote(buffer) | unquote(to_safe(expr, line))]
+        [unquote(buffer), unquote(to_safe(expr, line))]
       end
     end
 
@@ -429,12 +440,35 @@ defmodule Drab.Live.EExEngine do
     if buffer |> to_html() |> drab_id(tag) do
       buffer
     else
+      IO.inspect buffer
+      # [{:|, [],
+      # [["\n<span drab-partial='guzdmmrvga4de'>\n"],
+      #  "<div id=\"begin\" style=\"display: none;\"></div>\n<div id=\"drab_pid\" style=\"display: none;\"></div>\n\n"]}]
+
+      # [{:|, [], ["", "\n  <span @style.backgroundColor="]}]
+      # [{:|, [], [["\n<span drab-partial='geytsmrsgeztona'>\n"], "\n"]}]
+      # ["\n<span drab-partial='geytsmrsgeztona'>\n"]
+      # [{:|, [], [["\n<span drab-partial='gezdgobtgqzdanq'>\n"], "<b>username: "]}]
+
       [last_expr] = buffer
-      {:|, meta, list} = last_expr
-      last_elem = List.last(list)
-      replaced = replace_in(last_elem, tag, hash({buffer, expr}))
-      [{:|, meta, List.replace_at(list, -1, replaced)}]
+      case last_expr do
+        {:|, meta, list} ->
+          last_elem = List.last(list)
+          replaced = replace_in(last_elem, tag, hash({buffer, expr}))
+          [{:|, meta, List.replace_at(list, -1, replaced)}]
+        line when is_binary(line) -> buffer # TODO: replace
+        #TODO: what about <%=><%=> ?
+      end
     end
+  end
+
+  @doc false
+  def inject_attribute_to_last_opened(buffer, attribute) do
+    do_inject(Enum.reverse(buffer), attribute)
+  end
+
+  defp do_inject(html, attribute) when is_binary(html) do
+
   end
 
   # find the drab id in the last tag
@@ -600,14 +634,6 @@ defmodule Drab.Live.EExEngine do
   def last_naked_tag(html) do
     html = String.replace(html, ~r/<.*>/s, "", global: true)
     Regex.scan(~r/<\s*([^\s<>\/]+)/s, html)
-      |> List.last()
-      |> List.last()
-      |> String.replace(~r/\s+.*/s, "")
-  end
-
-  @doc false
-  def last_closed_tag(html) do
-    Regex.scan(~r/<\s*([^\s<>\/]+)>/s, html)
       |> List.last()
       |> List.last()
       |> String.replace(~r/\s+.*/s, "")

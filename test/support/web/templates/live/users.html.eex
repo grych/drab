@@ -3,3 +3,4 @@
     User of <%= @count %>: <%= render("user.html", user: user) %><br>
   </span>
 <% end %>
+

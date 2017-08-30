@@ -90,15 +90,5 @@ defmodule Drab.Live.HTML do
       tag -> tag
     end
   end
-  # defp do_last_opened_tag(["/" <> tag | rest]) do
-  #   IO.puts("tag: #{tag}")
-  #   {_, rest} = Enum.split_while(rest, &(&1 != tag))
-  #   do_last_opened_tag(rest)
-  # end
-  # defp do_last_opened_tag([tag | []]) do
-  #   tag
-  # end
-  # defp do_last_opened_tag([_ | rest]) do
-  #   do_last_opened_tag(rest)
-  # end
+
 end

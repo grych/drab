@@ -4,6 +4,7 @@ defmodule Drab.Live.Crypto do
   alias Plug.Crypto.KeyGenerator
   alias Plug.Crypto.MessageEncryptor
 
+  @doc false
   def uuid(), do: "u" <> ({now_ms(), make_ref()} |> hash())
 
   # The most effective way for store assigns in the browser is basic encode

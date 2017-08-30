@@ -1,9 +1,9 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
-
+<span test-span></span>
 <%= if true do %>
-  <a href="https://<%= @url%>" class="btn btn-success" @style.width=<%= @width %>>
+
     Visit <%= @url %>
-  </a>
   <b><%= @url %></b>
 <% end %>
+end.

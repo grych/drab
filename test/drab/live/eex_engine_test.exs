@@ -3,7 +3,7 @@ defmodule Drab.Live.EExEngineTest do
   doctest Drab.Live.EExEngine
   import Drab.Live.EExEngine
 
-  test "last opened tag" do
+  test "last naked tag" do
     htmls = [
       {"<div><b>a</b><span><script a=\"b\" something", "script"},
       {"<div><b>a</b><span><script a=\"b\"", "script"},
@@ -21,23 +21,6 @@ defmodule Drab.Live.EExEngineTest do
     end
   end
 
-  test "last closed tag" do
-    htmls = [
-      {"<div><b>a</b><span><script a=\"b\" something", "span"},
-      {"<div><b>a</b><span><script a=\"b\"", "span"},
-      {"<div><b>a</b><span \n a=b b='c' something", "div"},
-      {"<div\n><b \na=1>\na</b><span \n a=b b='c' something", "div"},
-      {"<div><b>a</b\n><span \n a=b b='c' something", "div"},
-      {"<div><b>a</b><script a=\"b\"", "div"},
-      {"<div><script", "div"},
-      {"<div", nil},
-      {"<div \n", nil},
-      {"<div   ", nil}
-    ]
-    for {html, tag} <- htmls do
-      assert last_closed_tag(html) == tag
-    end
-  end
   test "drab id" do
     htmls = [
       {"<div><b>a</b><span \n a=b b='c' drab-ampere='drab_id' something>", "drab_id"},
@@ -53,6 +36,22 @@ defmodule Drab.Live.EExEngineTest do
     ]
     for {html, drab_id} <- htmls do
       assert drab_id(html, "span") == drab_id
+    end
+  end
+
+  test "inject attribute to the last opened tag in the buffer" do
+    buffers = [
+      {
+        "\n  <a href=\"https://",
+        "\n  <a drab-id=1 href=\"https://"
+      },
+      {
+        ["", "\n  <a href=\"https://"],
+        ["", "\n  <a drab-id=1 href=\"https://"]
+      }
+    ]
+    for {before_buffer, after_buffer} <- buffers do
+      assert inject_attribute_to_last_opened(before_buffer, "drab-id=1") == after_buffer
     end
   end
 
