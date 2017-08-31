@@ -266,7 +266,8 @@ defmodule Drab.Live.EExEngine do
     # ampere_id = drab_id(html, tag)
 
     hash = hash({expr, found_assigns})
-    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+    safe_expr = to_safe(expr, line)
+    Drab.Live.Cache.set(hash, {:expr, safe_expr, found_assigns})
 
     # span_begin = "<span #{@drab_id}='#{hash}'>"
     # span_end   = "</span>"
@@ -276,11 +277,11 @@ defmodule Drab.Live.EExEngine do
 
     buf = if found_assigns? do
       quote do
-        [unquote(buffer), unquote(span_begin), unquote(to_safe(expr, line)), unquote(span_end)]
+        [unquote(buffer), unquote(span_begin), unquote(safe_expr), unquote(span_end)]
       end
     else
       quote do
-        [unquote(buffer), unquote(to_safe(expr, line))]
+        [unquote(buffer), unquote(safe_expr)]
       end
     end
 
@@ -460,15 +461,6 @@ defmodule Drab.Live.EExEngine do
         #TODO: what about <%=><%=> ?
       end
     end
-  end
-
-  @doc false
-  def inject_attribute_to_last_opened(buffer, attribute) do
-    do_inject(Enum.reverse(buffer), attribute)
-  end
-
-  defp do_inject(html, attribute) when is_binary(html) do
-
   end
 
   # find the drab id in the last tag
