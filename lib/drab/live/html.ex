@@ -11,6 +11,15 @@ defmodule Drab.Live.HTML do
       iex> tokenize("some")
       ["some"]
 
+      iex> tokenize(["some"])
+      [["some"]]
+
+      iex> tokenize("")
+      []
+
+      iex> tokenize([""])
+      [[]]
+
       iex> tokenize("<tag> and more")
       [{:tag, "tag"}, " and more"]
 
@@ -22,6 +31,9 @@ defmodule Drab.Live.HTML do
 
       iex> tokenize(["other", "<tag a> <naked tag"])
       [["other"], [{:tag, "tag a"}, " ", {:naked, "naked tag"}]]
+
+      iex> tokenize(["other", :atom, "<tag a> <naked tag"])
+      [["other"], :atom, [{:tag, "tag a"}, " ", {:naked, "naked tag"}]]
   """
   def tokenize("") do
     []
@@ -45,9 +57,12 @@ defmodule Drab.Live.HTML do
   def tokenize([head | tail]) do
     [tokenize(head) | tokenize(tail)]
   end
+  def tokenize(other) do
+    other
+  end
 
   @doc """
-  Detokenizer. Leading spaces in the tag are removed! (< html> becomes <html>).
+  Detokenizer. Leading spaces in the tags are removed! (< html> becomes <html>).
 
       iex> html = "<html> <body >some<b> anything</b></body ></html>"
       iex> html |> tokenize() |> tokenized_to_html() == html
@@ -61,7 +76,11 @@ defmodule Drab.Live.HTML do
       iex> html |> tokenize() |> tokenized_to_html() == html
       true
 
-      iex> html = ""
+      iex> html = []
+      iex> html |> tokenize() |> tokenized_to_html()
+      ""
+
+      iex> html = [""]
       iex> html |> tokenize() |> tokenized_to_html() == html
       true
 
@@ -80,80 +99,34 @@ defmodule Drab.Live.HTML do
       iex> html = ["other", "<t>a</t>", "<tag a> <naked tag"]
       iex> html |> tokenize() |> tokenized_to_html() == html
       true
+
+      iex> html = ["other", ["<t>a</t>", "<tag a> <naked tag"]]
+      iex> html |> tokenize() |> tokenized_to_html() == html
+      true
+
+      iex> html = ["other", [["<t>a</t>"], "<tag a> </tag>"]]
+      iex> html |> tokenize() |> tokenized_to_html() == html
+      true
+
+      iex> html = ["other", :atom, "<tag a> </tag>"]
+      iex> html |> tokenize() |> tokenized_to_html() == html
+      true
+
+      iex> html = ["other", [:atom, "<tag a> </tag>"]]
+      iex> html |> tokenize() |> tokenized_to_html() == html
+      true
   """
   def tokenized_to_html([]), do: ""
-  def tokenized_to_html([head]) when is_list(head), do: [tokenized_to_html(head)]
-  def tokenized_to_html([head | tail]) when is_list(head), do: [tokenized_to_html(head) | tokenized_to_html(tail)]
-  def tokenized_to_html([head | tail]), do: tokenized_to_html(head) <> tokenized_to_html(tail)
+
   def tokenized_to_html({:tag, tag}), do: "<#{tag}>"
   def tokenized_to_html({:naked, tag}), do: "<#{tag}"
-  def tokenized_to_html(text), do: text
+  def tokenized_to_html(text) when not is_list(text), do: text
+  # def tokenized_to_html([text]) when not is_list(text), do: text
 
-  # @doc """
-  # Returns the name of the last opened tag.
+  def tokenized_to_html([list]) when is_list(list), do: [tokenized_to_html(list)]
+  def tokenized_to_html([head | tail]) when is_list(head), do: [tokenized_to_html(head) | tokenized_to_html(tail)]
+  def tokenized_to_html([head | tail]), do: tokenized_to_html(head) <> tokenized_to_html(tail)
 
-  #     iex> last_opened_tag("<html><b> </b>")
-  #     "html"
-
-  #     iex> last_opened_tag(" <html> </b><b>")
-  #     "b"
-
-  #     iex> last_opened_tag(" <html> </b><b></c>")
-  #     nil
-
-  #     iex> last_opened_tag("<html><b></b> <tag x")
-  #     "tag"
-
-  #     iex> last_opened_tag("<a><b><c>")
-  #     "c"
-
-  #     iex> last_opened_tag("<a><b></b><c>")
-  #     "c"
-
-  #     iex> last_opened_tag("<a><b></b><c></c>")
-  #     "a"
-
-  #     iex> last_opened_tag("<x><a><b></b><c></c></x>")
-  #     nil
-
-  #     iex> last_opened_tag("<a><b></b><x><c></c></x>")
-  #     "a"
-
-  #     iex> last_opened_tag("<tag>")
-  #     "tag"
-
-  #     iex> last_opened_tag("<tag></tag>")
-  #     nil
-
-  #     iex> last_opened_tag("</tag>")
-  #     nil
-
-  #     iex> last_opened_tag("text")
-  #     nil
-
-  #     iex> last_opened_tag("<a><b></b></a>")
-  #     nil
-  # """
-  # def last_opened_tag(html) do
-  #   tags = tokenize(html) |> Enum.reverse()
-  #   do_last_opened_tag(tags)
-  # end
-
-  # defp do_last_opened_tag([]) do
-  #   nil
-  # end
-  # defp do_last_opened_tag([head | tail]) do
-  #   case head do
-  #     "/" <> tag ->
-  #       case Enum.split_while(tail, &(&1 != tag)) do
-  #         {_, [_ | rest]} -> do_last_opened_tag(rest)
-  #         _ -> nil
-  #       end
-  #     tag -> tag
-  #   end
-  # end
-
-  @non_closing_tags ~w{area base br col embed hr img input keygen link meta param source track wbr}
   @doc """
   Injects given attribute to the last found opened (or naked) tag.
 
@@ -178,6 +151,15 @@ defmodule Drab.Live.HTML do
     iex> inject_attribute_to_last_opened "<tag><tag attr2></tag>", "attr=1"
     {:ok, "<tag attr=1><tag attr2></tag>"}
 
+    iex> inject_attribute_to_last_opened "<tag><br><tag attr2></tag>", "attr=1"
+    {:ok, "<tag attr=1><br><tag attr2></tag>"}
+
+    iex> inject_attribute_to_last_opened "<img src", "attr=1"
+    {:ok, "<img attr=1 src"}
+
+    iex> inject_attribute_to_last_opened "<hr>", "attr=1"
+    {:not_found, "<hr>"}
+
     iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag>", "attr"
     {:ok, "<tag 1><tag attr 2><tag 3></tag>"}
 
@@ -192,30 +174,50 @@ defmodule Drab.Live.HTML do
 
     iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag></tag></tag>", "attr"
     {:not_found, "<tag 1><tag 2><tag 3></tag></tag></tag>"}
+
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2><tag 3></tag>", "</tag>"], "attr"
+    {:ok, ["<tag attr 1><tag 2><tag 3></tag>", "</tag>"]}
+
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2>", "<tag 3></tag>", "</tag>"], "attr"
+    {:ok, ["<tag attr 1><tag 2>", "<tag 3></tag>", "</tag>"]}
+
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2>", ["<tag 3>", "</tag>"]], "attr"
+    {:ok, ["<tag 1><tag attr 2>", ["<tag 3>", "</tag>"]]}
   """
-  def inject_attribute_to_last_opened(html, attribute) when is_binary(html) do
-    tokenized = tokenize(html) |> Enum.reverse()
-    injected = do_inject(tokenized, attribute, []) |> List.flatten() |> Enum.reverse() |> tokenized_to_html()
-    ret = if injected == html, do: :not_found, else: :ok
-    {ret, injected}
+  def inject_attribute_to_last_opened(html, attribute) do
+    {_, found, acc} = html
+      |> tokenize()
+      |> deep_reverse()
+      |> do_inject(attribute, [], false, [])
+    acc = tokenized_to_html(acc)
+    if found, do: {:ok, acc}, else: {:not_found, acc}
   end
 
-  defp do_inject([], _, _) do
-    []
+  @non_closing_tags ~w{area base br col embed hr img input keygen link meta param source track wbr}
+  defp do_inject([], _, opened, found, acc) do
+    {opened, found, acc}
   end
-  defp do_inject([head | tail] = tokenized, attribute, opened) do
+  defp do_inject([head | tail], attribute, opened, found, acc) do
     case head do
       {:naked, tag} -> # naked can be only at the end
-        [{:naked, add_attribute(tag, attribute)} | tail]
+        do_inject(tail, attribute, opened, true, [{:naked, add_attribute(tag, attribute)} | acc])
       {:tag, "/" <> tag} ->
-        [head, do_inject(tail, attribute, [tag_name(tag) | opened])]
+        do_inject(tail, attribute, [tag_name(tag) | opened], found, [head | acc])
       {:tag, tag} ->
         if Enum.find(opened, fn x -> tag_name(tag) == x end) do
-          [head, do_inject(tail, attribute, opened -- [tag_name(tag)])]
+          do_inject(tail, attribute, opened -- [tag_name(tag)], found, [head | acc])
         else
-          [{:tag, add_attribute(tag, attribute)}] ++ tail
+          if found || Enum.member?(@non_closing_tags, tag_name(tag)) do
+            do_inject(tail, attribute, opened, found, [head | acc])
+          else
+            do_inject(tail, attribute, opened, true, [{:tag, add_attribute(tag, attribute)} | acc])
+          end
         end
-      other -> [head | do_inject(tail, attribute, opened)]
+      list when is_list(list) ->
+        {op, fd, ac} = do_inject(list, attribute, opened, found, [])
+        do_inject(tail, attribute, op, fd, [ac | acc])
+      _ ->
+        do_inject(tail, attribute, opened, found, [head | acc])
     end
   end
 
@@ -231,5 +233,27 @@ defmodule Drab.Live.HTML do
   """
   def add_attribute(tag, attribute) do
     String.replace(tag, tag_name(tag), "#{tag_name(tag)} #{attribute}", global: false)
+  end
+
+  @doc """
+  Deep reverse of the list
+
+      iex> deep_reverse [1,2,3]
+      [3,2,1]
+
+      iex> deep_reverse [[1,2],[3,4]]
+      [[4,3], [2,1]]
+
+      iex> deep_reverse [[[1,2], [3,4]], [5,6]]
+      [[6,5], [[4,3], [2,1]]]
+
+      iex> deep_reverse [1, [2, 3], 4]
+      [4, [3, 2], 1]
+  """
+  def deep_reverse(list) do
+    list |> Enum.reverse() |> Enum.map(fn
+      x when is_list(x) -> deep_reverse(x)
+      x -> x
+    end)
   end
 end
