@@ -263,7 +263,14 @@ defmodule Drab.Live.EExEngine do
     # IO.inspect buffer
     # buffer = inject_drab_id(buffer, expr, tag)
     ampere_id = hash({buffer, expr})
-    {:ok, buffer} = inject_attribute_to_last_opened(buffer, "#{@drab_id}=\"#{ampere_id}\"")
+    attribute = "#{@drab_id}=\"#{ampere_id}\""
+    {buffer, attribute} = case inject_attribute_to_last_opened(buffer, attribute) do
+      {:ok, buf, _} -> {buf, attribute} # injected!
+      {:already_there, _, attr} -> {buffer, attr} # it was already there
+      {:not_found, _, _} -> raise EEx.SyntaxError, message: """
+      Can't find the parent tag for an expression.
+      """
+    end
     # html = to_html(buffer)
     # ampere_id = drab_id(html, tag)
 
