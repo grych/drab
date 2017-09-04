@@ -115,17 +115,24 @@ defmodule Drab.Live.HTML do
       iex> html = ["other", [:atom, "<tag a> </tag>"]]
       iex> html |> tokenize() |> tokenized_to_html() == html
       true
+
+      iex> tok = [["other"], [:atom, [{:tag, "tag a"}, " ", {:tag, "/tag"}], {:other}]]
+      iex> tokenized_to_html(tok)
+      ["other", [:atom, "<tag a> </tag>", {:other}]]
   """
   def tokenized_to_html([]), do: ""
-
   def tokenized_to_html({:tag, tag}), do: "<#{tag}>"
   def tokenized_to_html({:naked, tag}), do: "<#{tag}"
   def tokenized_to_html(text) when not is_list(text), do: text
-  # def tokenized_to_html([text]) when not is_list(text), do: text
-
   def tokenized_to_html([list]) when is_list(list), do: [tokenized_to_html(list)]
   def tokenized_to_html([head | tail]) when is_list(head), do: [tokenized_to_html(head) | tokenized_to_html(tail)]
-  def tokenized_to_html([head | tail]), do: tokenized_to_html(head) <> tokenized_to_html(tail)
+  def tokenized_to_html([head | tail]) do
+    t = tokenized_to_html(tail)
+    case tokenized_to_html(head) do
+      h when is_binary(h) -> h <> t
+      h -> if t == "", do: [h], else: [h | t]
+    end
+  end
 
   @doc """
   Injects given attribute to the last found opened (or naked) tag.
@@ -160,37 +167,56 @@ defmodule Drab.Live.HTML do
     iex> inject_attribute_to_last_opened "<hr>", "attr=1"
     {:not_found, "<hr>"}
 
-    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag>", "attr"
-    {:ok, "<tag 1><tag attr 2><tag 3></tag>"}
+    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag>", "attr=1"
+    {:ok, "<tag 1><tag attr=1 2><tag 3></tag>"}
 
-    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag></tag>", "attr"
-    {:ok, "<tag attr 1><tag 2><tag 3></tag></tag>"}
+    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag></tag>", "attr='3'"
+    {:ok, "<tag attr='3' 1><tag 2><tag 3></tag></tag>"}
 
-    iex> inject_attribute_to_last_opened "<tag 1></tag>", "attr"
+    iex> inject_attribute_to_last_opened "<tag 1></tag>", "attr=x"
     {:not_found, "<tag 1></tag>"}
 
-    iex> inject_attribute_to_last_opened "text only", "attr"
+    iex> inject_attribute_to_last_opened "text only", "attr=x"
     {:not_found, "text only"}
 
-    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag></tag></tag>", "attr"
+    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag></tag></tag>", "attr=x"
     {:not_found, "<tag 1><tag 2><tag 3></tag></tag></tag>"}
 
-    iex> inject_attribute_to_last_opened ["<tag 1><tag 2><tag 3></tag>", "</tag>"], "attr"
-    {:ok, ["<tag attr 1><tag 2><tag 3></tag>", "</tag>"]}
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2><tag 3></tag>", "</tag>"], "attr=x"
+    {:ok, ["<tag attr=x 1><tag 2><tag 3></tag>", "</tag>"]}
 
-    iex> inject_attribute_to_last_opened ["<tag 1><tag 2>", "<tag 3></tag>", "</tag>"], "attr"
-    {:ok, ["<tag attr 1><tag 2>", "<tag 3></tag>", "</tag>"]}
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2><tag 3></tag>", :atom, "</tag>"], "attr=x"
+    {:ok, ["<tag attr=x 1><tag 2><tag 3></tag>", :atom, "</tag>"]}
 
-    iex> inject_attribute_to_last_opened ["<tag 1><tag 2>", ["<tag 3>", "</tag>"]], "attr"
-    {:ok, ["<tag 1><tag attr 2>", ["<tag 3>", "</tag>"]]}
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2>", "text", "<tag 3></tag>", "</tag>"], "attr=x"
+    {:ok, ["<tag attr=x 1><tag 2>", "text", "<tag 3></tag>", "</tag>"]}
+
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2>", ["<tag 3>", "</tag>"]], "attr=x"
+    {:ok, ["<tag 1><tag attr=x 2>", ["<tag 3>", "</tag>"]]}
+
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2>", {:other}, ["<tag 3>", "</tag>"]], "attr=x"
+    {:ok, ["<tag 1><tag attr=x 2>", {:other}, ["<tag 3>", "</tag>"]]}
+
+    iex> inject_attribute_to_last_opened ["<tag 1><tag 2>", {}, ["<tag 3>", :atom, "</tag>", {}]], "attr=x"
+    {:ok, ["<tag 1><tag attr=x 2>", {}, ["<tag 3>", :atom, "</tag>", {}]]}
+
+    iex> inject_attribute_to_last_opened ["<tag attr=42 1><tag 2><tag 3></tag>", "</tag>"], "attr=x"
+    {:already_there, "attr=42"}
+
+    iex> inject_attribute_to_last_opened "<img attr=2 src", "attr=1"
+    {:already_there, "attr=2"}
   """
   def inject_attribute_to_last_opened(html, attribute) do
     {_, found, acc} = html
       |> tokenize()
       |> deep_reverse()
-      |> do_inject(attribute, [], false, [])
+      |> do_inject(attribute, [], :not_found, [])
     acc = tokenized_to_html(acc)
-    if found, do: {:ok, acc}, else: {:not_found, acc}
+    # if found, do: {:ok, acc}, else: {:not_found, acc}
+    case found do
+      result when is_atom(result) -> {result, acc}
+      result when is_binary(result) -> {:already_there, result}
+    end
   end
 
   @non_closing_tags ~w{area base br col embed hr img input keygen link meta param source track wbr}
@@ -200,17 +226,25 @@ defmodule Drab.Live.HTML do
   defp do_inject([head | tail], attribute, opened, found, acc) do
     case head do
       {:naked, tag} -> # naked can be only at the end
-        do_inject(tail, attribute, opened, true, [{:naked, add_attribute(tag, attribute)} | acc])
+        {result, injected} = case find_attribute(tag, attribute) do
+          nil -> {:ok, {:naked, add_attribute(tag, attribute)}}
+          found_attr -> {found_attr, [head | acc]}
+        end
+        do_inject(tail, attribute, opened, result, [injected | acc])
       {:tag, "/" <> tag} ->
         do_inject(tail, attribute, [tag_name(tag) | opened], found, [head | acc])
       {:tag, tag} ->
         if Enum.find(opened, fn x -> tag_name(tag) == x end) do
           do_inject(tail, attribute, opened -- [tag_name(tag)], found, [head | acc])
         else
-          if found || Enum.member?(@non_closing_tags, tag_name(tag)) do
+          if found != :not_found || Enum.member?(@non_closing_tags, tag_name(tag)) do
             do_inject(tail, attribute, opened, found, [head | acc])
           else
-            do_inject(tail, attribute, opened, true, [{:tag, add_attribute(tag, attribute)} | acc])
+            {result, injected} = case find_attribute(tag, attribute) do
+              nil -> {:ok, {:tag, add_attribute(tag, attribute)}}
+              found_attr -> {found_attr, [head | acc]}
+            end
+            do_inject(tail, attribute, opened, result, [injected | acc])
           end
         end
       list when is_list(list) ->
@@ -233,6 +267,40 @@ defmodule Drab.Live.HTML do
   """
   def add_attribute(tag, attribute) do
     String.replace(tag, tag_name(tag), "#{tag_name(tag)} #{attribute}", global: false)
+  end
+
+  @doc """
+  Find an existing attribute
+
+      iex> find_attribute("tag attrx=1 attr='2' attra=4", "attr=3")
+      "attr='2'"
+
+      iex> find_attribute("tag attrx=1 attra=4", "attr=3")
+      nil
+
+      iex> find_attribute("tag ", "attr=3")
+      nil
+
+      iex> find_attribute("tag attrx = 1 attr = '2' attra= 4 ", "attr = 3")
+      "attr='2'"
+  """
+  def find_attribute(tag, attr) do
+    [attr_name | _] = attr
+      |> trim_attr()
+      |> String.split("=", parts: 2)
+    # attr_name = String.trim(attr_name)
+
+    case Regex.run(~r/(#{attr_name}\s*=\s*\S+)/, tag, capture: :first) do
+      [att] -> trim_attr(att)
+      other -> other
+    end
+  end
+
+  defp trim_attr(attr) do
+    [attr_name, attr_value] = String.split(attr, "=", parts: 2)
+    attr_name = String.trim(attr_name)
+    attr_value = String.trim(attr_value)
+    attr_name <> "=" <> attr_value
   end
 
   @doc """

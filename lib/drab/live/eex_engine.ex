@@ -262,6 +262,8 @@ defmodule Drab.Live.EExEngine do
     #   """
     # IO.inspect buffer
     # buffer = inject_drab_id(buffer, expr, tag)
+    ampere_id = hash({buffer, expr})
+    {:ok, buffer} = inject_attribute_to_last_opened(buffer, "#{@drab_id}=\"#{ampere_id}\"")
     # html = to_html(buffer)
     # ampere_id = drab_id(html, tag)
 
