@@ -160,9 +160,9 @@ defmodule Drab.Live.EExEngine do
 
     final = [
       body,
+      "\n</span>\n",
       script_tag(init_js),
       assigns_js,
-      "\n</span>\n"
     ]
 
     #TODO: check if in the expression of attribute or script or textarea
