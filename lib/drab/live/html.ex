@@ -26,14 +26,14 @@ defmodule Drab.Live.HTML do
       iex> tokenize("<tag> <naked tag")
       [{:tag, "tag"}, " ", {:naked, "naked tag"}]
 
-      iex> tokenize(["<tag a> <naked tag"])
-      [[{:tag, "tag a"}, " ", {:naked, "naked tag"}]]
+      iex> tokenize(["<tag a/> <naked tag"])
+      [[{:tag, "tag a/"}, " ", {:naked, "naked tag"}]]
 
       iex> tokenize(["other", "<tag a> <naked tag"])
       [["other"], [{:tag, "tag a"}, " ", {:naked, "naked tag"}]]
 
-      iex> tokenize(["other", :atom, "<tag a> <naked tag"])
-      [["other"], :atom, [{:tag, "tag a"}, " ", {:naked, "naked tag"}]]
+      iex> tokenize(["other", :atom, "<tag a/> <naked tag"])
+      [["other"], :atom, [{:tag, "tag a/"}, " ", {:naked, "naked tag"}]]
   """
   def tokenize("") do
     []
@@ -41,7 +41,6 @@ defmodule Drab.Live.HTML do
   def tokenize("<" <> rest) do
     case String.split(rest, ">", parts: 2) do
       [tag] -> [{:naked, String.trim_leading(tag)}] # naked tag can be only at the end
-      # ["/" <> tag, tail] -> [{:tag, t/ag} | tokenize(Enum.join(tail))]
       [tag | tail] -> [{:tag, String.trim_leading(tag)} | tokenize(Enum.join(tail))]
     end
   end
@@ -155,8 +154,8 @@ defmodule Drab.Live.HTML do
     iex> inject_attribute_to_last_opened "<tag><tag attr2>", "attr=1"
     {:ok, "<tag><tag attr=1 attr2>", "attr=1"}
 
-    iex> inject_attribute_to_last_opened "<tag><tag attr2></tag>", "attr=1"
-    {:ok, "<tag attr=1><tag attr2></tag>", "attr=1"}
+    iex> inject_attribute_to_last_opened "<tag><hr/><tag attr2></tag>", "attr=1"
+    {:ok, "<tag attr=1><hr/><tag attr2></tag>", "attr=1"}
 
     iex> inject_attribute_to_last_opened "<tag><br><tag attr2></tag>", "attr=1"
     {:ok, "<tag attr=1><br><tag attr2></tag>", "attr=1"}
@@ -218,7 +217,10 @@ defmodule Drab.Live.HTML do
     end
   end
 
-  @non_closing_tags ~w{area base br col embed hr img input keygen link meta param source track wbr}
+  @non_closing_tags ~w{
+    area base br col embed hr img input keygen link meta param source track wbr
+    area/ base/ br/ col/ embed/ hr/ img/ input/ keygen/ link/ meta/ param/ source/ track/ wbr/
+  }
   defp do_inject([], _, opened, found, acc) do
     {opened, found, acc}
   end
@@ -300,6 +302,52 @@ defmodule Drab.Live.HTML do
     attr_name = String.trim(attr_name)
     attr_value = String.trim(attr_value)
     attr_name <> "=" <> attr_value
+  end
+
+  @doc """
+  Converts buffer to html. Nested expressions are ignored.
+  """
+  def to_flat_html(body), do: do_to_flat_html(body) |> List.flatten() |> Enum.join()
+
+  defp do_to_flat_html([]), do: []
+  defp do_to_flat_html(body) when is_binary(body), do: [body]
+  defp do_to_flat_html({_, _, list}) when is_list(list), do: do_to_flat_html(list)
+  defp do_to_flat_html([head | rest]), do: do_to_flat_html(head) ++ do_to_flat_html(rest)
+  defp do_to_flat_html(_), do: []
+
+
+  @doc """
+  Returns amperes and patterns from flat html.
+  Pattern is processed by Floki, so it doesn't have to be the same as original!
+  """
+  def amperes_from_buffer({:safe, buffer}) when is_list(buffer) do
+    # amperes_from_html(to_flat_html(buffer))
+    #   |> Map.merge(amperes_from_expressions(buffer))
+    deep_find_htmls({:safe, buffer})
+  end
+
+  # defp amperes_from_expressions({:safe, buffer}) do
+  #   amperes_from_html(to_flat_html(buffer))
+  #     |> amperes_from_expressions(buffer)
+  # end
+
+  defp deep_find_htmls([]), do: %{}
+  defp deep_find_htmls({:safe, body}) do
+    Map.merge(amperes_from_html(body), deep_find_htmls(body))
+  end
+  defp deep_find_htmls({:do, body}), do: deep_find_htmls(body)
+  defp deep_find_htmls([{_, _, args} | tail]) when is_list(args) do
+    Map.merge(deep_find_htmls(args), deep_find_htmls(tail))
+  end
+  defp deep_find_htmls([_ | tail]), do: deep_find_htmls(tail)
+
+  defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
+  defp amperes_from_html(html) do
+    html = Floki.parse(html)
+    for {tag, attributes, inner_html} <- Floki.find(html, "[drab-ampere]"), into: Map.new() do
+      {_, ampere} = Enum.find attributes, fn {name, _} -> name == "drab-ampere" end
+      {ampere, {:html, tag, Floki.raw_html(inner_html)}}
+    end
   end
 
   @doc """

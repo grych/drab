@@ -107,7 +107,6 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def handle_body({:safe, body}) do
     body = List.flatten(body)
-    IO.inspect body
 
     found_assigns = find_assigns(body)
     partial = partial(body)
@@ -163,13 +162,13 @@ defmodule Drab.Live.EExEngine do
       "\n</span>\n",
       script_tag(init_js),
       assigns_js,
-    ]
+    ] |> List.flatten()
 
     #TODO: check if in the expression of attribute or script or textarea
     # there is another expression, like
     #    [[{:|, [], ["", "\n"]}],
     # "<span drab-ampere='geztcmbqgu3tqnq'>"]}],
-
+    IO.inspect final
     {:safe, final}
   end
 
@@ -264,7 +263,7 @@ defmodule Drab.Live.EExEngine do
     # buffer = inject_drab_id(buffer, expr, tag)
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
-    {buffer, attribute} = case inject_attribute_to_last_opened(buffer, attribute) do
+    {buffer, _attribute} = case inject_attribute_to_last_opened(buffer, attribute) do
       {:ok, buf, _} -> {buf, attribute} # injected!
       {:already_there, _, attr} -> {buffer, attr} # it was already there
       {:not_found, _, _} -> raise EEx.SyntaxError, message: """
