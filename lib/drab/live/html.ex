@@ -335,11 +335,11 @@ defmodule Drab.Live.HTML do
   defp deep_find_htmls({:safe, body}) do
     Map.merge(amperes_from_html(body), deep_find_htmls(body))
   end
-  defp deep_find_htmls({:do, body}), do: deep_find_htmls(body)
+  # defp deep_find_htmls({:do, body}), do: deep_find_htmls(body)
   defp deep_find_htmls([{_, _, args} | tail]) when is_list(args) do
     Map.merge(deep_find_htmls(args), deep_find_htmls(tail))
   end
-  defp deep_find_htmls([_ | tail]), do: deep_find_htmls(tail)
+  defp deep_find_htmls([head | tail]), do: deep_find_htmls(tail)
 
   defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
   defp amperes_from_html(html) do

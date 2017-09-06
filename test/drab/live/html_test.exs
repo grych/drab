@@ -103,11 +103,13 @@ defmodule Drab.Live.HtmlTest do
 
   test "amperes and patterns from html" do
     buffer = {:safe, @buffer}
-    assert amperes_from_buffer(buffer) == %{"gezdamzqg43damq" => {:html, "span","""
-      <div id="begin" style="display: none;"></div><div id="drab_pid" style="display: none;"></div><span test-span="test-span"></span>
-      url: {{{{@drab-expr-hash:guydsnjqgmydo}}}}{{{{/@drab-expr-hash:guydsnjqgmydo}}}} <br/>
-      {{{{@drab-expr-hash:geztaobxge2donq}}}}{{{{/@drab-expr-hash:geztaobxge2donq}}}}
+    assert amperes_from_buffer(buffer) == %{
+      "gezdamzqg43damq" => {:html, "span","""
+        <div id="begin" style="display: none;"></div><div id="drab_pid" style="display: none;"></div><span test-span="test-span"></span>
+        url: {{{{@drab-expr-hash:guydsnjqgmydo}}}}{{{{/@drab-expr-hash:guydsnjqgmydo}}}} <br/>
+        {{{{@drab-expr-hash:geztaobxge2donq}}}}{{{{/@drab-expr-hash:geztaobxge2donq}}}}
 
-      """}}
+        """},
+      "geztaobxge2donq" => {:html, "span", ""}}
   end
 end
