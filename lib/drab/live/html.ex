@@ -307,6 +307,7 @@ defmodule Drab.Live.HTML do
   @doc """
   Converts buffer to html. Nested expressions are ignored.
   """
+  def to_flat_html({:safe, body}), do: to_flat_html(body)
   def to_flat_html(body), do: do_to_flat_html(body) |> List.flatten() |> Enum.join()
 
   defp do_to_flat_html([]), do: []
@@ -321,25 +322,28 @@ defmodule Drab.Live.HTML do
   Pattern is processed by Floki, so it doesn't have to be the same as original!
   """
   def amperes_from_buffer({:safe, buffer}) when is_list(buffer) do
-    # amperes_from_html(to_flat_html(buffer))
-    #   |> Map.merge(amperes_from_expressions(buffer))
-    deep_find_htmls({:safe, buffer})
+    amperes_from_html(to_flat_html(buffer))
+      |> Map.merge(amperes_from_buffer(buffer))
+  end
+  def amperes_from_buffer([]) do
+    %{}
+  end
+  def amperes_from_buffer([{atom, _, args} | tail]) when is_atom(atom) and is_list(args) do
+    Map.merge(amperes_from_buffer(args), amperes_from_buffer(tail))
+  end
+  def amperes_from_buffer([head | tail]) do
+    case head do
+      [{key, value}] when is_atom(key) -> Map.merge(amperes_from_buffer(tail), amperes_from_buffer(value))
+      _ -> amperes_from_buffer(tail)
+    end
+  end
+  def amperes_from_buffer({atom, _, args}) when is_atom(atom) and is_list(args) do
+    amperes_from_buffer(args)
+  end
+  def amperes_from_buffer({atom, _, _}) when is_atom(atom) do
+    %{}
   end
 
-  # defp amperes_from_expressions({:safe, buffer}) do
-  #   amperes_from_html(to_flat_html(buffer))
-  #     |> amperes_from_expressions(buffer)
-  # end
-
-  defp deep_find_htmls([]), do: %{}
-  defp deep_find_htmls({:safe, body}) do
-    Map.merge(amperes_from_html(body), deep_find_htmls(body))
-  end
-  # defp deep_find_htmls({:do, body}), do: deep_find_htmls(body)
-  defp deep_find_htmls([{_, _, args} | tail]) when is_list(args) do
-    Map.merge(deep_find_htmls(args), deep_find_htmls(tail))
-  end
-  defp deep_find_htmls([head | tail]), do: deep_find_htmls(tail)
 
   defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
   defp amperes_from_html(html) do
