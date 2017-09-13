@@ -34,6 +34,9 @@ defmodule Drab.Live.HTML do
 
       iex> tokenize(["other", :atom, "<tag a/> <naked tag"])
       [["other"], :atom, [{:tag, "tag a/"}, " ", {:naked, "naked tag"}]]
+
+      iex> tokenize(["<tag", :atom, ">"])
+      [[naked: "tag"], :atom, [">"]]
   """
   def tokenize("") do
     []
@@ -118,6 +121,10 @@ defmodule Drab.Live.HTML do
       iex> tok = [["other"], [:atom, [{:tag, "tag a"}, " ", {:tag, "/tag"}], {:other}]]
       iex> tokenized_to_html(tok)
       ["other", [:atom, "<tag a> </tag>", {:other}]]
+
+      iex> tok = [[naked: "tag"], :atom, [">"]]
+      iex> tokenized_to_html(tok)
+      ["<tag", :atom, ">"]
   """
   def tokenized_to_html([]), do: ""
   def tokenized_to_html({:tag, tag}), do: "<#{tag}>"
@@ -159,6 +166,9 @@ defmodule Drab.Live.HTML do
 
     iex> inject_attribute_to_last_opened "<tag><br><tag attr2></tag>", "attr=1"
     {:ok, "<tag attr=1><br><tag attr2></tag>", "attr=1"}
+
+    iex> inject_attribute_to_last_opened "<tag><tag></tag>", "attr=1"
+    {:ok, "<tag attr=1><tag></tag>", "attr=1"}
 
     iex> inject_attribute_to_last_opened "<img src", "attr=1"
     {:ok, "<img attr=1 src", "attr=1"}
@@ -211,6 +221,8 @@ defmodule Drab.Live.HTML do
       |> deep_reverse()
       |> do_inject(attribute, [], :not_found, [])
     acc = tokenized_to_html(acc)
+    #TODO: already_there is returned even if attribute is injected (see test 211)
+    # IO.inspect found
     case found do
       result when is_atom(result) -> {result, acc, attribute}
       result when is_binary(result) -> {:already_there, acc, result}
@@ -226,23 +238,23 @@ defmodule Drab.Live.HTML do
   end
   defp do_inject([head | tail], attribute, opened, found, acc) do
     case head do
-      {:naked, tag} -> # naked can be only at the end
-        {result, injected} = case find_attribute(tag, attribute) do
-          nil -> {:ok, {:naked, add_attribute(tag, attribute)}}
-          found_attr -> {found_attr, head}
-        end
-        do_inject(tail, attribute, opened, result, [injected | acc])
+      # {:naked, tag} ->
+      #   {result, injected} = case find_attribute(tag, attribute) do
+      #     nil -> {:ok, {:naked, add_attribute(tag, attribute)}}
+      #     found_attr -> {found_attr, head}
+      #   end
+      #   do_inject(tail, attribute, opened, result, [injected | acc])
       {:tag, "/" <> tag} ->
         do_inject(tail, attribute, [tag_name(tag) | opened], found, [head | acc])
-      {:tag, tag} ->
+      {tag_type, tag} ->
         if Enum.find(opened, fn x -> tag_name(tag) == x end) do
           do_inject(tail, attribute, opened -- [tag_name(tag)], found, [head | acc])
         else
-          if found != :not_found || Enum.member?(@non_closing_tags, tag_name(tag)) do
+          if found != :not_found || (tag_type != :naked && Enum.member?(@non_closing_tags, tag_name(tag))) do
             do_inject(tail, attribute, opened, found, [head | acc])
           else
             {result, injected} = case find_attribute(tag, attribute) do
-              nil -> {:ok, {:tag, add_attribute(tag, attribute)}}
+              nil -> {:ok, {tag_type, add_attribute(tag, attribute)}}
               found_attr -> {found_attr, head}
             end
             do_inject(tail, attribute, opened, result, [injected | acc])
@@ -347,11 +359,29 @@ defmodule Drab.Live.HTML do
 
   defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
   defp amperes_from_html(html) do
-    html = Floki.parse(html)
-    for {tag, attributes, inner_html} <- Floki.find(html, "[drab-ampere]"), into: Map.new() do
-      {_, ampere} = Enum.find attributes, fn {name, _} -> name == "drab-ampere" end
-      {ampere, {:html, tag, Floki.raw_html(inner_html)}}
+    with_amperes = html
+      |> Floki.parse()
+      |> Floki.find("[drab-ampere]")
+    for {tag, attributes, inner_html} <- with_amperes, into: Map.new() do
+      ampere = find_ampere(attributes)
+      html_part = if contains_expression?(inner_html), do: [{:html, tag, Floki.raw_html(inner_html)}], else: []
+      attrs_part = for {name, value} <- attributes, contains_expression?(value) do
+        {:attr, tag, name, value}
+      end
+      {ampere, html_part ++ attrs_part}
     end
+  end
+
+  defp find_ampere(attributes) do
+    {_, ampere} = Enum.find attributes, fn {name, _} -> name == "drab-ampere" end
+    ampere
+  end
+
+  defp contains_expression?(html) when is_binary(html) do
+    Regex.match?(~r/{{{{@drab-expr-hash:\S+}}}}/, html)
+  end
+  defp contains_expression?(html) do
+    html |> Floki.raw_html() |> contains_expression?()
   end
 
   @doc """

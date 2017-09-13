@@ -1,9 +1,8 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
-<span test-span></span>
-url: <%=@url%> <br>
+<span test-span url=<%=@url%>>inside span</span>
 <%= if true do %>
-  <span>
-    link: <%=@link%>
-  </span>
+  <div @link='<%=@link%>'>
+    inside div: <%=@link%>
+  </div>
 <% end %>

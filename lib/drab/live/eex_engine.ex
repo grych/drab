@@ -100,7 +100,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set({:partial, partial_hash}, partial)
 
     buffer = ["\n<span drab-partial='#{partial_hash}'>\n"]
-    start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, only in compile-time
+    # start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, only in compile-time
     {:safe, buffer}
   end
 
@@ -118,44 +118,44 @@ defmodule Drab.Live.EExEngine do
       if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {assigns: {}}};
       window.#{@jsvar}.assigns['#{partial}'] = {};
       """
-    put_shadow_buffer("\n</span>\n", partial)
+    # put_shadow_buffer("\n</span>\n", partial)
 
-    shadow = get_shadow_buffer(partial(body)) |> Floki.parse()
-    Drab.Live.Cache.set({:shadow, partial(body)}, shadow)
-    stop_shadow_buffer(partial(body))
+    # shadow = get_shadow_buffer(partial(body)) |> Floki.parse()
+    # Drab.Live.Cache.set({:shadow, partial(body)}, shadow)
+    # stop_shadow_buffer(partial(body))
 
     # find all the attributes
     # add to cache:
     # expression hash is alrady in cache:  hash, {:expr, expr, found_assigns}
     # drab_ampere -> {:attribute, [ { "attribute", "pattern", [ {:expr, ast, [assigns] ] } ], all_assigns_in_ampere}
-    attributes = attributes_from_shadow(shadow)
-    grouped_by_ampere = Enum.map(attributes, fn {attribute, pattern} ->
-      # is_prop? = String.starts_with?(attribute, "@")
-      {ampere_from_pattern(pattern),
-        {
-          :attr,
-          # (if is_prop?, do: :prop, else: :attr),
-          # (if is_prop?, do: String.replace(attribute, ~r/^\@/, ""), else: attribute),
-          attribute,
-          pattern,
-          expression_hashes_from_pattern(pattern),
-          assigns_from_pattern(pattern)
-        }
-      }
-    end) |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
+    # attributes = attributes_from_shadow(shadow)
+    # grouped_by_ampere = Enum.map(attributes, fn {attribute, pattern} ->
+    #   # is_prop? = String.starts_with?(attribute, "@")
+    #   {ampere_from_pattern(pattern),
+    #     {
+    #       :attr,
+    #       # (if is_prop?, do: :prop, else: :attr),
+    #       # (if is_prop?, do: String.replace(attribute, ~r/^\@/, ""), else: attribute),
+    #       attribute,
+    #       pattern,
+    #       expression_hashes_from_pattern(pattern),
+    #       assigns_from_pattern(pattern)
+    #     }
+    #   }
+    # end) |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
 
-    for {ampere, list} <- grouped_by_ampere do
-      {:attribute, existing} = Drab.Live.Cache.get(ampere) || {:attribute, []}
-      Drab.Live.Cache.set(ampere, {:attribute, Enum.uniq(existing ++ list)})
-    end
+    # for {ampere, list} <- grouped_by_ampere do
+    #   {:attribute, existing} = Drab.Live.Cache.get(ampere) || {:attribute, []}
+    #   Drab.Live.Cache.set(ampere, {:attribute, Enum.uniq(existing ++ list)})
+    # end
 
     # scripts, textareas
-    for tag <- @special_tags, pattern <- tags_from_shadow(shadow, tag) do
-      ampere = ampere_from_pattern(pattern)
-      hashes = expression_hashes_from_pattern(pattern)
-      assigns = assigns_from_pattern(pattern)
-      Drab.Live.Cache.set(ampere, {String.to_atom(tag), pattern, hashes, assigns})
-    end
+    # for tag <- @special_tags, pattern <- tags_from_shadow(shadow, tag) do
+    #   ampere = ampere_from_pattern(pattern)
+    #   hashes = expression_hashes_from_pattern(pattern)
+    #   assigns = assigns_from_pattern(pattern)
+    #   Drab.Live.Cache.set(ampere, {String.to_atom(tag), pattern, hashes, assigns})
+    # end
 
     final = [
       body,
@@ -168,13 +168,16 @@ defmodule Drab.Live.EExEngine do
     # there is another expression, like
     #    [[{:|, [], ["", "\n"]}],
     # "<span drab-ampere='geztcmbqgu3tqnq'>"]}],
+    IO.puts ""
+    IO.puts "FINAL:"
     IO.inspect final
+
     {:safe, final}
   end
 
   @doc false
   def handle_text({:safe, buffer}, text) do
-    put_shadow_buffer(text, partial(buffer))
+    # put_shadow_buffer(text, partial(buffer))
     {:safe, quote do
       [unquote(buffer), unquote(text)]
     end}
@@ -213,18 +216,19 @@ defmodule Drab.Live.EExEngine do
     # end
 
     # check if the expression is inside the tag or not
-    {injected, shadow} = if Regex.match?(~r/<\S+/s, no_tags(html)) do
-      inject_attribute(buffer, expr, line, html)
-    else
-      tag = in_tags(html, @special_tags)
-      if tag do
-        inject_tag(buffer, expr, line, tag)
-      else
-        inject_span(buffer, expr, line)
-      end
-    end
+    # {injected, shadow} = if Regex.match?(~r/<\S+/s, no_tags(html)) do
+    #   inject_attribute(buffer, expr, line, html)
+    # else
+    #   tag = in_tags(html, @special_tags)
+    #   if tag do
+    #     inject_tag(buffer, expr, line, tag)
+    #   else
+    #     inject_span(buffer, expr, line)
+    #   end
+    # end
+    {injected, shadow} = inject_span(buffer, expr, line)
 
-    put_shadow_buffer(shadow, partial(buffer))
+    # put_shadow_buffer(shadow, partial(buffer))
     {:safe, injected}
   end
 
@@ -267,8 +271,8 @@ defmodule Drab.Live.EExEngine do
       {:ok, buf, _} -> {buf, attribute} # injected!
       {:already_there, _, attr} -> {buffer, attr} # it was already there
       {:not_found, _, _} -> raise EEx.SyntaxError, message: """
-      Can't find the parent tag for an expression.
-      """
+        Can't find the parent tag for an expression.
+        """
     end
     # html = to_html(buffer)
     # ampere_id = drab_id(html, tag)
@@ -449,7 +453,8 @@ defmodule Drab.Live.EExEngine do
     if buffer |> to_html() |> drab_id(tag) do
       buffer
     else
-      IO.inspect buffer
+      # IO.inspect buffer
+
       # [{:|, [],
       # [["\n<span drab-partial='guzdmmrvga4de'>\n"],
       #  "<div id=\"begin\" style=\"display: none;\"></div>\n<div id=\"drab_pid\" style=\"display: none;\"></div>\n\n"]}]
