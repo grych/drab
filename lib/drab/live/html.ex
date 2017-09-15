@@ -238,12 +238,6 @@ defmodule Drab.Live.HTML do
   end
   defp do_inject([head | tail], attribute, opened, found, acc) do
     case head do
-      # {:naked, tag} ->
-      #   {result, injected} = case find_attribute(tag, attribute) do
-      #     nil -> {:ok, {:naked, add_attribute(tag, attribute)}}
-      #     found_attr -> {found_attr, head}
-      #   end
-      #   do_inject(tail, attribute, opened, result, [injected | acc])
       {:tag, "/" <> tag} ->
         do_inject(tail, attribute, [tag_name(tag) | opened], found, [head | acc])
       {tag_type, tag} ->
@@ -356,7 +350,6 @@ defmodule Drab.Live.HTML do
     %{}
   end
 
-
   defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
   defp amperes_from_html(html) do
     with_amperes = html
@@ -364,9 +357,12 @@ defmodule Drab.Live.HTML do
       |> Floki.find("[drab-ampere]")
     for {tag, attributes, inner_html} <- with_amperes, into: Map.new() do
       ampere = find_ampere(attributes)
-      html_part = if contains_expression?(inner_html), do: [{:html, tag, Floki.raw_html(inner_html)}], else: []
-      attrs_part = for {name, value} <- attributes, contains_expression?(value) do
-        {:attr, tag, name, value}
+      html_part = if contains_expression?(inner_html), do: [{:html, tag, "innerHTML", Floki.raw_html(inner_html)}], else: []
+      attrs_part = for {attr_name, attr_pattern} <- attributes, contains_expression?(attr_pattern) do
+        case attr_name do
+          "@" <> prop_name -> {:prop, tag, prop_name, attr_pattern}
+          _ -> {:attr, tag, attr_name, attr_pattern}
+        end
       end
       {ampere, html_part ++ attrs_part}
     end
@@ -377,11 +373,48 @@ defmodule Drab.Live.HTML do
     ampere
   end
 
+  @expr_begin ~r/{{{{@drab-expr-hash:\S+}}}}/
+  @expr_end   ~r/{{{{\/@drab-expr-hash:\S+}}}}/
   defp contains_expression?(html) when is_binary(html) do
-    Regex.match?(~r/{{{{@drab-expr-hash:\S+}}}}/, html)
+    Regex.match?(@expr_begin, html)
   end
   defp contains_expression?(html) do
     html |> Floki.raw_html() |> contains_expression?()
+  end
+
+  @doc """
+  Removes all Drab's marks from the buffer
+  """
+  def remove_drab_marks({:safe, buffer}) do
+    {:safe, remove_drab_marks(buffer)}
+  end
+  def remove_drab_marks([]) do
+    []
+  end
+  def remove_drab_marks([head | tail]) when is_binary(head) do
+    if Regex.match?(@expr_begin, head) || Regex.match?(@expr_end, head) do
+      ["" | remove_drab_marks(tail)]
+    else
+      [head | remove_drab_marks(tail)]
+    end
+  end
+  def remove_drab_marks([[{atom, args}] | tail]) when is_atom(atom) do
+    [[{atom, remove_drab_marks(args)}] | remove_drab_marks(tail)]
+  end
+  def remove_drab_marks([head | tail]) when is_atom(head) do
+    [head | remove_drab_marks(tail)]
+  end
+  def remove_drab_marks([head | tail]) when is_list(head) do
+    [remove_drab_marks(head) | remove_drab_marks(tail)]
+  end
+  def remove_drab_marks([{atom, meta, args} | tail]) when is_list(args) do
+    [{atom, meta, remove_drab_marks(args)} | remove_drab_marks(tail)]
+  end
+  def remove_drab_marks([{atom, meta, args} | tail]) when is_atom(args) do
+    [{atom, meta, args} | remove_drab_marks(tail)]
+  end
+  def remove_drab_marks(tuple) when is_tuple(tuple) do
+    tuple
   end
 
   @doc """

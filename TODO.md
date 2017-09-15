@@ -9,6 +9,8 @@
 
 ## Future
 Changes:
+* check if the handler exists in compile time
+* @impl 
 * benchmarks (compare to AJAX)
 * extract Drab Store and Session to standalone module (loaded by default)
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)

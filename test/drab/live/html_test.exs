@@ -4,7 +4,7 @@ defmodule Drab.Live.HtmlTest do
   doctest Drab.Live.HTML
 
   @buffer ["\n<span drab-ampere=\"gezdamzqg43damq\" drab-partial='guzdmmrvga4de'>\n",
- "<div id=\"begin\" style=\"display: none;\"></div>\n<div id='drab_pid' style=\"display: none;\"></div>\n<span test-span></span>\nurl: ",
+ "<span test-span></span>\nurl: ",
  "{{{{@drab-expr-hash:guydsnjqgmydo}}}}",
  {:case, [generated: true],
   [{{:., [line: 4],
@@ -86,6 +86,90 @@ defmodule Drab.Live.HtmlTest do
           :to_iodata]}, [line: 5],
         [{:other, [line: 5], Drab.Live.EExEngine}]}]}]]]},
  "{{{{/@drab-expr-hash:geztaobxge2donq}}}}", "\n", "\n</span>\n"]
+
+  @buffer_with_marks_removed ["\n<span drab-ampere=\"gezdamzqg43damq\" drab-partial='guzdmmrvga4de'>\n",
+ "<span test-span></span>\nurl: ",
+ "",
+ {:case, [generated: true],
+  [{{:., [line: 4],
+     [{:__aliases__, [line: 4, alias: false], [:Phoenix, :HTML, :Engine]},
+      :fetch_assign]}, [line: 4],
+    [{:var!, [line: 4, context: Drab.Live.EExEngine, import: Kernel],
+      [{:assigns, [line: 4], Drab.Live.EExEngine}]}, :url]},
+   [do: [{:->, [generated: true],
+      [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+       {:data, [generated: true], Drab.Live.EExEngine}]},
+     {:->, [generated: true],
+      [[{:when, [generated: true],
+         [{:bin, [generated: true], Drab.Live.EExEngine},
+          {:is_binary,
+           [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+           [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+       {{:., [generated: true],
+         [{:__aliases__, [generated: true, alias: false], [:Plug, :HTML]},
+          :html_escape]}, [generated: true],
+        [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+     {:->, [generated: true],
+      [[{:other, [generated: true], Drab.Live.EExEngine}],
+       {{:., [line: 4],
+         [{:__aliases__, [line: 4, alias: false], [:Phoenix, :HTML, :Safe]},
+          :to_iodata]}, [line: 4],
+        [{:other, [line: 4], Drab.Live.EExEngine}]}]}]]]},
+ "", " <br>\n",
+ "",
+ {:case, [generated: true],
+  [{:if, [line: 5],
+    [true,
+     [do: {:safe,
+       [[["", "\n  <span drab-ampere=\"g42tmnbygyydi\">\n    link: "],
+         "",
+         {:case, [generated: true],
+          [{{:., [line: 7],
+             [{:__aliases__, [line: 7, alias: false],
+               [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, [line: 7],
+            [{:var!, [line: 7, context: Drab.Live.EExEngine, import: Kernel],
+              [{:assigns, [line: 7], Drab.Live.EExEngine}]}, :link]},
+           [do: [{:->, [generated: true],
+              [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+               {:data, [generated: true], Drab.Live.EExEngine}]},
+             {:->, [generated: true],
+              [[{:when, [generated: true],
+                 [{:bin, [generated: true], Drab.Live.EExEngine},
+                  {:is_binary,
+                   [generated: true, context: Drab.Live.EExEngine,
+                    import: Kernel],
+                   [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+               {{:., [generated: true],
+                 [{:__aliases__, [generated: true, alias: false],
+                   [:Plug, :HTML]}, :html_escape]}, [generated: true],
+                [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+             {:->, [generated: true],
+              [[{:other, [generated: true], Drab.Live.EExEngine}],
+               {{:., [line: 7],
+                 [{:__aliases__, [line: 7, alias: false],
+                   [:Phoenix, :HTML, :Safe]}, :to_iodata]}, [line: 7],
+                [{:other, [line: 7], Drab.Live.EExEngine}]}]}]]]},
+         ""], "\n  </span>\n"]}]]},
+   [do: [{:->, [generated: true],
+      [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+       {:data, [generated: true], Drab.Live.EExEngine}]},
+     {:->, [generated: true],
+      [[{:when, [generated: true],
+         [{:bin, [generated: true], Drab.Live.EExEngine},
+          {:is_binary,
+           [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+           [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+       {{:., [generated: true],
+         [{:__aliases__, [generated: true, alias: false], [:Plug, :HTML]},
+          :html_escape]}, [generated: true],
+        [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+     {:->, [generated: true],
+      [[{:other, [generated: true], Drab.Live.EExEngine}],
+       {{:., [line: 5],
+         [{:__aliases__, [line: 5, alias: false], [:Phoenix, :HTML, :Safe]},
+          :to_iodata]}, [line: 5],
+        [{:other, [line: 5], Drab.Live.EExEngine}]}]}]]]},
+ "", "\n", "\n</span>\n"]
 
   @buffer_with_attributes ["\n<span drab-ampere=\"gy2deojsg4yq\" drab-partial='guzdmmrvga4de'>\n",
  "<span drab-ampere=\"geytcobwgq3dinq\" test-span url=",
@@ -199,7 +283,139 @@ defmodule Drab.Live.HtmlTest do
         [{:other, [line: 4], Drab.Live.EExEngine}]}]}]]]},
  "{{{{/@drab-expr-hash:geytmnrzha4dkna}}}}", "\n", "\n</span>\n",
  "<script drab-script>",
- "if (typeof window.__drab == 'undefined') {window.__drab = {assigns: {}}};\nwindow.__drab.assigns['guzdmmrvga4de'] = {};\n",
+ "</script>", "<script drab-script>",
+ "__drab.assigns['guzdmmrvga4de']['link'] = '",
+ {{:., [[generated: true]],
+   [{:__aliases__, [[generated: true]], [:Drab, :Live, :Crypto]}, :encode64]},
+  [[generated: true]],
+  [{{:., [line: 0],
+     [{:__aliases__, [line: 0, alias: false], [:Phoenix, :HTML, :Engine]},
+      :fetch_assign]}, [line: 0],
+    [{:var!, [line: 0, context: Drab.Live.EExEngine, import: Kernel],
+      [{:assigns, [line: 0], Drab.Live.EExEngine}]}, :link]}]}, "';",
+ "__drab.assigns['guzdmmrvga4de']['url'] = '",
+ {{:., [[generated: true]],
+   [{:__aliases__, [[generated: true]], [:Drab, :Live, :Crypto]}, :encode64]},
+  [[generated: true]],
+  [{{:., [line: 0],
+     [{:__aliases__, [line: 0, alias: false], [:Phoenix, :HTML, :Engine]},
+      :fetch_assign]}, [line: 0],
+    [{:var!, [line: 0, context: Drab.Live.EExEngine, import: Kernel],
+      [{:assigns, [line: 0], Drab.Live.EExEngine}]}, :url]}]}, "';",
+ "</script>"]
+
+ @buffer_with_attributes_with_marks_removed ["\n<span drab-ampere=\"gy2deojsg4yq\" drab-partial='guzdmmrvga4de'>\n",
+ "<span drab-ampere=\"geytcobwgq3dinq\" test-span url=",
+ "",
+ {:case, [generated: true],
+  [{{:., [line: 3],
+     [{:__aliases__, [line: 3, alias: false], [:Phoenix, :HTML, :Engine]},
+      :fetch_assign]}, [line: 3],
+    [{:var!, [line: 3, context: Drab.Live.EExEngine, import: Kernel],
+      [{:assigns, [line: 3], Drab.Live.EExEngine}]}, :url]},
+   [do: [{:->, [generated: true],
+      [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+       {:data, [generated: true], Drab.Live.EExEngine}]},
+     {:->, [generated: true],
+      [[{:when, [generated: true],
+         [{:bin, [generated: true], Drab.Live.EExEngine},
+          {:is_binary,
+           [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+           [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+       {{:., [generated: true],
+         [{:__aliases__, [generated: true, alias: false], [:Plug, :HTML]},
+          :html_escape]}, [generated: true],
+        [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+     {:->, [generated: true],
+      [[{:other, [generated: true], Drab.Live.EExEngine}],
+       {{:., [line: 3],
+         [{:__aliases__, [line: 3, alias: false], [:Phoenix, :HTML, :Safe]},
+          :to_iodata]}, [line: 3],
+        [{:other, [line: 3], Drab.Live.EExEngine}]}]}]]]},
+ "", ">inside span</span>\n",
+ "",
+ {:case, [generated: true],
+  [{:if, [line: 4],
+    [true,
+     [do: {:safe,
+       [[[[["", "\n  <div drab-ampere=\"gmztanrwge2tm\" @link='"],
+           "",
+           {:case, [generated: true],
+            [{{:., [line: 5],
+               [{:__aliases__, [line: 5, alias: false],
+                 [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, [line: 5],
+              [{:var!, [line: 5, context: Drab.Live.EExEngine, import: Kernel],
+                [{:assigns, [line: 5], Drab.Live.EExEngine}]}, :link]},
+             [do: [{:->, [generated: true],
+                [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+                 {:data, [generated: true], Drab.Live.EExEngine}]},
+               {:->, [generated: true],
+                [[{:when, [generated: true],
+                   [{:bin, [generated: true], Drab.Live.EExEngine},
+                    {:is_binary,
+                     [generated: true, context: Drab.Live.EExEngine,
+                      import: Kernel],
+                     [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+                 {{:., [generated: true],
+                   [{:__aliases__, [generated: true, alias: false],
+                     [:Plug, :HTML]}, :html_escape]}, [generated: true],
+                  [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+               {:->, [generated: true],
+                [[{:other, [generated: true], Drab.Live.EExEngine}],
+                 {{:., [line: 5],
+                   [{:__aliases__, [line: 5, alias: false],
+                     [:Phoenix, :HTML, :Safe]}, :to_iodata]}, [line: 5],
+                  [{:other, [line: 5], Drab.Live.EExEngine}]}]}]]]},
+           ""], "'>\n    inside div: "],
+         "",
+         {:case, [generated: true],
+          [{{:., [line: 6],
+             [{:__aliases__, [line: 6, alias: false],
+               [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, [line: 6],
+            [{:var!, [line: 6, context: Drab.Live.EExEngine, import: Kernel],
+              [{:assigns, [line: 6], Drab.Live.EExEngine}]}, :link]},
+           [do: [{:->, [generated: true],
+              [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+               {:data, [generated: true], Drab.Live.EExEngine}]},
+             {:->, [generated: true],
+              [[{:when, [generated: true],
+                 [{:bin, [generated: true], Drab.Live.EExEngine},
+                  {:is_binary,
+                   [generated: true, context: Drab.Live.EExEngine,
+                    import: Kernel],
+                   [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+               {{:., [generated: true],
+                 [{:__aliases__, [generated: true, alias: false],
+                   [:Plug, :HTML]}, :html_escape]}, [generated: true],
+                [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+             {:->, [generated: true],
+              [[{:other, [generated: true], Drab.Live.EExEngine}],
+               {{:., [line: 6],
+                 [{:__aliases__, [line: 6, alias: false],
+                   [:Phoenix, :HTML, :Safe]}, :to_iodata]}, [line: 6],
+                [{:other, [line: 6], Drab.Live.EExEngine}]}]}]]]},
+         ""], "\n  </div>\n"]}]]},
+   [do: [{:->, [generated: true],
+      [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+       {:data, [generated: true], Drab.Live.EExEngine}]},
+     {:->, [generated: true],
+      [[{:when, [generated: true],
+         [{:bin, [generated: true], Drab.Live.EExEngine},
+          {:is_binary,
+           [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+           [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+       {{:., [generated: true],
+         [{:__aliases__, [generated: true, alias: false], [:Plug, :HTML]},
+          :html_escape]}, [generated: true],
+        [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+     {:->, [generated: true],
+      [[{:other, [generated: true], Drab.Live.EExEngine}],
+       {{:., [line: 4],
+         [{:__aliases__, [line: 4, alias: false], [:Phoenix, :HTML, :Safe]},
+          :to_iodata]}, [line: 4],
+        [{:other, [line: 4], Drab.Live.EExEngine}]}]}]]]},
+ "", "\n", "\n</span>\n",
+ "<script drab-script>",
  "</script>", "<script drab-script>",
  "__drab.assigns['guzdmmrvga4de']['link'] = '",
  {{:., [[generated: true]],
@@ -287,8 +503,6 @@ defmodule Drab.Live.HtmlTest do
     assert to_flat_html(@buffer) == """
 
       <span drab-ampere="gezdamzqg43damq" drab-partial='guzdmmrvga4de'>
-      <div id="begin" style="display: none;"></div>
-      <div id='drab_pid' style="display: none;"></div>
       <span test-span></span>
       url: {{{{@drab-expr-hash:guydsnjqgmydo}}}}{{{{/@drab-expr-hash:guydsnjqgmydo}}}} <br>
       {{{{@drab-expr-hash:geztaobxge2donq}}}}{{{{/@drab-expr-hash:geztaobxge2donq}}}}
@@ -306,29 +520,43 @@ defmodule Drab.Live.HtmlTest do
   test "amperes and patterns from buffer" do
     buffer = {:safe, @buffer}
     assert amperes_from_buffer(buffer) == %{
-      "gezdamzqg43damq" => [{:html, "span","""
-        <div id="begin" style="display: none;"></div><div id="drab_pid" style="display: none;"></div><span test-span="test-span"></span>
+      "gezdamzqg43damq" => [{:html, "span", "innerHTML", """
+        <span test-span="test-span"></span>
         url: {{{{@drab-expr-hash:guydsnjqgmydo}}}}{{{{/@drab-expr-hash:guydsnjqgmydo}}}} <br/>
         {{{{@drab-expr-hash:geztaobxge2donq}}}}{{{{/@drab-expr-hash:geztaobxge2donq}}}}
 
         """}],
-      "g42tmnbygyydi" => [{:html, "span",
+      "g42tmnbygyydi" => [{:html, "span", "innerHTML",
         "\n    link: {{{{@drab-expr-hash:g43denzygq3ti}}}}{{{{/@drab-expr-hash:g43denzygq3ti}}}}\n  "}]}
   end
 
   test "amperes and patters from small inner expression" do
-    assert amperes_from_buffer(@inner_expr) == %{"g42tmnbygyydi" => [{:html, "span",
+    assert amperes_from_buffer(@inner_expr) == %{"g42tmnbygyydi" => [{:html, "span", "innerHTML",
       "\n    link: {{{{@drab-expr-hash:g43denzygq3ti}}}}{{{{/@drab-expr-hash:g43denzygq3ti}}}}\n  "}]}
   end
 
   test "amperes and attributes from buffer" do
+    assert amperes_from_buffer({:safe, @buffer}) == %{
+      "g42tmnbygyydi" =>
+        [{:html, "span", "innerHTML",
+        "\n    link: {{{{@drab-expr-hash:g43denzygq3ti}}}}{{{{/@drab-expr-hash:g43denzygq3ti}}}}\n  "}],
+      "gezdamzqg43damq" =>
+        [{:html, "span", "innerHTML", """
+                       <span test-span="test-span"></span>
+                       url: {{{{@drab-expr-hash:guydsnjqgmydo}}}}{{{{/@drab-expr-hash:guydsnjqgmydo}}}} <br/>
+                       {{{{@drab-expr-hash:geztaobxge2donq}}}}{{{{/@drab-expr-hash:geztaobxge2donq}}}}
+
+                       """}]}
+  end
+
+  test "amperes and attributes from buffer with attributes" do
     assert amperes_from_buffer({:safe, @buffer_with_attributes}) == %{"geytcobwgq3dinq" => [{:attr, "span", "url",
       "{{{{@drab-expr-hash:ge2tgmzxhazte}}}}{{{{/@drab-expr-hash:ge2tgmzxhazte}}}}"}],
-    "gmztanrwge2tm" => [{:html, "div",
+    "gmztanrwge2tm" => [{:html, "div", "innerHTML",
       "\n    inside div: {{{{@drab-expr-hash:gy2tmnbtge2tq}}}}{{{{/@drab-expr-hash:gy2tmnbtge2tq}}}}\n  "},
-     {:attr, "div", "@link",
+     {:prop, "div", "link",
       "{{{{@drab-expr-hash:gezdmmrrgi3damy}}}}{{{{/@drab-expr-hash:gezdmmrrgi3damy}}}}"}],
-    "gy2deojsg4yq" => [{:html, "span",
+    "gy2deojsg4yq" => [{:html, "span", "innerHTML",
       "<span drab-ampere=\"geytcobwgq3dinq\" test-span=\"test-span\" \
 url=\"{{{{@drab-expr-hash:ge2tgmzxhazte}}}}{{{{/@drab-expr-hash:ge2tgmzxhazte}}}}\">\
 inside span</span>\n{{{{@drab-expr-hash:geytmnrzha4dkna}}}}{{{{/@drab-expr-hash:geytmnrzha4dkna}}}}\n\n"}]}
@@ -359,5 +587,13 @@ inside span</span>\n{{{{@drab-expr-hash:geytmnrzha4dkna}}}}{{{{/@drab-expr-hash:
               "<div id=\"begin\"></div>\n<div></div>\n<span drab-ampere=\"geytcobwgq3dinq\" test-span url=",
               ">inside span</span>\n<div drab-ampere=ampere>\n  inside div: "],
              "drab-ampere=ampere"}
+  end
+
+  test "remove drab marks" do
+    assert remove_drab_marks(@buffer) == @buffer_with_marks_removed
+  end
+
+  test "remove drab marks from attributes also" do
+    assert remove_drab_marks(@buffer_with_attributes) == @buffer_with_attributes_with_marks_removed
   end
 end

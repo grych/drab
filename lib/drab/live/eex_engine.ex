@@ -96,8 +96,10 @@ defmodule Drab.Live.EExEngine do
     Logger.info "Compiling Drab partial: #{partial} (#{partial_hash})"
 
     Drab.Live.Cache.start()
-    Drab.Live.Cache.set({:partial, partial}, partial_hash)
-    Drab.Live.Cache.set({:partial, partial_hash}, partial)
+    Drab.Live.Cache.set(partial, partial_hash)
+    Drab.Live.Cache.set(partial_hash, partial)
+    # Drab.Live.Cache.set({:partial, partial}, partial_hash)
+    # Drab.Live.Cache.set({:partial, partial_hash}, partial)
 
     buffer = ["\n<span drab-partial='#{partial_hash}'>\n"]
     # start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, only in compile-time
@@ -106,17 +108,17 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_body({:safe, body}) do
-    body = List.flatten(body)
+    # body = List.flatten(body)
 
     found_assigns = find_assigns(body)
-    partial = partial(body)
+    partial_hash = partial(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
-      assign_js(partial, assign)
+      assign_js(partial_hash, assign)
     end) |> script_tag()
 
     init_js = """
       if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {assigns: {}}};
-      window.#{@jsvar}.assigns['#{partial}'] = {};
+      window.#{@jsvar}.assigns['#{partial_hash}'] = {};
       """
     # put_shadow_buffer("\n</span>\n", partial)
 
@@ -170,10 +172,75 @@ defmodule Drab.Live.EExEngine do
     # "<span drab-ampere='geztcmbqgu3tqnq'>"]}],
     IO.puts ""
     IO.puts "FINAL:"
-    IO.inspect final
+    # IO.inspect final
 
-    {:safe, final}
+    # find and save amperes
+    # format:
+    # {"partial_hash", "ampere_id"} => [
+    #   {:html, "tag", "innerHTML", [pattern], [assigns]},
+    #   {:attr, "tag", "attribute", [pattern], [assigns]}, {:attr...},
+    #   {:prop, "tag", "property", [pattern], [assigns]}, {:prop...},
+    # ]
+    # where pattern = ["text", {expression}, "text"...]
+    amperes_to_assigns = for {ampere_id, vals} <- amperes_from_buffer({:safe, final}) do
+      ampere_values = for {gender, tag, prop_or_attr, pattern} <- vals do
+        compiled = compiled_from_pattern(pattern)
+        assigns = assigns_from_pattern(pattern)
+        {gender, tag, prop_or_attr, compiled, assigns}
+      end
+      Drab.Live.Cache.set({partial_hash, ampere_id}, ampere_values)
+
+      for {_, _, _, _, assigns} <- ampere_values, assign <- assigns do
+        {assign, ampere_id}
+      end
+    end
+    |> List.flatten()
+    |> Enum.uniq()
+    |> Enum.group_by(fn {k, v} -> k end, fn {_k, v} -> v end)
+
+    # ampere-to_assign list
+    # {partial_hash, :assign} => [ampere_id"]
+    for {assign, amperes} <- amperes_to_assigns do
+      Drab.Live.Cache.set({partial_hash, assign}, amperes)
+    end
+    # other cached stuff:
+    # "expr_hash" => {:expr, "expr", [assigns]}
+    # "partial_hash" => {"partial_path", [assigns]}
+    # "partial_path" => {"partial_hash", [assigns]
+    partial_path = Drab.Live.Cache.get(partial_hash)
+    Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
+    Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
+
+    remove_drab_marks({:safe, final})
   end
+
+  @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}{{{{\/@drab-expr-hash:\S+}}}}/
+  defp compiled_from_pattern(pattern) do
+    String.split(pattern, @expr, include_captures: true, trim: true)
+    |> Enum.map(&expr_from_cache/1)
+  end
+
+  defp expr_from_cache(text) do
+    case Regex.run(@expr, text) do
+      [_, expr_hash] ->
+        {:expr, expr, _} = Drab.Live.Cache.get(expr_hash)
+        expr
+      nil ->
+        text
+    end
+  end
+
+  defp assigns_from_pattern(pattern) do
+    expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
+    for expr_hash <- expressions do
+      {:expr, _, assigns} = Drab.Live.Cache.get(expr_hash)
+      assigns
+    end |> List.flatten() |> Enum.uniq()
+  end
+
+
+
+
 
   @doc false
   def handle_text({:safe, buffer}, text) do
@@ -278,18 +345,25 @@ defmodule Drab.Live.EExEngine do
     # ampere_id = drab_id(html, tag)
 
     hash = hash({expr, found_assigns})
+    # IO.inspect hash
+    # IO.inspect found_assigns
+    # # IO.inspect expr
+    # {form, meta, args} = expr
+    # IO.inspect args
+    # IO.puts ""
+
     safe_expr = to_safe(expr, line)
     Drab.Live.Cache.set(hash, {:expr, safe_expr, found_assigns})
 
     # span_begin = "<span #{@drab_id}='#{hash}'>"
     # span_end   = "</span>"
 
-    span_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
-    span_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
+    expr_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
+    expr_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
 
     buf = if found_assigns? do
       quote do
-        [unquote(buffer), unquote(span_begin), unquote(safe_expr), unquote(span_end)]
+        [unquote(buffer), unquote(expr_begin), unquote(safe_expr), unquote(expr_end)]
       end
     else
       quote do
@@ -382,7 +456,7 @@ defmodule Drab.Live.EExEngine do
     p = Regex.run ~r/<span.*drab-partial='([^']+)'/is, html
     #TODO: possibly dangerous - returning nil when partial not found
     # but should be OK as we use shadow buffer only for attributes and scripts
-    if p, do: List.last(p) |> String.to_atom(), else: nil
+    if p, do: List.last(p), else: nil
   end
 
   @doc false
@@ -511,7 +585,7 @@ defmodule Drab.Live.EExEngine do
 
   defp script_tag([]), do: []
   defp script_tag(js) do
-    ["<script drab-script>", js, "</script>"]
+    ["<script drab-script>", js, "</script>\n"]
   end
 
   defp assign_js(partial, assign) do
@@ -585,7 +659,8 @@ defmodule Drab.Live.EExEngine do
       case node do
         {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]} when is_atom(name) ->
           {node, [name | acc]}
-        _ -> {node, acc}
+        _ ->
+          {node, acc}
       end
     end
     result |> Enum.uniq() |> Enum.sort()

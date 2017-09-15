@@ -1,6 +1,7 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
-<span test-span url=<%=@url%>>inside span</span>
+<span test-span url=<%=String.upcase(@url)%>>inside span</span>
+
 <%= if true do %>
   <div @link='<%=@link%>'>
     inside div: <%=@link%>
