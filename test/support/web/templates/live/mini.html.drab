@@ -1,9 +1,10 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
-<span test-span url=<%=String.upcase(@url)%>>inside span</span>
 
+<p>
 <%= if true do %>
-  <div @link='<%=@link%>'>
+  <div @style.color="<%=@color%>" @style.backgroundColor=<%=@color%>>
     inside div: <%=@link%>
   </div>
 <% end %>
+</p>

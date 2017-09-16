@@ -159,19 +159,10 @@ defmodule Drab.Live.EExEngine do
     #   Drab.Live.Cache.set(ampere, {String.to_atom(tag), pattern, hashes, assigns})
     # end
 
-    final = [
-      body,
-      "\n</span>\n",
-      script_tag(init_js),
-      assigns_js,
-    ] |> List.flatten()
 
-    #TODO: check if in the expression of attribute or script or textarea
-    # there is another expression, like
-    #    [[{:|, [], ["", "\n"]}],
-    # "<span drab-ampere='geztcmbqgu3tqnq'>"]}],
-    IO.puts ""
-    IO.puts "FINAL:"
+
+    # IO.puts ""
+    # IO.puts "FINAL:"
     # IO.inspect final
 
     # find and save amperes
@@ -182,14 +173,15 @@ defmodule Drab.Live.EExEngine do
     #   {:prop, "tag", "property", [pattern], [assigns]}, {:prop...},
     # ]
     # where pattern = ["text", {expression}, "text"...]
-    amperes_to_assigns = for {ampere_id, vals} <- amperes_from_buffer({:safe, final}) do
+    found_amperes = amperes_from_buffer({:safe, List.flatten(body)})
+    IO.inspect found_amperes
+    amperes_to_assigns = for {ampere_id, vals} <- found_amperes do
       ampere_values = for {gender, tag, prop_or_attr, pattern} <- vals do
-        compiled = compiled_from_pattern(pattern)
+        compiled = compiled_from_pattern(gender, pattern, tag, prop_or_attr)
         assigns = assigns_from_pattern(pattern)
         {gender, tag, prop_or_attr, compiled, assigns}
       end
       Drab.Live.Cache.set({partial_hash, ampere_id}, ampere_values)
-
       for {_, _, _, _, assigns} <- ampere_values, assign <- assigns do
         {assign, ampere_id}
       end
@@ -203,6 +195,7 @@ defmodule Drab.Live.EExEngine do
     for {assign, amperes} <- amperes_to_assigns do
       Drab.Live.Cache.set({partial_hash, assign}, amperes)
     end
+
     # other cached stuff:
     # "expr_hash" => {:expr, "expr", [assigns]}
     # "partial_hash" => {"partial_path", [assigns]}
@@ -211,11 +204,45 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
     Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
 
+    # property_js(partial, ampere, property, value)
+    properies_js = for {ampere_id, vals} <- found_amperes, {:prop, tag, property, pattern} <- vals do
+      property_js(partial_hash, ampere_id, property, compiled_from_pattern(:prop, pattern, tag, property))
+    end |> script_tag()
+    # IO.inspect properies_js
+
+    final = [
+      body,
+      "\n</span>\n",
+      script_tag(init_js),
+      assigns_js,
+      properies_js
+    ] |> List.flatten()
+
     remove_drab_marks({:safe, final})
   end
 
-  @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}{{{{\/@drab-expr-hash:\S+}}}}/
-  defp compiled_from_pattern(pattern) do
+  @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}{{{{\/@drab-expr-hash:\S+}}}}/U
+  defp compiled_from_pattern(:prop, pattern, tag, property) do
+    case compiled_from_pattern(:other, pattern, tag, property) do
+      [expr | []] when is_tuple(expr) ->
+        expr
+      _ ->
+        raise EEx.SyntaxError, message: """
+          syntax error in Drab property special form for tag: <#{tag}>, property: #{property}
+
+          You can only combine one Elixir expression with one node property.
+          Allowed:
+
+              <tag @property=<%=expression%>>
+
+          Prohibited:
+
+              <tag @property="other text <%=expression%>">
+              <tag @property="<%=expression1%><%=expression2%>">
+          """
+    end
+  end
+  defp compiled_from_pattern(_, pattern, _, _) do
     String.split(pattern, @expr, include_captures: true, trim: true)
     |> Enum.map(&expr_from_cache/1)
   end
@@ -223,6 +250,7 @@ defmodule Drab.Live.EExEngine do
   defp expr_from_cache(text) do
     case Regex.run(@expr, text) do
       [_, expr_hash] ->
+        IO.inspect expr_hash
         {:expr, expr, _} = Drab.Live.Cache.get(expr_hash)
         expr
       nil ->
@@ -344,7 +372,8 @@ defmodule Drab.Live.EExEngine do
     # html = to_html(buffer)
     # ampere_id = drab_id(html, tag)
 
-    hash = hash({expr, found_assigns})
+    # {a, _, args} = expr # remove meta (line number) from expression
+    hash = hash(expr)
     # IO.inspect hash
     # IO.inspect found_assigns
     # # IO.inspect expr
@@ -590,6 +619,10 @@ defmodule Drab.Live.EExEngine do
 
   defp assign_js(partial, assign) do
     ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = '", encoded_assign(assign), "';"]
+  end
+
+  defp property_js(partial, ampere, property, value) do
+    ["document.querySelector('[drab-ampere=#{ampere}]').#{property}=", encoded_expr(value), ";"]
   end
 
 

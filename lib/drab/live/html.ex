@@ -360,13 +360,31 @@ defmodule Drab.Live.HTML do
       html_part = if contains_expression?(inner_html), do: [{:html, tag, "innerHTML", Floki.raw_html(inner_html)}], else: []
       attrs_part = for {attr_name, attr_pattern} <- attributes, contains_expression?(attr_pattern) do
         case attr_name do
-          "@" <> prop_name -> {:prop, tag, prop_name, attr_pattern}
+          "@" <> prop_name -> {:prop, tag, case_sensitive_prop_name(html, ampere, prop_name), attr_pattern}
           _ -> {:attr, tag, attr_name, attr_pattern}
         end
       end
       {ampere, html_part ++ attrs_part}
     end
   end
+
+  @doc """
+  Finds a real property name (case sensitive), based on the attribute (lowercased) name
+  """
+  def case_sensitive_prop_name(html, ampere, prop_name) do
+    {:tag, body} = html
+    |> tokenize()
+    |> Enum.find(
+      fn x ->
+        case x do
+          {:tag, tag} -> String.contains?(tag, "drab-ampere=\"#{ampere}\"")
+          _ -> false
+        end
+      end)
+    [_, property] = Regex.run(~r/@(#{prop_name})\s*=/i, body)
+    property
+  end
+
 
   defp find_ampere(attributes) do
     {_, ampere} = Enum.find attributes, fn {name, _} -> name == "drab-ampere" end

@@ -1,8 +1,8 @@
 defmodule DrabTestApp.LiveController do
   @moduledoc false
-  
+
   use DrabTestApp.Web, :controller
-  use Drab.Controller 
+  use Drab.Controller
 
   require Logger
 
@@ -19,7 +19,7 @@ defmodule DrabTestApp.LiveController do
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
     render conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: false, label: "default",
-      list: [1,2,3], map: %{a: 1, b: 2}, color: "white", link: "https://tg.pl/drab", count: 42,
+      list: [1,2,3], map: %{a: 1, b: 2}, color: "blue", link: "https://tg.pl/drab", count: 42,
       url: "elixirforum.com", width: nil
   end
 

@@ -205,7 +205,7 @@ defmodule Drab.Live.HtmlTest do
   [{:if, [line: 4],
     [true,
      [do: {:safe,
-       [[[[["", "\n  <div drab-ampere=\"gmztanrwge2tm\" @link='"],
+       [[[[["", "\n  <div drab-ampere=\"gmztanrwge2tm\" @Link='"],
            "{{{{@drab-expr-hash:gezdmmrrgi3damy}}}}",
            {:case, [generated: true],
             [{{:., [line: 5],
@@ -338,7 +338,7 @@ defmodule Drab.Live.HtmlTest do
   [{:if, [line: 4],
     [true,
      [do: {:safe,
-       [[[[["", "\n  <div drab-ampere=\"gmztanrwge2tm\" @link='"],
+       [[[[["", "\n  <div drab-ampere=\"gmztanrwge2tm\" @Link='"],
            "",
            {:case, [generated: true],
             [{{:., [line: 5],
@@ -554,7 +554,7 @@ defmodule Drab.Live.HtmlTest do
       "{{{{@drab-expr-hash:ge2tgmzxhazte}}}}{{{{/@drab-expr-hash:ge2tgmzxhazte}}}}"}],
     "gmztanrwge2tm" => [{:html, "div", "innerHTML",
       "\n    inside div: {{{{@drab-expr-hash:gy2tmnbtge2tq}}}}{{{{/@drab-expr-hash:gy2tmnbtge2tq}}}}\n  "},
-     {:prop, "div", "link",
+     {:prop, "div", "Link",
       "{{{{@drab-expr-hash:gezdmmrrgi3damy}}}}{{{{/@drab-expr-hash:gezdmmrrgi3damy}}}}"}],
     "gy2deojsg4yq" => [{:html, "span", "innerHTML",
       "<span drab-ampere=\"geytcobwgq3dinq\" test-span=\"test-span\" \
@@ -595,5 +595,12 @@ inside span</span>\n{{{{@drab-expr-hash:geytmnrzha4dkna}}}}{{{{/@drab-expr-hash:
 
   test "remove drab marks from attributes also" do
     assert remove_drab_marks(@buffer_with_attributes) == @buffer_with_attributes_with_marks_removed
+  end
+
+  test "case sensitive property name" do
+    assert case_sensitive_prop_name("<tag drab-ampere=\"AMP\" @Property=value>", "AMP", "property") == "Property"
+    assert case_sensitive_prop_name("<tag drab-ampere=\"AMP\" @property=value>", "AMP", "property") == "property"
+    assert case_sensitive_prop_name("<tag drab-ampere=\"AMP\" @Property=value @property=value>", "AMP", "property")
+      == "Property"
   end
 end

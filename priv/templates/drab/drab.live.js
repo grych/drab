@@ -12,13 +12,13 @@ Drab.on_load(function (resp, drab) {
     window.__drab = { assigns: {} };
   };
   var d = window.__drab;
-  d.amperes = {};
-  d.properties = {};
+  // d.amperes = {};
+  // d.properties = {};
 
-  search_for_drab(document);
+  // search_for_drab(document);
 
   // update the properties set in <tag @property=expression>
-  set_properties(document);
+  // set_properties(document);
 
   // get the name of the main partial
   if (document.querySelector("[drab-partial]")) {
@@ -30,8 +30,8 @@ Drab.on_change(function(selector) {
   // console.log("change");
   var node = document.querySelector(selector);
 
-  search_for_drab(node);
-  set_properties(node);
+  // search_for_drab(node);
+  // set_properties(node);
   run_drab_scripts_on(node);
   // console.log(__drab.properties.gmzdgmjtg4yta[0]["style.backgroundcolor"]);
 });
@@ -81,7 +81,7 @@ function search_for_drab(where) {
         // if the property is not defined before
         var prop_name = attr_name.replace(/^@/, "");
         if (!d.properties[drab_id][prop_name]) {
-          d.properties[drab_id][prop_name] = 
+          d.properties[drab_id][prop_name] =
             JSON.parse(node.attributes[j].value.replace(/^[^{]*{{{{/, "").replace(/}}}}$/, ""));
         }
       }
