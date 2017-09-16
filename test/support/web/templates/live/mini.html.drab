@@ -3,7 +3,7 @@
 
 <p>
 <%= if true do %>
-  <div @style.color="<%=@color%>" @style.backgroundColor=<%=@color%>>
+  <div @style.color="<%=@color%>" @style.backgroundColor=<%=@color%> @list=<%=@count%>>
     inside div: <%=@link%>
   </div>
 <% end %>

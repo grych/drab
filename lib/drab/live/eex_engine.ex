@@ -250,7 +250,6 @@ defmodule Drab.Live.EExEngine do
   defp expr_from_cache(text) do
     case Regex.run(@expr, text) do
       [_, expr_hash] ->
-        IO.inspect expr_hash
         {:expr, expr, _} = Drab.Live.Cache.get(expr_hash)
         expr
       nil ->
@@ -328,25 +327,25 @@ defmodule Drab.Live.EExEngine do
   end
 
 
-  # The expression is inside the <script> tag
-  defp inject_tag(buffer, expr, line, tag) do
-    if contains_nested_expression?(expr) do
-      raise_nested_expression(buffer, line)
-    end
+  # # The expression is inside the <script> tag
+  # defp inject_tag(buffer, expr, line, tag) do
+  #   if contains_nested_expression?(expr) do
+  #     raise_nested_expression(buffer, line)
+  #   end
 
-    found_assigns  = find_assigns(expr)
+  #   found_assigns  = find_assigns(expr)
 
-    buffer = inject_drab_id(buffer, expr, tag)
-    html = to_html(buffer)
-    ampere_id = drab_id(html, tag)
+  #   buffer = inject_drab_id(buffer, expr, tag)
+  #   html = to_html(buffer)
+  #   ampere_id = drab_id(html, tag)
 
-    hash = hash({expr, found_assigns})
-    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+  #   hash = hash({expr, found_assigns})
+  #   Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
-    {quote do
-      [unquote(buffer), unquote(to_safe(expr, line))]
-    end, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
-  end
+  #   {quote do
+  #     [unquote(buffer), unquote(to_safe(expr, line))]
+  #   end, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
+  # end
 
 
 
@@ -355,11 +354,6 @@ defmodule Drab.Live.EExEngine do
     found_assigns  = find_assigns(expr)
     found_assigns? = found_assigns != []
 
-    # tag = last_opened_tag(to_html(buffer)) || raise EEx.SyntaxError, message: """
-    #   Can't find the parent tag for an expression.
-    #   """
-    # IO.inspect buffer
-    # buffer = inject_drab_id(buffer, expr, tag)
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
     {buffer, _attribute} = case inject_attribute_to_last_opened(buffer, attribute) do
@@ -373,16 +367,14 @@ defmodule Drab.Live.EExEngine do
     # ampere_id = drab_id(html, tag)
 
     # {a, _, args} = expr # remove meta (line number) from expression
-    hash = hash(expr)
-    # IO.inspect hash
-    # IO.inspect found_assigns
-    # # IO.inspect expr
-    # {form, meta, args} = expr
-    # IO.inspect args
-    # IO.puts ""
 
-    safe_expr = to_safe(expr, line)
-    Drab.Live.Cache.set(hash, {:expr, safe_expr, found_assigns})
+    attribute = buffer |> to_html() |> find_attr_in_html()
+    is_property = attribute && String.starts_with?(attribute, "@")
+
+    hash = hash(expr)
+    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+
+    expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
 
     # span_begin = "<span #{@drab_id}='#{hash}'>"
     # span_end   = "</span>"
@@ -392,11 +384,11 @@ defmodule Drab.Live.EExEngine do
 
     buf = if found_assigns? do
       quote do
-        [unquote(buffer), unquote(expr_begin), unquote(safe_expr), unquote(expr_end)]
+        [unquote(buffer), unquote(expr_begin), unquote(expr), unquote(expr_end)]
       end
     else
       quote do
-        [unquote(buffer), unquote(safe_expr)]
+        [unquote(buffer), unquote(expr)]
       end
     end
 
