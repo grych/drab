@@ -127,9 +127,7 @@ function set_property(node, ampere, property, new_value) {
   window.__drab.properties[ampere][property] = new_value;
 }
 
-function selector(ampere_hash) {
-  return "[drab-ampere='" + ampere_hash + "']";
-}
+
 
 function set_attr(where, ampere_hash, attribute_name, new_value) {
   var found = where.querySelectorAll(selector(ampere_hash));
@@ -156,25 +154,25 @@ Drab.update_attr = function (ampere_hash, attribute_name, new_value, partial) {
   }
 };
 
-function set_prop(where, ampere_hash, property_name, new_value) {
-  var found = where.querySelectorAll(selector(ampere_hash));
-  for (var i = 0; i < found.length; i++) {
-    var node = found[i];
-    set_property(node, property_name, new_value);
-  };
-}
+// function set_prop(where, ampere_hash, property_name, new_value) {
+//   var found = where.querySelectorAll(selector(ampere_hash));
+//   for (var i = 0; i < found.length; i++) {
+//     var node = found[i];
+//     set_property(node, property_name, new_value);
+//   };
+// }
 
-Drab.update_prop = function (ampere_hash, property_name, new_value, partial) {
-  if (partial != null) {
-    var found = document.querySelectorAll('[drab-partial=' + partial + ']');
-    for (var i = 0; i < found.length; i++) {
-      var part = found[i];
-      set_prop(part, ampere_hash, property_name, new_value);
-    };
-  } else {
-    set_prop(document, ampere_hash, property_name, new_value);
-  }
-};
+// Drab.update_prop = function (ampere_hash, property_name, new_value, partial) {
+//   if (partial != null) {
+//     var found = document.querySelectorAll('[drab-partial=' + partial + ']');
+//     for (var i = 0; i < found.length; i++) {
+//       var part = found[i];
+//       set_prop(part, ampere_hash, property_name, new_value);
+//     };
+//   } else {
+//     set_prop(document, ampere_hash, property_name, new_value);
+//   }
+// };
 
 Drab.update_drab_span = function (ampere_hash, html, partial) {
   if (partial != null) {
@@ -221,7 +219,21 @@ function update_script(ampere_hash, new_script, partial) {
 //   };
 // }
 
-Drab.update_tag = function (tag, ampere, html) {
+
+function selector(ampere) {
+  return "[drab-ampere='" + ampere + "']";
+}
+
+function ampere_node(ampere) {
+  document.querySelector(selector(ampere));
+}
+
+Drab.update_property = function(ampere, property, new_value) {
+  var node = ampere_node(ampere);
+  set_property(node, ampere, property, new_value)
+}
+
+Drab.update_tag = function(tag, ampere, html) {
   var s = selector(ampere);
   var node = document.querySelector(s);
   if (node) {
