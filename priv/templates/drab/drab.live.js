@@ -221,13 +221,13 @@ function update_script(ampere_hash, new_script, partial) {
 //   };
 // }
 
-Drab.update_tag = function (partial, tag, ampere, html) {
-  var selector = '[drab-partial=' + partial + '] ' + tag + '[drab-ampere=' + ampere + ']';
-  var node = document.querySelector(selector);
+Drab.update_tag = function (tag, ampere, html) {
+  var s = selector(ampere);
+  var node = document.querySelector(s);
   if (node) {
     node.innerHTML = html;
   }
-  Drab.enable_drab_on(selector);
+  Drab.enable_drab_on(s);
   // set_properties(node);
   // Drab.enable_drab_on(node);
   // if (tag == "script") {
