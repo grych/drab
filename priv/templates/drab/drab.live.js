@@ -169,14 +169,6 @@ Drab.update_prop = function (ampere_hash, property_name, new_value, partial) {
   }
 };
 
-function set_tag_html(where, ampere_hash, html) {
-  var found = where.querySelectorAll(selector(ampere_hash));
-  for (var i = 0; i < found.length; i++) {
-    var node = found[i];
-    node.innerHTML = html;
-  };
-}
-
 Drab.update_drab_span = function (ampere_hash, html, partial) {
   if (partial != null) {
     var found_partial = document.querySelectorAll('[drab-partial=' + partial + ']');
@@ -210,20 +202,36 @@ function update_script(ampere_hash, new_script, partial) {
   }
 }
 
-Drab.update_tag = function (ampere_hash, html, partial, tag) {
-  if (tag == "script") {
-    update_script(ampere_hash, html, partial);
-  } else {
-    if (partial != null) {
 
-      var found = document.querySelectorAll('[drab-partial=' + partial + ']');
-      for (var i = 0; i < found.length; i++) {
-        var part = found[i];
-        set_tag_html(part, ampere_hash, html);
-      };
-    } else {
-      set_tag_html(document, ampere_hash, html);
-    }
+
+///// new
+
+// function set_tag_html(where, ampere_hash, html) {
+//   var found = where.querySelectorAll(selector(ampere_hash));
+//   for (var i = 0; i < found.length; i++) {
+//     var node = found[i];
+//     node.innerHTML = html;
+//   };
+// }
+
+Drab.update_tag = function (partial, tag, ampere, html) {
+  var amps = document.querySelectorAll('[drab-partial=' + partial + '] ' + tag + '[drab-ampere=' + ampere + ']');
+  for (var i = 0; i < amps.length; i++) {
+    amps[i].innerHTML = html;
   }
+  // if (tag == "script") {
+  //   update_script(ampere_hash, html, partial);
+  // } else {
+    // if (partial != null) {
+
+    //   var found = document.querySelectorAll('[drab-partial=' + partial + ']');
+    //   for (var i = 0; i < found.length; i++) {
+    //     var part = found[i];
+    //     set_tag_html(part, ampere_hash, html);
+    //   };
+    // } else {
+    //   set_tag_html(document, ampere_hash, html);
+    // }
+  // }
 };
 

@@ -72,7 +72,7 @@ defmodule Drab.Live.EExEngine do
 
   @jsvar        "__drab"
   @drab_id      "drab-ampere"
-  @special_tags ["script", "textarea"]
+  # @special_tags ["script", "textarea"]
 
   @anno (if :erlang.system_info(:otp_release) >= '19' do
     [generated: true]
@@ -177,7 +177,9 @@ defmodule Drab.Live.EExEngine do
     IO.inspect found_amperes
     amperes_to_assigns = for {ampere_id, vals} <- found_amperes do
       ampere_values = for {gender, tag, prop_or_attr, pattern} <- vals do
-        compiled = compiled_from_pattern(gender, pattern, tag, prop_or_attr)
+        compiled =
+          compiled_from_pattern(gender, pattern, tag, prop_or_attr)
+          |> remove_drab_marks()
         assigns = assigns_from_pattern(pattern)
         {gender, tag, prop_or_attr, compiled, assigns}
       end
@@ -188,10 +190,10 @@ defmodule Drab.Live.EExEngine do
     end
     |> List.flatten()
     |> Enum.uniq()
-    |> Enum.group_by(fn {k, v} -> k end, fn {_k, v} -> v end)
+    |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
 
     # ampere-to_assign list
-    # {partial_hash, :assign} => [ampere_id"]
+    # {partial_hash, :assign} => ["ampere_id"]
     for {assign, amperes} <- amperes_to_assigns do
       Drab.Live.Cache.set({partial_hash, assign}, amperes)
     end
@@ -299,7 +301,7 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
-    html = to_html(buffer)
+    # html = to_html(buffer)
 
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
@@ -320,10 +322,52 @@ defmodule Drab.Live.EExEngine do
     #     inject_span(buffer, expr, line)
     #   end
     # end
-    {injected, shadow} = inject_span(buffer, expr, line)
+    # {injected, shadow} = inject_span(buffer, expr, line)
 
     # put_shadow_buffer(shadow, partial(buffer))
-    {:safe, injected}
+
+    found_assigns  = shallow_find_assigns(expr)
+    found_assigns? = found_assigns != []
+
+    ampere_id = hash({buffer, expr})
+    attribute = "#{@drab_id}=\"#{ampere_id}\""
+    {buffer, _attribute} = case inject_attribute_to_last_opened(buffer, attribute) do
+      {:ok, buf, _} -> {buf, attribute} # injected!
+      {:already_there, _, attr} -> {buffer, attr} # it was already there
+      {:not_found, _, _} -> raise EEx.SyntaxError, message: """
+        Can't find the parent tag for an expression.
+        """
+    end
+    # html = to_html(buffer)
+    # ampere_id = drab_id(html, tag)
+
+    # {a, _, args} = expr # remove meta (line number) from expression
+
+    attribute = buffer |> to_html() |> find_attr_in_html()
+    is_property = attribute && String.starts_with?(attribute, "@")
+
+    hash = hash(expr)
+    Drab.Live.Cache.set(hash, {:expr, remove_drab_marks(expr), found_assigns})
+
+    expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
+
+    # span_begin = "<span #{@drab_id}='#{hash}'>"
+    # span_end   = "</span>"
+
+    expr_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
+    expr_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
+
+    buf = if found_assigns? do
+      quote do
+        [unquote(buffer), unquote(expr_begin), unquote(expr), unquote(expr_end)]
+      end
+    else
+      quote do
+        [unquote(buffer), unquote(expr)]
+      end
+    end
+
+    {:safe, buf}
   end
 
 
@@ -349,128 +393,128 @@ defmodule Drab.Live.EExEngine do
 
 
 
-  # Easy way. Surroud the expression with Drab Span
-  defp inject_span(buffer, expr, line) do
-    found_assigns  = find_assigns(expr)
-    found_assigns? = found_assigns != []
+  # # Easy way. Surroud the expression with Drab Span
+  # defp inject_span(buffer, expr, line) do
+  #   found_assigns  = find_assigns(expr)
+  #   found_assigns? = found_assigns != []
 
-    ampere_id = hash({buffer, expr})
-    attribute = "#{@drab_id}=\"#{ampere_id}\""
-    {buffer, _attribute} = case inject_attribute_to_last_opened(buffer, attribute) do
-      {:ok, buf, _} -> {buf, attribute} # injected!
-      {:already_there, _, attr} -> {buffer, attr} # it was already there
-      {:not_found, _, _} -> raise EEx.SyntaxError, message: """
-        Can't find the parent tag for an expression.
-        """
-    end
-    # html = to_html(buffer)
-    # ampere_id = drab_id(html, tag)
+  #   ampere_id = hash({buffer, expr})
+  #   attribute = "#{@drab_id}=\"#{ampere_id}\""
+  #   {buffer, _attribute} = case inject_attribute_to_last_opened(buffer, attribute) do
+  #     {:ok, buf, _} -> {buf, attribute} # injected!
+  #     {:already_there, _, attr} -> {buffer, attr} # it was already there
+  #     {:not_found, _, _} -> raise EEx.SyntaxError, message: """
+  #       Can't find the parent tag for an expression.
+  #       """
+  #   end
+  #   # html = to_html(buffer)
+  #   # ampere_id = drab_id(html, tag)
 
-    # {a, _, args} = expr # remove meta (line number) from expression
+  #   # {a, _, args} = expr # remove meta (line number) from expression
 
-    attribute = buffer |> to_html() |> find_attr_in_html()
-    is_property = attribute && String.starts_with?(attribute, "@")
+  #   attribute = buffer |> to_html() |> find_attr_in_html()
+  #   is_property = attribute && String.starts_with?(attribute, "@")
 
-    hash = hash(expr)
-    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+  #   hash = hash(expr)
+  #   Drab.Live.Cache.set(hash, {:expr, remove_drab_marks(expr), found_assigns})
 
-    expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
+  #   expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
 
-    # span_begin = "<span #{@drab_id}='#{hash}'>"
-    # span_end   = "</span>"
+  #   # span_begin = "<span #{@drab_id}='#{hash}'>"
+  #   # span_end   = "</span>"
 
-    expr_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
-    expr_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
+  #   expr_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
+  #   expr_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
 
-    buf = if found_assigns? do
-      quote do
-        [unquote(buffer), unquote(expr_begin), unquote(expr), unquote(expr_end)]
-      end
-    else
-      quote do
-        [unquote(buffer), unquote(expr)]
-      end
-    end
+  #   buf = if found_assigns? do
+  #     quote do
+  #       [unquote(buffer), unquote(expr_begin), unquote(expr), unquote(expr_end)]
+  #     end
+  #   else
+  #     quote do
+  #       [unquote(buffer), unquote(expr)]
+  #     end
+  #   end
 
-    {buf, ["{{{{@drab-expr-hash:#{hash}}}}}"]}
-  end
+  #   {buf, ["{{{{@drab-expr-hash:#{hash}}}}}"]}
+  # end
 
-  # The expression is inside the attribute
-  defp inject_attribute(buffer, expr, _html, line) do
-    if contains_nested_expression?(expr) do
-      raise_nested_expression(buffer, line)
-    end
+  # # The expression is inside the attribute
+  # defp inject_attribute(buffer, expr, _html, line) do
+  #   if contains_nested_expression?(expr) do
+  #     raise_nested_expression(buffer, line)
+  #   end
 
-    found_assigns  = find_assigns(expr) |> Enum.sort()
-    html = to_html(buffer)
-    hash = hash({expr, found_assigns})
-    Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+  #   found_assigns  = find_assigns(expr) |> Enum.sort()
+  #   html = to_html(buffer)
+  #   hash = hash({expr, found_assigns})
+  #   Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
 
-    # Add drab indicator
-    tag       = last_naked_tag(html)
-    # if it is inside the expression, do not assign ID
-    # buffer    = if partial(buffer), do: inject_drab_id(buffer, expr, tag), else: buffer
-    buffer    = inject_drab_id(buffer, expr, tag)
-    html      = to_html(buffer)
-    ampere_id = drab_id(html, tag)
+  #   # Add drab indicator
+  #   tag       = last_naked_tag(html)
+  #   # if it is inside the expression, do not assign ID
+  #   # buffer    = if partial(buffer), do: inject_drab_id(buffer, expr, tag), else: buffer
+  #   buffer    = inject_drab_id(buffer, expr, tag)
+  #   html      = to_html(buffer)
+  #   ampere_id = drab_id(html, tag)
 
-    attribute = find_attr_in_html(html)
-    # quots?    = attr_begins_with_quote?(html)
-    unless partial(buffer) do
-      # in the expression, create fake attribute
-      unless Drab.Live.Cache.get(ampere_id) do
-        Drab.Live.Cache.set(ampere_id, {:attribute, []})
-      end
-    end
+  #   attribute = find_attr_in_html(html)
+  #   # quots?    = attr_begins_with_quote?(html)
+  #   unless partial(buffer) do
+  #     # in the expression, create fake attribute
+  #     unless Drab.Live.Cache.get(ampere_id) do
+  #       Drab.Live.Cache.set(ampere_id, {:attribute, []})
+  #     end
+  #   end
 
-    buf = if attribute && String.starts_with?(attribute, "@") do
-      # special form @property=<%=expr%> can't contain anything except =
-      unless proper_property(html) do
-        raise EEx.SyntaxError, message: """
-          syntax error in Drab property special form for tag: <#{tag}>, property: #{attribute}
+  #   buf = if attribute && String.starts_with?(attribute, "@") do
+  #     # special form @property=<%=expr%> can't contain anything except =
+  #     unless proper_property(html) do
+  #       raise EEx.SyntaxError, message: """
+  #         syntax error in Drab property special form for tag: <#{tag}>, property: #{attribute}
 
-          You can only combine one Elixir expression with the DOM Node property.
-          Allowed:
+  #         You can only combine one Elixir expression with the DOM Node property.
+  #         Allowed:
 
-              <tag @property=<%#=expression%>>
+  #             <tag @property=<%#=expression%>>
 
-          Prohibited:
+  #         Prohibited:
 
-              <tag @property="other text <%=expression%>">
-              <tag @property="<%=expression1%><%=expression2%>">
-              <tag @property="<%=expression%>">
-              <tag @property='<%=expression%>'>
+  #             <tag @property="other text <%=expression%>">
+  #             <tag @property="<%=expression1%><%=expression2%>">
+  #             <tag @property="<%=expression%>">
+  #             <tag @property='<%=expression%>'>
 
-          """
-      end
+  #         """
+  #     end
 
-      # IO.inspect Drab.Live.Cache.get(ampere_id)
+  #     # IO.inspect Drab.Live.Cache.get(ampere_id)
 
-      property = String.replace(attribute, ~r/^@/, "")
-      {:attribute, attributes} = Drab.Live.Cache.get(ampere_id) || {:attribute, []}
-      updated = [{:prop, property, "", [hash], found_assigns} | attributes] |> Enum.uniq()
+  #     property = String.replace(attribute, ~r/^@/, "")
+  #     {:attribute, attributes} = Drab.Live.Cache.get(ampere_id) || {:attribute, []}
+  #     updated = [{:prop, property, "", [hash], found_assigns} | attributes] |> Enum.uniq()
 
-      Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
-      Drab.Live.Cache.set(ampere_id, {:attribute, updated})
+  #     Drab.Live.Cache.set(hash, {:expr, expr, found_assigns})
+  #     Drab.Live.Cache.set(ampere_id, {:attribute, updated})
 
-      quote do
-        # [unquote(buffer) | unquote(to_safe(encoded_expr(expr), line))]
-        #TODO: to_safe is realy not required
-        [unquote(buffer), [
-          "'",
-          unquote(property),
-          "{{{{",
-          unquote(encoded_expr(expr)),
-          "}}}}'"]]
-      end
-    else
-      quote do
-        [unquote(buffer), unquote(to_safe(expr, line))]
-      end
-    end
+  #     quote do
+  #       # [unquote(buffer) | unquote(to_safe(encoded_expr(expr), line))]
+  #       #TODO: to_safe is realy not required
+  #       [unquote(buffer), [
+  #         "'",
+  #         unquote(property),
+  #         "{{{{",
+  #         unquote(encoded_expr(expr)),
+  #         "}}}}'"]]
+  #     end
+  #   else
+  #     quote do
+  #       [unquote(buffer), unquote(to_safe(expr, line))]
+  #     end
+  #   end
 
-    {buf, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
-  end
+  #   {buf, "{{{{@#{@drab_id}:#{ampere_id}@drab-expr-hash:#{hash}}}}}"}
+  # end
 
   defp partial(body) do
     html = to_html(body)
@@ -481,7 +525,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   @doc false
-  def find_attr_in_html(html) do
+  defp find_attr_in_html(html) do
     args_removed = args_removed(html)
     if String.contains?(args_removed, "=") do
       args_removed
@@ -495,19 +539,6 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-  @doc false
-  def proper_property(html) do
-    args_removed = args_removed(html)
-    if String.contains?(args_removed, "=") do
-      v = args_removed
-        |> String.split("=")
-        |> List.last()
-      !Regex.match?(~r/[^\s]/, v)
-    else
-      false
-    end
-  end
-
   defp args_removed(html) do
     html
     |> String.split(~r/<\S+/s)
@@ -515,74 +546,89 @@ defmodule Drab.Live.EExEngine do
     |> remove_full_args()
   end
 
-  defp in_tags(html, tags) do
-    Enum.find(tags, fn tag -> in_tag(html, tag) end)
-  end
+  # @doc false
+  # def proper_property(html) do
+  #   args_removed = args_removed(html)
+  #   if String.contains?(args_removed, "=") do
+  #     v = args_removed
+  #       |> String.split("=")
+  #       |> List.last()
+  #     !Regex.match?(~r/[^\s]/, v)
+  #   else
+  #     false
+  #   end
+  # end
 
-  # true if the expression is in <tag></tag>
-  defp in_tag(html, tag) do
-    (count_matches(html, ~r/<\s*#{tag}[^<>]*>/si) > count_matches(html, ~r/<\s*\/\s*#{tag}[^<>]*>/si)) || nil
-  end
 
-  defp count_matches(html, regex) do
-    regex |> Regex.scan(html) |> Enum.count()
-  end
 
-  defp replace_in(string, tag, id) when is_binary(string) do
-    if String.contains?(string, @drab_id) do
-      string
-    else
-      # IO.inspect replace_last(string, find, replacement)
-      replacement = "<#{tag} #{@drab_id}='#{id}'"
-      replace_last(string, "<#{tag}", replacement)
-    end
-  end
-  defp replace_in(list, tag, id) when is_list(list) do
-    Enum.map(list, fn x -> replace_in(x, tag, id) end)
-    # replace_in(List.last(list), )
-    # list |> List.last() |> replace_in(tag)
-  end
-  defp replace_in(other, _, _), do: other
+  # defp in_tags(html, tags) do
+  #   Enum.find(tags, fn tag -> in_tag(html, tag) end)
+  # end
 
-  defp inject_drab_id(buffer, expr, tag) do
-    if buffer |> to_html() |> drab_id(tag) do
-      buffer
-    else
-      # IO.inspect buffer
+  # # true if the expression is in <tag></tag>
+  # defp in_tag(html, tag) do
+  #   (count_matches(html, ~r/<\s*#{tag}[^<>]*>/si) > count_matches(html, ~r/<\s*\/\s*#{tag}[^<>]*>/si)) || nil
+  # end
 
-      # [{:|, [],
-      # [["\n<span drab-partial='guzdmmrvga4de'>\n"],
-      #  "<div id=\"begin\" style=\"display: none;\"></div>\n<div id=\"drab_pid\" style=\"display: none;\"></div>\n\n"]}]
+  # defp count_matches(html, regex) do
+  #   regex |> Regex.scan(html) |> Enum.count()
+  # end
 
-      # [{:|, [], ["", "\n  <span @style.backgroundColor="]}]
-      # [{:|, [], [["\n<span drab-partial='geytsmrsgeztona'>\n"], "\n"]}]
-      # ["\n<span drab-partial='geytsmrsgeztona'>\n"]
-      # [{:|, [], [["\n<span drab-partial='gezdgobtgqzdanq'>\n"], "<b>username: "]}]
+  # defp replace_in(string, tag, id) when is_binary(string) do
+  #   if String.contains?(string, @drab_id) do
+  #     string
+  #   else
+  #     # IO.inspect replace_last(string, find, replacement)
+  #     replacement = "<#{tag} #{@drab_id}='#{id}'"
+  #     replace_last(string, "<#{tag}", replacement)
+  #   end
+  # end
+  # defp replace_in(list, tag, id) when is_list(list) do
+  #   Enum.map(list, fn x -> replace_in(x, tag, id) end)
+  #   # replace_in(List.last(list), )
+  #   # list |> List.last() |> replace_in(tag)
+  # end
+  # defp replace_in(other, _, _), do: other
 
-      [last_expr] = buffer
-      case last_expr do
-        {:|, meta, list} ->
-          last_elem = List.last(list)
-          replaced = replace_in(last_elem, tag, hash({buffer, expr}))
-          [{:|, meta, List.replace_at(list, -1, replaced)}]
-        line when is_binary(line) -> buffer # TODO: replace
-        #TODO: what about <%=><%=> ?
-      end
-    end
-  end
+  # defp inject_drab_id(buffer, expr, tag) do
+  #   if buffer |> to_html() |> drab_id(tag) do
+  #     buffer
+  #   else
+  #     # IO.inspect buffer
+
+  #     # [{:|, [],
+  #     # [["\n<span drab-partial='guzdmmrvga4de'>\n"],
+  #     #  "<div id=\"begin\" style=\"display: none;\"></div>\n<div id=\"drab_pid\" style=\"display: none;\"></div>\n\n"]}]
+
+  #     # [{:|, [], ["", "\n  <span @style.backgroundColor="]}]
+  #     # [{:|, [], [["\n<span drab-partial='geytsmrsgeztona'>\n"], "\n"]}]
+  #     # ["\n<span drab-partial='geytsmrsgeztona'>\n"]
+  #     # [{:|, [], [["\n<span drab-partial='gezdgobtgqzdanq'>\n"], "<b>username: "]}]
+
+  #     [last_expr] = buffer
+  #     case last_expr do
+  #       {:|, meta, list} ->
+  #         last_elem = List.last(list)
+  #         replaced = replace_in(last_elem, tag, hash({buffer, expr}))
+  #         [{:|, meta, List.replace_at(list, -1, replaced)}]
+  #       line when is_binary(line) -> buffer # TODO: replace
+  #       #TODO: what about <%=><%=> ?
+  #     end
+  #   end
+  # end
 
   # find the drab id in the last tag
-  @doc false
-  def drab_id(html, tag) do
-    tag = String.downcase(tag)
-    case Floki.find(html, tag) |> List.last() do
-      {^tag, attrs, _} ->
-        {_, val} = Enum.find(attrs, {nil, nil}, fn {name, _} -> name == @drab_id end)
-        val
-      _ ->
-        nil
-    end
-  end
+  # @doc false
+  # defp drab_id(html, tag) do
+  #   tag = String.downcase(tag)
+  #   case Floki.find(html, tag) |> List.last() do
+  #     {^tag, attrs, _} ->
+  #       {_, val} = Enum.find(attrs, {nil, nil}, fn {name, _} -> name == @drab_id end)
+  #       val
+  #     _ ->
+  #       nil
+  #   end
+  # end
 
   defp remove_full_args(string) do
     string
@@ -592,16 +638,16 @@ defmodule Drab.Live.EExEngine do
   end
 
   # replace last occurence of pattern in the string
-  defp replace_last(string, pattern, replacement) do
-    String.replace(string, ~r/#{pattern}(?!.*#{pattern})/is, replacement)
-  end
+  # defp replace_last(string, pattern, replacement) do
+  #   String.replace(string, ~r/#{pattern}(?!.*#{pattern})/is, replacement)
+  # end
 
   defp take_at(list, index) do
     {item, _} = List.pop_at(list, index)
     item
   end
 
-  defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/s, "")
+  # defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/s, "")
 
 
   defp script_tag([]), do: []
@@ -613,7 +659,7 @@ defmodule Drab.Live.EExEngine do
     ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = '", encoded_assign(assign), "';"]
   end
 
-  defp property_js(partial, ampere, property, value) do
+  defp property_js(_partial, ampere, property, value) do
     ["document.querySelector('[drab-ampere=#{ampere}]').#{property}=", encoded_expr(value), ";"]
   end
 
@@ -663,8 +709,7 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-  @doc false
-  def to_html(body), do: do_to_html(body) |> List.flatten() |> Enum.join()
+  defp to_html(body), do: do_to_html(body) |> List.flatten() |> Enum.join()
 
   defp do_to_html([]), do: []
   defp do_to_html(body) when is_binary(body), do: [body]
@@ -691,149 +736,195 @@ defmodule Drab.Live.EExEngine do
     result |> Enum.uniq() |> Enum.sort()
   end
 
-  defp contains_nested_expression?(expr) do
-    {_, acc} = Macro.prewalk expr, [], fn node, acc ->
-      case node do
-        {atom, _, params} when is_atom(atom) and is_list(params) ->
-          found = Enum.find params, fn param ->
-            case param do
-              string when is_binary(string) -> String.contains?(string, "<span #{@drab_id}='")
-              _ -> false
-            end
-          end
-          {node, [found | acc]}
-        _ ->
-          {node, acc}
-      end
-    end
-    Enum.find acc, fn x -> !is_nil(x) end
-  end
-
-  defp raise_nested_expression(buffer, line) do
-    raise EEx.SyntaxError, message: """
-      nested exceptions are not allowed in attributes, properties, scripts or textareas
-
-      The following are not allowed:
-
-          <script>
-            <%= if clause do %>
-              <%= expression %>
-            <% end %>>
-          </script>
-
-          <tag attribute="<%= if clause do %><%= expression %><% end %>">
-
-      Do a flat expression instead:
-
-          <script>
-            <%= if clause do
-              expression
-            end %>
-          </script>
-
-          <tag attribute="<%= if clause, do: expression %>">
-      """, file: Drab.Live.Cache.get({:partial, partial(buffer)}), line: line
-  end
-
   @doc false
-  def last_naked_tag(html) do
-    html = String.replace(html, ~r/<.*>/s, "", global: true)
-    Regex.scan(~r/<\s*([^\s<>\/]+)/s, html)
-      |> List.last()
-      |> List.last()
-      |> String.replace(~r/\s+.*/s, "")
+  def shallow_find_assigns(ast) do
+    {_, assigns} = do_find(ast, [])
+    assigns
   end
 
-  defp do_attributes_from_shadow([]), do: []
-  defp do_attributes_from_shadow([head | rest]) do
-    do_attributes_from_shadow(head) ++ do_attributes_from_shadow(rest)
-  end
-  defp do_attributes_from_shadow({_, attributes, children}) when is_list(attributes) do
-    attributes ++ do_attributes_from_shadow(children)
-  end
-  defp do_attributes_from_shadow(_), do: []
-
-  @doc false
-  def attributes_from_shadow(shadow) do
-    do_attributes_from_shadow(shadow)
-      |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
-      |> Enum.filter(fn {name, _} ->
-        n = Regex.match?(~r/{{{{@\S+}}}}/, name)
-        n && Logger.warn """
-          Unknown attribute found in HTML Template.
-
-          Drab works only with well defined attributes in HTML. You may use:
-              <button class="btn <%= @button_class %>">
-              <a href="<%= build_href(@site) %>">
-
-          The following constructs are prohibited:
-              <tag <%="attr='" <> @value <> "'"%>>
-              <tag <%=build_attr(@name, @value)%>>
-
-          This will not be updated by Drab Commander.
-          """
-        !n
-        end)
-      |> Enum.filter(fn {name, _} -> !String.starts_with?(name, "@") end)
+  # do not search under the
+  defp do_find({:safe, _}, acc) do
+    {nil, acc}
   end
 
-  @doc false
-  def scripts_from_shadow(shadow) do
-    tags_from_shadow(shadow, "script")
-    # for {"script", _, [script]} <- Floki.find(shadow, "script"), Regex.match?(~r/{{{{@\S+}}}}/, script) do
-    #   script
-    # end
+  defp do_find({form, meta, args}, acc) when is_atom(form) do
+    {args, acc} = do_find_args(args, acc)
+    {{form, meta, args}, acc}
   end
 
-  @doc false
-  def tags_from_shadow(shadow, tag) do
-    tag = String.downcase(tag)
-    for {^tag, _, [contents]} <- Floki.find(shadow, tag), Regex.match?(~r/{{{{@\S+}}}}/, contents) do
-      contents
-    end
+  defp do_find({form, meta, args} = ast, acc) do
+    found_assign = find_assign(ast)
+    {form, acc} = do_find(form, acc)
+    {args, acc} = do_find_args(args, acc)
+    acc = if found_assign, do: [found_assign | acc], else: acc
+    {{form, meta, args}, acc}
   end
 
-  @doc false
-  def expression_hashes_from_pattern(pattern) do
-    Regex.scan(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:([^@}]+)/, pattern)
-      |> Enum.map(fn [_, expr_hash] -> expr_hash end)
+  defp do_find({left, right}, acc) do
+    {left, acc} = do_find(left, acc)
+    {right, acc} = do_find(right, acc)
+    {{left, right}, acc}
   end
 
-  defp assigns_from_pattern(pattern) do
-    Enum.reduce(expression_hashes_from_pattern(pattern), [], fn(hash, acc) ->
-      {:expr, _, assigns} = Drab.Live.Cache.get(hash)
-      [assigns | acc]
+  defp do_find(list, acc) when is_list(list) do
+    do_find_args(list, acc)
+  end
+
+  defp do_find(x, acc) do
+    {x, acc}
+  end
+
+  defp do_find_args(args, acc) when is_atom(args) do
+    {args, acc}
+  end
+
+  defp do_find_args(args, acc) when is_list(args) do
+    Enum.map_reduce(args, acc, fn x, acc ->
+      do_find(x, acc)
     end)
-      |> List.flatten()
-      |> Enum.uniq()
   end
 
-  @doc false
-  def ampere_from_pattern(pattern) do
-    Regex.run(~r/{{{{@drab-ampere:([^@}]+)/, pattern) |> List.last()
-  end
+  defp find_assign({{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]})
+    when is_atom(name), do: name
+  defp find_assign(_), do: false
 
-  defp start_shadow_buffer(initial, partial) do
-    case Agent.start_link(fn -> initial end, name: partial) do
-      {:ok, _} = ret ->
-        ret
-      {:error, {:already_started, _}} ->
-        raise EEx.SyntaxError, message: """
-          Expected unexpected.
-          Shadow buffer Agent for #{partial} already started. Please report it as a bug in https://github.com/grych/drab
-          """
-    end
-  end
+  # defp contains_nested_expression?(expr) do
+  #   {_, acc} = Macro.prewalk expr, [], fn node, acc ->
+  #     case node do
+  #       {atom, _, params} when is_atom(atom) and is_list(params) ->
+  #         found = Enum.find params, fn param ->
+  #           case param do
+  #             string when is_binary(string) -> String.contains?(string, "<span #{@drab_id}='")
+  #             _ -> false
+  #           end
+  #         end
+  #         {node, [found | acc]}
+  #       _ ->
+  #         {node, acc}
+  #     end
+  #   end
+  #   Enum.find acc, fn x -> !is_nil(x) end
+  # end
 
-  defp stop_shadow_buffer(partial) do
-    Agent.stop(partial)
-  end
+  # defp raise_nested_expression(buffer, line) do
+  #   raise EEx.SyntaxError, message: """
+  #     nested exceptions are not allowed in attributes, properties, scripts or textareas
 
-  defp put_shadow_buffer(content, partial) do
-    partial && Agent.update(partial, &[content | &1])
-  end
+  #     The following are not allowed:
 
-  defp get_shadow_buffer(partial) do
-    Agent.get(partial, &(&1)) |> Enum.reverse |> Enum.join()
-  end
+  #         <script>
+  #           <%= if clause do %>
+  #             <%= expression %>
+  #           <% end %>>
+  #         </script>
+
+  #         <tag attribute="<%= if clause do %><%= expression %><% end %>">
+
+  #     Do a flat expression instead:
+
+  #         <script>
+  #           <%= if clause do
+  #             expression
+  #           end %>
+  #         </script>
+
+  #         <tag attribute="<%= if clause, do: expression %>">
+  #     """, file: Drab.Live.Cache.get({:partial, partial(buffer)}), line: line
+  # end
+
+  # defp last_naked_tag(html) do
+  #   html = String.replace(html, ~r/<.*>/s, "", global: true)
+  #   Regex.scan(~r/<\s*([^\s<>\/]+)/s, html)
+  #     |> List.last()
+  #     |> List.last()
+  #     |> String.replace(~r/\s+.*/s, "")
+  # end
+
+  # defp do_attributes_from_shadow([]), do: []
+  # defp do_attributes_from_shadow([head | rest]) do
+  #   do_attributes_from_shadow(head) ++ do_attributes_from_shadow(rest)
+  # end
+  # defp do_attributes_from_shadow({_, attributes, children}) when is_list(attributes) do
+  #   attributes ++ do_attributes_from_shadow(children)
+  # end
+  # defp do_attributes_from_shadow(_), do: []
+
+  # defp attributes_from_shadow(shadow) do
+  #   do_attributes_from_shadow(shadow)
+  #     |> Enum.filter(fn {_, value} -> Regex.match?(~r/{{{{@\S+}}}}/, value) end)
+  #     |> Enum.filter(fn {name, _} ->
+  #       n = Regex.match?(~r/{{{{@\S+}}}}/, name)
+  #       n && Logger.warn """
+  #         Unknown attribute found in HTML Template.
+
+  #         Drab works only with well defined attributes in HTML. You may use:
+  #             <button class="btn <%= @button_class %>">
+  #             <a href="<%= build_href(@site) %>">
+
+  #         The following constructs are prohibited:
+  #             <tag <%="attr='" <> @value <> "'"%>>
+  #             <tag <%=build_attr(@name, @value)%>>
+
+  #         This will not be updated by Drab Commander.
+  #         """
+  #       !n
+  #       end)
+  #     |> Enum.filter(fn {name, _} -> !String.starts_with?(name, "@") end)
+  # end
+
+  # defp scripts_from_shadow(shadow) do
+  #   tags_from_shadow(shadow, "script")
+  #   # for {"script", _, [script]} <- Floki.find(shadow, "script"), Regex.match?(~r/{{{{@\S+}}}}/, script) do
+  #   #   script
+  #   # end
+  # end
+
+  # defp tags_from_shadow(shadow, tag) do
+  #   tag = String.downcase(tag)
+  #   for {^tag, _, [contents]} <- Floki.find(shadow, tag), Regex.match?(~r/{{{{@\S+}}}}/, contents) do
+  #     contents
+  #   end
+  # end
+
+  # defp expression_hashes_from_pattern(pattern) do
+  #   Regex.scan(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:([^@}]+)/, pattern)
+  #     |> Enum.map(fn [_, expr_hash] -> expr_hash end)
+  # end
+
+  # defp assigns_from_pattern(pattern) do
+  #   Enum.reduce(expression_hashes_from_pattern(pattern), [], fn(hash, acc) ->
+  #     {:expr, _, assigns} = Drab.Live.Cache.get(hash)
+  #     [assigns | acc]
+  #   end)
+  #     |> List.flatten()
+  #     |> Enum.uniq()
+  # end
+
+  # defp ampere_from_pattern(pattern) do
+  #   Regex.run(~r/{{{{@drab-ampere:([^@}]+)/, pattern) |> List.last()
+  # end
+
+  # defp start_shadow_buffer(initial, partial) do
+  #   case Agent.start_link(fn -> initial end, name: partial) do
+  #     {:ok, _} = ret ->
+  #       ret
+  #     {:error, {:already_started, _}} ->
+  #       raise EEx.SyntaxError, message: """
+  #         Expected unexpected.
+  #         Shadow buffer Agent for #{partial} already started. Please report it as a bug in https://github.com/grych/drab
+  #         """
+  #   end
+  # end
+
+  # defp stop_shadow_buffer(partial) do
+  #   Agent.stop(partial)
+  # end
+
+  # defp put_shadow_buffer(content, partial) do
+  #   partial && Agent.update(partial, &[content | &1])
+  # end
+
+  # defp get_shadow_buffer(partial) do
+  #   Agent.get(partial, &(&1)) |> Enum.reverse |> Enum.join()
+  # end
 end
