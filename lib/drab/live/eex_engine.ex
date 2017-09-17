@@ -343,9 +343,9 @@ defmodule Drab.Live.EExEngine do
 
     buffer = if found_assigns? do
       case inject_attribute_to_last_opened(buffer, attribute) do
-        {:ok, buf, _}              -> buf # injected!
-        {:already_there, _, _attr} -> buffer # it was already there
-        {:not_found, _, _}         -> raise EEx.SyntaxError, message: """
+        {:ok, buf, _}          -> buf # injected!
+        {:already_there, _, _} -> buffer # it was already there
+        {:not_found, _, _}     -> raise EEx.SyntaxError, message: """
           Can't find the parent tag for an expression.
           """
       end

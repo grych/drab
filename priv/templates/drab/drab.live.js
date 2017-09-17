@@ -228,6 +228,13 @@ function ampere_node(ampere) {
   return document.querySelector(selector(ampere));
 }
 
+Drab.update_attribute = function(ampere, attribute, new_value) {
+  var node = ampere_node(ampere);
+  if (node) {
+    node.setAttribute(attribute, new_value);
+  }
+}
+
 Drab.update_property = function(ampere, property, new_value) {
   var node = ampere_node(ampere);
   if (node) {

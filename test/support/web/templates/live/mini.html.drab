@@ -1,22 +1,8 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
-<span>
-  before: <%= @link%>
-</span>
+
 <p id=a>
-<%= if @count == 42 do %>
-  <span @style.backgroundColor=<%=@color%>>
-    inside div: <%= raw(@link)%>
-  </span>
-<% end %>
+    <a href="x"><%= @link %><b>AAA<%= @color %></b></a>
 </p>
-<table>
-  <%= for i <- @list do %>
-  <tr>
-    <td>
-      <%= i %>
-    </td>
-  </tr>
-  <% end %>
-</table>
-<button drab-click="update_mini">Update</button>
+<br>
+<button drab-click=update_mini>Update mini</button>

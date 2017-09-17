@@ -49,7 +49,8 @@ defmodule DrabTestApp.LiveCommander do
     IO.inspect sender
     # poke socket, class1: "btn", class2: "btn-warning",
     #   hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
-    poke(socket, link: "<i>dupa</i>", count: if(peek(socket, :count) == 42, do: 66, else: 42), list: ["A", "<b>B</b>"])
+    # poke(socket, link: "<i>dupa</i>", count: if(peek(socket, :count) == 42, do: 66, else: 42))
+    poke socket, color: "Dupa"
   end
 
 end

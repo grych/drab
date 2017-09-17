@@ -296,6 +296,9 @@ defmodule Drab.Live do
           :prop ->
             new_value = eval_expr(pattern, modules, updated_assigns) |> safe_to_string()
             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
+          :attr ->
+            new_value = eval_expr(pattern, modules, updated_assigns) |> safe_to_string()
+            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(new_value)})"
           _ -> ""
         end
     end
