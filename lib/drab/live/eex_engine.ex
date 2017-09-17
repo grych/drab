@@ -117,8 +117,8 @@ defmodule Drab.Live.EExEngine do
     end) |> script_tag()
 
     init_js = """
-      if (typeof window.#{@jsvar} == 'undefined') {window.#{@jsvar} = {assigns: {}}};
-      window.#{@jsvar}.assigns['#{partial_hash}'] = {};
+      if (typeof window.#{@jsvar} == 'undefined') {#{@jsvar} = {assigns: {}, properties: {}}};
+      #{@jsvar}.assigns['#{partial_hash}'] = {};
       """
     # put_shadow_buffer("\n</span>\n", partial)
 
@@ -207,8 +207,17 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
 
     # property_js(partial, ampere, property, value)
-    properies_js = for {ampere_id, vals} <- found_amperes, {:prop, tag, property, pattern} <- vals do
-      property_js(partial_hash, ampere_id, property, compiled_from_pattern(:prop, pattern, tag, property))
+    properies_js = for {ampere_id, vals} <- found_amperes do
+      found_props = for {:prop, tag, property, pattern} <- vals do
+        property_js(ampere_id, property, compiled_from_pattern(:prop, pattern, tag, property))
+      end
+      [
+        case found_props do
+          [] -> ""
+          _  -> "#{@jsvar}.properties['#{ampere_id}'] = {};"
+        end
+        | found_props
+      ]
     end |> script_tag()
     # IO.inspect properies_js
 
@@ -661,8 +670,9 @@ defmodule Drab.Live.EExEngine do
     ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = '", encoded_assign(assign), "';"]
   end
 
-  defp property_js(_partial, ampere, property, value) do
-    ["document.querySelector('[drab-ampere=#{ampere}]').#{property}=", value, ";"]
+  defp property_js(ampere, property, value) do
+    ["#{@jsvar}.properties['#{ampere}']['#{property}'] = ", value, ";"]
+    # ["document.querySelector('[drab-ampere=#{ampere}]').#{property}=", value, ";"]
   end
 
 

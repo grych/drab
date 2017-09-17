@@ -17,6 +17,6 @@
       <%= i %>
     </td>
   </tr>
-  <%= end %>
+  <% end %>
 </table>
 <button drab-click="update_mini">Update</button>

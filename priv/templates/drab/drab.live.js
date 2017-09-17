@@ -18,7 +18,7 @@ Drab.on_load(function (resp, drab) {
   // search_for_drab(document);
 
   // update the properties set in <tag @property=expression>
-  // set_properties(document);
+  set_properties(document);
 
   // get the name of the main partial
   if (document.querySelector("[drab-partial]")) {
@@ -27,13 +27,12 @@ Drab.on_load(function (resp, drab) {
 });
 
 Drab.on_change(function(selector) {
-  // console.log("change");
   var node = document.querySelector(selector);
-
-  // search_for_drab(node);
-  // set_properties(node);
-  run_drab_scripts_on(node);
-  // console.log(__drab.properties.gmzdgmjtg4yta[0]["style.backgroundcolor"]);
+  if (node) {
+    // search_for_drab(node);
+    set_properties(node);
+    run_drab_scripts_on(node);
+  }
 });
 
 function run_drab_scripts_on(node) {
@@ -94,19 +93,27 @@ function set_properties(where) {
 
   for (var ampere in d.properties) {
     var properties = d.properties[ampere];
-    for (var key in properties) {
-      var amps = where.querySelectorAll("[drab-ampere='" + ampere + "']")
-      for (var k = 0; k < amps.length; k++) {
-        var n = amps[k];
-        set_property(n, key, properties[key]);
+    for (var property in properties) {
+      var node = where.querySelector(selector(ampere));
+      if (node) {
+        set_property(node, ampere, property, properties[property]);
       }
+      // window.__drab.properties[partial][ampere][property] = properties[property]
+      // console.log(key, properties[key]);
+      // var amps = where.querySelectorAll("[drab-ampere='" + ampere + "']")
+      // for (var k = 0; k < amps.length; k++) {
+      //   var n = amps[k];
+      //   console.log(n);
+      //   // set_property(n, key, properties[key]);
+      // }
     }
   }
+
 }
 
-function set_property(node, attribute_name, new_value) {
-  var property = node.getAttribute("@" + attribute_name).replace(/{{{{.+}}}}$/, "");
-  var drab_id = node.getAttribute("drab-ampere");
+function set_property(node, ampere, property, new_value) {
+  // var property = node.getAttribute("@" + attribute_name).replace(/{{{{.+}}}}$/, "");
+  // var drab_id = node.getAttribute("drab-ampere");
   var path = property.split(".");
   var full = node;
   var prev, last;
@@ -117,7 +124,7 @@ function set_property(node, attribute_name, new_value) {
     last = part;
   }
   prev[last] = new_value;
-  window.__drab.properties[drab_id][attribute_name] = new_value;
+  window.__drab.properties[ampere][property] = new_value;
 }
 
 function selector(ampere_hash) {
@@ -215,10 +222,14 @@ function update_script(ampere_hash, new_script, partial) {
 // }
 
 Drab.update_tag = function (partial, tag, ampere, html) {
-  var amps = document.querySelectorAll('[drab-partial=' + partial + '] ' + tag + '[drab-ampere=' + ampere + ']');
-  for (var i = 0; i < amps.length; i++) {
-    amps[i].innerHTML = html;
+  var selector = '[drab-partial=' + partial + '] ' + tag + '[drab-ampere=' + ampere + ']';
+  var node = document.querySelector(selector);
+  if (node) {
+    node.innerHTML = html;
   }
+  Drab.enable_drab_on(selector);
+  // set_properties(node);
+  // Drab.enable_drab_on(node);
   // if (tag == "script") {
   //   update_script(ampere_hash, html, partial);
   // } else {
