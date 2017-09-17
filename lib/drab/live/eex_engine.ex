@@ -331,25 +331,27 @@ defmodule Drab.Live.EExEngine do
 
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
-    {buffer, _attribute} = case inject_attribute_to_last_opened(buffer, attribute) do
-      {:ok, buf, _} -> {buf, attribute} # injected!
-      {:already_there, _, attr} -> {buffer, attr} # it was already there
-      {:not_found, _, _} -> raise EEx.SyntaxError, message: """
-        Can't find the parent tag for an expression.
-        """
-    end
-    # html = to_html(buffer)
-    # ampere_id = drab_id(html, tag)
 
-    # {a, _, args} = expr # remove meta (line number) from expression
+    buffer = if found_assigns? do
+      case inject_attribute_to_last_opened(buffer, attribute) do
+        {:ok, buf, _}              -> buf # injected!
+        {:already_there, _, _attr} -> buffer # it was already there
+        {:not_found, _, _}         -> raise EEx.SyntaxError, message: """
+          Can't find the parent tag for an expression.
+          """
+      end
+    else
+      buffer
+    end
+
 
     attribute = buffer |> to_html() |> find_attr_in_html()
     is_property = attribute && String.starts_with?(attribute, "@")
 
     hash = hash(expr)
-    Drab.Live.Cache.set(hash, {:expr, remove_drab_marks(expr), found_assigns})
 
     expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
+    Drab.Live.Cache.set(hash, {:expr, remove_drab_marks(expr), found_assigns})
 
     # span_begin = "<span #{@drab_id}='#{hash}'>"
     # span_end   = "</span>"
@@ -660,7 +662,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp property_js(_partial, ampere, property, value) do
-    ["document.querySelector('[drab-ampere=#{ampere}]').#{property}=", encoded_expr(value), ";"]
+    ["document.querySelector('[drab-ampere=#{ampere}]').#{property}=", value, ";"]
   end
 
 
