@@ -281,7 +281,7 @@ defmodule Drab.Live do
     # TODO: check only amperes which contains the changed assigns
     # amperes = amperes(socket, partial)
 
-    amperes_to_update = for {assign, new_value} <- assigns do
+    amperes_to_update = for {assign, _} <- assigns do
       Drab.Live.Cache.get({partial, assign})
     end |> List.flatten() |> Enum.uniq()
 
@@ -290,15 +290,15 @@ defmodule Drab.Live do
       # IO.inspect Drab.Live.Cache.get({partial, ampere})
         case gender do
           :html ->
-            safe = eval_expr(pattern, modules, updated_assigns)
+            safe = eval_expr(pattern, modules, updated_assigns, gender)
             new_value = safe |> safe_to_string() # |> Drab.Live.HTML.remove_drab_marks()
             "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
-          :prop ->
-            new_value = eval_expr(pattern, modules, updated_assigns) |> safe_to_string()
-            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
           :attr ->
-            new_value = eval_expr(pattern, modules, updated_assigns) |> safe_to_string()
+            new_value = eval_expr(pattern, modules, updated_assigns, gender) |> safe_to_string()
             "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(new_value)})"
+          :prop ->
+            new_value = eval_expr(pattern, modules, updated_assigns, gender) |> safe_to_string()
+            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
           _ -> ""
         end
     end
@@ -398,18 +398,26 @@ defmodule Drab.Live do
     socket
   end
 
-  defp replace_pattern(pattern, []), do: pattern
-  defp replace_pattern(pattern, [{hash, value} | rest]) do
-    new_pattern = String.replace(pattern, ~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:#{hash}}}}}/,
-      to_string(value),
-      global: true)
-    replace_pattern(new_pattern, rest)
+  # defp replace_pattern(pattern, []), do: pattern
+  # defp replace_pattern(pattern, [{hash, value} | rest]) do
+  #   new_pattern = String.replace(pattern, ~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:#{hash}}}}}/,
+  #     to_string(value),
+  #     global: true)
+  #   replace_pattern(new_pattern, rest)
+  # end
+
+  # defp has_common?(list1, list2) do
+  #   if Enum.find(list1, fn xa ->
+  #     Enum.find(list2, fn xb -> xa == xb end)
+  #   end), do: true, else: false
+  # end
+
+  defp eval_expr(expr, modules, updated_assigns, :prop) do
+    eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
   end
 
-  defp has_common?(list1, list2) do
-    if Enum.find(list1, fn xa ->
-      Enum.find(list2, fn xb -> xa == xb end)
-    end), do: true, else: false
+  defp eval_expr(expr, modules, updated_assigns, _) do
+    eval_expr(expr, modules, updated_assigns)
   end
 
   defp eval_expr(expr, modules, updated_assigns) do
@@ -438,7 +446,7 @@ defmodule Drab.Live do
     end)
   end
 
-  defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
+  # defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
 
   defp safe_to_string(list) when is_list(list), do: Enum.map(list, &safe_to_string/1) |> Enum.join("")
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
@@ -470,13 +478,13 @@ defmodule Drab.Live do
   #   {_, amperes} = Drab.Live.Cache.get(partial)
   # end
 
-  defp amperes(socket, partial) do
-    socket
-      |> Drab.pid()
-      |> Drab.get_priv()
-      |> Map.get(:__amperes)
-      |> Map.get(partial)
-  end
+  # defp amperes(socket, partial) do
+  #   socket
+  #     |> Drab.pid()
+  #     |> Drab.get_priv()
+  #     |> Map.get(:__amperes)
+  #     |> Map.get(partial)
+  # end
 
   defp index(socket) do
     socket

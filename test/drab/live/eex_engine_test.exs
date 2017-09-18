@@ -55,6 +55,25 @@ defmodule Drab.Live.EExEngineTest do
     assert shallow_find_assigns(@nested_expr) == [:count]
   end
 
+  @simple_pattern """
+    AAA{{{{@drab-expr-hash:gm2demrqgu2tomju}}}}{{{{/@drab-expr-hash:gm2demrqgu2tomju}}}} X
+  """
+
+  @nested_pattern """
+    {{{{@drab-expr-hash:gm2dqmzxgy3tqmbr}}}}{{{{/@drab-expr-hash:gm2dqmzxgy3tqmbr}}}}
+    <b drab-ampere=\"gi2tamrrgy2tcny\">AAA
+      {{{{@drab-expr-hash:gm2demrqgu2tomju}}}}{{{{/@drab-expr-hash:gm2demrqgu2tomju}}}}
+    </b><b>somethign</b>
+    """
+
+  test "assigns from simple pattern" do
+    assert assigns_from_pattern(@simple_pattern) == [:color]
+  end
+
+  test "assigns from netsted pattern" do
+    assert assigns_from_pattern(@nested_pattern) == [:link]
+  end
+
   # test "last naked tag" do
   #   htmls = [
   #     {"<div><b>a</b><span><script a=\"b\" something", "script"},

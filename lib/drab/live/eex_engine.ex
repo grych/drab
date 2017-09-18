@@ -268,7 +268,19 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-  defp assigns_from_pattern(pattern) do
+  @doc false
+  def assigns_from_pattern(pattern) do
+    # do not search under nested ampered tags
+    pattern = case Floki.parse(pattern) do
+      {_, _, _} ->
+        pattern
+      list when is_list(list) ->
+        list
+        |> Enum.reject(&ampered_tag?/1)
+        |> Floki.raw_html()
+      string when is_binary(string) ->
+        pattern
+    end
     expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
     for expr_hash <- expressions do
       {:expr, _, assigns} = Drab.Live.Cache.get(expr_hash)
@@ -276,8 +288,12 @@ defmodule Drab.Live.EExEngine do
     end |> List.flatten() |> Enum.uniq()
   end
 
-
-
+  defp ampered_tag?({_, attributes, _}) do
+    Enum.find(attributes, fn {attribute, _} -> attribute == @drab_id end)
+  end
+  defp ampered_tag?(string) when is_binary(string) do
+    false
+  end
 
 
   @doc false
@@ -353,13 +369,14 @@ defmodule Drab.Live.EExEngine do
       buffer
     end
 
-
-    attribute = buffer |> to_html() |> find_attr_in_html()
-    is_property = attribute && String.starts_with?(attribute, "@")
+    #TODO: ugly code.
+    # html = to_html(buffer)
+    # attribute = html |> find_attr_in_html()
+    # is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attribute && String.starts_with?(attribute, "@")
+    # expr = if is_property, do: encoded_expr(to_safe(expr, line)), else: to_safe(expr, line)
 
     hash = hash(expr)
-
-    expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
+    # expr = to_safe(expr, line)
     Drab.Live.Cache.set(hash, {:expr, remove_drab_marks(expr), found_assigns})
 
     # span_begin = "<span #{@drab_id}='#{hash}'>"
@@ -370,7 +387,7 @@ defmodule Drab.Live.EExEngine do
 
     buf = if found_assigns? do
       quote do
-        [unquote(buffer), unquote(expr_begin), unquote(expr), unquote(expr_end)]
+        [unquote(buffer), unquote(expr_begin), unquote(to_safe(expr, line)), unquote(expr_end)]
       end
     else
       quote do
@@ -535,27 +552,26 @@ defmodule Drab.Live.EExEngine do
     if p, do: List.last(p), else: nil
   end
 
-  @doc false
-  defp find_attr_in_html(html) do
-    args_removed = args_removed(html)
-    if String.contains?(args_removed, "=") do
-      args_removed
-      |> String.split("=")
-      |> take_at(-2)
-      |> String.split(~r/\s+/)
-      |> Enum.filter(fn x -> x != "" end)
-      |> List.last()
-    else
-      nil
-    end
-  end
+  # defp find_attr_in_html(html) do
+  #   args_removed = args_removed(html)
+  #   if String.contains?(args_removed, "=") do
+  #     args_removed
+  #     |> String.split("=")
+  #     |> take_at(-2)
+  #     |> String.split(~r/\s+/)
+  #     |> Enum.filter(fn x -> x != "" end)
+  #     |> List.last()
+  #   else
+  #     nil
+  #   end
+  # end
 
-  defp args_removed(html) do
-    html
-    |> String.split(~r/<\S+/s)
-    |> List.last()
-    |> remove_full_args()
-  end
+  # defp args_removed(html) do
+  #   html
+  #   |> String.split(~r/<\S+/s)
+  #   |> List.last()
+  #   |> remove_full_args()
+  # end
 
   # @doc false
   # def proper_property(html) do
@@ -641,22 +657,22 @@ defmodule Drab.Live.EExEngine do
   #   end
   # end
 
-  defp remove_full_args(string) do
-    string
-    |> String.replace(~r/\S+\s*=\s*'[^']*'/s, "")
-    |> String.replace(~r/\S+\s*=\s*"[^"]*"/s, "")
-    |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/s, "")
-  end
+  # defp remove_full_args(string) do
+  #   string
+  #   |> String.replace(~r/\S+\s*=\s*'[^']*'/s, "")
+  #   |> String.replace(~r/\S+\s*=\s*"[^"]*"/s, "")
+  #   |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/s, "")
+  # end
 
   # replace last occurence of pattern in the string
   # defp replace_last(string, pattern, replacement) do
   #   String.replace(string, ~r/#{pattern}(?!.*#{pattern})/is, replacement)
   # end
 
-  defp take_at(list, index) do
-    {item, _} = List.pop_at(list, index)
-    item
-  end
+  # defp take_at(list, index) do
+  #   {item, _} = List.pop_at(list, index)
+  #   item
+  # end
 
   # defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/s, "")
 
@@ -670,34 +686,52 @@ defmodule Drab.Live.EExEngine do
     ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = '", encoded_assign(assign), "';"]
   end
 
-  defp property_js(ampere, property, value) do
-    ["#{@jsvar}.properties['#{ampere}']['#{property}'] = ", value, ";"]
+  defp property_js(ampere, property, expr) do
+    ["#{@jsvar}.properties['#{ampere}']['#{property}'] = ", encoded_expr(expr), ";"]
     # ["document.querySelector('[drab-ampere=#{ampere}]').#{property}=", value, ";"]
   end
 
 
   defp encoded_assign(assign) do
     # TODO: should not create AST directly
-    assign_expr = {:@, [@anno], [{assign, [@anno], nil}]}
-    assign_expr = handle_assign(assign_expr)
+    # quote line: meta[:line] || 0 do
+    #   Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(name))
+    # end
+
+    # assign_expr = {:@, [@anno], [{assign, [@anno], nil}]}
+    # assign_expr = handle_assign(assign_expr)
+
+    assign_expr = quote @anno do
+      Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(assign))
+    end
 
     base64_encoded_expr(assign_expr)
   end
 
   defp base64_encoded_expr(expr) do
-    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Live, :Crypto]}, :encode64]},
-       [@anno],
-       [expr]}
+    quote @anno do
+      Drab.Live.Crypto.encode64(unquote(expr))
+    end
+    # {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Live, :Crypto]}, :encode64]},
+    #    [@anno],
+    #    [expr]}
   end
 
-  defp encoded_expr(expr) do
-    {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Core]}, :encode_js]},
-       [@anno],
-       [expr]}
+  @doc false
+  def encoded_expr(expr) do
+    quote @anno do
+      Drab.Core.encode_js(unquote(expr))
+    end
+    # {{:., [@anno], [{:__aliases__, [@anno], [:Drab, :Core]}, :encode_js]},
+    #    [@anno],
+    #    [expr]}
   end
 
   defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
   defp line_from_expr(_), do: nil
+
+  @doc false
+  def to_safe(literal), do: to_safe(literal, @anno)
 
   defp to_safe(literal, _line) when is_binary(literal) or is_atom(literal) or is_number(literal) do
     Phoenix.HTML.Safe.to_iodata(literal)
