@@ -2,10 +2,10 @@ defmodule Drab.Element do
   @moduledoc """
   HTML element query and manipulation library.
 
-  All functions are based on the CSS selectors. `query/3` runs `document.querySelector` and returns selected 
+  All functions are based on the CSS selectors. `query/3` runs `document.querySelector` and returns selected
   properties of found HTML elements.
 
-  `set_prop/3` is a general function for update elements properties. There are also a bunch of helpers 
+  `set_prop/3` is a general function for update elements properties. There are also a bunch of helpers
   (`set_style/3` or `set_attr/3`), for updating a style of attributes of an element.
   """
   import Drab.Core
@@ -17,7 +17,7 @@ defmodule Drab.Element do
 
   @doc false
   def transform_payload(payload, _state) do
-    payload 
+    payload
       |> Map.put_new("value", payload["val"])
       |> Map.put_new(:params, payload["form"])
   end
@@ -25,7 +25,7 @@ defmodule Drab.Element do
   @doc """
   Like `query/3`, but returns most popular properties. To be used for debugging / inspecting.
 
-  Example: 
+  Example:
       iex> query socket, "a"
       {:ok,
        %{"[drab-id='13114f0a-d65c-4486-b46e-86809aa00b7f']" => %{
@@ -43,27 +43,27 @@ defmodule Drab.Element do
   @doc """
   Queries for the selector in the browser and collects found element properties.
 
-  `property_or_properties_list` specifies what properties will be returned. It may either be a string, 
+  `property_or_properties_list` specifies what properties will be returned. It may either be a string,
   an atom or a list of strings or atoms.
 
   Returns:
-  
-  * `{:ok, map}` - where the `map` contains queried elements. 
 
-    The keys are selectors which clearly identify the element: if the object has an `id` declared - a string 
+  * `{:ok, map}` - where the `map` contains queried elements.
+
+    The keys are selectors which clearly identify the element: if the object has an `id` declared - a string
     of `"#id"`, otherwise Drab declares the `drab-id` attribute and the key became `"[drab-id='...']"`.
 
-    Values of the map are maps of `%{property => property_value}`. Notice that for some properties (like 
+    Values of the map are maps of `%{property => property_value}`. Notice that for some properties (like
     `style` or `dataset`), the property_value is a map as well.
 
   * `{:error, message}` - the browser could not be queried
 
 
   Examples:
-      iex> query socket, "button", :clientWidth 
+      iex> query socket, "button", :clientWidth
       {:ok, %{"#button1" => %{"clientWidth" => 66}}}
 
-      iex(170)> query socket, "div", :id       
+      iex(170)> query socket, "div", :id
       {:ok,
        %{"#begin" => %{"id" => "begin"}, "#drab_pid" => %{"id" => "drab_pid"},
          "[drab-id='472a5f90-c5cf-434b-bdf1-7ee236d67938']" => %{"id" => ""}}}
@@ -122,7 +122,7 @@ defmodule Drab.Element do
   Returns `{:too_many, message}` if found more than one element.
 
   Examples:
-      iex> query_one socket, "button", :innerText 
+      iex> query_one socket, "button", :innerText
       {:ok, %{"innerText" => "Button"}}
 
       iex> query_one socket, "button", ["innerHTML", "dataset"]
@@ -133,13 +133,13 @@ defmodule Drab.Element do
   """
   def query_one(socket, selector, property_or_properties_list) do
     case query(socket, selector, property_or_properties_list) do
-      {:ok, map} -> 
+      {:ok, map} ->
         case Map.keys(map) do
           []    -> {:ok, nil}
           [key] -> {:ok, map[key]}
           _     -> {:too_many, query_one_error_message(map, selector)}
         end
-      other -> 
+      other ->
         other
     end
   end
@@ -184,14 +184,14 @@ defmodule Drab.Element do
       iex> set_prop socket, "button", style: %{"backgroundColor" => "red", "width" => "200px"}
       {:ok, 1}
 
-      iex> set_prop socket, "div", innerHTML: "updated"              
+      iex> set_prop socket, "div", innerHTML: "updated"
       {:ok, 3}
 
   You may store any JS encodable value in the property:
 
       iex> set_prop socket, "#button1", custom: %{example: [1, 2, 3]}
       {:ok, 1}
-      iex> query_one socket, "#button1", :custom                     
+      iex> query_one socket, "#button1", :custom
       {:ok, %{"custom" => %{"example" => [1, 2, 3]}}}
   """
   def set_prop(socket, selector, properties) when is_map(properties) or is_list(properties) do
@@ -214,7 +214,7 @@ defmodule Drab.Element do
   @doc """
   Broadcasting version of `set_prop/3`.
 
-  It does exactly the same as `set_prop/3`, but instead of pushing the message to the current browser, 
+  It does exactly the same as `set_prop/3`, but instead of pushing the message to the current browser,
   it broadcasts it to all connected users.
 
   Always returns `{:ok, :broadcasted}`.
@@ -232,7 +232,7 @@ defmodule Drab.Element do
 
   Examples:
 
-      iex> set_style socket, "button", %{"backgroundColor" => "red"}  
+      iex> set_style socket, "button", %{"backgroundColor" => "red"}
       {:ok, 1}
 
       iex> set_style socket, "button", height: "100px", width: "200px"
@@ -258,7 +258,7 @@ defmodule Drab.Element do
   Examples:
 
       iex> set_attr socket, "a", href: "https://tg.pl/drab"
-      {:ok, 1}  
+      {:ok, 1}
   """
   def set_attr(socket, selector, attributes) when is_list(attributes) or is_map(attributes) do
     set_prop socket, selector, %{"attributes" => Map.new(attributes)}
@@ -278,7 +278,7 @@ defmodule Drab.Element do
 
   Examples:
 
-      iex> set_data socket, "button", foo: "bar"   
+      iex> set_data socket, "button", foo: "bar"
       {:ok, 1}
   """
   def set_data(socket, selector, dataset) when is_list(dataset) or is_map(dataset) do
@@ -317,7 +317,7 @@ defmodule Drab.Element do
   end
 
   @doc """
-  Exception-throwing version of insert_html/4
+  Exception-throwing version of `insert_html/4`
   """
   def insert_html!(socket, selector, position, html) do
     exec_js!(socket, insert_js(selector, position, html))
@@ -326,7 +326,7 @@ defmodule Drab.Element do
   @doc """
   Broadcasting version of `insert_html/4`.
 
-  It does exactly the same as `insert_html/4`, but instead of pushing the message to the current browser, 
+  It does exactly the same as `insert_html/4`, but instead of pushing the message to the current browser,
   it broadcasts it to all connected users.
 
   Always returns `{:ok, :broadcasted}`.
