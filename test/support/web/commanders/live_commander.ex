@@ -1,6 +1,6 @@
 defmodule DrabTestApp.LiveCommander do
   @moduledoc false
-  import Phoenix.HTML
+  # import Phoenix.HTML
 
   use Drab.Commander, modules: [Drab.Live, Drab.Element]
   onload :page_loaded
@@ -51,7 +51,9 @@ defmodule DrabTestApp.LiveCommander do
     # poke socket, class1: "btn", class2: "btn-warning",
     #   hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
     # poke(socket, link: "<i>dupa</i>", count: if(peek(socket, :count) == 42, do: 66, else: 42))
-    poke socket, text: ~E|<i>dupa</i>|
+    # poke socket, "users.html", color: "color"
+    poke socket, color: "red"
+    # poke socket, users: ["a", "b"]
   end
 
 end

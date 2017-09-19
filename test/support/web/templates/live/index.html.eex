@@ -1,6 +1,7 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
+<span>
 <br>
 <span id="color_main" @style.backgroundColor=<%=@color%>>
   Users count: <%= @count %>
@@ -55,4 +56,4 @@
   Update @color in main partial
 </button>
 <br>
-<img src="<%= static_path(@conn, "/conn/should/not/be/in/assigns")%>">
+</span>

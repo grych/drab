@@ -349,6 +349,12 @@ defmodule Drab.Live.HTML do
   def amperes_from_buffer({atom, _, _}) when is_atom(atom) do
     %{}
   end
+  def amperes_from_buffer({tuple, _, _}) when is_tuple(tuple) do
+    amperes_from_buffer(tuple)
+  end
+  def amperes_from_buffer(_) do
+    %{}
+  end
 
   defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
   defp amperes_from_html(html) do

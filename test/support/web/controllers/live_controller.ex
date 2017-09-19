@@ -19,8 +19,8 @@ defmodule DrabTestApp.LiveController do
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
     render conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: false, label: "default",
-      list: [1,2,3], map: %{a: 1, b: 2}, color: "#10ffff", link: "https://tg.pl/drab", count: 42,
-      url: "elixirforum.com", width: nil, text: "<b>bold</b>"
+      list: [97,98,99], map: %{a: 1, b: 2}, color: "#10ffff", link: "https://tg.pl/drab", count: 42,
+      url: "elixirforum.com", width: nil, text: "<b>bold</b>", users: ~w(Zdzisław Zofia Hendryk Stefan)
   end
 
 end

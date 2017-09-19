@@ -248,8 +248,8 @@ defmodule Drab.Live do
     partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
 
     current_assigns = assigns(socket, partial, partial_name)
-    # IO.puts "current assigns:"
-    # IO.inspect current_assigns
+    IO.puts "current assigns:"
+    IO.inspect current_assigns
 
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
     assigns_to_update = Enum.into(assigns, %{})
@@ -284,6 +284,7 @@ defmodule Drab.Live do
     amperes_to_update = for {assign, _} <- assigns do
       Drab.Live.Cache.get({partial, assign})
     end |> List.flatten() |> Enum.uniq()
+    IO.inspect assigns
 
     update_javascripts = for ampere <- amperes_to_update,
       {gender, tag, prop_or_attr, pattern, _} <- Drab.Live.Cache.get({partial, ampere}) do
@@ -416,6 +417,10 @@ defmodule Drab.Live do
     eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
   end
 
+  # defp eval_expr(expr, modules, updated_assigns, :html) do
+  #   eval_expr(Drab.Live.EExEngine.safe_expr(expr), modules, updated_assigns)
+  # end
+
   defp eval_expr(expr, modules, updated_assigns, _) do
     eval_expr(expr, modules, updated_assigns)
   end
@@ -494,7 +499,9 @@ defmodule Drab.Live do
   end
 
   defp partial_hash(view, partial_name) do
-    Drab.Live.Cache.get({:partial, partial_path(view, partial_name)})
+    # Drab.Live.Cache.get({:partial, partial_path(view, partial_name)})
+    {hash, _assigns} = Drab.Live.Cache.get(partial_path(view, partial_name))
+    hash
   end
 
   defp partial_path(view, partial_name) do

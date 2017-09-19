@@ -174,17 +174,27 @@ defmodule Drab.Live.EExEngine do
     # ]
     # where pattern = ["text", {expression}, "text"...]
     found_amperes = amperes_from_buffer({:safe, List.flatten(body)})
-    IO.inspect found_amperes
+    if partial_hash == "gi3tgnrzg44tmnbs" do
+      IO.puts ""
+      IO.inspect found_amperes
+      IO.puts ""
+    end
     amperes_to_assigns = for {ampere_id, vals} <- found_amperes do
       ampere_values = for {gender, tag, prop_or_attr, pattern} <- vals do
         compiled =
           compiled_from_pattern(gender, pattern, tag, prop_or_attr)
           |> remove_drab_marks()
         assigns = assigns_from_pattern(pattern)
+        if partial_hash == "gi3tgnrzg44tmnbs" do
+          IO.puts ""
+          IO.inspect {gender, tag, prop_or_attr, assigns, pattern}
+          IO.puts ""
+        end
         {gender, tag, prop_or_attr, compiled, assigns}
       end
       Drab.Live.Cache.set({partial_hash, ampere_id}, ampere_values)
       for {_, _, _, _, assigns} <- ampere_values, assign <- assigns do
+
         {assign, ampere_id}
       end
     end
@@ -192,8 +202,9 @@ defmodule Drab.Live.EExEngine do
     |> Enum.uniq()
     |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
 
+
     # ampere-to_assign list
-    # {partial_hash, :assign} => ["ampere_id"]
+    # {partial_hash, :assign} => ["ampere_ids"]
     for {assign, amperes} <- amperes_to_assigns do
       Drab.Live.Cache.set({partial_hash, assign}, amperes)
     end
@@ -203,6 +214,12 @@ defmodule Drab.Live.EExEngine do
     # "partial_hash" => {"partial_path", [assigns]}
     # "partial_path" => {"partial_hash", [assigns]
     partial_path = Drab.Live.Cache.get(partial_hash)
+    if partial_hash == "gi3tgnrzg44tmnbs" do
+      IO.puts ""
+      IO.puts "partial assigns"
+      IO.inspect found_assigns
+      IO.puts ""
+    end
     Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
     Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
 
@@ -232,7 +249,7 @@ defmodule Drab.Live.EExEngine do
     remove_drab_marks({:safe, final})
   end
 
-  @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}{{{{\/@drab-expr-hash:\S+}}}}/U
+  @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/U
   defp compiled_from_pattern(:prop, pattern, tag, property) do
     case compiled_from_pattern(:other, pattern, tag, property) do
       [expr | []] when is_tuple(expr) ->
@@ -261,8 +278,11 @@ defmodule Drab.Live.EExEngine do
   defp expr_from_cache(text) do
     case Regex.run(@expr, text) do
       [_, expr_hash] ->
-        {:expr, expr, _} = Drab.Live.Cache.get(expr_hash)
-        expr
+        {:expr, buffer, expr, _} = Drab.Live.Cache.get(expr_hash)
+        quote do
+          tmp3 = unquote(buffer)
+          unquote(expr)
+        end
       nil ->
         text
     end
@@ -283,7 +303,7 @@ defmodule Drab.Live.EExEngine do
     end
     expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
     for expr_hash <- expressions do
-      {:expr, _, assigns} = Drab.Live.Cache.get(expr_hash)
+      {:expr, _, _, assigns} = Drab.Live.Cache.get(expr_hash)
       assigns
     end |> List.flatten() |> Enum.uniq()
   end
@@ -316,7 +336,10 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "", expr) do
-    expr = Macro.prewalk(expr, &handle_assign/1)
+    IO.puts ""
+    IO.puts "EXPR:"
+    IO.inspect expr
+        expr = Macro.prewalk(expr, &handle_assign/1)
     {:safe, quote do
       tmp2 = unquote(buffer)
       unquote(expr)
@@ -327,6 +350,11 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
     # html = to_html(buffer)
+    IO.puts ""
+    IO.puts "EXPR=:"
+    IO.inspect expr
+    IO.puts "BUFFER:"
+    IO.inspect buffer
 
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
@@ -352,6 +380,7 @@ defmodule Drab.Live.EExEngine do
     # put_shadow_buffer(shadow, partial(buffer))
 
     found_assigns  = shallow_find_assigns(expr)
+    # found_assigns = find_assigns(expr)
     found_assigns? = found_assigns != []
 
     ampere_id = hash({buffer, expr})
@@ -369,15 +398,17 @@ defmodule Drab.Live.EExEngine do
       buffer
     end
 
-    #TODO: ugly code.
-    # html = to_html(buffer)
-    # attribute = html |> find_attr_in_html()
-    # is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attribute && String.starts_with?(attribute, "@")
-    # expr = if is_property, do: encoded_expr(to_safe(expr, line)), else: to_safe(expr, line)
-
     hash = hash(expr)
     # expr = to_safe(expr, line)
-    Drab.Live.Cache.set(hash, {:expr, remove_drab_marks(expr), found_assigns})
+    Drab.Live.Cache.set(hash, {:expr, buffer, remove_drab_marks(expr), found_assigns})
+
+
+
+    #TODO: ugly code.
+    html = buffer |> to_html()
+    attribute = html |> find_attr_in_html()
+    is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attribute && String.starts_with?(attribute, "@")
+    expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
 
     # span_begin = "<span #{@drab_id}='#{hash}'>"
     # span_end   = "</span>"
@@ -385,13 +416,18 @@ defmodule Drab.Live.EExEngine do
     expr_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
     expr_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
 
+    # IO.inspect expr
+    # found_assigns? = true
     buf = if found_assigns? do
       quote do
-        [unquote(buffer), unquote(expr_begin), unquote(to_safe(expr, line)), unquote(expr_end)]
+        tmp1 = unquote(buffer)
+        [tmp1, unquote(expr_begin), unquote(expr), unquote(expr_end)]
       end
     else
       quote do
-        [unquote(buffer), unquote(expr)]
+        # [unquote(buffer), unquote(expr)]
+        tmp1 = unquote(buffer)
+        [tmp1, unquote(expr)]
       end
     end
 
@@ -552,26 +588,26 @@ defmodule Drab.Live.EExEngine do
     if p, do: List.last(p), else: nil
   end
 
-  # defp find_attr_in_html(html) do
-  #   args_removed = args_removed(html)
-  #   if String.contains?(args_removed, "=") do
-  #     args_removed
-  #     |> String.split("=")
-  #     |> take_at(-2)
-  #     |> String.split(~r/\s+/)
-  #     |> Enum.filter(fn x -> x != "" end)
-  #     |> List.last()
-  #   else
-  #     nil
-  #   end
-  # end
+  defp find_attr_in_html(html) do
+    args_removed = args_removed(html)
+    if String.contains?(args_removed, "=") do
+      args_removed
+      |> String.split("=")
+      |> take_at(-2)
+      |> String.split(~r/\s+/)
+      |> Enum.filter(fn x -> x != "" end)
+      |> List.last()
+    else
+      nil
+    end
+  end
 
-  # defp args_removed(html) do
-  #   html
-  #   |> String.split(~r/<\S+/s)
-  #   |> List.last()
-  #   |> remove_full_args()
-  # end
+  defp args_removed(html) do
+    html
+    |> String.split(~r/<\S+/s)
+    |> List.last()
+    |> remove_full_args()
+  end
 
   # @doc false
   # def proper_property(html) do
@@ -657,24 +693,24 @@ defmodule Drab.Live.EExEngine do
   #   end
   # end
 
-  # defp remove_full_args(string) do
-  #   string
-  #   |> String.replace(~r/\S+\s*=\s*'[^']*'/s, "")
-  #   |> String.replace(~r/\S+\s*=\s*"[^"]*"/s, "")
-  #   |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/s, "")
-  # end
+  defp remove_full_args(string) do
+    string
+    |> String.replace(~r/\S+\s*=\s*'[^']*'/s, "")
+    |> String.replace(~r/\S+\s*=\s*"[^"]*"/s, "")
+    |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/s, "")
+  end
 
   # replace last occurence of pattern in the string
   # defp replace_last(string, pattern, replacement) do
   #   String.replace(string, ~r/#{pattern}(?!.*#{pattern})/is, replacement)
   # end
 
-  # defp take_at(list, index) do
-  #   {item, _} = List.pop_at(list, index)
-  #   item
-  # end
+  defp take_at(list, index) do
+    {item, _} = List.pop_at(list, index)
+    item
+  end
 
-  # defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/s, "")
+  defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/s, "")
 
 
   defp script_tag([]), do: []
@@ -726,6 +762,13 @@ defmodule Drab.Live.EExEngine do
     #    [@anno],
     #    [expr]}
   end
+
+  # @doc false
+  # def safe_expr(expr) do
+  #   quote @anno do
+  #     Phoenix.HTML.html_escape(unquote(expr))
+  #   end
+  # end
 
   defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
   defp line_from_expr(_), do: nil

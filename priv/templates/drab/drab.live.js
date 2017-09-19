@@ -94,8 +94,9 @@ function set_properties(where) {
   for (var ampere in d.properties) {
     var properties = d.properties[ampere];
     for (var property in properties) {
-      var node = where.querySelector(selector(ampere));
-      if (node) {
+      var nodes = ampere_nodes(ampere);
+      for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
         set_property(node, ampere, property, properties[property]);
       }
       // window.__drab.properties[partial][ampere][property] = properties[property]
@@ -224,28 +225,31 @@ function selector(ampere) {
   return "[drab-ampere='" + ampere + "']";
 }
 
-function ampere_node(ampere) {
-  return document.querySelector(selector(ampere));
+function ampere_nodes(ampere) {
+  return document.querySelectorAll(selector(ampere));
 }
 
 Drab.update_attribute = function(ampere, attribute, new_value) {
-  var node = ampere_node(ampere);
-  if (node) {
+  var nodes = ampere_nodes(ampere);
+  for (var i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
     node.setAttribute(attribute, new_value);
   }
 }
 
 Drab.update_property = function(ampere, property, new_value) {
-  var node = ampere_node(ampere);
-  if (node) {
+  var nodes = ampere_nodes(ampere);
+  for (var i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
     set_property(node, ampere, property, new_value);
   }
 }
 
 Drab.update_tag = function(tag, ampere, html) {
   var s = selector(ampere);
-  var node = document.querySelector(s);
-  if (node) {
+  var nodes = document.querySelectorAll(s);
+  for (var i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
     node.innerHTML = html;
   }
   Drab.enable_drab_on(s);
