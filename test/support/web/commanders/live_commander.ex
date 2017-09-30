@@ -52,7 +52,10 @@ defmodule DrabTestApp.LiveCommander do
     #   hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
     # poke(socket, link: "<i>dupa</i>", count: if(peek(socket, :count) == 42, do: 66, else: 42))
     # poke socket, "users.html", color: "color"
-    poke socket, color: "red"
+    poke socket, link: "dupa"
+    # poke socket, color: "blue", count: 13
+    # poke socket, "user.html", user: "Bravo"
+    # poke socket, "partial1.html", in_partial: "updated partial 1", color: "#66FFFF", link: "https://tg.pl/drab"
     # poke socket, users: ["a", "b"]
   end
 

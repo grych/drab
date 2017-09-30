@@ -2,6 +2,6 @@
   console.log("In partial3: <%= "there are no assigns" %>")
 </script>
 <p @style.backgroundColor=<%= "#bbffbb" %>>
-  Partial1 @in_partial: <%= "no assigns" %>
+  Partial3 @in_partial: <%= "no assigns" %>
   <br>
 </p>

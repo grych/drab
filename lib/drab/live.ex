@@ -285,9 +285,11 @@ defmodule Drab.Live do
       Drab.Live.Cache.get({partial, assign})
     end |> List.flatten() |> Enum.uniq()
     IO.inspect assigns
+    IO.puts "updated assigns"
+    IO.inspect updated_assigns
 
     update_javascripts = for ampere <- amperes_to_update,
-      {gender, tag, prop_or_attr, pattern, _} <- Drab.Live.Cache.get({partial, ampere}) do
+      {gender, tag, prop_or_attr, pattern, _} <- (Drab.Live.Cache.get({partial, ampere}) || []) do
       # IO.inspect Drab.Live.Cache.get({partial, ampere})
         case gender do
           :html ->
@@ -300,7 +302,7 @@ defmodule Drab.Live do
           :prop ->
             new_value = eval_expr(pattern, modules, updated_assigns, gender) |> safe_to_string()
             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
-          _ -> ""
+          # _ -> ""
         end
     end
     # construct the javascripts for update of amperes
@@ -432,7 +434,7 @@ defmodule Drab.Live do
   end
 
   defp expr_with_imports(expr, modules) do
-    #TODO: find it in the web.ex
+    #TODO: find it in the web.ex or get from the setup
     {view, router_helpers, error_helpers, gettext} = modules
     quote do
       import unquote(view)

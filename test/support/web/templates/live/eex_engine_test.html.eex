@@ -1,0 +1,3 @@
+<p id=a>
+    <a href="x"><%= @link %><b>AAA<%= @color %></b></a>
+</p>

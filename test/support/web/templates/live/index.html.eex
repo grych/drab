@@ -13,7 +13,7 @@
 <br>
 
 <button drab-click="update_both" class="btn btn-primary">
-  Update Both
+  Update Both + Color
 </button>
 
 <br>

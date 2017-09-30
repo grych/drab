@@ -1,12 +1,11 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
 
-
 <div>
-<% a = @color %>
-<div>
-<%= @color <> a %>
+<% #whatever %>
+<%= @link %>
+<br>
+<% "Dżony" %>
 </div>
 
-</div>
 <button drab-click=update_mini>Update mini</button>

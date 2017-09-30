@@ -88,7 +88,7 @@ defmodule Drab.Live.EExEngine do
         raise EEx.SyntaxError, message: """
           Drab.Live may work only with html partials.
 
-          Invalid extension of file: #{opts[:file]}.
+          Invalid extention of file: #{opts[:file]}.
           """
     end
     partial = opts[:file]
@@ -101,14 +101,14 @@ defmodule Drab.Live.EExEngine do
     # Drab.Live.Cache.set({:partial, partial}, partial_hash)
     # Drab.Live.Cache.set({:partial, partial_hash}, partial)
 
-    buffer = ["\n<span drab-partial='#{partial_hash}'>\n"]
+    buffer = "\n<span drab-partial='#{partial_hash}'>\n"
     # start_shadow_buffer(buffer, partial_hash |> String.to_atom()) # can't leak, only in compile-time
     {:safe, buffer}
   end
 
   @doc false
   def handle_body({:safe, body}) do
-    # body = List.flatten(body)
+    body = List.flatten(body)
 
     found_assigns = find_assigns(body)
     partial_hash = partial(body)
@@ -165,6 +165,8 @@ defmodule Drab.Live.EExEngine do
     # IO.puts "FINAL:"
     # IO.inspect final
 
+
+
     # find and save amperes
     # format:
     # {"partial_hash", "ampere_id"} => [
@@ -173,9 +175,10 @@ defmodule Drab.Live.EExEngine do
     #   {:prop, "tag", "property", [pattern], [assigns]}, {:prop...},
     # ]
     # where pattern = ["text", {expression}, "text"...]
-    found_amperes = amperes_from_buffer({:safe, List.flatten(body)})
+    # found_amperes = amperes_from_buffer({:safe, List.flatten(body)})
+    found_amperes = amperes_from_buffer({:safe, body})
     if partial_hash == "gi3tgnrzg44tmnbs" do
-      IO.puts ""
+      IO.puts "Found amperes:"
       IO.inspect found_amperes
       IO.puts ""
     end
@@ -185,16 +188,16 @@ defmodule Drab.Live.EExEngine do
           compiled_from_pattern(gender, pattern, tag, prop_or_attr)
           |> remove_drab_marks()
         assigns = assigns_from_pattern(pattern)
-        if partial_hash == "gi3tgnrzg44tmnbs" do
-          IO.puts ""
-          IO.inspect {gender, tag, prop_or_attr, assigns, pattern}
-          IO.puts ""
-        end
+        # if partial_hash == "gi3tgnrzg44tmnbs" do
+        #   IO.puts ""
+        #   IO.inspect {gender, tag, prop_or_attr, assigns, pattern}
+        #   IO.puts ""
+        # end
         {gender, tag, prop_or_attr, compiled, assigns}
       end
       Drab.Live.Cache.set({partial_hash, ampere_id}, ampere_values)
+      # IO.inspect {{partial_hash, ampere_id}, ampere_values}
       for {_, _, _, _, assigns} <- ampere_values, assign <- assigns do
-
         {assign, ampere_id}
       end
     end
@@ -214,12 +217,12 @@ defmodule Drab.Live.EExEngine do
     # "partial_hash" => {"partial_path", [assigns]}
     # "partial_path" => {"partial_hash", [assigns]
     partial_path = Drab.Live.Cache.get(partial_hash)
-    if partial_hash == "gi3tgnrzg44tmnbs" do
-      IO.puts ""
-      IO.puts "partial assigns"
-      IO.inspect found_assigns
-      IO.puts ""
-    end
+    # if partial_hash == "gi3tgnrzg44tmnbs" do
+    #   IO.puts ""
+    #   IO.puts "partial assigns"
+    #   IO.inspect found_assigns
+    #   IO.puts ""
+    # end
     Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
     Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
 
@@ -246,10 +249,12 @@ defmodule Drab.Live.EExEngine do
       properies_js
     ] |> List.flatten()
 
+    IO.inspect final
+
     remove_drab_marks({:safe, final})
   end
 
-  @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/U
+  @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/Us
   defp compiled_from_pattern(:prop, pattern, tag, property) do
     case compiled_from_pattern(:other, pattern, tag, property) do
       [expr | []] when is_tuple(expr) ->
@@ -302,6 +307,9 @@ defmodule Drab.Live.EExEngine do
         pattern
     end
     expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
+    # IO.puts "PAT::::::::"
+    # IO.inspect expressions
+    # IO.puts ""
     for expr_hash <- expressions do
       {:expr, _, _, assigns} = Drab.Live.Cache.get(expr_hash)
       assigns
@@ -334,12 +342,26 @@ defmodule Drab.Live.EExEngine do
     handle_expr({:safe, ""}, marker, expr)
   end
 
+  # @doc false
+  # def handle_begin(previous) do
+  #   IO.puts "BEGIN"
+  #   IO.inspect previous
+  #   {:safe, ""}
+  # end
+
+  # @doc false
+  # def handle_end(quoted) do
+  #   IO.puts "END"
+  #   IO.inspect quoted
+  #   quoted
+  # end
+
   @doc false
   def handle_expr({:safe, buffer}, "", expr) do
-    IO.puts ""
-    IO.puts "EXPR:"
-    IO.inspect expr
-        expr = Macro.prewalk(expr, &handle_assign/1)
+    # IO.puts ""
+    # IO.puts "EXPR:"
+    # IO.inspect expr
+    expr = Macro.prewalk(expr, &handle_assign/1)
     {:safe, quote do
       tmp2 = unquote(buffer)
       unquote(expr)
@@ -349,49 +371,56 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
+    # IO.inspect to_html(buffer)
     # html = to_html(buffer)
-    IO.puts ""
-    IO.puts "EXPR=:"
-    IO.inspect expr
-    IO.puts "BUFFER:"
-    IO.inspect buffer
+    # IO.puts ""
+    # IO.puts "EXPR=:"
+    # IO.inspect expr
+    # IO.puts "BUFFER:"
+    # IO.inspect buffer
 
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
+    # IO.inspect shallow_find_assigns(expr)
 
     # if partial(buffer) == :guzdmmrvga4de do
     #   IO.puts "in mini:"
     #   IO.inspect expr
     # end
 
-    # check if the expression is inside the tag or not
-    # {injected, shadow} = if Regex.match?(~r/<\S+/s, no_tags(html)) do
-    #   inject_attribute(buffer, expr, line, html)
-    # else
-    #   tag = in_tags(html, @special_tags)
-    #   if tag do
-    #     inject_tag(buffer, expr, line, tag)
-    #   else
-    #     inject_span(buffer, expr, line)
-    #   end
-    # end
-    # {injected, shadow} = inject_span(buffer, expr, line)
 
-    # put_shadow_buffer(shadow, partial(buffer))
-
-    found_assigns  = shallow_find_assigns(expr)
+    found_assigns = shallow_find_assigns(expr)
     # found_assigns = find_assigns(expr)
     found_assigns? = found_assigns != []
 
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
 
+    # IO.puts ""
+    # IO.inspect buffer
+    # found_assigns = true
     buffer = if found_assigns? do
+      # {_, buf, _} = inject_attribute_to_last_opened(buffer, attribute)
+      # buf
       case inject_attribute_to_last_opened(buffer, attribute) do
         {:ok, buf, _}          -> buf # injected!
         {:already_there, _, _} -> buffer # it was already there
         {:not_found, _, _}     -> raise EEx.SyntaxError, message: """
-          Can't find the parent tag for an expression.
+          can't find the parent tag for an expression in line #{line}.
+
+          If the expression is inside the block (do, else):
+
+              <%= if clause do %>
+                <%= expression(@assign) %>
+              <% end %>
+
+          must be sourrounded by the html tag:
+
+              <%= if clause do %>
+                <span>
+                  <%= expression(@assign) %>
+                </span>
+              <% end %>
           """
       end
     else
@@ -399,13 +428,13 @@ defmodule Drab.Live.EExEngine do
     end
 
     hash = hash(expr)
+    # IO.inspect hash
     # expr = to_safe(expr, line)
     Drab.Live.Cache.set(hash, {:expr, buffer, remove_drab_marks(expr), found_assigns})
 
-
-
-    #TODO: ugly code.
+    #TODO: REFACTOR
     html = buffer |> to_html()
+    # IO.inspect html
     attribute = html |> find_attr_in_html()
     is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attribute && String.starts_with?(attribute, "@")
     expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
