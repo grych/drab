@@ -354,17 +354,20 @@ defmodule Drab.Live.HTML do
 
   defp do_to_flat_html([]), do: []
   defp do_to_flat_html(body) when is_binary(body), do: [body]
-  defp do_to_flat_html({:__block__, [], [{:=, [], [{_, [], Drab.Live.EExEngine} | buffer]} | rest]}) do
-    # IO.puts "BUFF"
-    # IO.inspect rest
+  # tmp1 is in generating output expression <%= %>
+  defp do_to_flat_html({:__block__, [], [{:=, [], [{:tmp1, [], Drab.Live.EExEngine} | buffer]} | rest]}) do
     do_to_flat_html(buffer) ++ do_to_flat_html(rest)
+  end
+  # while tmp2 inidcates the expression inside <% %>
+  defp do_to_flat_html({:__block__, [], [{:=, [], [{:tmp2, [], Drab.Live.EExEngine} | buffer]} | _]}) do
+    do_to_flat_html(buffer)
   end
   defp do_to_flat_html([head | rest]), do: do_to_flat_html(head) ++ do_to_flat_html(rest)
   defp do_to_flat_html({_, _, list}) when is_list(list), do: do_to_flat_html(list)
   defp do_to_flat_html({_, _, _}), do: []
   defp do_to_flat_html(atom) when is_atom(atom), do: []
   defp do_to_flat_html({_, buffer}), do: do_to_flat_html(buffer)
-  # defp do_to_flat_html(_), do: []
+  defp do_to_flat_html(_), do: []  # TODO: rething, may be insecure
 
 
   @doc """

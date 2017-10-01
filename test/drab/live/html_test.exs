@@ -182,20 +182,68 @@ defmodule Drab.Live.HtmlTest do
            [{:other, [line: 6], Drab.Live.EExEngine}]}]}]]]}]]},
  "\n\n</div>\n\n<button drab-click=update_mini>Update mini</button>\n"]
 
- test "full buffer to flat html" do
-   assert to_flat_html(@full_buffer) == """
+  test "full buffer to flat html" do
+    assert to_flat_html(@full_buffer) == """
 
-   <span drab-partial='gi3tgnrzg44tmnbs'>
-   <div id=\"begin\" style=\"display: none;\"></div>
-   <div id=\"drab_pid\" style=\"display: none;\"></div>
+    <span drab-partial='gi3tgnrzg44tmnbs'>
+    <div id=\"begin\" style=\"display: none;\"></div>
+    <div id=\"drab_pid\" style=\"display: none;\"></div>
 
-   <div covers-color-and-link>
+    <div covers-color-and-link>
 
-     \n    <b drab-ampere=\"gi4donzwg42tinbw\">
-         {{{{@drab-expr-hash:geztcmrqgmzteobq}}}}{{{{/@drab-expr-hash:geztcmrqgmzteobq}}}}
-       </b>\n  \n\n</div>
+      \n    <b drab-ampere=\"gi4donzwg42tinbw\">
+          {{{{@drab-expr-hash:geztcmrqgmzteobq}}}}{{{{/@drab-expr-hash:geztcmrqgmzteobq}}}}
+        </b>\n  \n\n</div>
 
-   <button drab-click=update_mini>Update mini</button>
-   """
- end
+    <button drab-click=update_mini>Update mini</button>
+    """
+  end
+
+  @buffer_with_no_output_expression [{:__block__, [],
+  [{:=, [],
+    [{:tmp1, [], Drab.Live.EExEngine},
+     [{:__block__, [],
+       [{:=, [],
+         [{:tmp2, [], Drab.Live.EExEngine},
+          ["\n<span drab-partial='gi3tgnrzg44tmnbs'>\n",
+           "<div id=\"begin\" style=\"display: none;\"></div>\n<div id=\"drab_pid\" style=\"display: none;\">\
+</div>\n\n<div drab-ampere=\"giytinrsgi2tqobu\">\n"]]},
+        {:=, [line: 5], [{:a, [line: 5], nil}, "dupaX"]},
+        {:tmp2, [], Drab.Live.EExEngine}]}, "\n<br>\n"]]},
+   [{:tmp1, [], Drab.Live.EExEngine}, "{{{{@drab-expr-hash:gu3tgmzrgq4deoa}}}}",
+    {:case, [generated: true],
+     [{{:., [line: 7],
+        [{:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]},
+         :fetch_assign]}, [line: 7],
+       [{:var!, [line: 7, context: Drab.Live.EExEngine, import: Kernel],
+         [{:assigns, [line: 7], Drab.Live.EExEngine}]}, :link]},
+      [do: [{:->, [generated: true],
+         [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+          {:data, [generated: true], Drab.Live.EExEngine}]},
+        {:->, [generated: true],
+         [[{:when, [generated: true],
+            [{:bin, [generated: true], Drab.Live.EExEngine},
+             {:is_binary,
+              [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+              [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+          {{:., [generated: true],
+            [{:__aliases__, [generated: true, alias: false], [:Plug, :HTML]},
+             :html_escape]}, [generated: true],
+           [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+        {:->, [generated: true],
+         [[{:other, [generated: true], Drab.Live.EExEngine}],
+          {{:., [line: 7],
+            [{:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Safe]},
+             :to_iodata]}, [line: 7],
+           [{:other, [line: 7], Drab.Live.EExEngine}]}]}]]]},
+    "{{{{/@drab-expr-hash:gu3tgmzrgq4deoa}}}}"]]},
+  "\n</div>\n\n<button drab-click=update_mini>Update mini</button>\n"]
+
+  test "buffer with no outputting expression to flat html" do
+    assert to_flat_html(@buffer_with_no_output_expression)
+      == "\n<span drab-partial='gi3tgnrzg44tmnbs'>\n<div id=\"begin\" style=\"display: none;\"></div>\
+\n<div id=\"drab_pid\" style=\"display: none;\"></div>\n\n<div drab-ampere=\"giytinrsgi2tqobu\">\n\n<br>\
+\n{{{{@drab-expr-hash:gu3tgmzrgq4deoa}}}}{{{{/@drab-expr-hash:gu3tgmzrgq4deoa}}}}\n</div>\n\n\
+<button drab-click=update_mini>Update mini</button>\n"
+  end
 end

@@ -2,10 +2,11 @@
 <div id="drab_pid" style="display: none;"></div>
 
 <div>
-<% #whatever %>
-<%= @link %>
-<br>
-<% "Dżony" %>
+
+<%= for x <- [1,2,3] do %>
+  <p>LINK:<%= "#{x}#{@link}" %></p>
+<% end %>
+
 </div>
 
 <button drab-click=update_mini>Update mini</button>

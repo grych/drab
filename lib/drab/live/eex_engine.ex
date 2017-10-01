@@ -182,6 +182,7 @@ defmodule Drab.Live.EExEngine do
       IO.inspect found_amperes
       IO.puts ""
     end
+    # IO.inspect body
     amperes_to_assigns = for {ampere_id, vals} <- found_amperes do
       ampere_values = for {gender, tag, prop_or_attr, pattern} <- vals do
         compiled =
@@ -249,7 +250,7 @@ defmodule Drab.Live.EExEngine do
       properies_js
     ] |> List.flatten()
 
-    IO.inspect final
+    # IO.inspect final
 
     remove_drab_marks({:safe, final})
   end
@@ -396,9 +397,8 @@ defmodule Drab.Live.EExEngine do
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
 
-    # IO.puts ""
     # IO.inspect buffer
-    # found_assigns = true
+    # found_assigns? = true
     buffer = if found_assigns? do
       # {_, buf, _} = inject_attribute_to_last_opened(buffer, attribute)
       # buf
@@ -446,7 +446,7 @@ defmodule Drab.Live.EExEngine do
     expr_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
 
     # IO.inspect expr
-    # found_assigns? = true
+    found_assigns? = true
     buf = if found_assigns? do
       quote do
         tmp1 = unquote(buffer)
