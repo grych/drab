@@ -13,8 +13,7 @@
   <p>LINK:<%= "#{x}: " %><b><%= @link %></b></p>
 <% end %>
 
-<%= render("partial1.html", in_partial: "primary value for partial 1", color: "#E6E6E6", link: "https://tg.pl") %>
-<%= render("partial1.html", in_partial: "primary value for partial 22", color: "#E6E6E6", link: "https://tg.pl") %>
+<%= render("partial1.html", in_partial: "primary value for partial 2", color: "#FFCC66", link: "https://tg.pl")%>
 </div>
 
 

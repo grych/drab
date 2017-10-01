@@ -437,6 +437,7 @@ defmodule Drab.Live do
     #TODO: find it in the web.ex or get from the setup
     {view, router_helpers, error_helpers, gettext} = modules
     quote do
+      import Phoenix.View
       import unquote(view)
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
       use Phoenix.HTML

@@ -243,7 +243,7 @@ defmodule Drab.Live.EExEngine do
     # IO.inspect properies_js
 
     final = [
-      body,
+      remove_drab_marks(body),
       "\n</span>\n",
       script_tag(init_js),
       assigns_js,
@@ -252,7 +252,7 @@ defmodule Drab.Live.EExEngine do
 
     # IO.inspect final
 
-    remove_drab_marks({:safe, final})
+    {:safe, final}
   end
 
   @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/Us

@@ -7,9 +7,9 @@
   Users count: <%= @count %>
 </span>
 <br>
-
+<span>
 <%= render("users.html", users: @users, count: @count, color: @color) %>
-
+</span>
 <br>
 
 <button drab-click="update_both" class="btn btn-primary">
