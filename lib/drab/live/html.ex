@@ -438,7 +438,6 @@ defmodule Drab.Live.HTML do
     property
   end
 
-
   defp find_ampere(attributes) do
     {_, ampere} = Enum.find attributes, fn {name, _} -> name == "drab-ampere" end
     ampere
@@ -495,49 +494,6 @@ defmodule Drab.Live.HTML do
   def remove_drab_marks(list) when is_list(list) do
     list
   end
-
-  # @doc """
-  # Removes all {:safe, ...} from the buffer
-  # """
-  # # def remove_safes({:safe, buffer}) do
-  # #   {:safe, remove_safes(buffer)}
-  # # end
-  # def remove_safes([]) do
-  #   []
-  # end
-  # def remove_safes({:safe, list}) when is_list(list) do
-  #   IO.puts "SAFE"
-  #   {:safe, []}
-  # end
-  # def remove_safes([head | tail]) when is_binary(head) do
-  #   IO.puts "binary"
-  #   [head | remove_safes(tail)]
-  # end
-  # def remove_safes([head | tail]) when is_atom(head) do
-  #   IO.inspect "ATOM"
-  #   [head | remove_safes(tail)]
-  # end
-  # def remove_safes([head | tail]) when is_list(head) do
-  #   IO.puts "LIST"
-  #   [remove_safes(head) | remove_safes(tail)]
-  # end
-  # def remove_safes([{atom, meta, args} | tail]) when is_list(args) do
-  #   IO.puts "AST"
-  #   [{atom, meta, remove_safes(args)} | remove_safes(tail)]
-  # end
-  # def remove_safes([{atom, meta, args} | tail]) when is_atom(args) do
-  #   IO.puts "AST2"
-  #   [{atom, meta, args} | remove_safes(tail)]
-  # end
-  # def remove_safes(tuple) when is_tuple(tuple) do
-  #   IO.puts "TUPLE"
-  # end
-  # def remove_safes(text) when is_binary(text) do
-  #   text
-  # end
-  # def remove_safes(list) when is_list(list) do
-  #   list
-  # end
 
   @doc """
   Deep reverse of the list

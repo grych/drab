@@ -2,11 +2,20 @@
 <div id="drab_pid" style="display: none;"></div>
 
 <div>
-
-<%= for x <- [1,2,3] do %>
-  <p>LINK:<%= "#{x}#{@link}" %></p>
+<%= @link %>
+<%= if true do %>
+<b>
+<%= List.first(@users) %>
+</b>
 <% end %>
 
+<%= for x <- @users do %>
+  <p>LINK:<%= "#{x}: " %><b><%= @link %></b></p>
+<% end %>
+
+<%= render("partial1.html", in_partial: "primary value for partial 1", color: "#E6E6E6", link: "https://tg.pl") %>
+<%= render("partial1.html", in_partial: "primary value for partial 22", color: "#E6E6E6", link: "https://tg.pl") %>
 </div>
+
 
 <button drab-click=update_mini>Update mini</button>

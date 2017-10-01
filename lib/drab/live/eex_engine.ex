@@ -338,24 +338,25 @@ defmodule Drab.Live.EExEngine do
     handle_text({:safe, ""}, text)
   end
 
+  # @doc false
+  # def handle_begin(previous) do
+  #   IO.puts "BEGIN"
+  #   # IO.inspect previous
+  #   {:safe, "BEGIN"}
+  # end
+
+  @doc false
+  def handle_end(quoted) do
+    # IO.puts "END"
+    # IO.inspect quoted
+    # do not drab anything inside the expression, all is handled by the parent
+    remove_drab_marks(quoted)
+  end
+
   @doc false
   def handle_expr("", marker, expr) do
     handle_expr({:safe, ""}, marker, expr)
   end
-
-  # @doc false
-  # def handle_begin(previous) do
-  #   IO.puts "BEGIN"
-  #   IO.inspect previous
-  #   {:safe, ""}
-  # end
-
-  # @doc false
-  # def handle_end(quoted) do
-  #   IO.puts "END"
-  #   IO.inspect quoted
-  #   quoted
-  # end
 
   @doc false
   def handle_expr({:safe, buffer}, "", expr) do
@@ -390,8 +391,8 @@ defmodule Drab.Live.EExEngine do
     # end
 
 
-    found_assigns = shallow_find_assigns(expr)
-    # found_assigns = find_assigns(expr)
+    # found_assigns = shallow_find_assigns(expr)
+    found_assigns = find_assigns(expr)
     found_assigns? = found_assigns != []
 
     ampere_id = hash({buffer, expr})

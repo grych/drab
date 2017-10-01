@@ -74,6 +74,4 @@ defmodule Drab.Live.EExEngineTest do
     assert assigns_from_pattern(@nested_pattern) == [:link]
   end
 
-
-
 end
