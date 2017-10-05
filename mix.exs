@@ -46,7 +46,7 @@ defmodule Drab.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:ex_doc, "~> 0.17", only: :docs, runtime: false},
-     {:makedown, "~> 0.2", only: :docs, runtime: false},
+     {:makedown, "~> 0.2.1", only: :docs, runtime: false},
      {:makeup_elixir, "~> 0.2", only: :docs, runtime: false},
      {:deppie, "~> 1.0"},
      {:hound, "~> 1.0", only: [:dev, :test]},
