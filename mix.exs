@@ -12,8 +12,17 @@ defmodule Drab.Mixfile do
      deps: deps(),
      description: description(),
      package: package(),
-     docs: [main: "Drab", logo: "priv/static/drab-400.png",
-      extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"]], # , filter_prefix: "Drab."
+     docs: [
+       main: "Drab",
+       logo: "priv/static/drab-400.png",
+       extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"],
+       # Extra assets (CSS and Javascript for makedown)
+       assets: "deps/makedown/priv/ex_doc/assets",
+       # Extra CSS
+       before_closing_head_tag: fn _ -> ~S(<link rel="stylesheet" href="assets/makedown.css"/>) end,
+       # Extra Javascript
+       before_closing_body_tag: fn _ -> ~S(<script src="assets/makedown.js"></script>) end
+     ],
      compilers: [:phoenix, :gettext] ++ Mix.compilers
      # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
    ]
@@ -36,11 +45,13 @@ defmodule Drab.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
-     {:ex_doc, "~> 0.16", only: :dev},
+     {:ex_doc, "~> 0.17", only: :docs, runtime: false},
+     {:makedown, "~> 0.2", only: :docs, runtime: false},
+     {:makeup_elixir, "~> 0.2", only: :docs, runtime: false},
      {:deppie, "~> 1.0"},
      {:hound, "~> 1.0", only: [:dev, :test]},
      {:inch_ex, "~> 0.5", only: [:dev, :test, :docs]},
-     {:floki, "~> 0.17.0"}
+     {:floki, "~> 0.17.0"},
     ]
   end
 
