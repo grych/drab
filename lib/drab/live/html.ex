@@ -135,14 +135,20 @@ defmodule Drab.Live.HTML do
   def tokenized_to_html({code, meta, args}), do: {code, meta, tokenized_to_html(args)}
   def tokenized_to_html(text) when is_binary(text), do: text
   def tokenized_to_html(atom) when is_atom(atom), do: atom
-  def tokenized_to_html({atom, list}) when is_atom(atom), do: {atom, tokenized_to_html(list)}
+  def tokenized_to_html({atom, list}) when is_atom(atom) and is_list(list), do: {atom, tokenized_to_html(list)}
   def tokenized_to_html([list]) when is_list(list), do: [tokenized_to_html(list)]
-  def tokenized_to_html([head | tail]) when is_list(head), do: [tokenized_to_html(head) | tokenized_to_html(tail)]
+  # def tokenized_to_html([head | tail]) when is_list(head) and is_list(tail), do: [tokenized_to_html(head) | tokenized_to_html(tail)]
   def tokenized_to_html([head | tail]) do
-    t = tokenized_to_html(tail)
-    case tokenized_to_html(head) do
-      h when is_binary(h) and is_binary(t) -> h <> t
-      h -> if t == "", do: [h], else: [h | t]
+    # t = tokenized_to_html(tail)
+    # case tokenized_to_html(head) do
+    #   h when is_binary(h) and is_binary(t) -> h <> t
+    #   h -> if t == "", do: [h], else: [h | t]
+    # end
+    case {tokenized_to_html(head), tokenized_to_html(tail)} do
+      {h, t} when is_binary(h) and is_binary(t) -> h <> t
+      {h, ""} -> [h]
+      {h, t} when not is_list(t) -> [h, t]
+      {h, t} -> [h | t]
     end
   end
   def tokenized_to_html(other), do: other
@@ -272,6 +278,7 @@ defmodule Drab.Live.HTML do
       {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | buffer]} | rest]} ->
         # IO.puts "BUFFER"
         {op, fd, ac} = do_inject(buffer, attribute, opened, found, [])
+        # IO.inspect ac
         modified_buffer = {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | ac]} | rest]}
         do_inject(tail, attribute, op, fd, acc ++ [modified_buffer])
       list when is_list(list) ->
@@ -369,6 +376,49 @@ defmodule Drab.Live.HTML do
   defp do_to_flat_html({_, buffer}), do: do_to_flat_html(buffer)
   defp do_to_flat_html(_), do: []  # TODO: rething, may be insecure
 
+  @doc """
+  Returns true if the expression is directly under the opened tag
+
+      iex> in_opened_tag? ["<tag 1><tag 2>", ["<tag 3>", "</tag 3> x"]]
+      false
+      iex> in_opened_tag? ["<tag 1><tag 2> x", ["<tag 3> xx"]]
+      true
+      iex> in_opened_tag? ["anything else"]
+      false
+      iex> in_opened_tag? []
+      false
+      iex> in_opened_tag? ""
+      false
+      iex> in_opened_tag? ["<tag 1><tag 2> x"]
+      true
+      iex> in_opened_tag? ["<tag 1></tag 2> x <br x> x"]
+      false
+      iex> in_opened_tag? ["<tag 1></tag 2> x <br x"]
+      false
+      iex> in_opened_tag? ["<tag 1><tag2 x"]
+      true
+  """
+  def in_opened_tag?({:safe, body}), do: in_opened_tag?(body)
+  def in_opened_tag?(body) do
+    tokenized =
+      body
+      |> to_flat_html()
+      |> tokenize()
+    case last_tag(tokenized) do
+      {_, tag} -> not String.starts_with?(tag, "/")
+      nil -> false
+    end
+  end
+
+  defp last_tag(tokenized) do
+    tokenized
+      |> Enum.filter(fn
+           {_, x} -> tag_name(x) not in @non_closing_tags
+           _ -> true
+         end)
+      |> Enum.reverse()
+      |> Enum.find(&(match?({_, _}, &1)))
+  end
 
   @doc """
   Returns amperes and patterns from flat html.
@@ -494,6 +544,9 @@ defmodule Drab.Live.HTML do
   def remove_drab_marks(list) when is_list(list) do
     list
   end
+  # def remove_drab_marks(nil) do
+  #   []
+  # end
 
   @doc """
   Deep reverse of the list

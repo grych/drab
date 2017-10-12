@@ -1,15 +1,12 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
-<span>
 <br>
-<span id="color_main" @style.backgroundColor=<%=@color%>>
+<div id="color_main" @style.backgroundColor=<%=@color%>>
   Users count: <%= @count %>
-</span>
+</div>
 <br>
-<span>
 <%= render("users.html", users: @users, count: @count, color: @color) %>
-</span>
 <br>
 
 <button drab-click="update_both" class="btn btn-primary">
@@ -56,4 +53,7 @@
   Update @color in main partial
 </button>
 <br>
-</span>
+
+<div>
+<img src="<%= static_path(@conn, "/conn/should/not/be/in/assigns")%>">
+</div>

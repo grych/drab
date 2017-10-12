@@ -246,4 +246,6 @@ defmodule Drab.Live.HtmlTest do
 \n{{{{@drab-expr-hash:gu3tgmzrgq4deoa}}}}{{{{/@drab-expr-hash:gu3tgmzrgq4deoa}}}}\n</div>\n\n\
 <button drab-click=update_mini>Update mini</button>\n"
   end
+
 end
+

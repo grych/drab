@@ -110,8 +110,11 @@ defmodule Drab.Live.EExEngine do
   def handle_body({:safe, body}) do
     body = List.flatten(body)
 
-    found_assigns = find_assigns(body)
     partial_hash = partial(body)
+    if partial_hash == "gi3tgnrzg44tmnbs" do
+      IO.inspect body
+    end
+    found_assigns = find_assigns(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
       assign_js(partial_hash, assign)
     end) |> script_tag()
@@ -161,8 +164,6 @@ defmodule Drab.Live.EExEngine do
 
 
 
-    # IO.puts ""
-    # IO.puts "FINAL:"
     # IO.inspect final
 
 
@@ -347,10 +348,9 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_end(quoted) do
-    # IO.puts "END"
-    # IO.inspect quoted
     # do not drab anything inside the expression, all is handled by the parent
     remove_drab_marks(quoted)
+    # quoted
   end
 
   @doc false
@@ -385,12 +385,6 @@ defmodule Drab.Live.EExEngine do
     expr = Macro.prewalk(expr, &handle_assign/1)
     # IO.inspect shallow_find_assigns(expr)
 
-    # if partial(buffer) == :guzdmmrvga4de do
-    #   IO.puts "in mini:"
-    #   IO.inspect expr
-    # end
-
-
     # found_assigns = shallow_find_assigns(expr)
     found_assigns = find_assigns(expr)
     found_assigns? = found_assigns != []
@@ -398,13 +392,22 @@ defmodule Drab.Live.EExEngine do
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
 
+    html = buffer |> to_flat_html()
+    if partial(buffer) == "gi3tgnrzg44tmnbs" do
+      IO.puts ""
+      # IO.inspect buffer
+      IO.puts ""
+    end
+    inject_span? = not in_opened_tag?(buffer)
+    # inject_span? = false
+
     # IO.inspect buffer
-    # found_assigns? = true
-    buffer = if found_assigns? do
-      # {_, buf, _} = inject_attribute_to_last_opened(buffer, attribute)
-      # buf
+    # found_assigns? = false
+    buffer = if !inject_span? && found_assigns? do
+      # {a, b, c} = inject_attribute_to_last_opened(buffer, attribute)
+      # IO.inspect {a, c}
       case inject_attribute_to_last_opened(buffer, attribute) do
-        {:ok, buf, _}          -> buf # injected!
+        {:ok, buf, _}          -> buf    # injected!
         {:already_there, _, _} -> buffer # it was already there
         {:not_found, _, _}     -> raise EEx.SyntaxError, message: """
           can't find the parent tag for an expression in line #{line}.
@@ -432,34 +435,45 @@ defmodule Drab.Live.EExEngine do
     # IO.inspect hash
     # expr = to_safe(expr, line)
     Drab.Live.Cache.set(hash, {:expr, buffer, remove_drab_marks(expr), found_assigns})
-
+    # require IEx; IEx.pry
     #TODO: REFACTOR
-    html = buffer |> to_html()
-    # IO.inspect html
-    attribute = html |> find_attr_in_html()
-    is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attribute && String.starts_with?(attribute, "@")
+    attr = html |> find_attr_in_html()
+    is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attr && String.starts_with?(attr, "@")
     expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
 
-    # span_begin = "<span #{@drab_id}='#{hash}'>"
-    # span_end   = "</span>"
+    span_begin = "<span #{attribute}>"
+    span_end   = "</span>"
 
     expr_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
     expr_end   = "{{{{/@drab-expr-hash:#{hash}}}}}"
 
-    # IO.inspect expr
-    found_assigns? = true
-    buf = if found_assigns? do
+    # inject_span? = false
+    buf = if inject_span? do
+      quote do
+        tmp1 = unquote(buffer)
+        [tmp1, unquote(span_begin), unquote(expr_begin), unquote(expr), unquote(expr_end), unquote(span_end)]
+      end
+    else
       quote do
         tmp1 = unquote(buffer)
         [tmp1, unquote(expr_begin), unquote(expr), unquote(expr_end)]
       end
-    else
-      quote do
-        # [unquote(buffer), unquote(expr)]
-        tmp1 = unquote(buffer)
-        [tmp1, unquote(expr)]
-      end
     end
+
+    # IO.inspect expr
+    # found_assigns? = true
+    # buf = if found_assigns? do
+    #   quote do
+    #     tmp1 = unquote(buffer)
+    #     [tmp1, unquote(span_begin), unquote(expr_begin), unquote(expr), unquote(expr_end), unquote(span_end)]
+    #   end
+    # else
+    #   quote do
+    #     # [unquote(buffer), unquote(expr)]
+    #     tmp1 = unquote(buffer)
+    #     [tmp1, unquote(expr)]
+    #   end
+    # end
 
     {:safe, buf}
   end
@@ -611,7 +625,7 @@ defmodule Drab.Live.EExEngine do
   # end
 
   defp partial(body) do
-    html = to_html(body)
+    html = to_flat_html(body)
     p = Regex.run ~r/<span.*drab-partial='([^']+)'/is, html
     #TODO: possibly dangerous - returning nil when partial not found
     # but should be OK as we use shadow buffer only for attributes and scripts

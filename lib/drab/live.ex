@@ -503,8 +503,11 @@ defmodule Drab.Live do
 
   defp partial_hash(view, partial_name) do
     # Drab.Live.Cache.get({:partial, partial_path(view, partial_name)})
-    {hash, _assigns} = Drab.Live.Cache.get(partial_path(view, partial_name))
-    hash
+    path = partial_path(view, partial_name)
+    case Drab.Live.Cache.get(path) do
+      {hash, _assigns} -> hash
+      _ -> raise_partial_not_found(path)
+    end
   end
 
   defp partial_path(view, partial_name) do
@@ -517,15 +520,28 @@ defmodule Drab.Live do
   end
 
   defp raise_assign_not_found(assign, current_keys) do
-        raise ArgumentError, message: """
-          Assign @#{assign} not found in Drab EEx template
+    raise ArgumentError, message: """
+      assign @#{assign} not found in Drab EEx template.
 
-          Please make sure all proper assigns have been set. If this
-          is a child template, ensure assigns are given explicitly by
-          the parent template as they are not automatically forwarded.
+      Please make sure all proper assigns have been set. If this
+      is a child template, ensure assigns are given explicitly by
+      the parent template as they are not automatically forwarded.
 
-          Available assigns:
-          #{inspect current_keys}
-          """
+      Available assigns:
+      #{inspect current_keys}
+      """
   end
+
+  defp raise_partial_not_found(path) do
+    raise ArgumentError, message: """
+      template `#{path}` not found.
+
+      Please make sure this partial exists and has been compiled
+      by Drab (has *.drab extension).
+
+      If you want to poke assign to the partial which belong to
+      the other view, you need to specify the view name in `poke/4`.
+      """
+  end
+
 end

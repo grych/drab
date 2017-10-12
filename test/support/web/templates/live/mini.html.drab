@@ -2,18 +2,16 @@
 <div id="drab_pid" style="display: none;"></div>
 
 <div>
-<%= @link %>
+
+
 <%= if true do %>
-<b>
-<%= List.first(@users) %>
-</b>
+  <p> <%= @link %></p>
 <% end %>
 
-<%= for x <- @users do %>
-  <p>LINK:<%= "#{x}: " %><b><%= @link %></b></p>
-<% end %>
+<x>
+<%= @color %>
+aaa
 
-<%= render("partial1.html", in_partial: "primary value for partial 2", color: "#FFCC66", link: "https://tg.pl")%>
 </div>
 
 
