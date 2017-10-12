@@ -126,6 +126,7 @@ function update_event_handler(node, event, func) {
 }
 
 Drab.enable_drab_on = function(selector) {
+  // console.log(selector);
   for (var i = 0; i < Drab.change.length; i++) {
     var fx = Drab.change[i];
     fx(selector);
@@ -184,7 +185,7 @@ Drab.set_event_handlers = function (obj) {
         // send the message back to the server
         Drab.run_handler(
           event_name,
-          n.getAttribute("drab-handler"), 
+          n.getAttribute("drab-handler"),
           payload(n, event)
           <%= if Drab.Config.get(:disable_controls_while_processing) do %>
             , function() {

@@ -30,8 +30,8 @@ Drab.on_change(function(selector) {
   var node = document.querySelector(selector);
   if (node) {
     // search_for_drab(node);
-    set_properties(node);
     run_drab_scripts_on(node);
+    set_properties(node);
   }
 });
 
@@ -90,7 +90,6 @@ function run_drab_scripts_on(node) {
 
 function set_properties(where) {
   var d = window.__drab;
-
   for (var ampere in d.properties) {
     var properties = d.properties[ampere];
     for (var property in properties) {
@@ -99,14 +98,6 @@ function set_properties(where) {
         var node = nodes[i];
         set_property(node, ampere, property, properties[property]);
       }
-      // window.__drab.properties[partial][ampere][property] = properties[property]
-      // console.log(key, properties[key]);
-      // var amps = where.querySelectorAll("[drab-ampere='" + ampere + "']")
-      // for (var k = 0; k < amps.length; k++) {
-      //   var n = amps[k];
-      //   console.log(n);
-      //   // set_property(n, key, properties[key]);
-      // }
     }
   }
 

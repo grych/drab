@@ -1,6 +1,6 @@
 defmodule DrabTestApp.PartialsCommander do
   @moduledoc false
-  
+
   use Drab.Commander, modules: [Drab.Live, Drab.Element]
   onload :page_loaded
 
@@ -31,17 +31,17 @@ defmodule DrabTestApp.PartialsCommander do
   defp button(i), do: "<button id='button#{i}' drab-click='change_partial1'>Change partial1</button>"
 
   def change_partial1(socket, _sender) do
-    poke socket, DrabTestApp.LiveView, "partial1.html", 
+    poke socket, DrabTestApp.LiveView, "partial1.html",
       in_partial: "changed in commander", link: "http://elixirforum.com", color: "#ff3322"
   end
 
   def change_partial2(socket, _sender) do
-    poke socket, DrabTestApp.Live2View, "partial2.html", 
+    poke socket, DrabTestApp.Live2View, "partial2.html",
       in_partial: "changed in commander", link: "http://elixirforum.com", color: "#ff3322"
   end
 
   def change_partial4(socket, _sender) do
-    poke socket, DrabTestApp.LiveView, "partial4.html", 
+    poke socket, DrabTestApp.LiveView, "partial4.html",
       in_partial: "changed in commander", link: "http://elixirforum.com", color: "#ff3322"
   end
 end

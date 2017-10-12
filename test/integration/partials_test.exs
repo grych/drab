@@ -50,12 +50,12 @@ defmodule DrabTestApp.PartialsTest do
     assert String.contains?(inner_text({:id, "partial#{i}_color"}), "in partial#{i}")
     assert attribute_value({:id, "partial#{i}_href"}, "href") == "http://tg.pl/"
     assert inner_text({:id, "partial#{i}_href"}) == "http://tg.pl"
-  end    
+  end
 
   defp check_partial(i) do
     assert css_property({:id, "partial#{i}_color"}, "backgroundColor") == "rgba(255, 51, 34, 1)"
     assert String.contains?(inner_text({:id, "partial#{i}_color"}), "changed in commander")
     assert attribute_value({:id, "partial#{i}_href"}, "href") == "http://elixirforum.com/"
     assert inner_text({:id, "partial#{i}_href"}) == "http://elixirforum.com"
-  end    
+  end
 end
