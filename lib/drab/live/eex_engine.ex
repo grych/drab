@@ -411,20 +411,6 @@ defmodule Drab.Live.EExEngine do
         {:already_there, _, _} -> buffer # it was already there
         {:not_found, _, _}     -> raise EEx.SyntaxError, message: """
           can't find the parent tag for an expression in line #{line}.
-
-          If the expression is inside the block (do, else):
-
-              <%= if clause do %>
-                <%= expression(@assign) %>
-              <% end %>
-
-          must be sourrounded by the html tag:
-
-              <%= if clause do %>
-                <span>
-                  <%= expression(@assign) %>
-                </span>
-              <% end %>
           """
       end
     else

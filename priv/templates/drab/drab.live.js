@@ -245,14 +245,20 @@ Drab.update_property = function(ampere, property, new_value) {
   }
 }
 
-Drab.update_tag = function(tag, ampere, html) {
-  var s = selector(ampere);
-  var nodes = document.querySelectorAll(s);
-  for (var i = 0; i < nodes.length; i++) {
-    var node = nodes[i];
-    node.innerHTML = html;
+Drab.update_tag = function(tag, ampere, new_value) {
+  switch(tag) {
+    case "script":
+      eval(new_value);
+      break;
+    default:
+      var s = selector(ampere);
+      var nodes = document.querySelectorAll(s);
+      for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        node.innerHTML = new_value;
+      }
+      Drab.enable_drab_on(s);
   }
-  Drab.enable_drab_on(s);
   // set_properties(node);
   // Drab.enable_drab_on(node);
   // if (tag == "script") {

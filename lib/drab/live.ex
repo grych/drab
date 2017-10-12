@@ -295,7 +295,10 @@ defmodule Drab.Live do
           :html ->
             safe = eval_expr(pattern, modules, updated_assigns, gender)
             new_value = safe |> safe_to_string() # |> Drab.Live.HTML.remove_drab_marks()
-            "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
+            case {tag, Drab.Config.get(:enable_live_scripts)} do
+              {"script", false} -> nil
+              {_, _} -> "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
+            end
           :attr ->
             new_value = eval_expr(pattern, modules, updated_assigns, gender) |> safe_to_string()
             "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(new_value)})"

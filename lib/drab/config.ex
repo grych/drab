@@ -2,7 +2,7 @@ defmodule Drab.Config do
   @moduledoc """
   Drab configuration related functions.
   """
-  
+
   @doc """
   Returns the name of the client Phoenix Application
 
@@ -13,7 +13,7 @@ defmodule Drab.Config do
     get(:main_phoenix_app) || case Code.ensure_loaded(Mix.Project) do
       {:module, Mix.Project} -> Mix.Project.config()[:app] || raise_app_not_found()
       {:error, _} -> raise_app_not_found()
-    end 
+    end
   end
 
   defp raise_app_not_found() do
@@ -29,13 +29,13 @@ defmodule Drab.Config do
   @doc """
   Returns the Endpoint of the client Phoenix Application
 
-      iex> Drab.Config.endpoint()  
+      iex> Drab.Config.endpoint()
       DrabTestApp.Endpoint
   """
   def endpoint() do
     # IO.inspect app_env()
     # TODO: bad performance
-    {endpoint, _} = app_env() 
+    {endpoint, _} = app_env()
     |> Enum.filter(fn {x, _} -> first_uppercase?(x) end)
     |> Enum.find(fn {base, _} ->
       # Code.ensure_compiled(base) # needs to be compiled before View
@@ -47,7 +47,7 @@ defmodule Drab.Config do
   @doc """
   Returns the PubSub module of the client Phoenix Application
 
-      iex> Drab.Config.pubsub()  
+      iex> Drab.Config.pubsub()
       DrabTestApp.PubSub
   """
   def pubsub() do
@@ -70,7 +70,7 @@ defmodule Drab.Config do
   # TODO: find a better way to check if the module is an Endpoint
   defp is_endpoint?(module) when is_atom(module) do
     {loaded, _} = Code.ensure_loaded(module)
-    loaded == :module 
+    loaded == :module
       && function_exported?(module, :struct_url, 0)
       && function_exported?(module, :url, 0)
   end
@@ -83,7 +83,7 @@ defmodule Drab.Config do
   """
   def app_module() do
     # in 1.3 app module is not under the endpoint
-    Module.split(endpoint()) 
+    Module.split(endpoint())
     |> Enum.drop(-1)
     |> Module.concat()
   end
@@ -95,7 +95,7 @@ defmodule Drab.Config do
       true
   """
   def app_env() do
-    Application.get_all_env(app_name()) 
+    Application.get_all_env(app_name())
   end
 
   @doc """
@@ -122,7 +122,7 @@ defmodule Drab.Config do
   Returns configured Drab.Live.Engine Extension. String with dot at the begin.
 
   Example, for config:
-      
+
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
 
@@ -132,7 +132,7 @@ defmodule Drab.Config do
       ".drab"
   """
   def drab_extension() do
-    {drab_ext, Drab.Live.Engine} = Application.get_env(:phoenix, :compiled_template_engines) 
+    {drab_ext, Drab.Live.Engine} = Application.get_env(:phoenix, :compiled_template_engines)
       |> Enum.find(fn {_, v} -> v == Drab.Live.Engine end)
     "." <> to_string(drab_ext)
   end
@@ -142,30 +142,31 @@ defmodule Drab.Config do
 
       iex> Drab.Config.get(:templates_path)
       "test/support/priv/templates/drab"
-  
+
   All the config values may be override in `config.exs`, for example:
 
       config :drab, disable_controls_while_processing: false
 
   Configuration options:
-  * `templates_path` (default: "priv/templates/drab") - path to the user templates (may be new or override default 
+  * `templates_path` (default: "priv/templates/drab") - path to the user templates (may be new or override default
     templates)
-  * `disable_controls_while_processing` (default: `true`) - after sending request to the server, sender will be 
+  * `disable_controls_while_processing` (default: `true`) - after sending request to the server, sender will be
     disabled until get the answer; warning: this behaviour is not broadcasted, so only the control in the current
     browers will be disabled
-  * `events_to_disable_while_processing` (default: `["click"]`) - list of events which will be disabled when 
+  * `events_to_disable_while_processing` (default: `["click"]`) - list of events which will be disabled when
     waiting for server response
   * `disable_controls_when_disconnected` (default: `true`) - disables control when there is no connectivity
     between the browser and the server
   * `socket` (default: `"/socket"`) - path to the socket where Drab operates
-  * `drab_store_storage` (default: :session_storage) - where to keep the Drab Store - :memory, :local_storage or 
+  * `drab_store_storage` (default: :session_storage) - where to keep the Drab Store - :memory, :local_storage or
     :session_storage; data in memory is kept to the next page load, session storage persist until browser (or a tab) is
     closed, and local storage is kept forever
   * `browser_response_timeout` - timeout, after which all functions querying/updating browser UI will give up; integer
     in milliseconds or `:infinity`
   * `main_phoenix_app` - a name of your Phoenix application (atom); if not set it gets it from the `mix.exs`
+  * `enable_live_scripts` - true for re-evaluate javascripts contain living assigns
   """
-  def get(:templates_path), do: 
+  def get(:templates_path), do:
     Application.get_env(:drab, :templates_path, "priv/templates/drab")
   def get(:disable_controls_while_processing),  do: Application.get_env(:drab, :disable_controls_while_processing, true)
   def get(:events_to_disable_while_processing), do: Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
@@ -174,6 +175,7 @@ defmodule Drab.Config do
   def get(:drab_store_storage), do:                 Application.get_env(:drab, :drab_store_storage, :session_storage)
   def get(:browser_response_timeout), do:           Application.get_env(:drab, :browser_response_timeout, 5000)
   def get(:main_phoenix_app), do:                   Application.get_env(:drab, :main_phoenix_app, nil)
+  def get(:enable_live_scripts), do:                Application.get_env(:drab, :enable_live_scripts, false)
   def get(_), do: nil
 
   # @doc """

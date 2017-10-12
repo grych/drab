@@ -54,8 +54,8 @@ defmodule DrabTestApp.LiveCommander do
     # poke socket, color: "blue", count: 13
     # poke socket, "user.html", user: "Bravo"
     # poke socket, "partial1.html", in_partial: "updated partial 1", color: "#66FFFF", link: "https://tg.pl/drab"
-    poke socket, users: ["a", "b"], link: "a"
-    # poke socket, link: "a"
+    # poke socket, users: ["a", "b"], link: "a"
+    poke socket, link: "a"
   end
 
 end

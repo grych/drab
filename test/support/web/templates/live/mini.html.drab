@@ -1,18 +1,20 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
 
-<div>
+<script type="text/javascript">
+  console.log("<%= @link %>");
+</script>
 
 
-<%= if true do %>
-  <p> <%= @link %></p>
-<% end %>
-
-<x>
 <%= @color %>
-aaa
+<br>
+<p>
+<%= @link %>
 
-</div>
+<%= @link %>
+</p>
+
+
 
 
 <button drab-click=update_mini>Update mini</button>

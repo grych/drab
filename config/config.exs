@@ -25,5 +25,8 @@ import_config "#{Mix.env}.exs"
 config :phoenix, :template_engines,
   drab: Drab.Live.Engine
 
-config :drab, 
+config :drab,
   templates_path: "test/support/priv/templates/drab"
+
+config :drab,
+  enable_live_scripts: true
