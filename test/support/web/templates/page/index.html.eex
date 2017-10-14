@@ -9,7 +9,7 @@
 
 If you started it with <code>iex -S mix phoenix.server</code>, you may debug Drab functions in IEx by following the instruction in the console:
 <pre>
-[debug] 
+[debug]
     Started Drab for /, handling events in DrabTestApp.PageCommander
     You may debug Drab functions in IEx by copy/paste the following:
 import Drab.{Core, Query, Modal, Waiter}s
@@ -36,6 +36,7 @@ Pages for Integration Tests: <br>
 <a href="/tests/live/form">Drab.Live and form</a><br>
 <a href="/tests/live/partials">Partials and HTML injecting</a><br>
 <a href="/tests/live/query">Drab.Live + Drab.Query</a><br>
+<a href="/tests/live/table">Drab.Live and html table</a><br>
 <a href="/tests/element">Drab.Element</a><br>
 <br>
 <a href="/tests/broadcast1">Broadcasting to the same URL (default)</a><br>

@@ -1,6 +1,6 @@
 defmodule DrabTestApp.Router do
   @moduledoc false
-  
+
   use DrabTestApp.Web, :router
 
   pipeline :browser do
@@ -37,6 +37,7 @@ defmodule DrabTestApp.Router do
     get "/tests/live/form", LiveController, :form, as: :form
     get "/tests/live/partials", PartialsController, :partials, as: :partials
     get "/tests/live/query",LiveQueryController, :index, as: :live_query
+    get "/tests/live/table",LiveController, :table, as: :table
 
     get "/tests/element",   ElementController, :index, as: :element
   end

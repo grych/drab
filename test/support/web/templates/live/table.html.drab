@@ -1,0 +1,18 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<table id=table>
+  <%= for user <- @users do %>
+    <tr>
+      <td>
+        Username: <%= user %>
+      </td>
+      <td>
+        <%= @link %>
+      </td>
+    </tr>
+  <% end %>
+</table>
+
+<button id="update_users" drab-click="update_list">Update users</button><br>
+<button id="update_link"  drab-click="update_link">Update link </button>

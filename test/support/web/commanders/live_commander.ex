@@ -46,6 +46,10 @@ defmodule DrabTestApp.LiveCommander do
     poke socket, out: sender.params
   end
 
+  def update_link(socket, _) do
+    poke socket, link: "https://elixirforum.com"
+  end
+
   def update_mini(socket, sender) do
     IO.inspect sender
     # poke socket, class1: "btn", class2: "btn-warning",

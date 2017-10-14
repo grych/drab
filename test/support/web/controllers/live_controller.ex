@@ -6,14 +6,19 @@ defmodule DrabTestApp.LiveController do
 
   require Logger
 
+  @users ~w(Zdzisław Zofia Hendryk Stefan)
+
   def index(conn, _params) do
-    users = ~w(Zdzisław Zofia Hendryk Stefan)
-    render conn, "index.html", users: users, count: length(users), color: "#ffffff"
+    render conn, "index.html", users: @users, count: length(@users), color: "#ffffff"
   end
 
   def form(conn, _params) do
     render conn, "form.html", text1: "text1 initial value", select1: "2", textarea1: "textarea initial value",
       out: %{}
+  end
+
+  def table(conn, _params) do
+    render conn, "table.html", users: @users, link: "https://tg.pl/drab"
   end
 
   def mini(conn, _params) do

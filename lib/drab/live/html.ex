@@ -413,7 +413,7 @@ defmodule Drab.Live.HTML do
   defp last_tag(tokenized) do
     tokenized
       |> Enum.filter(fn
-           {_, x} -> tag_name(x) not in @non_closing_tags
+           {_, x} -> not (tag_name(x) in @non_closing_tags)
            _ -> true
          end)
       |> Enum.reverse()
