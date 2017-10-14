@@ -1,9 +1,12 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
 
-<div id="partial4_placeholder"></div>
 
-
+<%= (for user <- @users do %>
+u: <%= user %>
+l: <%= @link %>
+<br>
+<% end) %>
 
 
 <button drab-click=update_mini>Update mini</button>

@@ -39,7 +39,7 @@
       this.channel = this.socket.channel("__drab:" + this.drab_topic, {});
 
       this.channel.join().receive("error", function (resp) {
-        // TODO: communicate it to user 
+        // TODO: communicate it to user
         console.log("Unable to join the Drab Channel", resp);
       }).receive("ok", function (resp) {
         // launch on_connect
@@ -66,7 +66,7 @@
         }
       });
     },
-    // 
+    //
     //   string - event name
     //   event_handler -  string - function name in Phoenix Commander
     //   payload: object - will be passed as the second argument to the Event Handler
@@ -120,8 +120,8 @@
     }
   };
 
-  <%= 
-    Enum.map(templates, fn template -> 
+  <%=
+    Enum.map(templates, fn template ->
       Drab.Template.render_template(template, [])
     end)
   %>

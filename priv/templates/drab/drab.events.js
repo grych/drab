@@ -126,7 +126,6 @@ function update_event_handler(node, event, func) {
 }
 
 Drab.enable_drab_on = function(selector) {
-  // console.log(selector);
   for (var i = 0; i < Drab.change.length; i++) {
     var fx = Drab.change[i];
     fx(selector);
@@ -150,7 +149,6 @@ Drab.set_event_handlers = function (obj) {
     } else {
       drab_objects_shortcut = document.querySelectorAll("[drab-" + ev + "]");
     }
-    // console.log(drab_objects_shortcut)
     for (var i = 0; i < drab_objects_shortcut.length; i++) {
       var node = drab_objects_shortcut[i];
       node.setAttribute("drab-event", ev);

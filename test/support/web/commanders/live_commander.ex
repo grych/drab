@@ -54,11 +54,11 @@ defmodule DrabTestApp.LiveCommander do
     # poke socket, color: "blue", count: 13
     # poke socket, "user.html", user: "Bravo"
     # poke socket, "partial1.html", in_partial: "updated partial 1", color: "#66FFFF", link: "https://tg.pl/drab"
-    # poke socket, users: ["a", "b"], link: "a"
+    poke socket, users: ["a", "b"], link: "aaaa"
     # poke socket, link: "a"
-    partial4 = render_to_string(DrabTestApp.LiveView, "partial4.html", in_partial: "in partial4",
-      color: "#aaaabb", link: "http://tg.pl")
-    set_prop(socket, "#partial4_placeholder", innerHTML: partial4)
+    # partial4 = render_to_string(DrabTestApp.LiveView, "partial4.html", in_partial: "in partial4",
+    #   color: "#aaaabb", link: "http://tg.pl")
+    # set_prop(socket, "#partial4_placeholder", innerHTML: partial4)
   end
 
 end

@@ -234,10 +234,6 @@ defmodule Drab.Live do
   end
 
   defp do_poke(socket, view, partial_name, assigns, function) do
-    #TODO: improve perfomance
-    # t1 = :os.system_time(:microsecond)
-    # IO.inspect :os.system_time(:microsecond) - t1
-
     if Enum.member?(Keyword.keys(assigns), :conn) do
       raise ArgumentError, message: """
         assign @conn is read only.
@@ -248,8 +244,6 @@ defmodule Drab.Live do
     partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
 
     current_assigns = assigns(socket, partial, partial_name)
-    IO.puts "current assigns:"
-    IO.inspect current_assigns
 
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
     assigns_to_update = Enum.into(assigns, %{})
@@ -265,9 +259,6 @@ defmodule Drab.Live do
       |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end)
       |> Keyword.merge(assigns)
 
-    # IO.puts ""
-    # IO.inspect assigns
-    # IO.inspect updated_assigns
 
     #TODO: check how it works in P13, when app_module is different than web_app_module
     app_module = Drab.Config.app_module()
@@ -278,16 +269,12 @@ defmodule Drab.Live do
       Module.concat(app_module, Gettext)
     }
 
-    # TODO: check only amperes which contains the changed assigns
-    # amperes = amperes(socket, partial)
-
     amperes_to_update = for {assign, _} <- assigns do
       Drab.Live.Cache.get({partial, assign})
     end |> List.flatten() |> Enum.uniq()
-    IO.inspect assigns
-    IO.puts "updated assigns"
-    IO.inspect updated_assigns
 
+    # construct the javascripts for update of amperes
+    #TODO: group updates on one node
     update_javascripts = for ampere <- amperes_to_update,
       {gender, tag, prop_or_attr, pattern, _} <- (Drab.Live.Cache.get({partial, ampere}) || []) do
       # IO.inspect Drab.Live.Cache.get({partial, ampere})
@@ -308,84 +295,13 @@ defmodule Drab.Live do
           # _ -> ""
         end
     end
-    # construct the javascripts for update of amperes
-    #TODO: group updates on one node
-    # update_javascripts = for ampere_hash <- amperes do
-    #   # ampere_hash = "[drab-ampere='#{ampere_hash}']"
-
-    #   case Drab.Live.Cache.get(ampere_hash) do
-    #     {:expr, expr, assigns_in_expr} ->
-    #       # change only if poked assign exist in this ampere
-    #       #TODO: stay DRY
-    #       if has_common?(assigns_in_expr, assigns_to_update_keys) do
-    #         safe = eval_expr(expr, modules, updated_assigns)
-    #         new_value = safe_to_encoded_js(safe)
-
-    #         "Drab.update_drab_span(#{encode_js(ampere_hash)}, #{new_value}, #{encode_js(partial)})"
-    #       else
-    #         nil
-    #       end
-    #     {:attribute, list} ->
-    #       for {type, attr, pattern, exprs, assigns_in_ampere} <- list do
-    #         if Regex.match?(~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:[^@}]+}}}}/, attr) do
-    #           #TODO: not allowed, attribute name not found
-    #           # warning appears during compile-time
-    #           nil
-    #         else
-    #           if has_common?(assigns_in_ampere, assigns_to_update_keys) do
-    #             evaluated_expressions = Enum.map(exprs, fn hash ->
-    #               {:expr, expr, _} = Drab.Live.Cache.get(hash)
-    #               new_value = eval_expr(expr, modules, updated_assigns)
-    #               # new_value = safe_to_string(safe)
-    #               # new_value = safe
-    #               {hash, new_value}
-    #             end)
-    #             new_value_of_attribute = case type do
-    #               # update in pattern
-    #               :attr ->
-    #                 replace_pattern(pattern, evaluated_expressions) |> encode_js()
-    #               :prop ->
-    #                 {_, new_value} = evaluated_expressions |> List.first()
-    #                 new_value |> encode_js()
-    #             end
-    #             sel = encode_js(ampere_hash)
-    #             ap = encode_js(attr)
-    #             pr = encode_js(partial)
-    #             "Drab.update_#{type}(#{sel}, #{ap}, #{new_value_of_attribute}, #{pr})"
-    #           else
-    #             nil
-    #           end
-    #         end
-    #       end
-    #     {tag, pattern, exprs, assigns_in_ampere} when tag in [:textarea, :script] ->
-    #       if has_common?(assigns_in_ampere, assigns_to_update_keys) do
-    #         hash_and_value = Enum.map(exprs, fn hash ->
-    #           {:expr, expr, _} = Drab.Live.Cache.get(hash)
-    #           safe = eval_expr(expr, modules, updated_assigns)
-    #           new_value = safe_to_string(safe)
-
-    #           {hash, new_value}
-    #         end)
-    #         new_value = replace_pattern(pattern, hash_and_value) |> encode_js()
-    #         "Drab.update_tag(#{encode_js(ampere_hash)}, #{new_value}, #{encode_js(partial)}, #{encode_js(tag)})"
-    #       else
-    #         nil
-    #       end
-
-    #     _ -> raise "Ampere \"#{ampere_hash}\" can't be found in Drab Cache."
-    #   end
-    # end |> List.flatten() |> Enum.filter(&(&1))
-
 
     assign_updates = assign_updates_js(assigns_to_update, partial)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
-    # all_javascripts = all_javascripts ++ ["Drab.enable_drab_on('[drab-partial=#{partial}]')"]
 
     IO.inspect(all_javascripts)
 
-    # IO.inspect :os.system_time(:microsecond) - t1
     {:ok, _} = function.(socket, all_javascripts |> Enum.join(";"))
-    # IO.inspect :os.system_time(:microsecond) - t1
 
     # Save updated assigns in the Drab Server
     assigns_to_update = for {k, v} <- assigns_to_update, into: %{} do
@@ -399,32 +315,12 @@ defmodule Drab.Live do
     partial_assigns_updated = %{priv.__ampere_assigns | partial => updated_assigns}
     socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: partial_assigns_updated})
 
-    # IO.inspect :os.system_time(:microsecond) - t1
-
     socket
   end
-
-  # defp replace_pattern(pattern, []), do: pattern
-  # defp replace_pattern(pattern, [{hash, value} | rest]) do
-  #   new_pattern = String.replace(pattern, ~r/{{{{@drab-ampere:[^@}]+@drab-expr-hash:#{hash}}}}}/,
-  #     to_string(value),
-  #     global: true)
-  #   replace_pattern(new_pattern, rest)
-  # end
-
-  # defp has_common?(list1, list2) do
-  #   if Enum.find(list1, fn xa ->
-  #     Enum.find(list2, fn xb -> xa == xb end)
-  #   end), do: true, else: false
-  # end
 
   defp eval_expr(expr, modules, updated_assigns, :prop) do
     eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
   end
-
-  # defp eval_expr(expr, modules, updated_assigns, :html) do
-  #   eval_expr(Drab.Live.EExEngine.safe_expr(expr), modules, updated_assigns)
-  # end
 
   defp eval_expr(expr, modules, updated_assigns, _) do
     eval_expr(expr, modules, updated_assigns)
@@ -463,10 +359,6 @@ defmodule Drab.Live do
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
-  # defp assigns(partial) do
-  #   {partial_name, assigns} = Drab.Live.Cache.get(partial)
-  # end
-
   defp assigns(socket, partial, partial_name) do
     assigns = case socket
       |> Drab.pid()
@@ -484,18 +376,6 @@ defmodule Drab.Live do
       {name, Drab.Live.Crypto.decode64(value)}
     end
   end
-
-  # defp amperes(partial) do
-  #   {_, amperes} = Drab.Live.Cache.get(partial)
-  # end
-
-  # defp amperes(socket, partial) do
-  #   socket
-  #     |> Drab.pid()
-  #     |> Drab.get_priv()
-  #     |> Map.get(:__amperes)
-  #     |> Map.get(partial)
-  # end
 
   defp index(socket) do
     socket

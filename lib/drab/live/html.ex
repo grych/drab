@@ -495,6 +495,7 @@ defmodule Drab.Live.HTML do
 
   @expr_begin ~r/{{{{@drab-expr-hash:\S+}}}}/
   @expr_end   ~r/{{{{\/@drab-expr-hash:\S+}}}}/
+  @partial    ~r/{{{{@drab-partial:\S+}}}}/
   defp contains_expression?(html) when is_binary(html) do
     Regex.match?(@expr_begin, html)
   end
@@ -512,7 +513,7 @@ defmodule Drab.Live.HTML do
     []
   end
   def remove_drab_marks([head | tail]) when is_binary(head) do
-    if Regex.match?(@expr_begin, head) || Regex.match?(@expr_end, head) do
+    if Regex.match?(@expr_begin, head) || Regex.match?(@expr_end, head) || Regex.match?(@partial, head) do
       [remove_drab_marks(head) | remove_drab_marks(tail)]
     else
       [head | remove_drab_marks(tail)]
@@ -540,13 +541,14 @@ defmodule Drab.Live.HTML do
     text
     |> String.replace(@expr_begin, "", global: true)
     |> String.replace(@expr_end, "", global: true)
+    |> String.replace(@partial, "", global: true)
   end
   def remove_drab_marks(list) when is_list(list) do
     list
   end
-  # def remove_drab_marks(nil) do
-  #   []
-  # end
+  def remove_drab_marks(nil) do
+    []
+  end
 
   @doc """
   Deep reverse of the list
