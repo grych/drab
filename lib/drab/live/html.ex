@@ -394,8 +394,12 @@ defmodule Drab.Live.HTML do
       iex> in_opened_tag? ["<tag 1></tag 2> x <br x> x"]
       false
       iex> in_opened_tag? ["<tag 1></tag 2> x <br x"]
-      false
+      true
       iex> in_opened_tag? ["<tag 1><tag2 x"]
+      true
+      iex> in_opened_tag? "<tag2 a=x x=' "
+      true
+      iex> in_opened_tag? "<input type='text' value='"
       true
   """
   def in_opened_tag?({:safe, body}), do: in_opened_tag?(body)
@@ -413,8 +417,9 @@ defmodule Drab.Live.HTML do
   defp last_tag(tokenized) do
     tokenized
       |> Enum.filter(fn
-           {_, x} -> not (tag_name(x) in @non_closing_tags)
-           _ -> true
+            {:naked, _} -> true
+            {_, x} -> not (tag_name(x) in @non_closing_tags)
+            _ -> true
          end)
       |> Enum.reverse()
       |> Enum.find(&(match?({_, _}, &1)))
@@ -509,46 +514,69 @@ defmodule Drab.Live.HTML do
   def remove_drab_marks({:safe, buffer}) do
     {:safe, remove_drab_marks(buffer)}
   end
-  def remove_drab_marks([]) do
-    []
-  end
-  def remove_drab_marks([head | tail]) when is_binary(head) do
-    if Regex.match?(@expr_begin, head) || Regex.match?(@expr_end, head) || Regex.match?(@partial, head) do
-      [remove_drab_marks(head) | remove_drab_marks(tail)]
-    else
-      [head | remove_drab_marks(tail)]
+  def remove_drab_marks(buffer) do
+    Macro.prewalk buffer, fn
+      text when is_binary(text) ->
+        text
+        |> String.replace(@expr_begin, "", global: true)
+        |> String.replace(@expr_end, "", global: true)
+        |> String.replace(@partial, "", global: true)
+      x ->
+        x
     end
   end
-  def remove_drab_marks([[{atom, args}] | tail]) when is_atom(atom) do
-    [[{atom, remove_drab_marks(args)}] | remove_drab_marks(tail)]
-  end
-  def remove_drab_marks([head | tail]) when is_atom(head) do
-    [head | remove_drab_marks(tail)]
-  end
-  def remove_drab_marks([head | tail]) when is_list(head) do
-    [remove_drab_marks(head) | remove_drab_marks(tail)]
-  end
-  def remove_drab_marks([{atom, meta, args} | tail]) when is_list(args) do
-    [{atom, meta, remove_drab_marks(args)} | remove_drab_marks(tail)]
-  end
-  def remove_drab_marks([{atom, meta, args} | tail]) when is_atom(args) do
-    [{atom, meta, args} | remove_drab_marks(tail)]
-  end
-  def remove_drab_marks(tuple) when is_tuple(tuple) do
-    tuple
-  end
-  def remove_drab_marks(text) when is_binary(text) do
-    text
-    |> String.replace(@expr_begin, "", global: true)
-    |> String.replace(@expr_end, "", global: true)
-    |> String.replace(@partial, "", global: true)
-  end
-  def remove_drab_marks(list) when is_list(list) do
-    list
-  end
-  def remove_drab_marks(nil) do
-    []
-  end
+  # def remove_drab_marks([]) do
+  #   []
+  # end
+  # def remove_drab_marks([head | tail]) when is_binary(head) do
+  #   if Regex.match?(@expr_begin, head) || Regex.match?(@expr_end, head) || Regex.match?(@partial, head) do
+  #     [remove_drab_marks(head) | remove_drab_marks(tail)]
+  #   else
+  #     [head | remove_drab_marks(tail)]
+  #   end
+  # end
+  # def remove_drab_marks([[{atom, args}] | tail]) when is_atom(atom) do
+  #   [[{atom, remove_drab_marks(args)}] | remove_drab_marks(tail)]
+  # end
+  # def remove_drab_marks([head | tail]) when is_atom(head) do
+  #   [head | remove_drab_marks(tail)]
+  # end
+  # def remove_drab_marks([head | tail]) when is_list(head) do
+  #   [remove_drab_marks(head) | remove_drab_marks(tail)]
+  # end
+  # def remove_drab_marks([{atom, meta, args} | tail]) when is_list(args) do
+  #   [{atom, meta, remove_drab_marks(args)} | remove_drab_marks(tail)]
+  # end
+  # def remove_drab_marks([{atom, meta, args} | tail]) when is_atom(args) do
+  #   [{atom, meta, args} | remove_drab_marks(tail)]
+  # end
+  # def remove_drab_marks({atom, meta, args}) when is_list(args) do
+  #   {atom, meta, remove_drab_marks(args)}
+  # end
+  # def remove_drab_marks({atom, meta, args}) when is_atom(args) do
+  #   {atom, meta, args}
+  # end
+  # # def remove_drab_marks(tuple) when is_tuple(tuple) do
+  # #   tuple
+  # # end
+  # def remove_drab_marks(text) when is_binary(text) do
+  #   text
+  #   |> String.replace(@expr_begin, "", global: true)
+  #   |> String.replace(@expr_end, "", global: true)
+  #   |> String.replace(@partial, "", global: true)
+  # end
+  # def remove_drab_marks(list) when is_list(list) do
+  #   list
+  # end
+  # def remove_drab_marks(nil) do
+  #   []
+  # end
+  # def remove_drab_marks(atom) when is_atom(atom) do
+  #   atom
+  # end
+  # # def remove_drab_marks(other) do
+  # #   other
+  # # end
 
   @doc """
   Deep reverse of the list

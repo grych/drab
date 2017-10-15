@@ -299,7 +299,7 @@ defmodule Drab.Live do
     assign_updates = assign_updates_js(assigns_to_update, partial)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
 
-    IO.inspect(all_javascripts)
+    # IO.inspect(all_javascripts)
 
     {:ok, _} = function.(socket, all_javascripts |> Enum.join(";"))
 

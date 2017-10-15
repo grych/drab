@@ -35,6 +35,7 @@ defmodule DrabTestApp.Router do
     get "/tests/live/mini", LiveController, :mini,  as: :mini
     get "/tests/live",      LiveController, :index, as: :live
     get "/tests/live/form", LiveController, :form, as: :form
+    get "/tests/live/form_for", LiveController, :form_for, as: :form_for
     get "/tests/live/partials", PartialsController, :partials, as: :partials
     get "/tests/live/query",LiveQueryController, :index, as: :live_query
     get "/tests/live/table",LiveController, :table, as: :table

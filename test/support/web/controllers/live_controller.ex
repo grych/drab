@@ -21,6 +21,10 @@ defmodule DrabTestApp.LiveController do
     render conn, "table.html", users: @users, link: "https://tg.pl/drab"
   end
 
+  def form_for(conn, _params) do
+    render conn, "form_for.html", list: ["From controller", "Also from controller"]
+  end
+
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
     render conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: false, label: "default",

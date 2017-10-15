@@ -165,6 +165,10 @@ defmodule Drab.Live.EExEngine do
       ]
     end |> script_tag()
 
+    # if partial_hash == "gi3dcnzwgm2dcmrv" do
+    #   IO.inspect body, limit: 10000
+    # end
+
     final = [
       script_tag(init_js),
       remove_drab_marks(body),
@@ -258,8 +262,8 @@ defmodule Drab.Live.EExEngine do
   # def handle_end(quoted) do
   #   # do not drab anything inside the expression, all is handled by the parent
   #   # TODO: not sure
-  #   # remove_drab_marks(quoted)
-  #   quoted
+  #   remove_drab_marks(quoted)
+  #   # quoted
   # end
 
   @doc false
@@ -279,9 +283,9 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
-    if partial(buffer) == "gi3tgnrzg44tmnbs" do
-      IO.inspect expr
-    end
+    # if partial(buffer) == "gi3dcnzwgm2dcmrv" do
+    #   IO.inspect expr
+    # end
 
     {expr, nodrab} = case expr do
       {:nodrab, _, [only_one_parameter]} -> {only_one_parameter, true}
@@ -331,6 +335,10 @@ defmodule Drab.Live.EExEngine do
 
     nodrab = if shallow_find_assigns(expr) == [:conn], do: true, else: nodrab
     nodrab = if found_assigns?, do: nodrab, else: true
+
+    # if partial(buffer) == "gi3dcnzwgm2dcmrv" do
+    #   IO.inspect shallow_find_assigns(expr)
+    # end
 
     buf = case {inject_span?, nodrab} do
       {_, true} ->
@@ -482,7 +490,7 @@ defmodule Drab.Live.EExEngine do
   @doc false
   def shallow_find_assigns(ast) do
     {_, assigns} = do_find(ast, [])
-    assigns
+    Enum.uniq(assigns)
   end
 
   defp do_find({:safe, _}, acc) do

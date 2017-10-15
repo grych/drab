@@ -1,0 +1,14 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<%= form_for @conn, form_for_path(@conn, :form_for), [as: :drab], fn f -> %>
+  <%= text_input f, :text, placeholder: "Reset after poke" %>
+  <br />
+  <%= text_input f, :new_item, placeholder: "Random list item" %>
+  <button id="add_item" type="button" drab-click="add_item">Add</button>
+  <ul>
+    <%= for(item <- @list) do %>
+      <li><%= item %></li>
+    <% end %>
+  </ul>
+<% end %>

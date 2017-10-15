@@ -50,6 +50,14 @@ defmodule DrabTestApp.LiveCommander do
     poke socket, link: "https://elixirforum.com"
   end
 
+  def add_item(socket, sender) do
+    items = socket |> peek(:list)
+    # new_item = socket |> Drab.Query.select(:val, from: "#drab_new_item")
+    new_item = sender["form"]["drab[new_item]"]
+    new_list = items ++ ["#{new_item}"]
+    Drab.Live.poke socket, list: new_list
+  end
+
   def update_mini(socket, sender) do
     IO.inspect sender
     # poke socket, class1: "btn", class2: "btn-warning",
