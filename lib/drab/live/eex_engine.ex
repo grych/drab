@@ -283,10 +283,9 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
-    # if partial(buffer) == "gi3dcnzwgm2dcmrv" do
-    #   IO.inspect expr
+    # if partial(buffer) == "gi3tgnrzg44tmnbs" do
+    #   IO.inspect buffer
     # end
-
     {expr, nodrab} = case expr do
       {:nodrab, _, [only_one_parameter]} -> {only_one_parameter, true}
       _ -> {expr, false}
@@ -336,8 +335,8 @@ defmodule Drab.Live.EExEngine do
     nodrab = if shallow_find_assigns(expr) == [:conn], do: true, else: nodrab
     nodrab = if found_assigns?, do: nodrab, else: true
 
-    # if partial(buffer) == "gi3dcnzwgm2dcmrv" do
-    #   IO.inspect shallow_find_assigns(expr)
+    # if partial(buffer) == "gi3tgnrzg44tmnbs" do
+    #   IO.inspect buffer
     # end
 
     buf = case {inject_span?, nodrab} do

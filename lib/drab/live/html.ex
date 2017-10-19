@@ -5,41 +5,41 @@ defmodule Drab.Live.HTML do
   Simple html tokenizer. Works with nested lists.
 
       iex> tokenize("<html> <body >some<b> anything</b></body ></html>")
-      [{:tag, "html"}, " ", {:tag, "body "}, "some", {:tag, "b"}, " anything",
-      {:tag, "/b"}, {:tag, "/body "}, {:tag, "/html"}]
+      [{:tag, "html"}, {:text, " "}, {:tag, "body "}, {:text, "some"}, {:tag, "b"}, {:text, " anything"},
+      {:tag, "/b"}, {:tag, "/body "}, {:tag, "/html"}, {:text, ""}]
 
       iex> tokenize("some")
-      ["some"]
+      [{:text, "some"}]
 
       iex> tokenize(["some"])
-      [["some"]]
+      [[{:text, "some"}], {:other, []}]
 
       iex> tokenize("")
-      []
+      [{:text, ""}]
 
       iex> tokenize([""])
-      [[]]
+      [[{:text, ""}], {:other, []}]
 
       iex> tokenize("<tag> and more")
-      [{:tag, "tag"}, " and more"]
+      [{:tag, "tag"}, {:text, " and more"}]
 
       iex> tokenize("<tag> <naked tag")
-      [{:tag, "tag"}, " ", {:naked, "naked tag"}]
+      [{:tag, "tag"}, {:text, " "}, {:naked, "naked tag"}]
 
       iex> tokenize(["<tag a/> <naked tag"])
-      [[{:tag, "tag a/"}, " ", {:naked, "naked tag"}]]
+      [[{:tag, "tag a/"}, {:text, " "}, {:naked, "naked tag"}], {:other, []}]
 
       iex> tokenize(["other", "<tag a> <naked tag"])
-      [["other"], [{:tag, "tag a"}, " ", {:naked, "naked tag"}]]
+      [[{:text, "other"}], [{:tag, "tag a"}, {:text, " "}, {:naked, "naked tag"}], {:other, []}]
 
       iex> tokenize(["other", :atom, "<tag a/> <naked tag"])
-      [["other"], :atom, [{:tag, "tag a/"}, " ", {:naked, "naked tag"}]]
+      [[{:text, "other"}], :atom, [{:tag, "tag a/"}, {:text, " "}, {:naked, "naked tag"}], {:other, []}]
 
       iex> tokenize(["<tag", :atom, ">"])
-      [[naked: "tag"], :atom, [">"]]
+      [[naked: "tag"], :atom, [{:text, ">"}], {:other, []}]
   """
   def tokenize("") do
-    []
+    [{:text, ""}]
   end
   def tokenize("<" <> rest) do
     case String.split(rest, ">", parts: 2) do
@@ -49,15 +49,15 @@ defmodule Drab.Live.HTML do
   end
   def tokenize(string) when is_binary(string) do
     case String.split(string, "<", parts: 2) do
-      [no_more_tags] -> [no_more_tags]
-      [text, rest] -> [text | tokenize("<" <> rest)]
+      [no_more_tags] -> [{:text, no_more_tags}]
+      [text, rest] -> [{:text, text} | tokenize("<" <> rest)]
     end
-  end
-  def tokenize([]) do
-    []
   end
   def tokenize({code, meta, args}) do
     {code, meta, tokenize(args)}
+  end
+  def tokenize([]) do
+    [{:other, []}]
   end
   def tokenize([head | tail]) do
     [tokenize(head) | tokenize(tail)]
@@ -83,7 +83,7 @@ defmodule Drab.Live.HTML do
 
       iex> html = []
       iex> html |> tokenize() |> tokenized_to_html()
-      ""
+      []
 
       iex> html = [""]
       iex> html |> tokenize() |> tokenized_to_html() == html
@@ -129,9 +129,14 @@ defmodule Drab.Live.HTML do
       iex> tokenized_to_html(tok)
       ["<tag", :atom, ">"]
   """
+  # def tokenized_to_html([:empty]), do: []
+  # def tokenized_to_html(:empty), do: ""
+  def tokenized_to_html([{:other, []}]), do: []
+  def tokenized_to_html({:other, []}), do: ""
   def tokenized_to_html([]), do: ""
   def tokenized_to_html({:tag, tag}), do: "<#{tag}>"
   def tokenized_to_html({:naked, tag}), do: "<#{tag}"
+  def tokenized_to_html({:text, text}), do: text
   def tokenized_to_html({code, meta, args}), do: {code, meta, tokenized_to_html(args)}
   def tokenized_to_html(text) when is_binary(text), do: text
   def tokenized_to_html(atom) when is_atom(atom), do: atom
@@ -260,7 +265,7 @@ defmodule Drab.Live.HTML do
       {:tag, "/" <> tag} ->
         # IO.puts "closing"
         do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
-      {tag_type, tag} ->
+      {tag_type, tag} when tag_type in [:naked, :tag] ->
         # IO.puts "TAG"
         if Enum.find(opened, fn x -> tag_name(tag) == x end) do
           do_inject(tail, attribute, opened -- [tag_name(tag)], found, acc ++ [head])
@@ -290,20 +295,6 @@ defmodule Drab.Live.HTML do
         do_inject(tail, attribute, opened, found, acc ++ [head])
     end
   end
-
-  # @doc false
-  # def do_inject(text, attribute, opened, found, acc) when is_binary(text) do
-  #   html = text |> tokenize() |> Enum.reverse()
-  #   do_inject(html, attribute, opened, found) |> Enum.reverse() |> detokenize()
-  # end
-
-  # def do_inject({:tag, "/" <> tag}) do
-
-  # end
-  # def do_inject({tag_type, tag}) when tag_type in [:tag, :naked] do
-
-  # end
-
 
   defp tag_name(tag) do
     String.split(tag, ~r/\s/) |> List.first()
@@ -418,8 +409,8 @@ defmodule Drab.Live.HTML do
     tokenized
       |> Enum.filter(fn
             {:naked, _} -> true
-            {_, x} -> not (tag_name(x) in @non_closing_tags)
-            _ -> true
+            {:tag, x} -> not (tag_name(x) in @non_closing_tags)
+            _ -> false
          end)
       |> Enum.reverse()
       |> Enum.find(&(match?({_, _}, &1)))

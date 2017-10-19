@@ -1,12 +1,10 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
 
-
-<%= (for user <- @users do %>
-u: <%= user %>
-l: <%= @link %>
-<br>
-<% end) %>
+<%= ~s/"dupa"/ %>
+<p>
+<%= Enum.count(@users) %>
+</p>
 
 
-<button drab-click=update_mini>Update mini</button>
+<button drab-click="update_mini">update mini</button>

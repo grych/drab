@@ -246,5 +246,37 @@ defmodule Drab.Live.HtmlTest do
 \n{{{{@drab-expr-hash:gu3tgmzrgq4deoa}}}}{{{{/@drab-expr-hash:gu3tgmzrgq4deoa}}}}\n</div>\n\n\
 <button drab-click=update_mini>Update mini</button>\n"
   end
+
+  @buffer_with_sigil [{:__block__, [],
+  [{:=, [],
+    [{:tmp1, [], Drab.Live.EExEngine},
+     ["{{{{@drab-partial:gi3tgnrzg44tmnbs}}}}",
+      "<div id=\"begin\" style=\"display: none;\"></div>\n<div id=\"drab_pid\" style=\"display: none;\"></div>\n\n"]]},
+   [{:tmp1, [], Drab.Live.EExEngine},
+    {:case, [generated: true],
+     [{:sigil_s, [line: 4], [{:<<>>, [line: 4], ["\"dupa\""]}, []]},
+      [do: [{:->, [generated: true],
+         [[safe: {:data, [generated: true], Drab.Live.EExEngine}],
+          {:data, [generated: true], Drab.Live.EExEngine}]},
+        {:->, [generated: true],
+         [[{:when, [generated: true],
+            [{:bin, [generated: true], Drab.Live.EExEngine},
+             {:is_binary,
+              [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+              [{:bin, [generated: true], Drab.Live.EExEngine}]}]}],
+          {{:., [generated: true],
+            [{:__aliases__, [generated: true, alias: false], [:Plug, :HTML]},
+             :html_escape]}, [generated: true],
+           [{:bin, [generated: true], Drab.Live.EExEngine}]}]},
+        {:->, [generated: true],
+         [[{:other, [generated: true], Drab.Live.EExEngine}],
+          {{:., [line: 4],
+            [{:__aliases__, [line: 4, alias: false], [:Phoenix, :HTML, :Safe]},
+             :to_iodata]}, [line: 4],
+           [{:other, [line: 4], Drab.Live.EExEngine}]}]}]]]}]]}, "\n<p>\n"]
+
+  test "buffer with sigil should be preserved while tokenize" do
+    assert tokenized_to_html(tokenize(@buffer_with_sigil)) == @buffer_with_sigil
+  end
 end
 
