@@ -200,7 +200,7 @@ end
   <h2><%= @welcome_text %></h2>
 ```
 
-  3. Edit the commander file `web/commanders/page_commander.ex` and add some real action - the `onload` callback, which fires when the browser connects to the Drab server:
+  5. Edit the commander file `web/commanders/page_commander.ex` and add some real action - the `onload` callback, which fires when the browser connects to the Drab server:
 
 ```elixir
 defmodule DrabExample.PageCommander do
@@ -219,7 +219,7 @@ end
 
 The `poke/2` function updates the assign. The `set_prop/3` updates any property of the DOM object. All is done live, without reloading the page.
 
-  4. Run `iex -S mix phoenix.server`. Go to `http://localhost:4000` to see the changed web page. Now you may play with this page live, directly from `iex`! Observe the instruction given when your browser connects to the page:
+  6. Run `iex -S mix phoenix.server`. Go to `http://localhost:4000` to see the changed web page. Now you may play with this page live, directly from `iex`! Observe the instruction given when your browser connects to the page:
 
 ```elixir
 [debug] 
