@@ -22,24 +22,41 @@ defmodule Drab.Live do
   Because of this, Drab finds the tag and updates only the required attributes.
 
   #### Plain Text
-  If the expression in the template is given in any tag body, Drab will replace only the required part of the html.
+  If the expression in the template is given in any tag body, Drab will try to find the sourrounding tag and mark
+  it with the attribute called `drab-ampere`. The attribute value is a hash of the previous buffer and the expression
+  itself.
+
   Consider the template, with initial value of `1` (given in render function in the Controller, as usual):
 
       <p>Chapter <%= @chapter_no %>.</p>
 
-  It renders to:
+  which renders to:
 
-      <p>Chapter <span drab-ampere=someid>1</span>.</p>
+      <p drab-ampere="someid">Chapter 1.</p>
 
-  This `<span>` over the expression is injected automatically by `Drab.Live.EExEngine`.
-  Updating the `@chapter_no` attribute in the Drab Commander, using `poke/2`:
+  This `drab-ampere` attribute is injected automatically by `Drab.Live.EExEngine`. Updating the `@chapter_no`
+  assign in the Drab Commander, by using `poke/2`:
 
       chapter = peek(socket, :chapter_no)     # get the current value of `@chapter_no`
       poke(socket, chapter_no: chapter + 1)   # push the new value to the browser
 
-  The above will change the `innerHTML` of the `<span drab-ampere=someid>` to "2":
+  will change the `innerHTML` of the `<p drab-ampere="someid">` to "Chapter 2." by executing the following JS
+  on the browser:
 
-      <p>Chapter <span drab-ampere=someid>2</span>.</p>
+      document.querySelector('[drab-ampere=someid]').innerHTML = "Chapter 2."
+
+  This is possible because during the compile phase, Drab stores the `drab-ampere` and the corresponding pattern in
+  the cache DETS file (located in `priv/`).
+
+  #### Injecting `<span>`
+  In case, when Drab can't find the parent tag, it injects `<span>` in the generated html. For example, template
+  like:
+
+      Chapter <%= @chapter_no %>.
+
+  renders to:
+
+      Chapter <span drab-ampere="someid">1</span>.
 
   #### Attributes
   When the expression is defining the attribute of the tag, the behaviour if different. Let's assume there is
@@ -49,27 +66,27 @@ defmodule Drab.Live do
 
   It renders to:
 
-      <button drab-ampere=someid class="btn btn-danger">
+      <button drab-ampere="someid" class="btn btn-danger">
 
   Again, you can see injected `drab-ampere` attribute. This allows Drab to indicate where to update the attribute.
   Pushing the changes to the browser with:
 
       poke socket, button: "btn btn-info"
 
-  will result with updated `class` attribute on the given tag. It is acomplished by rendering and running
-  `node.setAttribute("class", "btn btn-info")`.
+  will result with updated `class` attribute on the given tag. It is acomplished by running
+  `node.setAttribute("class", "btn btn-info")` on the browser.
 
   Notice that the pattern where your expression lives is preserved: you may update only the partials of the
   attribute value string.
 
   #### Properties
   Nowadays we deal more with node properties than attributes. This is why `Drab.Live` introduces the special syntax.
-  When using the @ sign at the beginning of the attribute name, it will be treated as a property.
+  When using the `@` sign at the beginning of the attribute name, it will be treated as a property.
 
       <button @hidden=<%= @hidden %>>
 
   Updating `@hidden` in the Drab Commander with `poke/2` will change the value of the `hidden` property
-  (without dollar sign!), by sending the update javascript, like `node['hidden'] = false`.
+  (without dollar sign!), by sending the update javascript: `node['hidden'] = false`.
 
   You may also dig deeper into the Node properties, using dot - like in JavaScript - to bind the expression
   with the specific property. The good example is to set up `.style`:
@@ -96,13 +113,28 @@ defmodule Drab.Live do
 
   If you render the template in the Controller with `@button_state` set to `false`, the initial html will look like:
 
-      <script drab-ampere=someid>
+      <script drab-ampere="someid">
         document.querySelectorAll("button").hidden = false
       </script>
 
   Again, Drab injects some ID to know where to find its victim. After you `poke/2` the new value of `@button_state`,
   Drab will re-render the whole script with a new value and will send a request to re-evaluate the script.
   Browser will run something like: `eval("document.querySelectorAll(\"button\").hidden = true")`.
+
+  ### Avoiding using Drab
+  If there is no need to use Drab with some expression, you may mark it with `nodrab` function. Such expressions
+  will be trated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
+
+      <p>Chapter <%= nodrab(@chapter_no) %>.</p>
+
+  In the future (Elixir 1.6), the `nodrab` keyword will be replaced by a special EEx mark `/` (expression
+  will look like `<%/ @chapter_no %>`).
+
+  #### The `@conn` case
+  The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not update it
+  with `poke/2`. And, because it is often quite hudge, may significantly increase the number of data sent to
+  the browser. This is why Drab treats all expressions with only one assign, which happen to be `@conn`, as
+  a `nodrab` assign.
 
   ### Partials
   Function `poke/2` and `peek/2` works on the default template - the one rendered with the Controller. In case there

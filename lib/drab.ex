@@ -286,7 +286,7 @@ defmodule Drab do
     #{Exception.format_stacktrace(System.stacktrace())}
     """
     Logger.error error
-
+    # Logger.error unquote(Mix.env())
     if socket do
       js = Drab.Template.render_template(
         "drab.handler_error.#{Atom.to_string(env())}.js",

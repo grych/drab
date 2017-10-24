@@ -56,9 +56,6 @@ defmodule Drab.Live.EExEngine do
         <%= if clause, do: expression %>
       </script>
 
-  #### Textareas
-  As above, you can not use nested expressions inside the textarea tag.
-
   #### Properties
   Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>` syntax.
   One property may be bound only to the one assign.

@@ -168,15 +168,24 @@ defmodule Drab.Config do
   """
   def get(:templates_path), do:
     Application.get_env(:drab, :templates_path, "priv/templates/drab")
-  def get(:disable_controls_while_processing),  do: Application.get_env(:drab, :disable_controls_while_processing, true)
-  def get(:events_to_disable_while_processing), do: Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
-  def get(:disable_controls_when_disconnected), do: Application.get_env(:drab, :disable_controls_when_disconnected, true)
-  def get(:socket), do:                             Application.get_env(:drab, :socket, "/socket")
-  def get(:drab_store_storage), do:                 Application.get_env(:drab, :drab_store_storage, :session_storage)
-  def get(:browser_response_timeout), do:           Application.get_env(:drab, :browser_response_timeout, 5000)
-  def get(:main_phoenix_app), do:                   Application.get_env(:drab, :main_phoenix_app, nil)
-  def get(:enable_live_scripts), do:                Application.get_env(:drab, :enable_live_scripts, false)
-  def get(_), do: nil
+  def get(:disable_controls_while_processing), do:
+    Application.get_env(:drab, :disable_controls_while_processing, true)
+  def get(:events_to_disable_while_processing), do:
+    Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
+  def get(:disable_controls_when_disconnected), do:
+    Application.get_env(:drab, :disable_controls_when_disconnected, true)
+  def get(:socket), do:
+    Application.get_env(:drab, :socket, "/socket")
+  def get(:drab_store_storage), do:
+    Application.get_env(:drab, :drab_store_storage, :session_storage)
+  def get(:browser_response_timeout), do:
+    Application.get_env(:drab, :browser_response_timeout, 5000)
+  def get(:main_phoenix_app), do:
+    Application.get_env(:drab, :main_phoenix_app, nil)
+  def get(:enable_live_scripts), do:
+    Application.get_env(:drab, :enable_live_scripts, false)
+  def get(_), do:
+    nil
 
   # @doc """
   # Depreciated. Use `get/1` instead.
