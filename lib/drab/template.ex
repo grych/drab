@@ -40,23 +40,5 @@ defmodule Drab.Template do
     end
   end
 
-  # defp find_template(filename) do
-  #   sources =  template_paths() |> Enum.map(&(Path.join(&1, filename)))
-  #   Enum.find(sources, &(File.exists?(&1))) || 
-  #     raise "Can't find the template `#{filename}` in `#{user_templates()}`"
-  # end
-
-  # defp template_dir(app) when is_atom(app) do
-  #   Application.app_dir(app) |> Path.join(@drab_templates)
-  # end
-  # defp template_dir(path) when is_binary(path) do
-  #   # Path.join(path, @drab_templates)
-  #   Path.join(".", path)
-  # end
-
-  # defp paths(), do: [user_templates(), :drab]
-
-  # defp template_paths(), do: Enum.map(paths(), &(template_dir(&1)))
-
   defp user_templates(), do: Drab.Config.get(:templates_path)
 end

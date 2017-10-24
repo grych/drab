@@ -11,6 +11,32 @@ defmodule Drab.Live.EExEngine do
   To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format. Passing it
   to `render` in the controller is not enough.
 
+  Also, the living assign must be inside the `<%= %>` mark. If it lives in `<% %>`, it will not be updated by
+  `Drab.Live.poke/2`. This means that in the following template:
+
+      <% local = @assign %>
+      <%= local %>
+
+  poking `@assign` will not update anything.
+
+  #### Local variables
+  Local variables are only visible in its `do...end` block. You can't use a local variable from outside the block.
+  So, the following is allowed:
+
+      <%= for user <- @users do %>
+        <li><%= user %></li>
+      <% end %>
+
+  and after poking a new value of `@users`, the list will be updated.
+
+  But the next example is not valid and will raise `undefined function` exception while trying to update an `@anything`
+  assign:
+
+      <% local = @assign1 %>
+      <%= if @anything do %>
+        <%= local %>
+      <% end %>
+
   #### Attributes
   The attribute must be well defined, and you can't use the expression as an attribute name.
 
@@ -104,9 +130,6 @@ defmodule Drab.Live.EExEngine do
     body = List.flatten(body)
 
     partial_hash = partial(body)
-    # if partial_hash == "gi3tgnrzg44tmnbs" do
-    #   IO.inspect body
-    # end
     found_assigns = find_assigns(body)
     assigns_js = found_assigns |> Enum.map(fn assign ->
       assign_js(partial_hash, assign)
@@ -161,10 +184,6 @@ defmodule Drab.Live.EExEngine do
         | found_props
       ]
     end |> script_tag()
-
-    # if partial_hash == "gi3dcnzwgm2dcmrv" do
-    #   IO.inspect body, limit: 10000
-    # end
 
     final = [
       script_tag(init_js),
@@ -280,9 +299,8 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   def handle_expr({:safe, buffer}, "=", expr) do
-    # if partial(buffer) == "gi3tgnrzg44tmnbs" do
-    #   IO.inspect buffer
-    # end
+    # check if the expression is in the nodrab/1
+    # to be changed to "/" mark in Elixir 1.6
     {expr, nodrab} = case expr do
       {:nodrab, _, [only_one_parameter]} -> {only_one_parameter, true}
       _ -> {expr, false}
@@ -331,10 +349,6 @@ defmodule Drab.Live.EExEngine do
 
     nodrab = if shallow_find_assigns(expr) == [:conn], do: true, else: nodrab
     nodrab = if found_assigns?, do: nodrab, else: true
-
-    # if partial(buffer) == "gi3tgnrzg44tmnbs" do
-    #   IO.inspect buffer
-    # end
 
     buf = case {inject_span?, nodrab} do
       {_, true} ->

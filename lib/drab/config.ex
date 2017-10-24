@@ -187,21 +187,4 @@ defmodule Drab.Config do
   def get(_), do:
     nil
 
-  # @doc """
-  # Depreciated. Use `get/1` instead.
-  # """
-  # def config() do
-  #   IO.warn """
-  #   `Drab.config` has been depreciated. Please use `Drab.Config.get/1` instead
-  #    """
-  #   %{
-  #     templates_path: Application.get_env(:drab, :templates_path, "priv/templates/drab"),
-  #     disable_controls_while_processing: Application.get_env(:drab, :disable_controls_while_processing, true),
-  #     events_to_disable_while_processing: Application.get_env(:drab, :events_to_disable_while_processing, ["click"]),
-  #     disable_controls_when_disconnected: Application.get_env(:drab, :disable_controls_when_disconnected, true),
-  #     socket: Application.get_env(:drab, :socket, "/socket"),
-  #     drab_store_storage: Application.get_env(:drab, :drab_store_storage, :session_storage)
-  #   }
-  # end
-
 end

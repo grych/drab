@@ -1,9 +1,13 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
 
-<%= ~s/"dupa"/ %>
 <p>
-<%= Enum.count(@users) %>
+  <%= if @users do %>
+  <%= if @users do %>
+
+    <%= Enum.count(@users) %>
+  <% end %>
+  <% end %>
 </p>
 
 

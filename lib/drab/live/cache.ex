@@ -3,17 +3,13 @@ defmodule Drab.Live.Cache do
   This is the Drab.Live internal cache module. It doesn't expose any API.
 
   ### Cache File
-  Drab.Live stores internal information in the file `priv/hashes_expressions.drab.cache`. To clean up the cache
+  Drab.Live stores internal information in the file `priv/drab.live.cache`. To clean up the cache
   just delete it, but only with the `mix clean` command, to ensure all Drab.Live templates will recompile.
   """
-  @cache_file "hashes_expressions.drab.cache"
-  # @name __MODULE__
+  @cache_file "drab.live.cache"
 
   require Logger
   #TODO: clean the table on mix clean
-
-  @env Mix.env()
-  defp env(), do: @env
 
   # This module is the DETS cache for Drab Live expressions, amperes, partials, and shadow buffers.
   # DETS table is created and filled up during the compile-time.
@@ -57,6 +53,6 @@ defmodule Drab.Live.Cache do
 
   @doc false
   def cache_file() do
-    "#{Path.join(Drab.Config.app_name() |> :code.priv_dir() |> to_string(), @cache_file)}.#{env()}"
+    "#{Path.join(Drab.Config.app_name() |> :code.priv_dir() |> to_string(), @cache_file)}"
   end
 end

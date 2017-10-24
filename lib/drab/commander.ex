@@ -144,13 +144,6 @@ defmodule Drab.Commander do
       import Drab.Core
 
       o = Enum.into(unquote(options) || [], %{commander: __MODULE__})
-      Enum.each([:onload, :onconnect, :ondisconnect, :access_session], fn macro_name ->
-        if o[macro_name] do
-          IO.warn("""
-            Defining #{macro_name} handler in the use statement has been depreciated. Please use corresponding macro instead.
-            """, Macro.Env.stacktrace(__ENV__))
-        end
-      end)
 
       commander_path = __MODULE__ |> Atom.to_string() |> String.split(".")
       controller = commander_path |> List.last() |> String.replace("Commander", "Controller")

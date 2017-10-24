@@ -26,5 +26,5 @@ erl_crash.dump
 /priv/static/css
 
 /test/support/priv/static/
-/priv/*.drab.cache*
+/priv/*drab*cache*
 

@@ -58,11 +58,13 @@ defmodule Drab do
   ## Handling Exceptions
 
   Drab intercepts all exceptions from event handler function and let it die, but before it presents the error message
-  in the logs, and, for development environment, on the page. For production, it shows just an alert with
-  the generic error.
+  in the logs and an alert for a user on the page.
 
-  By default it is just an alert(), but you can easly override it by creating the template in the
-  `priv/templates/drab/drab.handler_error.prod.js` folder with your own javascript presenting the message.
+  By default it is just an `alert()`, but you can easly override it by creating the template in the
+  `priv/templates/drab/drab.error_handler.js` folder with your own javascript presenting the message. You may use
+  the local variable `message` there to get the exception description, like:
+
+      alert(<%= message %>);
 
   ## Modules
 
@@ -88,9 +90,6 @@ defmodule Drab do
   @type t :: %Drab{store: map, session: map, commander: atom, socket: Phoenix.Socket.t, priv: map}
 
   defstruct store: %{}, session: %{}, commander: nil, socket: nil, priv: %{}
-
-  @env Mix.env()
-  defp env(), do: @env
 
   @doc false
   def start_link(socket) do
@@ -286,10 +285,9 @@ defmodule Drab do
     #{Exception.format_stacktrace(System.stacktrace())}
     """
     Logger.error error
-    # Logger.error unquote(Mix.env())
     if socket do
       js = Drab.Template.render_template(
-        "drab.handler_error.#{Atom.to_string(env())}.js",
+        "drab.error_handler.js",
         message: Drab.Core.encode_js(error))
       {:ok, _} = Drab.Core.exec_js(socket, js)
     end

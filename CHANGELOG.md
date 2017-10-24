@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# v0.6.0
+* renamed Drab.Live cache to `priv/drab.live.cache`
+* nodrab feature
+
 # v0.5.6
 Reverted back #51 - `@conn` is available again.
 

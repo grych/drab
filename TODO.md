@@ -1,7 +1,6 @@
 
 # v0.6.0
 * Elixir 1.6 and Phoenix 1.3
-* use <%/ %> to not drab the specific one
 * remove depreciations
 
 ## Bugs:
@@ -20,7 +19,7 @@ Changes:
 * commander per template
 * Also, instead of 'broadcasting' a change to all browsers, why not do what Phoenix.pubsub does? Allow you to override an outgoing message (then in your time broadcast example you could 'catch' the outgoing message and reformat it?)
 * should take Safe in all html related functions
-* use MapSet in the live.ex
+* use <%/ %> to not drab the specific one
 
 Changes:
 * group JS commands to be launched in one step, if possible

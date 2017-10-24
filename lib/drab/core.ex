@@ -314,26 +314,6 @@ defmodule Drab.Core do
   """
   def same_topic(topic), do: "topic:#{topic}"
 
-  # @doc """
-  # Moved to `Drab.Browser.console/2`
-  # """
-  # def console(socket, log) do
-  #   Deppie.once """
-  #   Drab.Core.console/2 is depreciated. Use Drab.Browser.console/2 instead.
-  #   """
-  #   Drab.Browser.console(socket, log)
-  # end
-
-  # @doc """
-  # Moved to `Drab.Browser.console!/2`
-  # """
-  # def console!(socket, log) do
-  #   Deppie.once """
-  #   Drab.Core.console!/2 is depreciated. Use Drab.Browser.console!/2 instead.
-  #   """
-  #   Drab.Browser.console!(socket, log)
-  # end
-
   @doc false
   def encode_js(value), do: Poison.encode!(value)
 
