@@ -26,7 +26,8 @@ defmodule Drab.Live do
   it with the attribute called `drab-ampere`. The attribute value is a hash of the previous buffer and the expression
   itself.
 
-  Consider the template, with initial value of `1` (given in render function in the Controller, as usual):
+  Consider the template, with assign `@chapter_no` with initial value of `1` (given in render function in the
+  controller, as usual):
 
       <p>Chapter <%= @chapter_no %>.</p>
 
@@ -122,8 +123,8 @@ defmodule Drab.Live do
   Browser will run something like: `eval("document.querySelectorAll(\"button\").hidden = true")`.
 
   ### Avoiding using Drab
-  If there is no need to use Drab with some expression, you may mark it with `nodrab` function. Such expressions
-  will be trated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
+  If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function. Such expressions
+  will be treated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
 
       <p>Chapter <%= nodrab(@chapter_no) %>.</p>
 
@@ -158,10 +159,29 @@ defmodule Drab.Live do
 
       poke socket, "partial1.html", color: "red"
 
+  ### Evaluating expressions
+  When the assign change is poked back to the browser, Drab need to re-evaluate all the expressions from the template
+  which contain the given assign. This expressions are stored with the pattern in the cache DETS file.
+
+  Because the expression must be run in the Phoenix environments, Drab does some `import` and `use` before. For example,
+  it does `use Phoenix.HTML` and `import Phoenix.View`. It also imports the following modules from your application:
+
+      import YourApplication.Router.Helpers
+      import YourApplication.ErrorHelpers
+      import YourApplication.Gettext
+
+  If you renamed any of those modules in your application, you must tell Drab where to find it by adding the following
+  entry to the `config.exs` file:
+
+      config :drab, live_helper_modules: {Router.Helpers, ErrorHelpers, Gettext}
+
+  Notice that the application name is derived automatically. Please check `Drab.Config.get/1` for more information
+  on Drab setup
+
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid.
-  There are also some limits for defining attributes, properties, etc. See `Drab.Live.EExEngine` for a full
-  description.
+  There are also some limits for defining attributes, properties, local variables, etc. See `Drab.Live.EExEngine`
+  for a full description.
   """
   import Drab.Core
   require IEx
@@ -294,11 +314,12 @@ defmodule Drab.Live do
 
     #TODO: check how it works in P13, when app_module is different than web_app_module
     app_module = Drab.Config.app_module()
+    {router_helpers, error_helpers, gettext} = Drab.Config.get(:live_helper_modules)
     modules = {
       socket.assigns.__controller.__drab__().view,
-      Module.concat(app_module, Router.Helpers),
-      Module.concat(app_module, ErrorHelpers),
-      Module.concat(app_module, Gettext)
+      Module.concat(app_module, router_helpers), # Router.Helpers
+      Module.concat(app_module, error_helpers),  # ErrorHelpers
+      Module.concat(app_module, gettext)         # Gettext
     }
 
     amperes_to_update = for {assign, _} <- assigns do
