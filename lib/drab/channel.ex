@@ -109,7 +109,7 @@ defmodule Drab.Channel do
       "event_handler_function" => event_handler_function,
       "reply_to" => reply_to
       }, socket) do
-    # event name is currently not used (0.2.0)
+    # event name is currently not used (0.2.0) and will be removed
     verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket)
   end
 

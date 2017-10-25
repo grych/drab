@@ -68,7 +68,7 @@ defmodule Drab.Core do
 
   ### Form values
 
-  If the sender object is inside a <form> tag, it sends the "form" map, which contains values of all the inputs
+  If the sender object is inside a `<form>` tag, it sends the "form" map, which contains values of all the inputs
   found withing the form. Keys of that map are "name" attribute of the input or, if not found, an "id"
   attribute. If neither "name" or "id" is given, the value of the form is not included.
 
