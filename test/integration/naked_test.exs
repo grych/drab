@@ -13,9 +13,9 @@ defmodule DrabTestApp.NakedTest do
   end
 
   describe "Drab.Core in naked mode" do
-    test "exec_handler should set up the value of the DIV correctly" do
+    test "exec_elixir should set up the value of the DIV correctly" do
       socket = drab_socket()
-      exec_js! socket, "Drab.exec_handler('run_handler_test', {click: 'clickety-click'});"
+      exec_js! socket, "Drab.exec_elixir('run_handler_test', {click: 'clickety-click'});"
       assert inner_text(find_element(:id, "run_handler_test")) == "%{\"click\" => \"clickety-click\"}"
       assert exec_js!(socket, "document.getElementById('run_handler_test').payload") == %{"click" => "clickety-click"}
     end

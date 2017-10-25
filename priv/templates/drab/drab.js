@@ -71,13 +71,13 @@
     //   event_handler -  string - function name in Phoenix Commander
     //   payload: object - will be passed as the second argument to the Event Handler
     //   execute_after - callback to function executes after event finish
-    exec_handler: function (event_handler, payload, execute_after) {
+    exec_elixir: function (event_handler, payload, execute_after) {
       var reply_to = uuid();
       if (execute_after) {
         Drab.event_reply_table[reply_to] = execute_after;
       }
       var message = {
-        event: "exec_handler",
+        event: "exec_elixir",
         event_handler_function: event_handler,
         payload: payload,
         reply_to: reply_to
@@ -85,8 +85,8 @@
       this.channel.push("event", message);
     },
     run_handler: function(event_name, event_handler, payload, execute_after) {
-      console.log("Drab.run_handler() is depreciated. Please use Drab.exec_handler() instead");
-      this.exec_handler(event_handler, payload, execute_after);
+      console.log("Drab.run_handler() is depreciated. Please use Drab.exec_elixir() instead");
+      this.exec_elixir(event_handler, payload, execute_after);
     },
     connected: [],
     disconnected: [],

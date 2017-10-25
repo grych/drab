@@ -181,7 +181,7 @@ Drab.set_event_handlers = function (obj) {
         <% end %>
         Drab.setid(n);
         // send the message back to the server
-        Drab.exec_handler(
+        Drab.exec_elixir(
           n.getAttribute("drab-handler"),
           payload(n, event)
           <%= if Drab.Config.get(:disable_controls_while_processing) do %>

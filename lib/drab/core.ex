@@ -74,10 +74,10 @@ defmodule Drab.Core do
 
   ## Running Elixir code from the Browser
 
-  There is the Javascript method `Drab.exec_handler()` in global `Drab` object, which allows you to run the Elixir
+  There is the Javascript method `Drab.exec_elixir()` in global `Drab` object, which allows you to run the Elixir
   function defined in the Commander.
 
-      Drab.exec_handler(elixir_function_name, argument)
+      Drab.exec_elixir(elixir_function_name, argument)
 
   Arguments:
   * elixir_function_name(string) - function name in corresponding Commander module
@@ -88,7 +88,7 @@ defmodule Drab.Core do
 
   Example:
 
-      <button onclick="Drab.exec_handler('clicked', {click: 'clickety-click'});">
+      <button onclick="Drab.exec_elixir('clicked', {click: 'clickety-click'});">
         Clickme
       </button>
 
