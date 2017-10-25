@@ -77,7 +77,7 @@
         Drab.event_reply_table[reply_to] = execute_after;
       }
       var message = {
-        event: "anything",
+        event: "exec_handler",
         event_handler_function: event_handler,
         payload: payload,
         reply_to: reply_to
@@ -88,10 +88,6 @@
       console.log("Drab.run_handler() is depreciated. Please use Drab.exec_handler() instead");
       this.exec_handler(event_handler, payload, execute_after);
     },
-    // launch_event: function(event_name, event_handler, payload, execute_after) {
-    //   console.log("WARNING: launch_event() is depreciated. Please use run_handler() instead.")
-    //   Drab.run_handler(event_name, event_handler, payload, execute_after)
-    // },
     connected: [],
     disconnected: [],
     load: [],
