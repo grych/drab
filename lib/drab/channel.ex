@@ -104,13 +104,12 @@ defmodule Drab.Channel do
   end
 
   def handle_in("event", %{
-      "event" => event_name,
+      # "event" => event_name,
       "payload" => payload,
       "event_handler_function" => event_handler_function,
       "reply_to" => reply_to
       }, socket) do
-    # event name is currently not used (0.2.0) and will be removed
-    verify_and_cast(event_name, [payload, event_handler_function, reply_to], socket)
+    verify_and_cast(:event, [payload, event_handler_function, reply_to], socket)
   end
 
   defp verify_and_cast(event_name, params, socket) do

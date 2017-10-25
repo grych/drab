@@ -77,7 +77,7 @@
         Drab.event_reply_table[reply_to] = execute_after;
       }
       var message = {
-        event: "exec_elixir",
+        // event: "exec_elixir",
         event_handler_function: event_handler,
         payload: payload,
         reply_to: reply_to
