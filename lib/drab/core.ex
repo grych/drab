@@ -164,8 +164,10 @@ defmodule Drab.Core do
 
   @doc false
   def transform_payload(payload, _state) do
-    payload
-      |> Map.put_new(:params, payload["form"] |> normalize_params())
+    payload = case payload["form"] do
+      nil  -> payload
+      form -> payload |> Map.put_new(:params, form |> normalize_params())
+    end
   end
 
   @doc false

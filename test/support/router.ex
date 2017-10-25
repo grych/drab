@@ -20,6 +20,7 @@ defmodule DrabTestApp.Router do
 
     get "/", PageController, :index, as: :index
     get "/tests/core",    PageController, :core, as: :core
+    get "/tests/naked",   NakedController, :index, as: :naked
     get "/tests/query",   QueryController, :query, as: :query
     get "/tests/modal",   QueryController, :modal, as: :modal
     get "/tests/waiter",  PageController, :waiter, as: :waiter
