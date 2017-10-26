@@ -67,7 +67,6 @@
       });
     },
     //
-    //   string - event name
     //   event_handler -  string - function name in Phoenix Commander
     //   payload: object - will be passed as the second argument to the Event Handler
     //   execute_after - callback to function executes after event finish
@@ -77,7 +76,6 @@
         Drab.event_reply_table[reply_to] = execute_after;
       }
       var message = {
-        // event: "exec_elixir",
         event_handler_function: event_handler,
         payload: payload,
         reply_to: reply_to

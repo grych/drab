@@ -1,11 +1,11 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.6.0-pre.1"
+  @version "0.6.0-pre.2"
 
   def project do
     [app: :drab,
      version: @version,
-     elixir: ">= 1.4.0 and < 1.5.0 or >= 1.5.1 and < 1.6.0", # a bug in EEx in 1.5.0
+     elixir: ">= 1.4.0 and < 1.5.0 or >= 1.5.1 and < 1.7.0", # a bug in EEx in 1.5.0
      # elixir: "~> 1.5.1",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -37,10 +37,9 @@ defmodule Drab.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
-     {:ex_doc, "~> 0.16", only: :dev},
-     {:deppie, "~> 1.0"},
+     {:ex_doc, "~> 0.18", only: :dev, runtime: false},
      {:hound, "~> 1.0", only: [:dev, :test]},
-     {:inch_ex, "~> 0.5", only: [:dev, :test, :docs]},
+     # {:inch_ex, "~> 0.5", only: [:dev, :test, :docs]},
      {:floki, "~> 0.17"}
    ]
   end

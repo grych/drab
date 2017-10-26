@@ -14,7 +14,6 @@ defmodule Drab.Core do
   See `Drab.Commander` for more info on Drab Modules.
 
   ## Events
-
   Events are defined directly in the HTML by adding `drab-event` and `drab-handler` properties:
 
       <button drab-event='click' drab-handler='button_clicked'>clickme</button>
@@ -27,10 +26,18 @@ defmodule Drab.Core do
       <button drab-click='button_clicked'>clickme</button>
 
   Normally Drab operates on the user interface of the browser which generared the event, but it is possible to broadcast
-  the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query` module.
+  the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query`
+  module.
+
+  ### Handling event in any commander
+  By default Drab runs the event handler in the commander module corresponding to the controller, which rendered
+  the current page. But it is possible to choose the module by simply provide the full path to the commander:
+
+      <button drab-click='MyAppWeb.MyCommander.button_clicked'>clickme</button>
+
+  Notice that the module must be a commander module, ie. it must be marked with `use Drab.Commander`.
 
   ## Event handler functions
-
   The event handler function receives two parameters:
   * `socket` - the websocket used to communicate back to the page by `Drab.Query` functions
   * `sender` - a map contains information of the object which sent the event; keys are binary strings
@@ -80,8 +87,11 @@ defmodule Drab.Core do
       Drab.exec_elixir(elixir_function_name, argument)
 
   Arguments:
-  * elixir_function_name(string) - function name in corresponding Commander module
-  * argument(anything) - any argument you want to pass to the Commander function
+  * elixir_function_name(string) - function name
+  * argument(object) - the object will be passed to the handler function as a map
+
+  Function name may be given with the commander name, like "MyApp.MyCommander.handler_function", or the function
+  name only: "handler_function". In this case the corresponding commander module will be used.
 
   Returns:
   * no return, does not wait for any answer
@@ -284,13 +294,6 @@ defmodule Drab.Core do
     Drab.broadcast(subject, self(), "broadcastjs", js: js)
     subject
   end
-
-  # @doc false
-  # def broadcastjs(socket, js) do
-  #   Deppie.once("Drab.Core.broadcastjs/2 is depreciated. Please use Drab.Core.broadcast_js/3 instead")
-  #   broadcast_js(socket, js)
-  #   socket
-  # end
 
   @doc """
   Helper for broadcasting functions, returns topic for a given URL path.

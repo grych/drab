@@ -20,4 +20,13 @@ defmodule DrabTestApp.NakedTest do
       assert exec_js!(socket, "document.getElementById('run_handler_test').payload") == %{"click" => "clickety-click"}
     end
   end
+
+  describe "Handler function in the other commander" do
+    test "exec_elixir should set up the value of the DIV correctly" do
+      socket = drab_socket()
+      exec_js! socket, "Drab.exec_elixir('DrabTestApp.LoneCommander.lone_handler', {lone: ['lone one']});"
+      assert inner_text(find_element(:id, "run_handler_test")) == "%{\"lone\" => [\"lone one\"]}"
+      assert exec_js!(socket, "document.getElementById('run_handler_test').payload") == %{"lone" => ["lone one"]}
+    end
+  end
 end

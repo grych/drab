@@ -27,6 +27,10 @@ defmodule Drab.Commander do
   * `argument` - an argument used in JS Drab.exec_elixir() method; when lauching an event via
     `drab-handler=function` atrribute, it is a map describing the sender object
 
+  ### Security
+  Please keep in mind that all public functions with arity of 2 in the commander may be called remotely from
+  the browser.
+
   ## Callbacks
 
   Callbacks are an automatic events which are launched by the system. They are defined by the macro in the

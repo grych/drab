@@ -4,3 +4,19 @@
 <div id="drab_pid"></div>
 
 <div id="run_handler_test"></div>
+
+<br>
+<button id="exec_lone_handler" drab-click="DrabTestApp.LoneCommander.lone_handler">
+  DrabTestApp.LoneCommander.lone_handler/2
+</button>
+
+<br>
+<button id="exec_nonexisting_handler" drab-click="DrabTestApp.LoneCommander.nonexisting_handler">
+  DrabTestApp.LoneCommander.nonexisting_handler/2
+</button>
+
+<br>
+<button id="exec_fake_handler" drab-click="DrabTestApp.FakeCommander.fake_handler">
+  DrabTestApp.FakeCommander.fake_handler/2
+</button>
+

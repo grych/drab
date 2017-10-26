@@ -234,9 +234,12 @@ defmodule Drab do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn ->
       try do
-        check_handler_existence!(commander_module, event_handler_function)
+        # raise_when_handler_not_exits(commander_module, event_handler_function)
 
-        event_handler = String.to_existing_atom(event_handler_function)
+        {commander_module, event_handler} = case event_handler(event_handler_function) do
+          {Elixir, function} -> {commander_module, function}
+          {module, function} -> {module, function}
+        end
         payload = Map.delete(payload, "event_handler_function")
 
         payload = transform_payload(payload, state)
@@ -272,9 +275,24 @@ defmodule Drab do
     {:noreply, state}
   end
 
-  defp check_handler_existence!(commander_module, handler) do
-    unless function_exported?(commander_module, String.to_existing_atom(handler), 2) do
-      raise "Drab can't find the handler: \"#{commander_module}.#{handler}/2\"."
+  defp event_handler(function_name) do
+    module_and_function = String.split(function_name, ".")
+    try do
+      module = List.delete_at(module_and_function, -1) |> Module.safe_concat()
+      unless module == Elixir do
+        unless {:__drab__, 0} in apply(module, :__info__, [:functions]) do
+          raise """
+            #{module} is not a Drab commander
+            """
+        end
+      end
+      function = List.last(module_and_function) |> String.to_existing_atom()
+      {module, function}
+    rescue
+      ArgumentError ->
+        raise """
+          can't find the handler function: #{function_name}
+          """
     end
   end
 

@@ -28,7 +28,7 @@ socket |> alert("Title", "Sure?", buttons: [ok: "Azaliż", cancel: "Poniechaj"])
 
 Pages for Integration Tests: <br>
 <a href="/tests/core">Drab.Core</a><br>
-<a href="/tests/naked">Drab.Core only (naked Drab)</a><br>
+<a href="/tests/naked">Drab.Core only (naked Drab) + lone Commander</a><br>
 <a href="/tests/query">Drab.Query</a><br>
 <a href="/tests/modal">Drab.Modal</a><br>
 <a href="/tests/waiter">Drab.Waiter</a><br>

@@ -26,6 +26,7 @@ Changes:
 * re-initiate JS event handler after changing the SPAN (inside it)
 
 Bugs:
+* exec_elixir should be able to take any argument, not only a map
 * spawn_link in handler does not terminate the spawned process
 
 Performance:
