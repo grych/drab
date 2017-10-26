@@ -191,6 +191,10 @@ defmodule Drab.Commander do
       def __drab__() do
         @options
       end
+
+      def __drab_commander__() do
+        true
+      end
     end
   end
 

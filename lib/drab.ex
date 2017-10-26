@@ -280,7 +280,7 @@ defmodule Drab do
     try do
       module = List.delete_at(module_and_function, -1) |> Module.safe_concat()
       unless module == Elixir do
-        unless {:__drab__, 0} in apply(module, :__info__, [:functions]) do
+        unless {:__drab_commander__, 0} in apply(module, :__info__, [:functions]) do
           raise """
             #{module} is not a Drab commander
             """
