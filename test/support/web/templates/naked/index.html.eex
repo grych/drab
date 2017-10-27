@@ -11,6 +11,11 @@
 </button>
 
 <br>
+<button id="exec_non_public_handler" drab-click="DrabTestApp.LoneCommander.non_public_handler">
+  DrabTestApp.LoneCommander.non_public_handler/2
+</button>
+
+<br>
 <button id="exec_nonexisting_handler" drab-click="DrabTestApp.LoneCommander.nonexisting_handler">
   DrabTestApp.LoneCommander.nonexisting_handler/2
 </button>

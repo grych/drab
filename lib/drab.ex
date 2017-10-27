@@ -234,11 +234,9 @@ defmodule Drab do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link fn ->
       try do
-        # raise_when_handler_not_exits(commander_module, event_handler_function)
-
         {commander_module, event_handler} = case event_handler(event_handler_function) do
-          {Elixir, function} -> {commander_module, function}
-          {module, function} -> {module, function}
+          {nil, function} -> raise_if_handler_not_exists(commander_module, function)
+          {module, function} -> raise_if_handler_is_not_public(module, function)
         end
         payload = Map.delete(payload, "event_handler_function")
 
@@ -276,24 +274,53 @@ defmodule Drab do
   end
 
   defp event_handler(function_name) do
-    module_and_function = String.split(function_name, ".")
-    try do
-      module = List.delete_at(module_and_function, -1) |> Module.safe_concat()
-      unless module == Elixir do
-        unless {:__drab_commander__, 0} in apply(module, :__info__, [:functions]) do
-          raise """
-            #{module} is not a Drab commander
-            """
-        end
-      end
-      function = List.last(module_and_function) |> String.to_existing_atom()
-      {module, function}
-    rescue
-      ArgumentError ->
-        raise """
-          can't find the handler function: #{function_name}
-          """
+    case String.split(function_name, ".") do
+      [function] ->
+        {nil, String.to_existing_atom(function)}
+
+      module_and_function ->
+        module = List.delete_at(module_and_function, -1) |> Module.safe_concat()
+        function = List.last(module_and_function) |> String.to_existing_atom()
+        {module, function}
     end
+  end
+
+  defp raise_if_handler_not_exists(module, function) do
+    #TODO: check if handler is not a callback
+    if !({function, 2} in apply(module, :__info__, [:functions])) || is_callback?(module, function)  do
+      raise """
+        handler `#{function}` does not exist.
+        """
+    end
+
+    {module, function}
+  end
+
+  defp is_callback?(module, function) do
+    options = apply(module, :__drab__, [])
+    #TODO: group callbacks in compile time
+    callbacks = Map.get(options, :before_handler, []) ++
+                Map.get(options, :after_handler, [])
+    function in callbacks
+  end
+
+  defp raise_if_handler_is_not_public(module, function) do
+    if {:__drab__, 0} in apply(module, :__info__, [:functions]) do
+      options = apply(module, :__drab__, [])
+      unless function in Map.get(options, :public_handlers, []) do
+        raise """
+          handler #{module}.#{function} is not public.
+
+          Use `Drab.Commander.public/1` macro to make it executable from any page.
+          """
+      end
+    else
+      raise """
+        #{module} is not a Drab module.
+        """
+    end
+
+    {module, function}
   end
 
   defp failed(socket, e) do

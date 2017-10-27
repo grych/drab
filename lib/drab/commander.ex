@@ -19,17 +19,26 @@ defmodule Drab.Commander do
   Remember the difference: `controller` renders the page while `commander` works on the live page.
 
   ## Event handler functions
-  Event handler is the function which process on request which comes from the browser. Most basically it is
-  done by running JS method `Drab.exec_elixir()`. See `Drab.Core` for this method description.
+  Event handler is the function which process the request coming from the browser. It is done by running JS method
+  `Drab.exec_elixir()` or from the DOM object with `drab-handler` attribute. See `Drab.Core` for description.
 
   The event handler function receives two parameters:
   * `socket` - the websocket used to communicate back to the page
   * `argument` - an argument used in JS Drab.exec_elixir() method; when lauching an event via
     `drab-handler=function` atrribute, it is a map describing the sender object
 
-  ### Security
+  ### All public functions with arity of 2 in the commander module must be considered as handlers
   Please keep in mind that all public functions with arity of 2 in the commander may be called remotely from
   the browser.
+
+  ## Shared commanders
+  By default, only the page rendered with the corresponding controller may run handler functions in the
+  commander. But there is a possibility to create a shared commander, which is allowed to run from any page.
+  For this, you must mark the specific handlers as public, using `public/1` macro. Please notice it is your
+  responsibility to make such functions safe.
+
+  If you want to restrict shared controller for only specified controller, you must use `before_handler/1`
+  callback with `controller/1` and `action/1` functions to check out where the function is calling from.
 
   ## Callbacks
 
@@ -60,7 +69,7 @@ defmodule Drab.Commander do
           ...
         end
 
-        def check_status(socket, dom_sender) do
+        def check_status(socket, sender) do
           # return false or nil to prevent event handler to be launched
         end
 
@@ -73,7 +82,6 @@ defmodule Drab.Commander do
   Launched every time client browser connects to the server, including reconnects after server
   crash, network broken etc
 
-
   #### `onload`
   Launched only once after page loaded and connects to the server - exactly the same like `onconnect`,
   but launches only once, not after every reconnect
@@ -85,7 +93,7 @@ defmodule Drab.Commander do
   #### `before_handler`
   Runs before the event handler. If any of before callbacks return `false` or `nil`, corresponding event
   will not be launched. If there are more callbacks for specified event handler function, all are processed
-  in order or appearance, then system checks if any of them returned false
+  in order or appearance, then system checks if any of them returned false.
 
   Can be filtered by `:only` or `:except` options:
 
@@ -95,6 +103,19 @@ defmodule Drab.Commander do
   #### `after_handler`
   Runs after the event handler. Gets return value of the event handler function as a third argument.
   Can be filtered by `:only` or `:except` options, analogically to `before_handler`
+
+  ### Using callbacks to check user permissions
+  Callbacks are handy for security. You may retrieve controller name and action name from the socket with
+  `controller/1` and `action/1`.
+
+      before_handler :check_permissions
+      def check_permissions(socket, _sender) do
+        if controller(socket) == MyApp.MyController && action(socket) == :index do
+          true
+        else
+          false
+        end
+      end
 
   ## Broadcasting options
 
@@ -191,10 +212,43 @@ defmodule Drab.Commander do
       def __drab__() do
         @options
       end
+    end
+  end
 
-      def __drab_commander__() do
-        true
+  @doc """
+  Make handler function public, so it can be called from any page.
+
+  This allow you to create a shared commanders
+
+      defmodule MyApp.MyCommander
+        use Drab.Commander
+        public [:handler1, :handler2]
+
+        def handler1(socket, sender) do
+          ...
+        end
       end
+
+  Without marking as `public`, function may only be called from the page rendered with the corresponding controller.
+  When whitelisted, functions may be called from any page using the dot syntax:
+
+      <button drab-click="MyApp.MyCommander.handler1">handler 1</button>
+
+  or from JS:
+
+      Drab.exec_elixir("MyApp.MyCommander.handler1", {click: "clickety-click"});
+
+  Running non-public functions with dot syntax raises the exception on Phoenix side.
+  """
+  defmacro public(handler) when is_atom(handler) do
+    quote do
+      public([unquote(handler)])
+    end
+  end
+
+  defmacro public(handlers) when is_list(handlers) do
+    quote do
+      @options Map.put(@options, :public_handlers, Map.get(@options, :public_handlers) ++ unquote(handlers))
     end
   end
 
@@ -274,7 +328,7 @@ defmodule Drab.Commander do
 
     defmacro unquote(macro_name)(unknown_argument, _filter) do
       raise CompileError, description: """
-        Only atom is allowed in `#{unquote(macro_name)}`. Given: #{inspect unknown_argument}
+        only atom is allowed in `#{unquote(macro_name)}`, given: #{inspect unknown_argument}
         """
     end
   end)
@@ -320,4 +374,17 @@ defmodule Drab.Commander do
       """
   end
 
+  @doc """
+  Retrieves controller module, which generated the page the handler function is calling from, from the socket.
+  """
+  def controller(socket) do
+    socket.assigns.__controller
+  end
+
+  @doc """
+  Retrieves action name in the controller, which rendered the page where handler is called from.
+  """
+  def action(socket) do
+    socket.assigns.__action
+  end
 end
