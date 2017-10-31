@@ -29,13 +29,14 @@ defmodule Drab.Core do
   the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query`
   module.
 
-  ### Handling event in any commander
+  ### Handling event in any commander (Shared Commander)
   By default Drab runs the event handler in the commander module corresponding to the controller, which rendered
   the current page. But it is possible to choose the module by simply provide the full path to the commander:
 
       <button drab-click='MyAppWeb.MyCommander.button_clicked'>clickme</button>
 
-  Notice that the module must be a commander module, ie. it must be marked with `use Drab.Commander`.
+  Notice that the module must be a commander module, ie. it must be marked with `use Drab.Commander`, and the function
+  must be marked as public with `Drab.Commander.public/1` macro.
 
   ## Event handler functions
   The event handler function receives two parameters:

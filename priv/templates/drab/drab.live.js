@@ -1,10 +1,10 @@
-Drab.add_payload(function (sender, event) {
-  return {
-    __assigns: __drab.assigns,
-    __amperes: __drab.amperes,
-    __index: __drab.index
-  };
-});
+// Drab.add_payload(function (sender, event) {
+//   return {
+//     __assigns: __drab.assigns,
+//     __amperes: __drab.amperes,
+//     __index: __drab.index
+//   };
+// });
 
 Drab.on_load(function (resp, drab) {
   // extract information from all drabbed nodes and store it in global __drab
@@ -15,6 +15,10 @@ Drab.on_load(function (resp, drab) {
   set_properties(document);
 });
 
+Drab.on_connect(function(resp, drab) {
+  save_assigns();
+})
+
 Drab.on_change(function(selector) {
   var node = document.querySelector(selector);
   if (node) {
@@ -24,12 +28,22 @@ Drab.on_change(function(selector) {
   }
 });
 
+function save_assigns() {
+  var payload = {
+    __assigns: __drab.assigns,
+    __amperes: __drab.amperes,
+    __index: __drab.index
+  };
+  Drab.exec_elixir("Drab.Live.Commander.save_assigns", payload);
+}
+
 function run_drab_scripts_on(node) {
   var scripts = node.querySelectorAll("script[drab-script]");
   for (var i = 0; i < scripts.length; i++) {
     var script = scripts[i];
     eval(script.innerText);
   }
+  save_assigns();
 }
 
 function set_properties(where) {

@@ -190,17 +190,17 @@ defmodule Drab.Live do
   @doc false
   def js_templates(),  do: ["drab.live.js"]
 
-  @doc false
-  def transform_socket(socket, payload, state) do
-    # store assigns in Drab Server
-    priv = Map.merge(state.priv, %{
-      __ampere_assigns: payload["__assigns"],
-      __amperes: payload["__amperes"],
-      __index:   payload["__index"]
-    })
-    Drab.pid(socket) |> Drab.set_priv(priv)
-    socket
-  end
+  # @doc false
+  # def transform_socket(socket, payload, state) do
+  #   # store assigns in Drab Server
+  #   priv = Map.merge(state.priv, %{
+  #     __ampere_assigns: payload["__assigns"],
+  #     __amperes: payload["__amperes"],
+  #     __index:   payload["__index"]
+  #   })
+  #   Drab.pid(socket) |> Drab.set_priv(priv)
+  #   socket
+  # end
 
   @doc """
   Returns the current value of the assign from the current (main) partial.

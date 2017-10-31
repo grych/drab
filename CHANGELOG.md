@@ -1,8 +1,95 @@
 # CHANGELOG
 
 # v0.6.0
-* renamed Drab.Live cache to `priv/drab.live.cache`
-* nodrab feature
+This is a major release. The biggest change is completely redesigned engine for `Drab.Live` with `nodrab` option. Also introducting **shared commanders**, updates in `Drab.Browser`, performance and bug fixes.
+
+## Migration from 0.5
+
+After installation, please remove all remaining `priv/hashes_expressions.drab.cache.*` files (they were renamed to `drab.live.cache`) and do a mix clean to recompile templates:
+
+````shell
+mix clean
+````
+
+## Changes
+
+### Drab.Live
+The main change in the new template engine is that now it is not injecting `<span>` everywhere. Now, it parses the html and tries to find the sourrounding tag and mark it with the attribute called `drab-ampere`. The attribute value is a hash of the previous buffer and the expression, so it is considered unique.
+
+Consider the template, with initial value of `1` (given in render function in the Controller, as usual):
+
+````html
+<p>Chapter <%= @chapter_no %>.</p>
+````
+which renders to:
+
+````html
+<p drab-ampere="someid">Chapter 1.</p>
+````
+
+This `drab-ampere` attribute is injected automatically by `Drab.Live.EExEngine`. Updating the `@chapter_no` assign in the Drab Commander, by using `poke/2`:
+
+````elixir
+chapter = peek(socket, :chapter_no)     # get the current value of `@chapter_no`
+poke(socket, chapter_no: chapter + 1)   # push the new value to the browser
+````
+
+will change the `innerHTML` of the `<p drab-ampere="someid">` to "Chapter 2." by executing the following JS on the browser:
+
+````javascript
+document.querySelector('[drab-ampere=someid]').innerHTML = "Chapter 2."
+````
+
+This is possible because during the compile phase, Drab stores the `drab-ampere` and the corresponding pattern in the cache DETS file (located in `priv/drab.live.cache`).
+
+#### Sometimes it must add a `<span>`
+
+In case, when Drab can't find the parent tag, it injects `<span>` in the generated html. For example, template
+like:
+
+````html
+Chapter <%= @chapter_no %>.
+````
+
+renders to:
+
+````html
+Chapter <span drab-ampere="someid">1</span>.
+````
+
+### Avoiding using Drab (`nodrab` option)
+If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function. Such expressions will be treated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
+
+````html
+<p>Chapter <%= nodrab(@chapter_no) %>.</p>
+````
+
+In the future (Elixir 1.6 I suppose), the `nodrab` keyword will be replaced by a special EEx mark `/` (expression
+will look like `<%/ @chapter_no %>`).
+
+### The `@conn` case
+The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not update it
+with `poke/2`. And, because it is often quite hudge, may significantly increase the number of data sent to
+the browser. This is why Drab treats all expressions with only one assign, which happen to be `@conn`, as
+a `nodrab` assign.
+
+## Shared Commanders
+By default Drab runs the event handler in the commander module corresponding to the controller, which rendered the current page. Now it is possible to choose the module by simply provide the full path to the commander:
+
+````html
+<button drab-click='MyAppWeb.MyCommander.button_clicked'>clickme</button>
+````
+
+Notice that the module must be a commander module, ie. it must be marked with `use Drab.Commander`, and the function must be whitelisted with `Drab.Commander.public/1` macro.
+
+## Changes in `Drab.Browser`
+All function in `Drab.Browser` were renamed to their bang version. This is because in the future release functions with and without bang will be more consist with Elixir standards - nobang function will return tuples, bangs will raise on error.
+
+### Warning: functions redirect_to!/2 and console!/2 are changed
+In preparation to change all the functions in the module, this functions behavior have changed. Now, they are just bang version of the "normal" function, and **they are not broadcasting anymore**.
+
+You should use `broadcast_redirect_to!/2` and `broadcast_console!/2` instead.
+
 
 # v0.5.6
 Reverted back #51 - `@conn` is available again.
