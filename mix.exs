@@ -39,7 +39,7 @@ defmodule Drab.Mixfile do
      {:ex_doc, "~> 0.18", only: :dev, runtime: false},
      {:hound, "~> 1.0", only: [:dev, :test]},
      # {:inch_ex, "~> 0.5", only: [:dev, :test, :docs]},
-     {:deppie, "~> 1.0.0"},
+     {:deppie, "~> 1.0"},
      {:floki, "~> 0.17"}
    ]
   end
