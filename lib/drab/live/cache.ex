@@ -53,6 +53,7 @@ defmodule Drab.Live.Cache do
 
   @doc false
   def cache_file() do
-    "#{Path.join(Drab.Config.app_name() |> :code.priv_dir() |> to_string(), @cache_file)}"
+    # "#{Path.join(Drab.Config.app_name() |> :code.priv_dir() |> to_string(), @cache_file)}"
+    "#{Path.join(:drab |> :code.priv_dir() |> to_string(), @cache_file)}"
   end
 end
