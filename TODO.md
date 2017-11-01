@@ -1,8 +1,4 @@
 
-# v0.6.1
-:save_assign not found
-mix compile in prod does not produce file
-
 ## Bugs:
 * Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
 

@@ -1,11 +1,13 @@
 # CHANGELOG
 
 # v0.6.1
-## Please read documentation for `Drab.Browser`, the API has changed
+This release fixes new, better bugs introduced in v0.6.0:
+* "atom :save_assigns not found" error
+* `@conn` case (it was not removing @conn from the initial)
+* cache file was deleted after `mix phx.digest`, moved the file to the Drab's priv directory
 
-Fixes:
+## Please read documentation for `Drab.Browser`, the API has changed
 * cleaned up the mess with API in `Drab.Browser`
-* `@conn` case bugfix
 
 # v0.6.0
 This is a major release. The biggest change is completely redesigned engine for `Drab.Live` with `nodrab` option. Also introducting **shared commanders**, updates in `Drab.Browser`, performance and bug fixes.
