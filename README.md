@@ -61,7 +61,7 @@ end
 
 ```elixir
 def deps do
-  [{:drab, "~> 0.5"}]
+  [{:drab, "~> 0.6"}]
 end
 ```
 
@@ -75,7 +75,7 @@ $ mix compile
 ```html
 <%= Drab.Client.js(@conn) %>
 ```
-    
+
   just after the following line:
 
 ```html
@@ -151,7 +151,7 @@ npm: {globals: {
   3. And install it:
 
 ```bash
-$ npm install && node_modules/brunch/bin/brunch build 
+$ npm install && node_modules/brunch/bin/brunch build
 ```
 
 
@@ -159,7 +159,7 @@ Congratulations! You have installed Drab and you can proceed with your own comma
 
 ## Usage
 
-All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. 
+All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`.
 Think about it as a controller for the live pages. Commanders should be placed in `web/commanders` directory.
 
 To enable Drab on specific pages, you need to add the directive `use Drab.Controller` to your controller.
@@ -173,7 +173,7 @@ $ mix drab.gen.commander Page
 * creating web/commanders/page_commander.ex
 
 Add the following line to your Example.PageController:
-    use Drab.Controller 
+    use Drab.Controller
 ```
 
   2. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
@@ -181,12 +181,12 @@ Add the following line to your Example.PageController:
 ```elixir
 defmodule MyApp.PageController do
   use Example.Web, :controller
-  use Drab.Controller 
+  use Drab.Controller
 
   def index(conn, _params) do
     render conn, "index.html", welcome_text: "Welcome to Phoenix!"
   end
-end    
+end
 ```
 
   Also add the `@welcome_text` assign to `render/3` in index action, to be used in the future.
@@ -211,7 +211,7 @@ defmodule DrabExample.PageCommander do
   # Drab Callbacks
   def page_loaded(socket) do
     poke socket, welcome_text: "This page has been drabbed"
-    set_prop socket, "div.jumbotron p.lead", 
+    set_prop socket, "div.jumbotron p.lead",
       innerHTML: "Please visit <a href='https://tg.pl/drab'>Drab</a> page for more"
   end
 end
@@ -222,7 +222,7 @@ The `poke/2` function updates the assign. The `set_prop/3` updates any property 
   6. Run `iex -S mix phoenix.server`. Go to `http://localhost:4000` to see the changed web page. Now you may play with this page live, directly from `iex`! Observe the instruction given when your browser connects to the page:
 
 ```elixir
-[debug] 
+[debug]
     Started Drab for same_path:/, handling events in DrabExample.PageCommander
     You may debug Drab functions in IEx by copy/paste the following:
 import Drab.{Core, Element, Live}
@@ -326,12 +326,12 @@ mix deps.get
 npm install && node_modules/brunch/bin/brunch build
 ```
 
-* run `chromedriver` 
+* run `chromedriver`
 
 * run tests:
 
 ```shell
-% mix test                 
+% mix test
 Compiling 23 files (.ex)
 ........................................
 
@@ -343,7 +343,7 @@ Randomized with seed 934572
 
 ## Contact
 
-(c)2016-2017 Tomek "Grych" Gryszkiewicz, 
+(c)2016-2017 Tomek "Grych" Gryszkiewicz,
 <grych@tg.pl>
 
 
