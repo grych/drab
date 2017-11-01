@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# v0.6.1
+## Please read documentation for `Drab.Browser`, the API has changed
+
+Fixes:
+* cleaned up the mess with API in `Drab.Browser`
+* `@conn` case bugfix
+
 # v0.6.0
 This is a major release. The biggest change is completely redesigned engine for `Drab.Live` with `nodrab` option. Also introducting **shared commanders**, updates in `Drab.Browser`, performance and bug fixes.
 

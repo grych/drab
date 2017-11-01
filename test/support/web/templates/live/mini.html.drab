@@ -10,5 +10,6 @@
   <% end %>
 </p>
 
+<%= inspect @conn %>
 
 <button drab-click="update_mini">update mini</button>

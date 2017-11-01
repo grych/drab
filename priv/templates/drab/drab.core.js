@@ -26,9 +26,9 @@ Drab.on_connect(function (resp, drab) {
     });
 
     // console.log
-    drab.channel.on("console", function (message) {
-      console.log(message.log);
-    });
+    // drab.channel.on("console", function (message) {
+    //   console.log(message.log);
+    // });
   }
 
   // launch server-side onconnect callback - every time it is connected

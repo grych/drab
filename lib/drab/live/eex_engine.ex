@@ -130,10 +130,10 @@ defmodule Drab.Live.EExEngine do
     body = List.flatten(body)
 
     partial_hash = partial(body)
-    found_assigns = find_assigns(body)
-    assigns_js = found_assigns |> Enum.map(fn assign ->
-      assign_js(partial_hash, assign)
-    end) |> script_tag()
+    # found_assigns = find_assigns(body)
+    # assigns_js = found_assigns |> Enum.map(fn assign ->
+    #   assign_js(partial_hash, assign)
+    # end) |> script_tag()
 
     init_js = """
       if (typeof window.#{@jsvar} == 'undefined') {#{@jsvar} = {assigns: {}, properties: {}}};
@@ -154,15 +154,21 @@ defmodule Drab.Live.EExEngine do
         {assign, ampere_id}
       end
     end
-    |> List.flatten()
-    |> Enum.uniq()
-    |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
+      |> List.flatten()
+      |> Enum.uniq()
+      |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
 
 
     # ampere-to_assign list
     for {assign, amperes} <- amperes_to_assigns do
       Drab.Live.Cache.set({partial_hash, assign}, amperes)
     end
+    found_assigns = for({assign, _} <- amperes_to_assigns, do: assign) |> Enum.uniq()
+
+    # found_assigns = find_assigns(body)
+    assigns_js = found_assigns |> Enum.map(fn assign ->
+      assign_js(partial_hash, assign)
+    end) |> script_tag()
 
     # other cached stuff:
     # "expr_hash" => {:expr, "expr", [assigns]}

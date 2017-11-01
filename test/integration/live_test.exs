@@ -121,7 +121,9 @@ defmodule DrabTestApp.LiveTest do
       assert_raise ArgumentError, fn ->
         poke(socket, conn: "whatever")
       end
-      assert %Plug.Conn{} = peek(socket, :conn)
+      assert_raise ArgumentError, fn ->
+        peek(socket, :conn)
+      end
     end
   end
 end

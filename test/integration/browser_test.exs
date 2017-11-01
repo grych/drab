@@ -15,6 +15,15 @@ defmodule DrabTestApp.BrowserTest do
   describe "Drab.Browser" do
     test "datetime functions" do
       socket = drab_socket()
+      {:ok, dt} = socket |> now()
+      assert dt.year >= 2017
+      assert is_tuple(dt.microsecond)
+      {:ok, offset} = socket |> utc_offset()
+      assert is_integer(offset)
+    end
+
+    test "datetime bang functions" do
+      socket = drab_socket()
       dt = socket |> now!()
       assert dt.year >= 2017
       assert is_tuple(dt.microsecond)
@@ -31,6 +40,18 @@ defmodule DrabTestApp.BrowserTest do
     end
 
     test "user agent and languages" do
+      socket = drab_socket()
+      {:ok, ua} = user_agent(socket)
+      assert is_binary(ua)
+      assert String.contains?(ua, "Chrome") ## only chromedriver supported so far
+      {:ok, language} = language(socket)
+      {:ok, languages} = languages(socket)
+      assert is_binary(language)
+      refute is_nil(language)
+      assert is_list(languages)
+    end
+
+    test "user agent and languages (bang versions)" do
       socket = drab_socket()
       ua = user_agent!(socket)
       assert is_binary(ua)
