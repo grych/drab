@@ -280,6 +280,11 @@ defmodule Drab do
 
       module_and_function ->
         module = List.delete_at(module_and_function, -1) |> Module.safe_concat()
+        unless Code.ensure_loaded?(module) do
+          raise """
+            module #{inspect(module)} does not exists.
+            """
+        end
         function = List.last(module_and_function) |> String.to_existing_atom()
         {module, function}
     end
