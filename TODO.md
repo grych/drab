@@ -4,6 +4,11 @@
 
 ## Future
 Changes:
+* is `use Drab.Commander` really necessary?
+* <p drab-commander>
+* check token on each incoming message
+* is controller, action and assigns neccasary in drab token on page generation?
+* security concers when onload
 * check if the handler exists in compile time
 * @impl
 * benchmarks (compare to AJAX)
