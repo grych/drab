@@ -173,10 +173,10 @@ defmodule Drab.Live do
   If you renamed any of those modules in your application, you must tell Drab where to find it by adding the following
   entry to the `config.exs` file:
 
-      config :drab, live_helper_modules: {Router.Helpers, ErrorHelpers, Gettext}
+      config :drab, live_helper_modules: [Router.Helpers, ErrorHelpers, Gettext]
 
   Notice that the application name is derived automatically. Please check `Drab.Config.get/1` for more information
-  on Drab setup
+  on Drab setup.
 
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid.
@@ -311,15 +311,9 @@ defmodule Drab.Live do
       |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end)
       |> Keyword.merge(assigns)
 
-
-    #TODO: check how it works in P13, when app_module is different than web_app_module
-    app_module = Drab.Config.app_module()
-    {router_helpers, error_helpers, gettext} = Drab.Config.get(:live_helper_modules)
     modules = {
       socket.assigns.__controller.__drab__().view,
-      Module.concat(app_module, router_helpers), # Router.Helpers
-      Module.concat(app_module, error_helpers),  # ErrorHelpers
-      Module.concat(app_module, gettext)         # Gettext
+      Drab.Config.get(:live_helper_modules)
     }
 
     amperes_to_update = for {assign, _} <- assigns do
@@ -385,17 +379,19 @@ defmodule Drab.Live do
     safe
   end
 
-  defp expr_with_imports(expr, modules) do
-    #TODO: find it in the web.ex or get from the setup
-    {view, router_helpers, error_helpers, gettext} = modules
+  defp expr_with_imports(expr, {view, modules}) do
     quote do
       import Phoenix.View
       import unquote(view)
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
       use Phoenix.HTML
-      import unquote(router_helpers)
-      import unquote(error_helpers)
-      import unquote(gettext)
+      unquote do
+        for module <- modules do
+          quote do
+            import unquote(module)
+          end
+        end
+      end
       unquote(expr)
     end
   end

@@ -1,5 +1,8 @@
 # CHANGELOG
 
+# v0.6.2
+* live_helper_modules allows list (#66)
+
 # v0.6.1
 This release fixes new, better bugs introduced in v0.6.0:
 * "atom :save_assigns not found" error

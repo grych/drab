@@ -166,7 +166,7 @@ defmodule Drab.Config do
   * `main_phoenix_app` - a name of your Phoenix application (atom); if not set it gets it from the `mix.exs`
   * `enable_live_scripts` - true for re-evaluate javascripts contain living assigns
   * `live_helper_modules` - a list of modules to be imported when Drab.Live evaluates expression with living assign;
-    default `{Router.Helpers, ErrorHelpers, Gettext}` and must be three-element tuple
+    default is `[Router.Helpers, ErrorHelpers, Gettext]`
   """
   def get(:templates_path), do:
     Application.get_env(:drab, :templates_path, "priv/templates/drab")
@@ -186,9 +186,16 @@ defmodule Drab.Config do
     Application.get_env(:drab, :main_phoenix_app, nil)
   def get(:enable_live_scripts), do:
     Application.get_env(:drab, :enable_live_scripts, false)
-  def get(:live_helper_modules), do:
-    Application.get_env(:drab, :live_helper_modules, {Router.Helpers, ErrorHelpers, Gettext})
+  def get(:live_helper_modules) do
+    case Application.get_env(:drab, :live_helper_modules, [Router.Helpers, ErrorHelpers, Gettext]) do
+      list when is_list(list) -> with_app_module(list)
+      tuple when is_tuple(tuple) -> with_app_module(Tuple.to_list(tuple)) # for backwards compatibility
+    end
+  end
   def get(_), do:
     nil
+
+  defp with_app_module(list), do:
+    Enum.map list, fn x -> Module.concat(app_module(), x) end
 
 end
