@@ -151,6 +151,9 @@ defmodule Drab do
 
     socket  = transform_socket(payload, socket, state)
 
+    #TODO: {:error, "timed out after 5000 ms."}
+    # fix: get session and store in payload
+
     Drab.Core.save_session(socket, Drab.Core.session(socket))
     Drab.Core.save_store(socket, Drab.Core.store(socket))
     Drab.Core.save_socket(socket)
@@ -396,7 +399,7 @@ defmodule Drab do
         {status, reply}
       after timeout ->
         #TODO: message is still in a queue
-        {:error, "timed out after #{timeout} ms."}
+        {:timeout, "timed out after #{timeout} ms."}
     end
   end
 

@@ -2,6 +2,7 @@
 
 # v0.6.2
 * live_helper_modules allows list (#66)
+* when updating `value` attribute, poke updates property as well (for inputs and textareas)
 
 # v0.6.1
 This release fixes new, better bugs introduced in v0.6.0:

@@ -8,7 +8,7 @@ Changes:
 * <p drab-commander>
 * check token on each incoming message
 * is controller, action and assigns neccasary in drab token on page generation?
-* security concers when onload
+* security concerns when onload
 * topic, authorization and authentication
 * check if the handler exists in compile time
 * @impl

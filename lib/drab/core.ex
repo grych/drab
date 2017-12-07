@@ -195,7 +195,7 @@ defmodule Drab.Core do
   @doc """
   Synchronously executes the given javascript on the client side.
 
-  Returns tuple `{status, return_value}`, where status could be `:ok` or `:error`, and return value
+  Returns tuple `{status, return_value}`, where status could be `:ok`, `:error` or `:timeout`, and return value
   contains the output computed by the Javascript or the error message.
 
   ### Options
@@ -211,10 +211,10 @@ defmodule Drab.Core do
       {:error, "not_existing_function is not defined"}
 
       iex> socket |> exec_js("for(i=0; i<1000000000; i++) {}")
-      {:error, "timed out after 5000 ms."}
+      {:timeout, "timed out after 5000 ms."}
 
       iex> socket |> exec_js("alert('hello from IEx!')", timeout: 500)
-      {:error, "timed out after 500 ms."}
+      {:timeout, "timed out after 500 ms."}
 
   """
   def exec_js(socket, js, options \\ []) do

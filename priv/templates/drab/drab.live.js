@@ -89,6 +89,10 @@ Drab.update_attribute = function(ampere, attribute, new_value) {
   var nodes = ampere_nodes(ampere);
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
+    // a corner case for <input value="">
+    if ((node.tagName == "INPUT" || node.tagName == "TEXAREA") && attribute.toLowerCase() == "value") {
+      node.value = new_value;
+    }
     node.setAttribute(attribute, new_value);
   }
 }

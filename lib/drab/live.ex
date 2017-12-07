@@ -80,6 +80,10 @@ defmodule Drab.Live do
   Notice that the pattern where your expression lives is preserved: you may update only the partials of the
   attribute value string.
 
+  ##### Updating `value` attribute for `<input>` and `<textarea>`
+  There is a special case for `<input>` and `<textarea>`: when poking attribute of `value`, Drab updates
+  the corresponding `value` property as well.
+
   #### Properties
   Nowadays we deal more with node properties than attributes. This is why `Drab.Live` introduces the special syntax.
   When using the `@` sign at the beginning of the attribute name, it will be treated as a property.
