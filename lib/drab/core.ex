@@ -424,9 +424,10 @@ defmodule Drab.Core do
     Drab.tokenize(socket, store, "drab_store_token")
   end
 
-  defp detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
+  @doc false
+  def detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
 
-  defp detokenize_store(socket, drab_store_token) do
+  def detokenize_store(socket, drab_store_token) do
     # we just ignore wrong token and defauklt the store to %{}
     # this is because it is read on connect, and raising here would cause infinite reconnects
     case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token, max_age: 86400) do

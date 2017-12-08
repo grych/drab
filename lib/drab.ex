@@ -149,13 +149,10 @@ defmodule Drab do
 
     # IO.inspect payload
 
-    socket  = transform_socket(payload, socket, state)
+    socket  = transform_socket(payload["payload"], socket, state)
 
-    #TODO: {:error, "timed out after 5000 ms."}
-    # fix: get session and store in payload
-
-    Drab.Core.save_session(socket, Drab.Core.session(socket))
-    Drab.Core.save_store(socket, Drab.Core.store(socket))
+    Drab.Core.save_session(socket, Drab.Core.detokenize_store(socket, payload["drab_session_token"]))
+    Drab.Core.save_store(socket, Drab.Core.detokenize_store(socket, payload["drab_store_token"]))
     Drab.Core.save_socket(socket)
 
     onconnect = commander_config(commander).onconnect

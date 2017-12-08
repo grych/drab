@@ -100,7 +100,7 @@ defmodule Drab.Channel do
       """
     end
 
-    verify_and_cast(:onconnect, [payload["payload"]], socket)
+    verify_and_cast(:onconnect, [payload], socket)
   end
 
   def handle_in("event", %{

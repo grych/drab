@@ -33,9 +33,9 @@ Drab.on_connect(function (resp, drab) {
 
   // launch server-side onconnect callback - every time it is connected
   drab.channel.push("onconnect", {
-    drab_store_token: Drab.drab_store_token,
+    drab_store_token: Drab.get_drab_store_token(),
+    drab_session_token: Drab.get_drab_session_token(),
     payload: payload()
-    // payload: {}
   });
 
   // initialize onload on server side, just once
