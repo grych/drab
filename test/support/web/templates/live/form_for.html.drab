@@ -12,3 +12,6 @@
     <% end %>
   </ul>
 <% end %>
+
+<br><br>
+<b id="text_to_set_onload"><%= @text %></b>

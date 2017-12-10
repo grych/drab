@@ -162,9 +162,11 @@ defmodule Drab do
   end
 
   @doc false
-  def handle_cast({:onload, socket}, %Drab{commander: commander} = state) do
+  def handle_cast({:onload, socket, payload}, %Drab{commander: commander} = state) do
     # {_, socket} = transform_payload_and_socket(payload, socket, commander_module)
-    # IO.inspect state
+    # IO.inspect payload
+
+    socket  = transform_socket(payload["payload"], socket, state)
 
     onload = commander_config(commander).onload
     handle_callback(socket, commander, onload) #returns socket

@@ -5,6 +5,7 @@
 <div id="color_main" @style.backgroundColor=<%=@color%>>
   Users count: <%= @count %>
 </div>
+
 <br>
 <%= render("users.html", users: @users, count: @count, color: @color) %>
 <br>
@@ -52,6 +53,8 @@
 <button drab-click="update_in_main_partial" class="btn btn-primary">
   Update @color in main partial
 </button>
+<br><br>
+<b id="text_to_set_onload"><%= @text %></b>
 <br>
 
 <div>

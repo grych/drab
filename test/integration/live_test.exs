@@ -19,6 +19,13 @@ defmodule DrabTestApp.LiveTest do
       assert peek(socket, :count) == 42
     end
 
+    test "poke onload" do
+      socket = drab_socket()
+      assert peek(socket, :text) == "set in the commander"
+      set_onload = find_element(:id, "text_to_set_onload")
+      assert visible_text(set_onload) == "set in the commander"
+    end
+
     test "non existing peek and poke should raise" do
       socket = drab_socket()
       assert_raise ArgumentError, fn ->

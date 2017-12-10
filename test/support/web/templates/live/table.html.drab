@@ -16,3 +16,6 @@
 
 <button id="update_users" drab-click="update_list">Update users</button><br>
 <button id="update_link"  drab-click="update_link">Update link </button>
+
+<br><br>
+<b id="text_to_set_onload"><%= @text %></b>

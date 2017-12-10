@@ -13,3 +13,6 @@
 <%= inspect @conn %>
 
 <button drab-click="update_mini">update mini</button>
+
+<br><br>
+<b id="text_to_set_onload"><%= @text %></b>

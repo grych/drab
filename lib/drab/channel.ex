@@ -58,8 +58,9 @@ defmodule Drab.Channel do
     {:noreply, socket}
   end
 
-  def handle_in("onload", _, socket) do
-    verify_and_cast(:onload, [], socket)
+  def handle_in("onload", payload, socket) do
+    # IO.inspect(payload)
+    verify_and_cast(:onload, [payload], socket)
   end
 
   def handle_in("onconnect", payload, socket) do

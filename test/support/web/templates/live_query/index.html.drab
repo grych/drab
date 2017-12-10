@@ -4,3 +4,4 @@
 <br>
   <a id="live_query_a" href="<%= @href %>" @style.backgroundColor=<%=@color%>><%= @link %></a>
 <br>
+

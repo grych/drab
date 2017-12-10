@@ -7,3 +7,4 @@
   <br>
   <a id="partial1_href" href="<%= @link %>"><%= @link %></a>
 </p>
+

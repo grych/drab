@@ -29,3 +29,5 @@
 <div id="out" @out=<%= @out %>><%= inspect @out %></div>
 <br>
 <br>
+<br><br>
+<b id="text_to_set_onload"><%= @text %></b>

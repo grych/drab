@@ -40,7 +40,7 @@ Drab.on_connect(function (resp, drab) {
 
   // initialize onload on server side, just once
   if (!drab.onload_launched) {
-    drab.channel.push("onload", { drab_store_token: Drab.drab_store_token });
+    drab.channel.push("onload", { drab_store_token: Drab.drab_store_token, payload: payload() });
     drab.onload_launched = true;
   }
 });

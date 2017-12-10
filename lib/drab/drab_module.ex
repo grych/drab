@@ -1,6 +1,6 @@
 defmodule DrabModule do
   #TODO: docs
-  @moduledoc false 
+  @moduledoc false
 
   # Drab behaviour
   # All Drab Modules must provide a list of prerequisite modules (except Drab.Core, which is loaded by defaut),
@@ -30,13 +30,13 @@ defmodule DrabModule do
   @doc false
   def all_modules_for(modules) do
     modules = prereqs_for(modules) |> List.flatten() |> Enum.reverse()
-    [Drab.Core | modules] |> Enum.uniq()
+    Enum.uniq(modules ++ [Drab.Core])
   end
 
   @doc false
   def all_templates_for(modules) do
     Enum.map(all_modules_for(modules), fn mod ->
-      mod.js_templates 
+      mod.js_templates
     end) |> List.flatten() |> Enum.uniq()
   end
 
