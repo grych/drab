@@ -1,9 +1,12 @@
 # CHANGELOG
 
 # v0.6.2
-* live_helper_modules allows list (#66)
+Bug fixes:
+* live_helper_modules config entry now allows list (#66)
 * when updating `value` attribute, `poke` updates property as well (for inputs and textareas)
 * changed the order of loaded modules; fixes #69
+* changed the way drab is asking for a store and session on connect; probably fixed #68
+
 
 # v0.6.1
 This release fixes new, better bugs introduced in v0.6.0:
