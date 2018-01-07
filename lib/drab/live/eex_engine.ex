@@ -7,6 +7,31 @@ defmodule Drab.Live.EExEngine do
 
   ### Limitations
 
+  Because `Drab.Live` always tries to update the smallest portion of the html, it has some limits described below.
+  It is very important to understand how Drab re-evaluates the expressions with the new assign values. Consider the
+  comprehension with the condition as below:
+
+      <%= for u <- @users do %>
+        <%= if u != @user do %>
+          <%= u %> <br>
+        <% end %>
+      <% end %>
+
+  The template above contains two Drabbable expression: `for` comprehension and `if` condition. When the new
+  value of `@users` is poked, all works as expected: the list is refreshed. But when you poke the `@user` assign,
+  system will return an error that the `u()` function is not defined. This is because Drab tries to re-evaluate
+  the expression with the `@user` assign - the `if` statement, and the `u` variable is defined elsewhere.
+
+  But what was your goal when poking the `@user` assign? You wanted to update the whole `for` expression, because
+  the displayed users list should be refreshed. In the current version of Drab, the only way to archive it
+  is to move `@user` assign to the parent expression. In this case it would be a filter on the comprehension:
+
+      <%= for u <- @users, u != @user do %>
+        <%= u %> <br>
+      <% end %>
+
+  In this case the whole `for` expression is evaluated when the `@user` assign is changed.
+
   #### Avalibility of assigns
   To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format. Passing it
   to `render` in the controller is not enough.

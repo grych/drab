@@ -10,7 +10,7 @@ Changes:
 * is controller, action and assigns neccasary in drab token on page generation?
 * security concerns when onload
 * topic, authorization and authentication
-* check if the handler exists in compile time
+* check if the handler exists in a compile time
 * @impl
 * benchmarks (compare to AJAX)
 * extract Drab Store and Session to standalone module (loaded by default)
@@ -33,3 +33,14 @@ Bugs:
 Performance:
 * render additional, user templates in a compile-time
 * compress Drab templates (js)
+
+
+Drab.Live:
+
+      <%= for u <- @users do %>
+        <%= if u != @user do %>
+          <%= u %> <br>
+        <% end %>
+      <% end %>
+
+poking @users AND @user in the same time should only update the parent

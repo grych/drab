@@ -4,7 +4,10 @@ defmodule Drab.Live do
   in the browser.
 
   The idea is to reuse your Phoenix templates and let them live, to make a possibility to update assigns
-  on the living page, from the Elixir, without reloading the whole stuff.
+  on the living page, from the Elixir, without re-rendering the whole html. But because Drab tries to update the
+  smallest amount of the html, there are some limitations, for example, it when updating the nested block
+  it does not know the local variables used before. Please check out `Drab.Live.EExEngine` for more detailed
+  description.
 
   Use `peek/2` to get the assign value, and `poke/2` to modify it directly in the DOM tree.
 
@@ -378,9 +381,26 @@ defmodule Drab.Live do
   end
 
   defp eval_expr(expr, modules, updated_assigns) do
-    {safe, _assigns} = expr_with_imports(expr, modules)
-      |> Code.eval_quoted([assigns: updated_assigns])
-    safe
+    e = expr_with_imports(expr, modules)
+    try do
+      {safe, _assigns} = Code.eval_quoted(e, [assigns: updated_assigns])
+      safe
+    rescue
+      #TODO: to be removed after solving #71
+      e in CompileError ->
+        msg = if String.contains?(e.description, "undefined function") do
+          """
+          #{e.description}
+
+          Using local variables defined in external blocks is prohibited in Drab.
+          Please check the following documentation page for more details:
+          https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
+          """
+        else
+          e.description
+        end
+        raise CompileError, description: msg
+    end
   end
 
   defp expr_with_imports(expr, {view, modules}) do
