@@ -263,7 +263,7 @@ defmodule Drab.Live do
   Updates the current page in the browser with the new assign value.
 
   Raises `ArgumentError` when assign is not found within the partial.
-  Returns untouched socket.
+  Returns untouched socket or touple {:error, description} or {:timeout, description}
 
       iex> poke(socket, count: 42)
       %Phoenix.Socket{ ...
@@ -355,21 +355,22 @@ defmodule Drab.Live do
 
     # IO.inspect(all_javascripts)
 
-    {:ok, _} = function.(socket, all_javascripts |> Enum.join(";"))
-
-    # Save updated assigns in the Drab Server
-    assigns_to_update = for {k, v} <- assigns_to_update, into: %{} do
-      {Atom.to_string(k), v}
+    case function.(socket, all_javascripts |> Enum.join(";")) do
+      {:ok, _} ->
+        # Save updated assigns in the Drab Server
+        assigns_to_update = for {k, v} <- assigns_to_update, into: %{} do
+          {Atom.to_string(k), v}
+        end
+        updated_assigns = for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
+          {k, Drab.Live.Crypto.encode64(v)}
+        end
+        priv = socket |> Drab.pid() |> Drab.get_priv()
+        partial_assigns_updated = %{priv.__ampere_assigns | partial => updated_assigns}
+        socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: partial_assigns_updated})
+        socket
+      other ->
+        other
     end
-    updated_assigns = for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
-      {k, Drab.Live.Crypto.encode64(v)}
-    end
-
-    priv = socket |> Drab.pid() |> Drab.get_priv()
-    partial_assigns_updated = %{priv.__ampere_assigns | partial => updated_assigns}
-    socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: partial_assigns_updated})
-
-    socket
   end
 
   defp eval_expr(expr, modules, updated_assigns, :prop) do
