@@ -72,7 +72,7 @@ defmodule Drab.Channel do
       commander = Drab.get_commander(socket)
       modules = DrabModule.all_modules_for(commander.__drab__().modules)
 
-      groupped = Enum.map(modules, fn module ->
+      grouped = Enum.map(modules, fn module ->
         [_ | rest] = Module.split(module)
         Enum.join(rest, ".")
       end) |> Enum.join(", ")
@@ -103,7 +103,7 @@ defmodule Drab.Channel do
 
           Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{inspect(commander)}
           You may debug Drab functions in IEx by copy/paste the following:
-      import Drab.{#{groupped}}
+      import Drab.{#{grouped}}
       socket = Drab.get_socket(pid("#{pid_string}"))
 
           Examples:
