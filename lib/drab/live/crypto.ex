@@ -51,7 +51,7 @@ defmodule Drab.Live.Crypto do
     {secret, sign_secret}
   end
 
-  defp now_ms(), do: System.system_time(:milli_seconds)
+  defp now_ms(), do: System.system_time(:millisecond)
 
   @doc false
   def hash(term) do
