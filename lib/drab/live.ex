@@ -373,6 +373,18 @@ defmodule Drab.Live do
     end
   end
 
+  def socket_to_assigns(socket) do
+    case socket_to_ampere_assigns(socket) do
+      assigns when map_size(assigns) == 0 ->
+        []
+      
+      assigns ->
+        assigns
+        |> Map.values()
+        |> Enum.flat_map(&Map.keys(&1))
+    end
+  end
+
   defp eval_expr(expr, modules, updated_assigns, :prop) do
     eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
   end
@@ -435,10 +447,7 @@ defmodule Drab.Live do
 
   defp assigns(socket, partial, partial_name) do
     assigns = case socket
-      |> Drab.pid()
-      |> Drab.get_priv()
-      # |> IO.inspect()
-      |> Map.get(:__ampere_assigns)
+      |> socket_to_ampere_assigns()
       |> Map.fetch(partial) do
         {:ok, val} -> val
         :error -> raise ArgumentError, message: """
@@ -449,6 +458,13 @@ defmodule Drab.Live do
     for {name, value} <- assigns, into: %{} do
       {name, Drab.Live.Crypto.decode64(value)}
     end
+  end
+
+  defp socket_to_ampere_assigns(socket) do
+    socket
+    |> Drab.pid()
+    |> Drab.get_priv()
+    |> Map.get(:__ampere_assigns, %{})
   end
 
   defp index(socket) do
