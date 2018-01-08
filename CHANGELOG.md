@@ -2,10 +2,10 @@
 
 # v0.6.3
 Changes:
+* workaround for #71: better docs and error message
 * `Drab.Live.poke` returns {:error, description} on error
 * improved examples on connect in iex (#72)
 * assign list with `Drab.Live.assigns` (#72)
-* workaround for #71: better docs and error message
 
 
 # v0.6.2
