@@ -72,7 +72,7 @@ defmodule Drab.Channel do
       commander = Drab.get_commander(socket)
 
       assign_example =
-        case Drab.Live.socket_to_assigns(socket) do
+        case Drab.Live.assigns(socket) do
           [] ->
             nil
               
@@ -116,6 +116,10 @@ defmodule Drab.Channel do
 
           Examples:
       #{examples |> Enum.join("\n")}
+
+          If you want a list of the assigns for the current socket you can call the following:
+
+      Drab.Live.assigns(socket)
       """
     end
 

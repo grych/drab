@@ -246,7 +246,7 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
-    current_assigns = assigns(socket, hash, partial)
+    current_assigns = assign_data_for_partial(socket, hash, partial)
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
 
     case current_assigns |> Map.fetch(assign) do
@@ -302,7 +302,7 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
 
-    current_assigns = assigns(socket, partial, partial_name)
+    current_assigns = assign_data_for_partial(socket, partial, partial_name)
 
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
     assigns_to_update = Enum.into(assigns, %{})
@@ -373,16 +373,47 @@ defmodule Drab.Live do
     end
   end
 
-  def socket_to_assigns(socket) do
-    case socket_to_ampere_assigns(socket) do
-      assigns when map_size(assigns) == 0 ->
-        []
-      
-      assigns ->
-        assigns
-        |> Map.values()
-        |> Enum.flat_map(&Map.keys(&1))
-    end
+  @doc """
+  Returns a list of the assigns for the current socket.
+
+  Examples:
+
+      iex> socket = Drab.get_socket(pid("0.546.0"))
+      iex> Drab.Live.assigns(socket)
+      [:welcome_text]
+  """
+  def assigns(socket) do
+    assigns(socket, nil, nil)
+  end
+
+  @doc """
+  Like `assigns/1` but will return the assigns for a given `partial` instead of the main partial.
+
+  Examples:
+
+      iex> socket = Drab.get_socket(pid("0.546.0"))
+      iex> assigns(socket, "user.html")
+      [:name, :age, :email]
+  """
+  def assigns(socket, partial) do
+    assigns(socket, nil, partial)
+  end
+
+  @doc """
+  Like `assigns/2`, but returns the assigns for a given combination of a `view` and a `partial`.
+ 
+      iex> socket = Drab.get_socket(pid("0.546.0"))
+      iex> assigns(socket, MyApp.UserView, "user.html")
+      [:name, :age, :email]
+  """
+  def assigns(socket, view, partial) do
+    view = view || Drab.get_view(socket)
+    partial_hash = if partial, do: partial_hash(view, partial), else: index(socket)
+
+    socket
+    |> assign_data_for_partial(partial_hash, partial)
+    |> Map.keys()
+    |> Enum.map(&String.to_existing_atom(&1))
   end
 
   defp eval_expr(expr, modules, updated_assigns, :prop) do
@@ -445,9 +476,9 @@ defmodule Drab.Live do
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
-  defp assigns(socket, partial, partial_name) do
+  defp assign_data_for_partial(socket, partial, partial_name) do
     assigns = case socket
-      |> socket_to_ampere_assigns()
+      |> ampere_assigns()
       |> Map.fetch(partial) do
         {:ok, val} -> val
         :error -> raise ArgumentError, message: """
@@ -460,7 +491,7 @@ defmodule Drab.Live do
     end
   end
 
-  defp socket_to_ampere_assigns(socket) do
+  defp ampere_assigns(socket) do
     socket
     |> Drab.pid()
     |> Drab.get_priv()
