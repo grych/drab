@@ -374,11 +374,10 @@ defmodule Drab.Live do
   end
 
   @doc """
-  Returns a list of the assigns for the current socket.
+  Returns a list of the assigns for the main partial.
 
   Examples:
 
-      iex> socket = Drab.get_socket(pid("0.546.0"))
       iex> Drab.Live.assigns(socket)
       [:welcome_text]
   """
@@ -391,7 +390,6 @@ defmodule Drab.Live do
 
   Examples:
 
-      iex> socket = Drab.get_socket(pid("0.546.0"))
       iex> assigns(socket, "user.html")
       [:name, :age, :email]
   """
@@ -402,7 +400,6 @@ defmodule Drab.Live do
   @doc """
   Like `assigns/2`, but returns the assigns for a given combination of a `view` and a `partial`.
  
-      iex> socket = Drab.get_socket(pid("0.546.0"))
       iex> assigns(socket, MyApp.UserView, "user.html")
       [:name, :age, :email]
   """

@@ -116,10 +116,6 @@ defmodule Drab.Channel do
 
           Examples:
       #{examples |> Enum.join("\n")}
-
-          If you want a list of the assigns for the current socket you can call the following:
-
-      Drab.Live.assigns(socket)
       """
     end
 
