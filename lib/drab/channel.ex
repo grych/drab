@@ -70,19 +70,37 @@ defmodule Drab.Channel do
     # for debugging
     if IEx.started? do
       commander = Drab.get_commander(socket)
+
+      assign_example =
+        case Drab.Live.assigns(socket) do
+          [] ->
+            nil
+              
+          [first_assign | _] ->
+            first_assign
+        end
+      
       modules = DrabModule.all_modules_for(commander.__drab__().modules)
       grouped = Enum.map(modules, fn module ->
         [_ | rest] = Module.split(module)
         Enum.join(rest, ".")
       end) |> Enum.join(", ")
 
-      module_examples = %{
-        Drab.Live     => "socket |> poke(count: 42)",
-        Drab.Element  => "socket |> set_style(backgroundColor: \"red\")",
+      live_example =
+        if assign_example do
+          %{Drab.Live => "socket |> poke(#{assign_example}: \"This assign has been drabbed!\")"}
+        else
+          %{}
+        end
+
+      other_examples = %{
+        Drab.Element  => "socket |> set_style(\"body\", backgroundColor: \"red\")",
         Drab.Query    => "socket |> select(:htmls, from: \"h4\")",
         Drab.Modal    => "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
         Drab.Core     => "socket |> exec_js(\"alert('hello from IEx!')\")"
       }
+      
+      module_examples = Map.merge(live_example, other_examples)
       examples = Enum.map(modules, fn module ->
         module_examples[module]
       end) |> Enum.filter(fn x -> !is_nil(x) end)

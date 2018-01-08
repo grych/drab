@@ -246,7 +246,7 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
-    current_assigns = assigns(socket, hash, partial)
+    current_assigns = assign_data_for_partial(socket, hash, partial)
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
 
     case current_assigns |> Map.fetch(assign) do
@@ -302,7 +302,7 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
 
-    current_assigns = assigns(socket, partial, partial_name)
+    current_assigns = assign_data_for_partial(socket, partial, partial_name)
 
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
     assigns_to_update = Enum.into(assigns, %{})
@@ -373,6 +373,46 @@ defmodule Drab.Live do
     end
   end
 
+  @doc """
+  Returns a list of the assigns for the main partial.
+
+  Examples:
+
+      iex> Drab.Live.assigns(socket)
+      [:welcome_text]
+  """
+  def assigns(socket) do
+    assigns(socket, nil, nil)
+  end
+
+  @doc """
+  Like `assigns/1` but will return the assigns for a given `partial` instead of the main partial.
+
+  Examples:
+
+      iex> assigns(socket, "user.html")
+      [:name, :age, :email]
+  """
+  def assigns(socket, partial) do
+    assigns(socket, nil, partial)
+  end
+
+  @doc """
+  Like `assigns/2`, but returns the assigns for a given combination of a `view` and a `partial`.
+ 
+      iex> assigns(socket, MyApp.UserView, "user.html")
+      [:name, :age, :email]
+  """
+  def assigns(socket, view, partial) do
+    view = view || Drab.get_view(socket)
+    partial_hash = if partial, do: partial_hash(view, partial), else: index(socket)
+
+    socket
+    |> assign_data_for_partial(partial_hash, partial)
+    |> Map.keys()
+    |> Enum.map(&String.to_existing_atom(&1))
+  end
+
   defp eval_expr(expr, modules, updated_assigns, :prop) do
     eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
   end
@@ -433,12 +473,9 @@ defmodule Drab.Live do
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
-  defp assigns(socket, partial, partial_name) do
+  defp assign_data_for_partial(socket, partial, partial_name) do
     assigns = case socket
-      |> Drab.pid()
-      |> Drab.get_priv()
-      # |> IO.inspect()
-      |> Map.get(:__ampere_assigns)
+      |> ampere_assigns()
       |> Map.fetch(partial) do
         {:ok, val} -> val
         :error -> raise ArgumentError, message: """
@@ -449,6 +486,13 @@ defmodule Drab.Live do
     for {name, value} <- assigns, into: %{} do
       {name, Drab.Live.Crypto.decode64(value)}
     end
+  end
+
+  defp ampere_assigns(socket) do
+    socket
+    |> Drab.pid()
+    |> Drab.get_priv()
+    |> Map.get(:__ampere_assigns, %{})
   end
 
   defp index(socket) do
