@@ -132,5 +132,12 @@ defmodule DrabTestApp.LiveTest do
         peek(socket, :conn)
       end
     end
+
+    test "Drab.Live.assigns should return the proper assigns list" do
+      socket = drab_socket()
+      assert Enum.sort(assigns(socket)) == [:color, :count, :text, :users]
+      assert Enum.sort(assigns(socket, "partial1.html")) == [:color, :in_partial, :link]
+      assert Enum.sort(assigns(socket, DrabTestApp.Live2View, "partial2.html")) == [:color, :in_partial, :link]
+    end
   end
 end
