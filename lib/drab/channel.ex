@@ -87,9 +87,8 @@ defmodule Drab.Channel do
       end) |> Enum.join(", ")
 
       live_example =
-        # if there are no assigns for the current socket, don't display `Live` example
         if assign_example do
-          %{Drab.Live => "socket |> poke(#{assign_example}: 42)"}
+          %{Drab.Live => "socket |> poke(#{assign_example}: \"This assign has been drabbed!\")"}
         else
           %{}
         end
