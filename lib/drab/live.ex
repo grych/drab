@@ -399,7 +399,7 @@ defmodule Drab.Live do
 
   @doc """
   Like `assigns/2`, but returns the assigns for a given combination of a `view` and a `partial`.
- 
+
       iex> assigns(socket, MyApp.UserView, "user.html")
       [:name, :age, :email]
   """
@@ -407,10 +407,14 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     partial_hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
-    socket
-    |> assign_data_for_partial(partial_hash, partial)
-    |> Map.keys()
-    |> Enum.map(&String.to_existing_atom(&1))
+    assigns =
+      socket
+      |> ampere_assigns()
+      |> Map.get(partial_hash, [])
+
+    for {assign, _} <- assigns do
+      assign |> String.to_existing_atom()
+    end
   end
 
   defp eval_expr(expr, modules, updated_assigns, :prop) do

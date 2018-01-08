@@ -70,27 +70,19 @@ defmodule Drab.Channel do
     # for debugging
     if IEx.started? do
       commander = Drab.get_commander(socket)
-
-      assign_example =
-        case Drab.Live.assigns(socket) do
-          [] ->
-            nil
-              
-          [first_assign | _] ->
-            first_assign
-        end
-      
       modules = DrabModule.all_modules_for(commander.__drab__().modules)
-      grouped = Enum.map(modules, fn module ->
+
+      groupped = Enum.map(modules, fn module ->
         [_ | rest] = Module.split(module)
         Enum.join(rest, ".")
       end) |> Enum.join(", ")
 
       live_example =
-        if assign_example do
-          %{Drab.Live => "socket |> poke(#{assign_example}: \"This assign has been drabbed!\")"}
-        else
-          %{}
+        case Drab.Live.assigns(socket) do
+          [] ->
+            %{Drab.Live => "socket |> poke(text: \"This assign has been drabbed!\")"}
+          [example_assign | _]  ->
+            %{Drab.Live => "socket |> poke(#{example_assign}: \"This assign has been drabbed!\")"}
         end
 
       other_examples = %{
@@ -99,7 +91,7 @@ defmodule Drab.Channel do
         Drab.Modal    => "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
         Drab.Core     => "socket |> exec_js(\"alert('hello from IEx!')\")"
       }
-      
+
       module_examples = Map.merge(live_example, other_examples)
       examples = Enum.map(modules, fn module ->
         module_examples[module]
@@ -111,7 +103,7 @@ defmodule Drab.Channel do
 
           Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{inspect(commander)}
           You may debug Drab functions in IEx by copy/paste the following:
-      import Drab.{#{grouped}}
+      import Drab.{#{groupped}}
       socket = Drab.get_socket(pid("#{pid_string}"))
 
           Examples:
