@@ -11,6 +11,11 @@
   <% end %>
 <% end %>
 
+<script>
+  console.log("In partial1: <%= @in_partial %>")
+  window.__drab_test = "<%= @in_partial %>"
+</script>
+
 <button drab-click="update_mini">update mini</button>
 
 <br><br>

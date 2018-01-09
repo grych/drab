@@ -30,7 +30,7 @@ defmodule DrabTestApp.LiveController do
     render conn, "mini.html", class1: "btn", class2: "btn-primary", full_class: "", hidden: false, label: "default",
       list: [97,98,99], map: %{a: 1, b: 2}, color: "#10ffff", link: "https://tg.pl/drab", count: 42,
       url: "elixirforum.com", width: nil, text: "<b>bold</b>", users: ~w(Zdzisław Zofia Hendryk Stefan),
-      text: "set in the controller", user: "Zofia"
+      text: "set in the controller", user: "Zofia", in_partial: "in partial before"
   end
 
 end

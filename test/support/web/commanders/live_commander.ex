@@ -73,7 +73,9 @@ defmodule DrabTestApp.LiveCommander do
     #   color: "#aaaabb", link: "http://tg.pl")
     # set_prop(socket, "#partial4_placeholder", innerHTML: partial4)
     # spawn_link fn -> loop() end
-    poke socket, users: ["Stefan", "Marian"], user: "Zdzicha"
+    # poke socket, users: ["Stefan", "Marian"], user: "Zdzicha"
+    poke(socket, in_partial: "in_partial after") |> IO.inspect()
+    peek(socket, :in_partial) |> IO.inspect()
   end
 
   # defp loop() do

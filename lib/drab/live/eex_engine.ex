@@ -183,6 +183,7 @@ defmodule Drab.Live.EExEngine do
       |> Enum.uniq()
       |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
 
+    # it is cached as {partial_hash, ampere_id}
 
     # ampere-to_assign list
     for {assign, amperes} <- amperes_to_assigns do
