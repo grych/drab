@@ -118,6 +118,7 @@ defmodule Drab do
   def handle_info({:EXIT, pid, :normal}, state) when pid != self() do
     # ignore exits of the subprocesses
     # Logger.debug "************** #{inspect pid} process exit normal"
+
     {:noreply, state}
   end
 
@@ -131,9 +132,9 @@ defmodule Drab do
   def handle_info({:EXIT, pid, {reason, stack}}, state) when pid != self() do
     # subprocess died
     Logger.error """
-    Drab Process #{inspect(pid)} died because of #{inspect(reason)}
-    #{Exception.format_stacktrace(stack)}
-    """
+      Drab Process #{inspect(pid)} died because of #{inspect(reason)}
+      #{Exception.format_stacktrace(stack)}
+      """
     {:noreply, state}
   end
 

@@ -5,8 +5,8 @@ defmodule Drab.Commander do
   Drab Commander is a module to keep event handlers.
 
   All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. Think about
-  it as a controller for the live pages. Commanders should be placed in `web/commanders` directory. Commander must
-  have a corresponding controller.
+  it as a controller for the living pages. Commanders should be placed in `web/commanders` directory. They should
+  have a corresponding controller, except the shared commander.
 
       defmodule DrabExample.PageCommander do
         use Drab.Commander
@@ -16,16 +16,22 @@ defmodule Drab.Commander do
         end
       end
 
-  Remember the difference: `controller` renders the page while `commander` works on the live page.
+  Remember the difference: `controller` renders the page while `commander` works on the living stuff.
 
   ## Event handler functions
   Event handler is the function which process the request coming from the browser. It is done by running JS method
-  `Drab.exec_elixir()` or from the DOM object with `drab-handler` attribute. See `Drab.Core` for description.
+  `Drab.exec_elixir()` or from the DOM object with `drab-handler` attribute. See `Drab.Core` for a better description.
 
   The event handler function receives two parameters:
   * `socket` - the websocket used to communicate back to the page
   * `argument` - an argument used in JS Drab.exec_elixir() method; when lauching an event via
     `drab-handler=function` atrribute, it is a map describing the sender object
+
+  Event handlers are running in their own processes, and they are linked to the channel process. This means that
+  in case of disconnect or navigate away from the page, event handler processes are going to terminate. But please
+  be aware that the process terminates just after the handler finish - and it terminates with the `:normal` state,
+  which means all the linked processes are not going to stop. If you run infinite loop with `spawn_link` from
+  the handler, and the handler finish normally, the loop will be unlinked and will stay with us forever.
 
   ### All public functions with arity of 2 in the commander module must be considered as handlers
   Please keep in mind that all public functions with arity of 2 in the commander may be called remotely from

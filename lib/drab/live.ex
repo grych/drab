@@ -263,7 +263,7 @@ defmodule Drab.Live do
   Updates the current page in the browser with the new assign value.
 
   Raises `ArgumentError` when assign is not found within the partial.
-  Returns untouched socket or touple {:error, description} or {:timeout, description}
+  Returns untouched socket or tuple {:error, description} or {:timeout, description}
 
       iex> poke(socket, count: 42)
       %Phoenix.Socket{ ...
