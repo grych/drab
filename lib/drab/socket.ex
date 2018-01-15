@@ -1,51 +1,94 @@
 defmodule Drab.Socket do
   @moduledoc """
-  Drab operates on websockets. To enable it, you should inject the Drab.Channel into your Socket module 
-  (by default it is `UserSocket` in `web/channels/user_socket.ex`):
+  Drab operates on websockets. To enable it, you need to tell your application's socket module to use Drab.
+  For this, you will need to modify the socket module (by default it is `UserSocket` in `web/channels/user_socket.ex`).
+
+  There are two ways to archive this: let the Drab do the stuff, or provide your own `connect/2` callback. First
+  method is good for the application without socket level authentication. Second one is more elaborate, but
+  you could provide check or socket modification while connect.
+
+  ## Method 1: Inject the code with `use Drab.Socket`
+  The straightforward one, you only need to inject the `Drab.Socket` module into your Socket (by default it is
+  `UserSocket` in `web/channels/user_socket.ex`):
 
       defmodule MyApp.UserSocket do
         use Phoenix.Socket
         use Drab.Socket
+        ...
       end
 
   This creates a channel "__drab:*" used by all Drab operations.
 
   You may create your own channels inside a Drab Socket, but you *can't provide your own `connect` callback*.
-  Drab Client (on JS side) always connects at the page load and Drab's built-in `connect` callback will intercept
-  this call. If you want to pass the parameters to the Channel, you may do it in `Drab.Client.js`, they 
+  Drab Client (on JS side) always connects when the page loads and Drab's built-in `connect` callback intercepts
+  this call. If you want to pass the parameters to the Channel, you may do it in `Drab.Client.run/2`, they
   will appear in Socket's assigns. Please visit `Drab.Client` to learn more.
 
-  Drab uses the socket which is defined in your application `Endpoint` (default `lib/endpoint.ex`)
+  This method is supposed to be used with `Drab.Client.run/2` JS code generator.
+
+  ## Method 2: Use your own `connect/2` callback
+  In this case, you **must not** add `use Drab.Socket` into your `UserSocket`. Instead, use the following code
+  snippet:
+
+      defmodule MyApp.UserSocket do
+        use Phoenix.Socket
+
+        channel "__drab:*", Drab.Channel
+
+        def connect(token, socket) do
+          Drab.Socket.verify(socket, token)
+        end
+      end
+
+  `Drab.Socket.verify/2` returns tuple `{:ok, socket}` or `:error`, where `socket` is modified with Drab internal
+  assigns, as well as with the additional assigns you may pass to `Drab.Client.generate/2`.
+
+  This method is supposed to be used with `Drab.Client.generate/2` JS code generator, followed by the
+  javascript `Drab.connect({token: ...})`, or with `Drab.Client.run/2` with additional assigns. Please visit
+  `Drab.Client` for more detailed information.
+
+  ## Configuration Options
   By default, Drab uses "/socket" as a path. In case of using different one, configure it with:
 
-      config :drab, 
+      config :drab,
         socket: "/my/socket"
-
   """
 
   defmacro __using__(_options) do
     quote do
       channel "__drab:*", Drab.Channel
 
-      def connect(%{"__drab_return" => controller_and_action_token}, socket) do
-        case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token, max_age: 86400) do
-          {:ok, [__controller: controller, __action: action, __assigns: assigns] = controller_and_action} ->
-            own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
-            socket_plus_external_assings = %Phoenix.Socket{socket | assigns: own_plus_external_assigns}
-            {:ok , socket_plus_external_assings 
-                    |> assign(:__controller, controller)
-                    |> assign(:__action, action)
-
-            }
-          {:error, _reason} -> :error
-        end
+      def connect(%{"__drab_return" => _} = token, socket) do
+        Drab.Socket.verify(socket, token)
       end
-      def connect(%{"drab_return" => _controller_and_action_token}, socket) do
-        # TODO: depreciate "drab_return", --> to be removed
-        {:ok, socket}
-      end
-
     end
   end
 
+  @doc """
+  Verifies the Drab token.
+
+  Returns:
+  * `{:ok, socket}` on success, where the socket is modified with internal Drab assigns, as well as
+  with additinal user's assigns passed by `Drab.Client.generate/2` or `Drab.Client.run/2`
+  * `:error`, when token is invalid
+
+  To be used with custom `connect/2` callbacks.
+  """
+  def verify(socket, %{"__drab_return" => controller_and_action_token}) do
+    case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token, max_age: 86400) do
+      {:ok, [__controller: controller, __action: action, __assigns: assigns]} ->
+        own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
+        socket_plus_external_assings = %Phoenix.Socket{socket | assigns: own_plus_external_assigns}
+        {:ok , socket_plus_external_assings
+                |> Phoenix.Socket.assign(:__controller, controller)
+                |> Phoenix.Socket.assign(:__action, action)
+
+        }
+      {:error, _reason} -> :error
+    end
+  end
+
+  def verify(_, _) do
+    :error
+  end
 end

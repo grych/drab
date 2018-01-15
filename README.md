@@ -73,7 +73,7 @@ $ mix compile
   2. Initialize Drab client library by adding to the layout page (`app.html.eex`)
 
 ```html
-<%= Drab.Client.js(@conn) %>
+<%= Drab.Client.run(@conn) %>
 ```
 
   just after the following line:

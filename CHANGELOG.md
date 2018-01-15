@@ -1,4 +1,10 @@
 # CHANGELOG
+# v0.6.4
+Changes:
+* possibility to provide own `connect/2` callback for socket authentication, etc
+
+Depreciations:
+* `Drab.Client.js/2` becomes `Drab.Client.run/2`
 
 # v0.6.3
 Changes:

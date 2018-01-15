@@ -16,7 +16,7 @@
   }
 
   window.Drab = {
-    run: function (drab_return_token, drab_session_token, broadcast_topic) {
+    create: function (drab_return_token, drab_session_token, broadcast_topic) {
       this.Socket = require("phoenix").Socket;
 
       this.drab_return_token = drab_return_token;
@@ -26,6 +26,8 @@
       this.onload_launched = false;
       this.already_connected = false;
       this.drab_topic = broadcast_topic;
+    },
+    connect: function (additional_token) {
 
       var drab = this;
 
@@ -34,12 +36,16 @@
         fx(drab);
       }
 
-      this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", { params: { __drab_return: drab_return_token } });
+      this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", {
+        params: Object.assign({ __drab_return: this.drab_return_token }, additional_token)
+      });
+      // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
+      // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
+
       this.socket.connect();
       this.channel = this.socket.channel("__drab:" + this.drab_topic, {});
 
       this.channel.join().receive("error", function (resp) {
-        // TODO: communicate it to user
         console.log("Unable to join the Drab Channel", resp);
       }).receive("ok", function (resp) {
         // launch on_connect
@@ -57,8 +63,7 @@
           }
         });
       });
-      // socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
-      // socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
+
       this.socket.onClose(function (event) {
         for (var di = 0; di < drab.disconnected.length; di++) {
           var fxd = drab.disconnected[di];
@@ -124,6 +129,9 @@
     end)
   %>
 
-  Drab.run('<%= controller_and_action %>', '<%= drab_session_token %>', '<%= broadcast_topic %>');
+  Drab.create('<%= controller_and_action %>', '<%= drab_session_token %>', '<%= broadcast_topic %>');
+  <%= if connect do %>
+    Drab.connect();
+  <% end %>
 })();
 
