@@ -38,6 +38,14 @@ defmodule Drab do
 
   More on commander is in `Drab.Commander` documentation.
 
+  Drab handler are launched from the client (browser) side by running javascript function
+  [`Drab.exec_elixir()`](Drab.Client.html#module-drab-exec_elixir-elixir_function_name-argument), or defining
+  the handler function name directly in the html:
+
+      <button drab-click="button_clicked">Clickety click</button>
+
+  More on event handlers in `Drab.Core` documentation.
+
   ## Debugging Drab in IEx
 
   When started with iex (`iex -S mix phoenix.server`) Drab shows the helpful message on how to debug its functions:

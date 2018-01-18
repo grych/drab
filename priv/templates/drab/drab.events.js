@@ -138,7 +138,7 @@ Drab.set_event_handlers = function (obj) {
   var drab_objects = [];
   var drab_objects_shortcut = [];
 
-  // first serve the shortcut controls by adding the longcut attrbutes
+  // first serve the shortcut controls by adding the longcut attributes
   for (var ei = 0; ei < EVENT_SHORTCUTS.length; ei++) {
     var ev = EVENT_SHORTCUTS[ei];
     if (obj) {
