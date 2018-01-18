@@ -34,8 +34,9 @@ defmodule Drab do
         def button_clicked(socket, sender) do
           set_prop socket, this(sender), innerText: "already clicked"
         end
-
       end
+
+  More on commander is in `Drab.Commander` documentation.
 
   ## Debugging Drab in IEx
 

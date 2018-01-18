@@ -1,5 +1,5 @@
 ## Contributing
-Drab team (big name for a one person so far) welcomes everyone to be a part of the team!
+Drab team welcomes everyone to be a part of the team!
 
 ## How to contribute to Drab
 

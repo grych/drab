@@ -43,6 +43,20 @@ defmodule Drab.Commander do
   For this, you must mark the specific handlers as public, using `public/1` macro. Please notice it is your
   responsibility to make such functions safe.
 
+      defmodule DrabExample.SharedCommander do
+        use Drab.Commander
+        public [:click_button_handler]
+
+        def click_button_handler(socket, dom_sender) do
+          ...
+        end
+      end
+
+  To call the shared commander function from page generated with the different controller, you need to specify
+  its full path"
+
+      <button drab-click="DrabExample.SharedCommander.click_button_handler">Clickety</button>
+
   If you want to restrict shared controller for only specified controller, you must use `before_handler/1`
   callback with `controller/1` and `action/1` functions to check out where the function is calling from.
 
