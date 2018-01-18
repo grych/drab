@@ -156,6 +156,8 @@ defmodule Drab.Core do
   @type result :: {status, return}
   # return value of broadcast_js
   @type bcast_result :: :ok | {:error, term}
+  # subject for broadcasting
+  @type subject :: Phoenix.Socket.t() | String.t()
 
   @impl true
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
@@ -169,6 +171,7 @@ defmodule Drab.Core do
   end
 
   @doc false
+  @spec normalize_params(map) :: map
   def normalize_params(params) do
     params
     |> Enum.reduce("", fn {k, v}, acc ->
@@ -272,7 +275,7 @@ defmodule Drab.Core do
 
   Returns `{:ok, :broadcasted}`
   """
-  @spec broadcast_js(Phoenix.Socket.t(), String.t(), Keyword.t()) :: bcast_result
+  @spec broadcast_js(subject, String.t(), Keyword.t()) :: bcast_result
   def broadcast_js(subject, js, _options \\ []) do
     ret = Drab.broadcast(subject, self(), "broadcastjs", js: js)
     {ret, :broadcasted}
@@ -283,7 +286,7 @@ defmodule Drab.Core do
 
   Returns subject.
   """
-  @spec broadcast_js!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: return
+  @spec broadcast_js!(subject, String.t(), Keyword.t()) :: return
   def broadcast_js!(subject, js, _options \\ []) do
     Drab.broadcast(subject, self(), "broadcastjs", js: js)
     subject
@@ -295,6 +298,7 @@ defmodule Drab.Core do
       iex> same_path("/test/live")
       "same_path:/test/live"
   """
+  @spec same_path(String.t()) :: String.t()
   def same_path(url), do: "same_path:#{url}"
 
   @doc """
@@ -303,6 +307,7 @@ defmodule Drab.Core do
       iex> same_controller(DrabTestApp.LiveController)
       "controller:Elixir.DrabTestApp.LiveController"
   """
+  @spec same_controller(String.t() | atom) :: String.t()
   def same_controller(controller), do: "controller:#{controller}"
 
   @doc """
@@ -365,11 +370,14 @@ defmodule Drab.Core do
   end
 
   @doc false
+  @spec save_store(Phoenix.Socket.t(), map) :: :ok
   def save_store(socket, store) do
+    #TODO: too complicated, too many functions
     Drab.set_store(Drab.pid(socket), store)
   end
 
   @doc false
+  @spec save_socket(Phoenix.Socket.t()) :: :ok
   def save_socket(socket) do
     Drab.set_socket(Drab.pid(socket), socket)
   end
@@ -381,6 +389,7 @@ defmodule Drab.Core do
 
   You must explicit which session keys you want to access in `:access_session` option in `use Drab.Commander`.
   """
+  @spec get_session(Phoenix.Socket.t(), atom) :: term
   def get_session(socket, key) do
     Drab.get_session(socket.assigns.__drab_pid)[key]
     # session(socket)[key]
@@ -393,16 +402,19 @@ defmodule Drab.Core do
 
   You must explicit which session keys you want to access in `:access_session` option in `use Drab.Commander`.
   """
+  @spec get_session(Phoenix.Socket.t(), atom, term) :: term
   def get_session(socket, key, default) do
     get_session(socket, key) || default
   end
 
   @doc false
+  @spec save_session(Phoenix.Socket.t(), map) :: :ok
   def save_session(socket, session) do
     Drab.set_session(socket.assigns.__drab_pid, session)
   end
 
   @doc false
+  @spec store(Phoenix.Socket.t()) :: map
   def store(socket) do
     # TODO: error {:error, "The operation is insecure."}
     {:ok, store_token} = exec_js(socket, "Drab.get_drab_store_token()")
@@ -410,17 +422,20 @@ defmodule Drab.Core do
   end
 
   @doc false
+  @spec session(Phoenix.Socket.t()) :: map
   def session(socket) do
     {:ok, session_token} = exec_js(socket, "Drab.get_drab_session_token()")
     detokenize_store(socket, session_token)
   end
 
   @doc false
+  @spec tokenize_store(Phoenix.Socket.t() | Plug.Conn.t(), map) :: String.t()
   def tokenize_store(socket, store) do
     Drab.tokenize(socket, store, "drab_store_token")
   end
 
   @doc false
+  @spec detokenize_store(Phoenix.Socket.t() | Plug.Conn.t(), String.t()) :: map
   # empty store
   def detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{}
 
@@ -449,6 +464,7 @@ defmodule Drab.Core do
   `this!/1` instead.
 
   """
+  @spec this(map) :: String.t()
   def this(sender) do
     "[drab-id=#{Drab.Core.encode_js(sender["drab_id"])}]"
   end
@@ -463,6 +479,7 @@ defmodule Drab.Core do
 
   Raises exception when being used on the object without an ID.
   """
+  @spec this!(map) :: String.t()
   def this!(sender) do
     id = sender["id"]
 

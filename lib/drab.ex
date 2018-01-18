@@ -107,6 +107,7 @@ defmodule Drab do
   defstruct store: %{}, session: %{}, commander: nil, socket: nil, priv: %{}
 
   @doc false
+  @spec start_link(Phoenix.Socket.t()) :: GenServer.on_start()
   def start_link(socket) do
     GenServer.start_link(__MODULE__, %Drab{commander: Drab.get_commander(socket)})
   end
@@ -501,6 +502,7 @@ defmodule Drab do
   end
 
   @doc false
+  @spec tokenize(Phoenix.Socket.t() | Plug.Conn.t(), term(), String.t()) :: String.t()
   def tokenize(socket, what, salt \\ "drab token") do
     Phoenix.Token.sign(socket, salt, what)
   end

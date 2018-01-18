@@ -1,5 +1,5 @@
 defmodule DrabModule do
-  # TODO: docs
+  # TODO: docs, describe how to write own drab module
   @moduledoc false
 
   # Drab behaviour
@@ -29,12 +29,14 @@ defmodule DrabModule do
   end
 
   @doc false
+  @spec all_modules_for(list) :: list
   def all_modules_for(modules) do
     modules = modules |> prereqs_for() |> List.flatten() |> Enum.reverse()
     Enum.uniq(modules ++ [Drab.Core])
   end
 
   @doc false
+  @spec all_templates_for(list) :: list
   def all_templates_for(modules) do
     modules
     |> all_modules_for()
@@ -43,6 +45,7 @@ defmodule DrabModule do
     |> Enum.uniq()
   end
 
+  @spec prereqs_for(atom | list) :: list
   defp prereqs_for(module) when is_atom(module) do
     [module | prereqs_for(module.prerequisites())]
   end
