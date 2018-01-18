@@ -396,6 +396,7 @@ defmodule Drab do
 
   @doc false
   # Returns the list of callbacks (before_handler, after_handler) defined in handler_config
+  @spec callbacks_for(atom, list) :: list
   def callbacks_for(_, []) do
     []
   end

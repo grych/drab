@@ -641,11 +641,12 @@ defmodule Drab.Query do
   defp escape_value(value), do: "#{Drab.Core.encode_js(value)}"
 
   defp raise_wrong_query(selector, method, arguments \\ nil) do
-    raise ArgumentError, """
-    Drab does not recognize your query:
-      selector:  #{inspect(selector)}
-      method:    #{inspect(method)}
-      arguments: #{inspect(arguments)}
-    """
+    raise ArgumentError,
+      message: """
+      Drab does not recognize your query:
+        selector:  #{inspect(selector)}
+        method:    #{inspect(method)}
+        arguments: #{inspect(arguments)}
+      """
   end
 end

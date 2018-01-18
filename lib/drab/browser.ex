@@ -42,9 +42,12 @@ defmodule Drab.Browser do
       iex> Drab.Browser.now(socket)
       {:ok, ~N[2017-04-01 15:07:57.027000]}
   """
+  @spec now(Phoenix.Socket.t()) :: {Drab.Core.status(), NaiveDateTime.t()}
   def now(socket) do
-    {:ok, browser_now} = exec_js(socket, @now_js)
-    js_to_naive_date(browser_now)
+    case exec_js(socket, @now_js) do
+      {:ok, browser_now} -> {:ok, js_to_naive_date(browser_now)}
+      other -> other
+    end
   end
 
   @doc """
@@ -55,6 +58,7 @@ defmodule Drab.Browser do
       iex> Drab.Browser.now!(socket)
       ~N[2017-04-01 15:07:57.027000]
   """
+  @spec now!(Phoenix.Socket.t()) :: NaiveDateTime.t()
   def now!(socket) do
     browser_now = exec_js!(socket, @now_js)
 
@@ -72,17 +76,6 @@ defmodule Drab.Browser do
   end
 
   @offset_js "new Date().getTimezoneOffset()"
-  @doc """
-  Returns utc offset (the difference between local browser time and UTC time), in seconds. Raises exception on error.
-
-  Examples:
-
-      iex> Drab.Browser.utc_offset!(socket)
-      7200 # UTC + 02:00
-  """
-  def utc_offset!(socket) do
-    -60 * exec_js!(socket, @offset_js)
-  end
 
   @doc """
   Returns utc offset (the difference between local browser time and UTC time), in seconds.
@@ -92,11 +85,25 @@ defmodule Drab.Browser do
       iex> Drab.Browser.utc_offset(socket)
       {:ok, 7200} # UTC + 02:00
   """
+  @spec utc_offset(Phoenix.Socket.t()) :: Drab.Core.result()
   def utc_offset(socket) do
     case exec_js(socket, @offset_js) do
       {:ok, offset} -> {:ok, -60 * offset}
       other -> other
     end
+  end
+
+  @doc """
+  Returns utc offset (the difference between local browser time and UTC time), in seconds. Raises exception on error.
+
+  Examples:
+
+      iex> Drab.Browser.utc_offset!(socket)
+      7200 # UTC + 02:00
+  """
+  @spec utc_offset!(Phoenix.Socket.t()) :: integer
+  def utc_offset!(socket) do
+    -60 * exec_js!(socket, @offset_js)
   end
 
   @agent_js "navigator.userAgent"
@@ -109,6 +116,7 @@ defmodule Drab.Browser do
       iex> Drab.Browser.user_agent!(socket)
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) ..."
   """
+  @spec user_agent!(Phoenix.Socket.t()) :: String.t()
   def user_agent!(socket) do
     exec_js!(socket, @agent_js)
   end
@@ -121,6 +129,7 @@ defmodule Drab.Browser do
       iex> Drab.Browser.user_agent(socket)
       {:ok, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) ..."}
   """
+  @spec user_agent(Phoenix.Socket.t()) :: Drab.Core.result()
   def user_agent(socket) do
     exec_js(socket, @agent_js)
   end
@@ -134,6 +143,7 @@ defmodule Drab.Browser do
       iex> Drab.Browser.language!(socket)
       "en-GB"
   """
+  @spec language!(Phoenix.Socket.t()) :: String.t()
   def language!(socket) do
     exec_js!(socket, @language_js)
   end
@@ -145,6 +155,7 @@ defmodule Drab.Browser do
       iex> Drab.Browser.language(socket)
       {:ok, "en-GB"}
   """
+  @spec language(Phoenix.Socket.t()) :: Drab.Core.result()
   def language(socket) do
     exec_js(socket, @language_js)
   end
@@ -159,6 +170,7 @@ defmodule Drab.Browser do
       ["en-US", "en", "pl"]
 
   """
+  @spec languages!(Phoenix.Socket.t()) :: list
   def languages!(socket) do
     exec_js!(socket, @languages_js)
   end
@@ -171,11 +183,13 @@ defmodule Drab.Browser do
       {:ok, ["en-US", "en", "pl"]}
 
   """
+  @spec languages(Phoenix.Socket.t()) :: Drab.Core.result()
   def languages(socket) do
     exec_js(socket, @languages_js)
   end
 
   @doc false
+  @spec redirect_to!(Phoenix.Socket.t(), String.t()) :: any
   def redirect_to!(socket, url) do
     Deppie.warn("""
     Drab.Live.redirect_to! (broadcasting version of redirect_to/1) has been renamed to broadcast_redirect_to!/1
@@ -190,6 +204,7 @@ defmodule Drab.Browser do
   WARNING: redirection will disconnect the current websocket, so it should be the last function launched in the
   handler.
   """
+  @spec redirect_to(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
   def redirect_to(socket, url) do
     exec_js(socket, "window.location = '#{url}'")
   end
@@ -200,11 +215,13 @@ defmodule Drab.Browser do
   WARNING: redirection will disconnect the current websocket, so it should be the last function launched in the
   handler.
   """
+  @spec broadcast_redirect_to(Phoenix.Socket.t(), String.t()) :: any
   def broadcast_redirect_to(socket, url) do
     broadcast_js(socket, "window.location = '#{url}'")
   end
 
   @doc false
+  @spec console!(Phoenix.Socket.t(), String.t()) :: Phoenix.Socket.t()
   def console!(socket, log) do
     Deppie.warn("""
     Drab.Live.console (broadcasting version of console/1) has been renamed to broadcast_console/1
@@ -217,6 +234,7 @@ defmodule Drab.Browser do
   @doc """
   Sends the log to the browser console for debugging.
   """
+  @spec console(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
   def console(socket, log) do
     exec_js(socket, "console.log(#{Drab.Core.encode_js(log)})")
   end
@@ -224,6 +242,7 @@ defmodule Drab.Browser do
   @doc """
   Broadcasts the log to the browser consoles for debugging/
   """
+  @spec broadcast_console(Phoenix.Socket.t(), String.t()) :: Drab.Core.bcast_result()
   def broadcast_console(socket, log) do
     broadcast_js(socket, "console.log(#{Drab.Core.encode_js(log)})")
   end
@@ -242,6 +261,7 @@ defmodule Drab.Browser do
         cannot be created in a document with origin 'http://localhost:4000' and URL 'http://localhost:4000/'."}
 
   """
+  @spec set_url(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
   def set_url(socket, url) do
     exec_js(socket, """
     window.history.pushState({}, "", #{Drab.Core.encode_js(url)});
@@ -251,6 +271,7 @@ defmodule Drab.Browser do
   @doc """
   Like `set_url/2`, but broadcasting the change to all connected browsers.
   """
+  @spec broadcast_set_url(Phoenix.Socket.t(), String.t()) :: Drab.Core.bcast_result()
   def broadcast_set_url(socket, url) do
     broadcast_js(socket, """
     window.history.pushState({}, "", #{Drab.Core.encode_js(url)});
@@ -267,6 +288,7 @@ defmodule Drab.Browser do
       ** (Drab.JSExecutionError) Failed to execute 'pushState' on 'History' ...
 
   """
+  @spec set_url!(Phoenix.Socket.t(), String.t()) :: any
   def set_url!(socket, url) do
     exec_js!(socket, """
     window.history.pushState({}, "", #{Drab.Core.encode_js(url)});

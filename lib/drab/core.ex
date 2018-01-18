@@ -149,6 +149,14 @@ defmodule Drab.Core do
 
   use DrabModule
 
+  @type status :: :ok | :error | :timeout
+  # types returned from the browser
+  @type return :: String.t() | map | float | integer | list
+  # return value of exec_js
+  @type result :: {status, return}
+  # return value of broadcast_js
+  @type bcast_result :: :ok | {:error, term}
+
   @impl true
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
 
@@ -194,6 +202,7 @@ defmodule Drab.Core do
       {:timeout, "timed out after 500 ms."}
 
   """
+  @spec exec_js(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
   def exec_js(socket, js, options \\ []) do
     Drab.push_and_wait_for_response(socket, self(), "execjs", [js: js], options)
   end
@@ -219,6 +228,7 @@ defmodule Drab.Core do
             lib/drab/core.ex:114: Drab.Core.exec_js!/3
 
   """
+  @spec exec_js!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: return
   def exec_js!(socket, js, options \\ []) do
     case exec_js(socket, js, options) do
       {:ok, result} -> result
@@ -261,6 +271,7 @@ defmodule Drab.Core do
 
   Returns `{:ok, :broadcasted}`
   """
+  @spec broadcast_js(Phoenix.Socket.t(), String.t(), Keyword.t()) :: bcast_result
   def broadcast_js(subject, js, _options \\ []) do
     ret = Drab.broadcast(subject, self(), "broadcastjs", js: js)
     {ret, :broadcasted}
@@ -271,6 +282,7 @@ defmodule Drab.Core do
 
   Returns subject.
   """
+  @spec broadcast_js!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: return
   def broadcast_js!(subject, js, _options \\ []) do
     Drab.broadcast(subject, self(), "broadcastjs", js: js)
     subject
