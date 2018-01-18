@@ -464,7 +464,8 @@ defmodule Drab.Live do
           else
             e.description
           end
-        stacktrace = System.stacktrace
+
+        stacktrace = System.stacktrace()
         reraise CompileError, [description: msg], stacktrace
     end
   end

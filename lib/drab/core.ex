@@ -309,12 +309,15 @@ defmodule Drab.Core do
       iex> same_topic("mytopic")
       "topic:mytopic"
   """
+  @spec same_topic(String.t()) :: String.t()
   def same_topic(topic), do: "topic:#{topic}"
 
   @doc false
+  @spec encode_js(Poison.Encoder.t()) :: iodata | no_return
   def encode_js(value), do: Poison.encode!(value)
 
   @doc false
+  @spec decode_js(iodata) :: Poison.Parser.t()
   def decode_js(value) do
     case Poison.decode(value) do
       {:ok, v} -> v
@@ -327,6 +330,7 @@ defmodule Drab.Core do
 
       uid = get_store(socket, :user_id)
   """
+  @spec get_store(Phoenix.Socket.t(), atom) :: term
   def get_store(socket, key) do
     store = Drab.get_store(Drab.pid(socket))
     store[key]
@@ -338,6 +342,7 @@ defmodule Drab.Core do
 
       counter = get_store(socket, :counter, 0)
   """
+  @spec get_store(Phoenix.Socket.t(), atom, term) :: term
   def get_store(socket, key, default) do
     get_store(socket, key) || default
   end
@@ -347,6 +352,7 @@ defmodule Drab.Core do
 
       put_store(socket, :counter, 1)
   """
+  @spec put_store(Phoenix.Socket.t(), atom, term) :: Phoenix.Socket.t()
   def put_store(socket, key, value) do
     store = store(socket) |> Map.merge(%{key => value})
     {:ok, _} = exec_js(socket, "Drab.set_drab_store_token(\"#{tokenize_store(socket, store)}\")")
