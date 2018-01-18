@@ -162,7 +162,7 @@ defmodule Drab.Core do
   @type bcast_result :: :ok | {:error, term}
 
   @typedoc "Subject for broadcasting"
-  @type subject :: Phoenix.Socket.t() | String.t()
+  @type subject :: Phoenix.Socket.t() | String.t() | list
 
   @impl true
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
