@@ -91,19 +91,9 @@ defmodule DrabTestApp.LiveCommander do
     # partial4 = render_to_string(DrabTestApp.LiveView, "partial4.html", in_partial: "in partial4",
     #   color: "#aaaabb", link: "http://tg.pl")
     # set_prop(socket, "#partial4_placeholder", innerHTML: partial4)
-    IO.inspect(self())
-    # spawn_link fn -> loop(socket) end
-    spawn_link(fn ->
-      for _ <- 1..1000 do
-        IO.inspect(self())
-        Process.sleep(1000)
-      end
-    end)
-
-    Process.sleep(100_000)
-    # poke socket, users: ["Stefan", "Marian"], user: "Zdzicha"
-    poke(socket, in_partial: "in_partial after") |> IO.inspect()
-    peek(socket, :in_partial) |> IO.inspect()
+    poke socket, users: ["Stefan", "Marian"], user: "Zdzicha"
+    # poke(socket, in_partial: "in_partial after") |> IO.inspect()
+    # peek(socket, :in_partial) |> IO.inspect()
   end
 
   # defp loop(socket) do

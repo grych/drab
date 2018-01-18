@@ -22,7 +22,7 @@ defmodule Drab.Mixfile do
         extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"]
       ],
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
-      dialyzer: [plt_add_deps: :transitive]
+      dialyzer: [plt_add_deps: :transitive, plt_add_apps: [:mix, :iex, :ex_unit]]
       # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
     ]
   end

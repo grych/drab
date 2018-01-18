@@ -39,8 +39,8 @@ See #73.
 ### Depreciations:
 * `Drab.Client.js/2` becomes `Drab.Client.run/2`
 
-### Bug fixes:
-* as suggested by Dialyzer and Credo
+### More:
+* small fixes as suggested by Dialyzer and Credo
 
 ## v0.6.3
 Changes:
