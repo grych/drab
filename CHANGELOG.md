@@ -28,6 +28,10 @@ This version allow you to use of `<%/ %>` marker to avoid using `Drab.Live` for 
 
 [Further reading](https://hexdocs.pm/drab/Drab.Live.html#module-avoiding-using-drab)
 
+### Event shorthands list is now configurable
+By default, you can use only few arbitrary-chosen shorthands for the event name / handler name (`drab-click="clicked"`) attribute. Now you may configure the list with `:events_shorthands` config.
+See #73.
+
 ### Style changes:
 * source code formatted with 1.6.0
 * use `@impl true` in behaviour callbacks

@@ -1,4 +1,4 @@
-const EVENT_SHORTCUTS = ["click", "change", "keyup", "keydown"];
+const EVENT_SHORTCUTS = <%= Drab.Config.get(:events_shorthands) |> Drab.Core.encode_js %>;
 const EVENTS_TO_DISABLE = <%= Drab.Config.get(:events_to_disable_while_processing) |> Drab.Core.encode_js %>;
 
 Drab.disable_drab_objects = function (disable) {

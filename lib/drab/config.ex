@@ -1,6 +1,47 @@
 defmodule Drab.Config do
   @moduledoc """
   Drab configuration related functions.
+
+  ## Configuration options:
+
+  #### :templates_path *(default: "priv/templates/drab")*
+    Path to the user-defined Drab templates (not to be confused with Phoenix application templates, these are
+    to be used internally, see `Drab.Modal` for the example usage).
+
+  #### :disable_controls_while_processing *(default: `true`)*
+    After sending request to the server, sender object will be disabled until it gets the answer.
+    Warning: this behaviour is not broadcasted, so only the control in the current browser is going to be disabled.
+
+  #### :events_to_disable_while_processing *(default: `["click"]`)*
+    The list of events which will be disabled when waiting for server response.
+
+  #### :events_shorthands *(default: `["click", "change", "keyup", "keydown"]`)*
+    The list of the shorthand attributes to be used in drab-controlled DOM object, ie: `<drab-click="handler">`.
+    Please keep the list small, as it affects the client JS performance.
+
+  #### :disable_controls_when_disconnected *(default: `true`)*
+    Shall controls be disabled when there is no connectivity between the browser and the server?
+
+  #### :socket *(default: `"/socket"`)*
+    Path to the socket on which Drab operates.
+
+  #### :drab_store_storage *(default: :session_storage)*
+    Where to keep the Drab Store - `:memory`, `:local_storage` or `:session_storage`. Data in the memory is kept to
+    the next page load, session storage persist until browser (or a tab) is closed, local storage is kept forever
+
+  #### :browser_response_timeout *(default: 5000)*
+    Timeout, after which all functions querying/updating browser UI will give up; integer in milliseconds
+    or `:infinity`.
+
+  #### :main_phoenix_app
+    A name of your Phoenix application (atom). If it is not set, Drab tries to guess it from from the `mix.exs`.
+    Must be set when not using `Mix`.
+
+  #### :enable_live_scripts *(default: `false`)*
+    Re-evaluation of JavaScripts containing living assigns is disabled by default
+
+  #### :live_helper_modules *(default: `[Router.Helpers, ErrorHelpers, Gettext]`)*
+    A list of modules to be imported when Drab.Live evaluates expression with living assigns.
   """
 
   @doc """
@@ -151,27 +192,6 @@ defmodule Drab.Config do
   All the config values may be override in `config.exs`, for example:
 
       config :drab, disable_controls_while_processing: false
-
-  Configuration options:
-  * `templates_path` (default: "priv/templates/drab") - path to the user templates (may be new or override default
-    templates)
-  * `disable_controls_while_processing` (default: `true`) - after sending request to the server, sender will be
-    disabled until get the answer; warning: this behaviour is not broadcasted, so only the control in the current
-    browers will be disabled
-  * `events_to_disable_while_processing` (default: `["click"]`) - list of events which will be disabled when
-    waiting for server response
-  * `disable_controls_when_disconnected` (default: `true`) - disables control when there is no connectivity
-    between the browser and the server
-  * `socket` (default: `"/socket"`) - path to the socket where Drab operates
-  * `drab_store_storage` (default: :session_storage) - where to keep the Drab Store - :memory, :local_storage or
-    :session_storage; data in memory is kept to the next page load, session storage persist until browser (or a tab) is
-    closed, and local storage is kept forever
-  * `browser_response_timeout` - timeout, after which all functions querying/updating browser UI will give up; integer
-    in milliseconds or `:infinity`
-  * `main_phoenix_app` - a name of your Phoenix application (atom); if not set it gets it from the `mix.exs`
-  * `enable_live_scripts` - true for re-evaluate javascripts contain living assigns
-  * `live_helper_modules` - a list of modules to be imported when Drab.Live evaluates expression with living assign;
-    default is `[Router.Helpers, ErrorHelpers, Gettext]`
   """
   def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
 
@@ -180,6 +200,9 @@ defmodule Drab.Config do
 
   def get(:events_to_disable_while_processing),
     do: Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
+
+  def get(:events_shorthands),
+    do: Application.get_env(:drab, :events_shorthands, ["click", "change", "keyup", "keydown"])
 
   def get(:disable_controls_when_disconnected),
     do: Application.get_env(:drab, :disable_controls_when_disconnected, true)
@@ -192,8 +215,11 @@ defmodule Drab.Config do
   def get(:browser_response_timeout),
     do: Application.get_env(:drab, :browser_response_timeout, 5000)
 
-  def get(:main_phoenix_app), do: Application.get_env(:drab, :main_phoenix_app, nil)
-  def get(:enable_live_scripts), do: Application.get_env(:drab, :enable_live_scripts, false)
+  def get(:main_phoenix_app),
+    do: Application.get_env(:drab, :main_phoenix_app, nil)
+
+  def get(:enable_live_scripts),
+    do: Application.get_env(:drab, :enable_live_scripts, false)
 
   def get(:live_helper_modules) do
     case Application.get_env(:drab, :live_helper_modules, [Router.Helpers, ErrorHelpers, Gettext]) do

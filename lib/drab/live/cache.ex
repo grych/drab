@@ -1,10 +1,10 @@
 defmodule Drab.Live.Cache do
   @moduledoc """
-  This is the Drab.Live internal cache module. It doesn't expose any API.
+  This is the `Drab.Live` internal cache module. It doesn't expose any API.
 
   ### Cache File
   Drab.Live stores internal information in the file `priv/drab.live.cache`. To clean up the cache
-  just delete it, but only with the `mix clean` command, to ensure all Drab.Live templates will recompile.
+  just delete it, but allways followed with the `mix clean` command, to ensure all Drab.Live templates will recompile.
   """
   @cache_file "drab.live.cache"
 

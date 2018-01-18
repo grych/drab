@@ -129,6 +129,11 @@ defmodule Drab.Live do
   Drab will re-render the whole script with a new value and will send a request to re-evaluate the script.
   Browser will run something like: `eval("document.querySelectorAll(\"button\").hidden = true")`.
 
+  Please notice this behaviour is disabled by default for safety. To enable it, use the following in your
+  `config.exs`:
+
+      config :drab, enable_live_scripts: true
+
   ### Avoiding using Drab
   If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function. Such expressions
   will be treated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
