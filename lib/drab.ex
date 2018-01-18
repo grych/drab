@@ -530,6 +530,7 @@ defmodule Drab do
   end
 
   @doc false
+  @spec detokenize(Phoenix.Socket.t() | Plug.Conn.t(), String.t(), String.t()) :: term() | no_return
   def detokenize(socket, token, salt \\ "drab token") do
     case Phoenix.Token.verify(socket, salt, token, max_age: 86_400) do
       {:ok, detokenized} ->
@@ -543,6 +544,7 @@ defmodule Drab do
 
   # returns the commander name for the given controller (assigned in socket)
   @doc false
+  @spec get_commander(Phoenix.Socket.t()) :: atom
   def get_commander(socket) do
     controller = socket.assigns.__controller
     controller.__drab__()[:commander]
@@ -550,12 +552,14 @@ defmodule Drab do
 
   # returns the controller name used with the socket
   @doc false
+  @spec get_controller(Phoenix.Socket.t()) :: atom
   def get_controller(socket) do
     socket.assigns.__controller
   end
 
   # returns the view name used with the socket
   @doc false
+  @spec get_view(Phoenix.Socket.t()) :: atom
   def get_view(socket) do
     controller = socket.assigns.__controller
     controller.__drab__()[:view]
@@ -563,11 +567,13 @@ defmodule Drab do
 
   # returns the drab_pid from socket
   @doc "Extract Drab PID from the socket"
+  @spec pid(Phoenix.Socket.t()) :: pid
   def pid(socket) do
     socket.assigns.__drab_pid
   end
 
   # if module is commander or controller with drab enabled, it has __drab__/0 function with Drab configuration
+  @spec commander_config(atom) :: map
   defp commander_config(module) do
     module.__drab__()
   end
