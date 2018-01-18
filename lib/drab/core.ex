@@ -149,14 +149,19 @@ defmodule Drab.Core do
 
   use DrabModule
 
+  @typedoc "Returned status of all Core operations"
   @type status :: :ok | :error | :timeout
-  # types returned from the browser
+
+  @typedoc "Types returned from the browser"
   @type return :: String.t() | map | float | integer | list
-  # return value of exec_js
+
+  @typedoc "Return value of `exec_js/2`"
   @type result :: {status, return}
-  # return value of broadcast_js
+
+  @typedoc "Return value of `broadcast_js/2`"
   @type bcast_result :: :ok | {:error, term}
-  # subject for broadcasting
+
+  @typedoc "Subject for broadcasting"
   @type subject :: Phoenix.Socket.t() | String.t()
 
   @impl true
@@ -372,7 +377,7 @@ defmodule Drab.Core do
   @doc false
   @spec save_store(Phoenix.Socket.t(), map) :: :ok
   def save_store(socket, store) do
-    #TODO: too complicated, too many functions
+    # TODO: too complicated, too many functions
     Drab.set_store(Drab.pid(socket), store)
   end
 

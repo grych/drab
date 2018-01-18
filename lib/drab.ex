@@ -120,6 +120,7 @@ defmodule Drab do
   end
 
   @doc false
+  @spec terminate(any, t) :: {:noreply, t}
   def terminate(_reason, %Drab{store: store, session: session, commander: commander} = state) do
     if commander.__drab__().ondisconnect do
       # TODO: timeout
@@ -130,6 +131,7 @@ defmodule Drab do
   end
 
   @doc false
+  @spec handle_info(tuple, t) :: {:noreply, t}
   def handle_info({:EXIT, pid, :normal}, state) when pid != self() do
     # ignore exits of the subprocesses
     # Logger.debug "************** #{inspect pid} process exit normal"
@@ -155,6 +157,7 @@ defmodule Drab do
   end
 
   @doc false
+  @spec handle_cast(tuple, t) :: {:noreply, t}
   def handle_cast({:onconnect, socket, payload}, %Drab{commander: commander} = state) do
     # TODO: there is an issue when the below failed and client tried to reconnect again and again
     # tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end),
@@ -221,6 +224,7 @@ defmodule Drab do
     end
   end)
 
+  @spec handle_callback(Phoenix.Socket.t(), atom, atom) :: Phoenix.Socket.t()
   defp handle_callback(socket, commander, callback) do
     if callback do
       # TODO: rethink the subprocess strategies - now it is just spawn_link
@@ -237,6 +241,7 @@ defmodule Drab do
     socket
   end
 
+  @spec transform_payload(map, t) :: map
   defp transform_payload(payload, state) do
     all_modules = DrabModule.all_modules_for(state.commander.__drab__().modules)
 
@@ -246,6 +251,7 @@ defmodule Drab do
     end)
   end
 
+  @spec transform_socket(map, Phoenix.Socket.t(), t) :: Phoenix.Socket.t()
   defp transform_socket(payload, socket, state) do
     all_modules = DrabModule.all_modules_for(state.commander.__drab__().modules)
 
@@ -255,6 +261,7 @@ defmodule Drab do
     end)
   end
 
+  @spec handle_event(Phoenix.Socket.t(), any, atom, map, atom, t) :: {:noreply, t}
   defp handle_event(
          socket,
          _event_name,
@@ -312,6 +319,7 @@ defmodule Drab do
     {:noreply, state}
   end
 
+  @spec event_handler(String.t()) :: {atom | nil, atom}
   defp event_handler(function_name) do
     case String.split(function_name, ".") do
       [function] ->
@@ -331,6 +339,7 @@ defmodule Drab do
     end
   end
 
+  @spec raise_if_handler_not_exists(atom, atom) :: {atom, atom} | no_return
   defp raise_if_handler_not_exists(module, function) do
     # TODO: check if handler is not a callback
     if !({function, 2} in apply(module, :__info__, [:functions])) ||
@@ -343,6 +352,7 @@ defmodule Drab do
     {module, function}
   end
 
+  @spec is_callback?(atom, atom) :: boolean
   defp is_callback?(module, function) do
     options = apply(module, :__drab__, [])
     # TODO: group callbacks in compile time
@@ -350,6 +360,7 @@ defmodule Drab do
     function in callbacks
   end
 
+  @spec raise_if_handler_is_not_public(atom, atom) :: {atom, atom} | no_return
   defp raise_if_handler_is_not_public(module, function) do
     if {:__drab__, 0} in apply(module, :__info__, [:functions]) do
       options = apply(module, :__drab__, [])
@@ -370,6 +381,7 @@ defmodule Drab do
     {module, function}
   end
 
+  @spec failed(Phoenix.Socket.t(), Exception.t()) :: :ok
   defp failed(socket, e) do
     error = """
     Drab Handler failed with the following exception:
@@ -388,8 +400,11 @@ defmodule Drab do
 
       {:ok, _} = Drab.Core.exec_js(socket, js)
     end
+
+    :ok
   end
 
+  @spec push_reply(Phoenix.Socket.t(), atom, any, any) :: :ok
   defp push_reply(socket, reply_to, _, _) do
     Phoenix.Channel.push(socket, "event", %{
       finished: reply_to
@@ -442,6 +457,8 @@ defmodule Drab do
   end)
 
   @doc false
+  @spec push_and_wait_for_response(Phoenix.Socket.t(), pid, String.t(), Keyword.t(), Keyword.t()) ::
+          Drab.Core.result()
   def push_and_wait_for_response(socket, pid, message, payload \\ [], options \\ []) do
     ref = make_ref()
     push(socket, pid, ref, message, payload)
@@ -458,6 +475,8 @@ defmodule Drab do
   end
 
   @doc false
+  @spec push_and_wait_forever(Phoenix.Socket.t(), pid, String.t(), Keyword.t()) ::
+          Drab.Core.result()
   def push_and_wait_forever(socket, pid, message, payload \\ []) do
     push(socket, pid, nil, message, payload)
 
@@ -473,6 +492,7 @@ defmodule Drab do
   end
 
   @doc false
+  # @spec broadcast(Drab.Core.subject(), pid, String.t(), Keyword.t()) :: :ok
   def broadcast(subject, pid, message, payload \\ [])
 
   def broadcast(%Phoenix.Socket{} = socket, pid, message, payload) do
@@ -497,6 +517,7 @@ defmodule Drab do
     :ok
   end
 
+  # @spec do_push_or_broadcast(Phoenix.Socket.t(), pid, reference, String.t(), map, function) :: any
   defp do_push_or_broadcast(socket, pid, ref, message, payload, function) do
     m = payload |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, {pid, ref})})
     function.(socket, message, m)

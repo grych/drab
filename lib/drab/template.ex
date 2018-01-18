@@ -11,7 +11,8 @@ defmodule Drab.Template do
   Logger.info("Compiling Drab Templates")
 
   drab_templates =
-    [:drab |> :code.priv_dir() |> to_string(), @drab_templates, "*"] |> Path.join() |> Path.wildcard()
+    [:drab |> :code.priv_dir() |> to_string(), @drab_templates, "*"] |> Path.join()
+    |> Path.wildcard()
 
   for template_with_path <- drab_templates do
     @external_resource template_with_path
