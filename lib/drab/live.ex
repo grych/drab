@@ -135,9 +135,9 @@ defmodule Drab.Live do
 
       <p>Chapter <%= nodrab(@chapter_no) %>.</p>
 
-  With Elixir 1.6, you may use the special marker "/", which disables Drab on the given expression
-  In the future (Elixir 1.6), the `nodrab` keyword will be replaced by a special EEx mark `/` (expression
-  will look like `<%/ @chapter_no %>`).
+  With Elixir 1.6, you may use the special marker "/", which does exactly the same as `nodrab`:
+
+      <p>Chapter <%/ @chapter_no %>.</p>
 
   #### The `@conn` case
   The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not update it

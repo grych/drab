@@ -139,5 +139,14 @@ defmodule DrabTestApp.LiveTest do
                :link
              ]
     end
+
+    test "nodrab test", fixture do
+      refute Enum.member?(assigns(fixture.socket), :nodrab1)
+    end
+
+    # TODO: uncomment after moved to 1.6.0
+    # test "/ marker test", fixture do
+    #   refute Enum.member?(assigns(fixture.socket), :nodrab2)
+    # end
   end
 end

@@ -58,5 +58,13 @@
 <br>
 
 <div>
-<img src="<%= static_path(@conn, "/conn/should/not/be/in/assigns")%>">
+  <img src="<%= static_path(@conn, "/conn/should/not/be/in/assigns")%>">
+</div>
+
+<div>
+  <%= nodrab(@nodrab1) %>
+</div>
+<%# TODO: uncomment when moved to >=1.6.0 %>
+<div>
+  <%#/ @nodrab2 %>
 </div>

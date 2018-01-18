@@ -1,14 +1,41 @@
 # CHANGELOG
-# v0.6.4
-Changes:
-* possibility to provide own `connect/2` callback for socket authentication, etc
-* source code formatted with 1.6.0
-* use of `<%/ %>` marker to avoid using `Drab.Live` in a given expression
+## v0.6.4
+Adds few important features. Tested with Elixir 1.6.0.
 
-Depreciations:
+### Possibility to provide own `connect/2` callback for socket authentication, etc
+Previously, Drab intercepted the `connect/2` callback in your `UserSocket`. Now, there is a possibility to use your own callback:
+
+    defmodule MyApp.UserSocket do
+      use Phoenix.Socket
+
+      channel "__drab:*", Drab.Channel
+      
+      def connect(params, socket) do
+        Drab.Socket.verify(socket, params)
+      end
+    end
+
+[Further reading](https://hexdocs.pm/drab/Drab.Socket.html#module-method-2-use-your-own-connect-2-callback)
+
+### Use of the custom marker "/" in Drab templates
+This version allow you to use of `<%/ %>` marker to avoid using `Drab.Live` for a given expression. The expression would be treaten as a normal Phoenix one, so will be displayed in rendered html, but Drab will have no access to it.
+
+```html
+<div>
+  <%/ @this_assigns_will_be_displayed_but_not_drabbed %>
+</div>
+```
+
+[Further reading](https://hexdocs.pm/drab/Drab.Live.html#module-avoiding-using-drab)
+
+### Style changes:
+* source code formatted with 1.6.0
+* use `@impl true` in behaviour callbacks
+
+### Depreciations:
 * `Drab.Client.js/2` becomes `Drab.Client.run/2`
 
-# v0.6.3
+## v0.6.3
 Changes:
 * workaround for #71: better docs and error message
 * `Drab.Live.poke` returns {:error, description} on error
@@ -16,7 +43,7 @@ Changes:
 * assign list with `Drab.Live.assigns` (#72)
 
 
-# v0.6.2
+## v0.6.2
 Bug fixes:
 * live_helper_modules config entry now allows list (#66)
 * when updating `value` attribute, `poke` updates property as well (for inputs and textareas)
@@ -24,27 +51,25 @@ Bug fixes:
 * changed the way drab is asking for a store and session on connect; probably fixed #68
 
 
-# v0.6.1
+## v0.6.1
 This release fixes new, better bugs introduced in v0.6.0:
 * "atom :save_assigns not found" error
 * `@conn` case (it was not removing @conn from the initial)
 * cache file was deleted after `mix phx.digest`, moved the file to the Drab's priv directory
 
-## Please read documentation for `Drab.Browser`, the API has changed
+### Please read documentation for `Drab.Browser`, the API has changed
 * cleaned up the mess with API in `Drab.Browser`
 
-# v0.6.0
+## v0.6.0
 This is a major release. The biggest change is completely redesigned engine for `Drab.Live` with `nodrab` option. Also introducting **shared commanders**, updates in `Drab.Browser`, performance and bug fixes.
 
-## Migration from 0.5
+### Migration from 0.5
 
 After installation, please remove all remaining `priv/hashes_expressions.drab.cache.*` files (they were renamed to `drab.live.cache`) and do a mix clean to recompile templates:
 
 ````shell
 mix clean
 ````
-
-## Changes
 
 ### Drab.Live
 The main change in the new template engine is that now it is not injecting `<span>` everywhere. Now, it parses the html and tries to find the sourrounding tag and mark it with the attribute called `drab-ampere`. The attribute value is a hash of the previous buffer and the expression, so it is considered unique.
@@ -90,7 +115,7 @@ renders to:
 Chapter <span drab-ampere="someid">1</span>.
 ````
 
-### Avoiding using Drab (`nodrab` option)
+#### Avoiding using Drab (`nodrab` option)
 If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function. Such expressions will be treated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
 
 ````html
@@ -100,13 +125,13 @@ If there is no need to use Drab with some expression, you may mark it with `nodr
 In the future (Elixir 1.6 I suppose), the `nodrab` keyword will be replaced by a special EEx mark `/` (expression
 will look like `<%/ @chapter_no %>`).
 
-### The `@conn` case
+#### The `@conn` case
 The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not update it
 with `poke/2`. And, because it is often quite hudge, may significantly increase the number of data sent to
 the browser. This is why Drab treats all expressions with only one assign, which happen to be `@conn`, as
 a `nodrab` assign.
 
-## Shared Commanders
+### Shared Commanders
 By default Drab runs the event handler in the commander module corresponding to the controller, which rendered the current page. Now it is possible to choose the module by simply provide the full path to the commander:
 
 ````html
@@ -115,7 +140,7 @@ By default Drab runs the event handler in the commander module corresponding to 
 
 Notice that the module must be a commander module, ie. it must be marked with `use Drab.Commander`, and the function must be whitelisted with `Drab.Commander.public/1` macro.
 
-## Changes in `Drab.Browser`
+### Changes in `Drab.Browser`
 All function in `Drab.Browser` were renamed to their bang version. This is because in the future release functions with and without bang will be more consist with Elixir standards - nobang function will return tuples, bangs will raise on error.
 
 ### Warning: functions redirect_to!/2 and console!/2 are changed
@@ -124,10 +149,10 @@ In preparation to change all the functions in the module, this functions behavio
 You should use `broadcast_redirect_to!/2` and `broadcast_console!/2` instead.
 
 
-# v0.5.6
+## v0.5.6
 Reverted back #51 - `@conn` is available again.
 
-# v0.5.5
+## v0.5.5
 
 ### Fixes:
 * #20 (broadcasting in Phx 1.3)
@@ -137,7 +162,7 @@ Reverted back #51 - `@conn` is available again.
 * #51 (removed @conn from living assigns, encrypts assigns)
 
 
-# v0.5.4
+## v0.5.4
 Fixes for adding templates in a runtime.
 
 ```elixir
@@ -151,13 +176,13 @@ poke socket, "partial1.html", color: "red"
 * #41
 * #34 and #38
 
-# v0.5.3
+## v0.5.3
 Phoenix 1.3 compatibility
 * bugfixes (#19, #36).
 * `drab.gen.commander` works both with Phoenix 1.2 and 1.3
 
 
-# v0.5.2
+## v0.5.2
 This is a small update to make Drab compatible with Elixir 1.5.
 Due to an issue with 1.5.0 (elixir-lang/elixir#6391) Elixir version is fixed on 1.4 or >= 1.5.1.
 
@@ -165,7 +190,7 @@ Due to an issue with 1.5.0 (elixir-lang/elixir#6391) Elixir version is fixed on 
 * #26, #27, #30, #31, #33
 
 
-# v0.5.1
+## v0.5.1
 ### Fixes:
 * Transpiled all JS templates, and removed all occurences of `forEach` (#22)
 * Radio buttons not reported correctly in `sender["form"]` (#23)
@@ -188,10 +213,8 @@ Due to an issue with 1.5.0 (elixir-lang/elixir#6391) Elixir version is fixed on 
 ### New features:
 * `Core.Browser.set_url/2` to manipulate the browser's URL bar
 
-# v0.5.0
+## v0.5.0
 ***This version is a major update***. The default module, `Drab.Query` has been replaced with `Drab.Live` and `Drab.Element`. Drab is not jQuery dependent by default anymore.
-
-## New modules
 
 ### `Drab.Live`
 Allows to remotely (from the server side) replace the value of the assign in the displayed paged, without re-rendering and reloading the page.
@@ -217,24 +240,21 @@ Query and update displayed page from the server side.
 set_prop socket, "p", style: %{"backgroundColor" => "red"} # awesome effect
 ```
 
-## Broadcasting
+### Broadcasting
 Broadcasting functions now get `subject` instead of `socket`. There is no need to have an active socket to broadcast anymore. Useful when broadcasting from background servers or `ondisconnect` callback.
 
-## Form parameters in sender
+### Form parameters in sender
 If the event launching element is inside a `<FORM>`, it gets a values of all input elements within that form. This is a map, where keys are the element's `name` or `id`.
 
-## Upgrading from 0.4
+### Upgrading from 0.4
 Add `Drab.Query` and `Drab.Modal` to your commanders:
 
 ```elixir
 use Drab.Commander, module: [Drab.Query, Drab.Modal]
 ```
 
-## Depreciations
+### Depreciations
 All soft depreciations up to 0.4.1 became hard.
-
-
-
 
 ## v0.4.1 - 2017-05-25
 

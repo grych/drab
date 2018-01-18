@@ -35,8 +35,8 @@ defmodule Drab.Socket do
 
         channel "__drab:*", Drab.Channel
 
-        def connect(token, socket) do
-          Drab.Socket.verify(socket, token)
+        def connect(params, socket) do
+          Drab.Socket.verify(socket, params)
         end
       end
 
@@ -44,8 +44,29 @@ defmodule Drab.Socket do
   assigns, as well as with the additional assigns you may pass to `Drab.Client.generate/2`.
 
   This method is supposed to be used with `Drab.Client.generate/2` JS code generator, followed by the
-  javascript `Drab.connect({token: ...})`, or with `Drab.Client.run/2` with additional assigns. Please visit
-  `Drab.Client` for more detailed information.
+  javascript `Drab.connect({token: ...})`, or with `Drab.Client.run/2` with additional assigns.
+
+  The following example adds `"auth_token" => "forty-two"` key-value pair to `params` in the `connect/2` callback:
+
+      ### app.html.eex
+      <%= Drab.Client.generate(@conn) %>
+      <script>
+        Drab.connect({auth_token: "forty-two"});
+      </script>
+
+  Please do not forget to verify Drab token, even when using external authorization library:
+
+      ### user_socket.ex
+      def connect(%{"auth_token" => auth_token} = params, socket) do
+        case MyAuthLib.authorize(auth_token) do
+          {:ok, authorized_socket} -> Drab.Socket.verify(authorized_socket, params)
+          _ -> :error
+        end
+      end
+      def connect(_, _), do: error
+
+
+  Please visit `Drab.Client` for more detailed information.
 
   ## Configuration Options
   By default, Drab uses "/socket" as a path. In case of using different one, configure it with:

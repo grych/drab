@@ -15,7 +15,9 @@ defmodule DrabTestApp.LiveController do
       users: @users,
       count: length(@users),
       color: "#ffffff",
-      text: "set in the controller"
+      text: "set in the controller",
+      nodrab1: "this is not drabbed",
+      nodrab2: "this is not drabbed as well"
     )
   end
 
