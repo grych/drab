@@ -113,6 +113,7 @@ defmodule Drab do
   end
 
   @doc false
+  @spec init(t) :: {:ok, t}
   def init(state) do
     Process.flag(:trap_exit, true)
     {:ok, state}
