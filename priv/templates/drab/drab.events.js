@@ -1,4 +1,4 @@
-const EVENTS = ["click", "change", "keyup", "keydown"];
+const EVENT_SHORTCUTS = ["click", "change", "keyup", "keydown"];
 const EVENTS_TO_DISABLE = <%= Drab.Config.get(:events_to_disable_while_processing) |> Drab.Core.encode_js %>;
 
 Drab.disable_drab_objects = function (disable) {
@@ -139,8 +139,8 @@ Drab.set_event_handlers = function (obj) {
   var drab_objects_shortcut = [];
 
   // first serve the shortcut controls by adding the longcut attrbutes
-  for (var ei = 0; ei < EVENTS.length; ei++) {
-    var ev = EVENTS[ei];
+  for (var ei = 0; ei < EVENT_SHORTCUTS.length; ei++) {
+    var ev = EVENT_SHORTCUTS[ei];
     if (obj) {
       var o = document.querySelector(obj);
       if (o) {
