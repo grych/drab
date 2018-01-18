@@ -302,7 +302,7 @@ defmodule Drab.Live do
 
     current_assigns = assign_data_for_partial(socket, partial, partial_name)
 
-    current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
+    current_assigns_keys = current_assigns |> Map.keys() |> Enum.map(&String.to_existing_atom/1)
     assigns_to_update = Enum.into(assigns, %{})
     assigns_to_update_keys = Map.keys(assigns_to_update)
 
@@ -350,14 +350,14 @@ defmodule Drab.Live do
             end
 
           :attr ->
-            new_value = eval_expr(pattern, modules, updated_assigns, gender) |> safe_to_string()
+            new_value = pattern |> eval_expr(modules, updated_assigns, gender) |> safe_to_string()
 
             "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
               encode_js(new_value)
             })"
 
           :prop ->
-            new_value = eval_expr(pattern, modules, updated_assigns, gender) |> safe_to_string()
+            new_value = pattern |> eval_expr(modules, updated_assigns, gender) |> safe_to_string()
             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
             # _ -> ""
         end
@@ -465,7 +465,7 @@ defmodule Drab.Live do
             e.description
           end
 
-        raise CompileError, description: msg
+        reraise CompileError, description: msg
     end
   end
 

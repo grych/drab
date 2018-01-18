@@ -464,12 +464,13 @@ defmodule Drab.Live.EExEngine do
 
   @impl true
   def handle_expr({:safe, buffer}, "/", expr) do
-    line   = line_from_expr(expr)
-    expr   = Macro.prewalk(expr, &handle_assign/1)
+    line = line_from_expr(expr)
+    expr = Macro.prewalk(expr, &handle_assign/1)
 
-    {:safe, quote do
-      tmp1 = unquote(buffer)
-      [tmp1, unquote(to_safe(expr, line))]
+    {:safe,
+     quote do
+       tmp1 = unquote(buffer)
+       [tmp1, unquote(to_safe(expr, line))]
      end}
   end
 

@@ -21,7 +21,8 @@ defmodule Drab.Mixfile do
         # , filter_prefix: "Drab."
         extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"]
       ],
-      compilers: [:phoenix, :gettext] ++ Mix.compilers()
+      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
+      dialyzer: [plt_add_deps: :transitive]
       # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
     ]
   end
@@ -50,7 +51,9 @@ defmodule Drab.Mixfile do
       # {:inch_ex, "~> 0.5", only: [:dev, :test, :docs]},
       {:deppie, "~> 1.0"},
       # {:floki, "~> 0.19.0"}
-      {:floki, "0.18.1"}
+      {:floki, "0.18.1"},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:credo, "~> 0.9.0-rc1", only: [:dev, :test], runtime: false}
     ]
   end
 

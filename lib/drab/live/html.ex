@@ -270,9 +270,10 @@ defmodule Drab.Live.HTML do
   end
 
   @non_closing_tags ~w{
-    area base br col embed hr img input keygen link meta param source track wbr
-    area/ base/ br/ col/ embed/ hr/ img/ input/ keygen/ link/ meta/ param/ source/ track/ wbr/
+    area base br col command embed hr img input keygen link meta param source track wbr
+    area/ base/ br/ col/ command/ embed/ hr/ img/ input/ keygen/ link/ meta/ param/ source/ track/ wbr/
   }
+
   # TODO: refactor, must be a simpler way to do it
   defp do_inject([], _, opened, found, acc) do
     {opened, found, acc}
@@ -324,7 +325,7 @@ defmodule Drab.Live.HTML do
   end
 
   defp tag_name(tag) do
-    String.split(tag, ~r/\s/) |> List.first()
+    tag |> String.split(~r/\s/) |> List.first()
   end
 
   @doc """
@@ -377,7 +378,7 @@ defmodule Drab.Live.HTML do
   Converts buffer to html. Nested expressions are ignored.
   """
   def to_flat_html({:safe, body}), do: to_flat_html(body)
-  def to_flat_html(body), do: do_to_flat_html(body) |> List.flatten() |> Enum.join()
+  def to_flat_html(body), do: body |> do_to_flat_html() |> List.flatten() |> Enum.join()
 
   defp do_to_flat_html([]), do: []
   defp do_to_flat_html(body) when is_binary(body), do: [body]
@@ -459,7 +460,9 @@ defmodule Drab.Live.HTML do
   Pattern is processed by Floki, so it doesn't have to be the same as original!
   """
   def amperes_from_buffer({:safe, buffer}) when is_list(buffer) do
-    amperes_from_html(to_flat_html(buffer))
+    buffer
+    |> to_flat_html()
+    |> amperes_from_html()
     |> Map.merge(amperes_from_buffer(buffer))
   end
 
@@ -497,7 +500,7 @@ defmodule Drab.Live.HTML do
   #   %{}
   # end
 
-  defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
+  # defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
 
   defp amperes_from_html(html) when is_binary(html) do
     with_amperes =

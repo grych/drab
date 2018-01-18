@@ -122,7 +122,7 @@ defmodule Drab.Query do
   end
 
   def select(_socket, [{method, argument}, from: selector]) do
-    wrong_query!(selector, method, argument)
+    raise_wrong_query(selector, method, argument)
   end
 
   @doc "See `Drab.Query.select/2`"
@@ -134,7 +134,7 @@ defmodule Drab.Query do
   end
 
   def select(_socket, method, from: selector) do
-    wrong_query!(selector, method)
+    raise_wrong_query(selector, method)
   end
 
   @doc """
@@ -241,7 +241,7 @@ defmodule Drab.Query do
   end
 
   defp do_update(_socket, _broadcast, [{method, argument}, {:set, _value}, {:on, selector}]) do
-    wrong_query!(selector, method, argument)
+    raise_wrong_query(selector, method, argument)
   end
 
   defp do_update(_socket, _broadcast, method, set: [], on: _selector) when method in @methods do
@@ -290,14 +290,14 @@ defmodule Drab.Query do
   end
 
   defp do_update(_socket, _broadcast, method, set: value, on: selector) do
-    wrong_query!(selector, method, value)
+    raise_wrong_query(selector, method, value)
   end
 
   # returns next value of the given list (cycle) or the first element of the list
   defp next_value(socket, values, method, selector) when is_list(values) do
     v = socket |> select(plural(method), from: selector)
     one_element_selector_only!(v, selector)
-    next_in_list(values, Map.values(v) |> List.first())
+    next_in_list(values, v |> Map.values() |> List.first())
   end
 
   defp next_value(_socket, value, _method, _selector), do: value
@@ -305,7 +305,7 @@ defmodule Drab.Query do
   defp next_value(socket, values, method, argument, selector) when is_list(values) do
     v = socket |> select([{plural(method), argument}, from: selector])
     one_element_selector_only!(v, selector)
-    next_in_list(values, Map.values(v) |> List.first())
+    next_in_list(values, v |> Map.values() |> List.first())
   end
 
   defp next_value(_socket, value, _method, _argument, _selector), do: value
@@ -389,7 +389,7 @@ defmodule Drab.Query do
   end
 
   defp do_insert(_socket, _broadcast, [{method, argument}, into: selector]) do
-    wrong_query!(selector, method, argument)
+    raise_wrong_query(selector, method, argument)
   end
 
   defp do_insert(socket, broadcast, html, [{method, selector}]) when method in @insert_methods do
@@ -397,7 +397,7 @@ defmodule Drab.Query do
   end
 
   defp do_insert(_socket, _broadcast, html, [{method, selector}]) do
-    wrong_query!(html, method, selector)
+    raise_wrong_query(html, method, selector)
   end
 
   @doc """
@@ -455,7 +455,7 @@ defmodule Drab.Query do
   end
 
   defp do_delete(_socket, _broadcast, [{method, argument}, from: selector]) do
-    wrong_query!(selector, method, argument)
+    raise_wrong_query(selector, method, argument)
   end
 
   defp do_delete(socket, broadcast, selector) do
@@ -640,7 +640,7 @@ defmodule Drab.Query do
   defp escape_value(value) when is_nil(value), do: "\"\""
   defp escape_value(value), do: "#{Drab.Core.encode_js(value)}"
 
-  defp wrong_query!(selector, method, arguments \\ nil) do
+  defp raise_wrong_query(selector, method, arguments \\ nil) do
     raise ArgumentError, """
     Drab does not recognize your query:
       selector:  #{inspect(selector)}

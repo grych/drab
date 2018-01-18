@@ -11,6 +11,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
   This will generate a module NameCommander in web/commanders, if and only if NameController is already present.
   """
 
+  @impl true
   def run(args) do
     [module] = validate_args!(args)
 
@@ -29,7 +30,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     Mix.shell().info("""
 
     Add the following line to your #{module}Controller:
-        use Drab.Controller 
+        use Drab.Controller
     """)
   end
 

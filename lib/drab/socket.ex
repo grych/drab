@@ -100,7 +100,7 @@ defmodule Drab.Socket do
            socket,
            "controller_and_action",
            controller_and_action_token,
-           max_age: 86400
+           max_age: 86_400
          ) do
       {:ok, [__controller: controller, __action: action, __assigns: assigns]} ->
         own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)

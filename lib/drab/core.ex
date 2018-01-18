@@ -408,7 +408,7 @@ defmodule Drab.Core do
   def detokenize_store(socket, drab_store_token) do
     # we just ignore wrong token and defauklt the store to %{}
     # this is because it is read on connect, and raising here would cause infinite reconnects
-    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token, max_age: 86400) do
+    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token, max_age: 86_400) do
       {:ok, drab_store} ->
         drab_store
 

@@ -505,7 +505,7 @@ defmodule Drab do
 
   @doc false
   def detokenize(socket, token, salt \\ "drab token") do
-    case Phoenix.Token.verify(socket, salt, token, max_age: 86400) do
+    case Phoenix.Token.verify(socket, salt, token, max_age: 86_400) do
       {:ok, detokenized} ->
         detokenized
 

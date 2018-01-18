@@ -7,9 +7,9 @@ defmodule DrabModule do
   # as well as the list of the Javascripts to render
   @callback prerequisites() :: list
   @callback js_templates() :: list
-  @callback transform_payload(payload :: list, state :: Drab.t()) :: list
-  @callback transform_socket(socket :: Phoenix.Socket.t(), payload :: list, state :: Drab.t()) ::
-              list
+  @callback transform_payload(payload :: map, state :: Drab.t()) :: map
+  @callback transform_socket(socket :: Phoenix.Socket.t(), payload :: map, state :: Drab.t()) ::
+              map
 
   defmacro __using__(_opts) do
     quote do

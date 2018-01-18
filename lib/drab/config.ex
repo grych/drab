@@ -215,11 +215,9 @@ defmodule Drab.Config do
   def get(:browser_response_timeout),
     do: Application.get_env(:drab, :browser_response_timeout, 5000)
 
-  def get(:main_phoenix_app),
-    do: Application.get_env(:drab, :main_phoenix_app, nil)
+  def get(:main_phoenix_app), do: Application.get_env(:drab, :main_phoenix_app, nil)
 
-  def get(:enable_live_scripts),
-    do: Application.get_env(:drab, :enable_live_scripts, false)
+  def get(:enable_live_scripts), do: Application.get_env(:drab, :enable_live_scripts, false)
 
   def get(:live_helper_modules) do
     case Application.get_env(:drab, :live_helper_modules, [Router.Helpers, ErrorHelpers, Gettext]) do

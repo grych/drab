@@ -105,7 +105,7 @@ defmodule Drab.Channel do
       p = inspect(socket.assigns.__drab_pid)
       pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
 
-      Logger.debug("""
+      IO.puts("""
 
           Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{
         inspect(commander)

@@ -30,7 +30,7 @@ defmodule Drab.Browser do
       js_object["hour"],
       js_object["minute"],
       js_object["second"],
-      js_object["millisecond"] * 1000
+      {js_object["millisecond"] * 1000, 3}
     )
   end
 
