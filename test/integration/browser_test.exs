@@ -8,7 +8,8 @@ defmodule DrabTestApp.BrowserTest do
 
   setup do
     browser_index() |> navigate_to()
-    find_element(:id, "page_loaded_indicator") # wait for a page to load
+    # wait for a page to load
+    find_element(:id, "page_loaded_indicator")
     [socket: drab_socket()]
   end
 
@@ -32,7 +33,7 @@ defmodule DrabTestApp.BrowserTest do
     end
 
     test "check the current month, as it is crazy numbered in JS" do
-      #TODO: could fail at the end or the begining of the month (different timezones, etc)
+      # TODO: could fail at the end or the begining of the month (different timezones, etc)
       socket = drab_socket()
       browser_dt = socket |> now!()
       server_dt = DateTime.utc_now()
@@ -43,7 +44,8 @@ defmodule DrabTestApp.BrowserTest do
       socket = drab_socket()
       {:ok, ua} = user_agent(socket)
       assert is_binary(ua)
-      assert String.contains?(ua, "Chrome") ## only chromedriver supported so far
+      ## only chromedriver supported so far
+      assert String.contains?(ua, "Chrome")
       {:ok, language} = language(socket)
       {:ok, languages} = languages(socket)
       assert is_binary(language)
@@ -55,7 +57,8 @@ defmodule DrabTestApp.BrowserTest do
       socket = drab_socket()
       ua = user_agent!(socket)
       assert is_binary(ua)
-      assert String.contains?(ua, "Chrome") ## only chromedriver supported so far
+      ## only chromedriver supported so far
+      assert String.contains?(ua, "Chrome")
       assert is_binary(language!(socket))
       refute is_nil(language!(socket))
       assert is_list(languages!(socket))

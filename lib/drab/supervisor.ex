@@ -7,10 +7,11 @@ defmodule Drab.Supervisor do
     import Supervisor.Spec
 
     # Run Drab Test App endpoint, when running tests or development
-    children = case Code.ensure_compiled(DrabTestApp) do
-      {:error, _} -> []
-      {:module, DrabTestApp} -> [supervisor(DrabTestApp.Endpoint, [])]
-    end
+    children =
+      case Code.ensure_compiled(DrabTestApp) do
+        {:error, _} -> []
+        {:module, DrabTestApp} -> [supervisor(DrabTestApp.Endpoint, [])]
+      end
 
     # Start DETS cache
     Drab.Live.Cache.start()

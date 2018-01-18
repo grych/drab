@@ -19,16 +19,14 @@ defmodule Drab.Channel do
     # sender contains PID of the process which sent the query
     # sender is waiting for the result
     {sender, ref} = sender(socket, sender_encrypted)
-    send(sender,
-      { :got_results_from_client, :ok, ref, reply })
+    send(sender, {:got_results_from_client, :ok, ref, reply})
 
     {:noreply, socket}
   end
 
   def handle_in("execjs", %{"error" => [sender_encrypted, reply]}, socket) do
     {sender, ref} = sender(socket, sender_encrypted)
-    send(sender,
-      { :got_results_from_client, :error, ref, reply })
+    send(sender, {:got_results_from_client, :error, ref, reply})
 
     {:noreply, socket}
   end
@@ -36,16 +34,16 @@ defmodule Drab.Channel do
   def handle_in("modal", %{"ok" => [sender_encrypted, reply]}, socket) do
     # sends { "button_name", %{"Param" => "value"}}
     {sender, ref} = sender(socket, sender_encrypted)
-    send(sender,
+
+    send(sender, {
+      :got_results_from_client,
+      :ok,
+      ref,
       {
-        :got_results_from_client,
-        :ok,
-        ref,
-        {
-          reply["button_clicked"] |> String.to_existing_atom,
-          reply["params"] |> Map.delete("__drab_modal_hidden_input")
-        }
-      })
+        reply["button_clicked"] |> String.to_existing_atom(),
+        reply["params"] |> Map.delete("__drab_modal_hidden_input")
+      }
+    })
 
     {:noreply, socket}
   end
@@ -68,58 +66,72 @@ defmodule Drab.Channel do
 
     Drab.set_socket(socket.assigns.__drab_pid, socket)
     # for debugging
-    if IEx.started? do
+    if IEx.started?() do
       commander = Drab.get_commander(socket)
       modules = DrabModule.all_modules_for(commander.__drab__().modules)
 
-      grouped = Enum.map(modules, fn module ->
-        [_ | rest] = Module.split(module)
-        Enum.join(rest, ".")
-      end) |> Enum.join(", ")
+      grouped =
+        Enum.map(modules, fn module ->
+          [_ | rest] = Module.split(module)
+          Enum.join(rest, ".")
+        end)
+        |> Enum.join(", ")
 
       live_example =
         case Drab.Live.assigns(socket) do
           [] ->
             %{Drab.Live => "socket |> poke(text: \"This assign has been drabbed!\")"}
-          [example_assign | _]  ->
+
+          [example_assign | _] ->
             %{Drab.Live => "socket |> poke(#{example_assign}: \"This assign has been drabbed!\")"}
         end
 
       other_examples = %{
-        Drab.Element  => "socket |> set_style(\"body\", backgroundColor: \"red\")",
-        Drab.Query    => "socket |> select(:htmls, from: \"h4\")",
-        Drab.Modal    => "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
-        Drab.Core     => "socket |> exec_js(\"alert('hello from IEx!')\")"
+        Drab.Element => "socket |> set_style(\"body\", backgroundColor: \"red\")",
+        Drab.Query => "socket |> select(:htmls, from: \"h4\")",
+        Drab.Modal =>
+          "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
+        Drab.Core => "socket |> exec_js(\"alert('hello from IEx!')\")"
       }
 
       module_examples = Map.merge(live_example, other_examples)
-      examples = Enum.map(modules, fn module ->
-        module_examples[module]
-      end) |> Enum.filter(fn x -> !is_nil(x) end)
+
+      examples =
+        Enum.map(modules, fn module ->
+          module_examples[module]
+        end)
+        |> Enum.filter(fn x -> !is_nil(x) end)
 
       p = inspect(socket.assigns.__drab_pid)
       pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
-      Logger.debug """
 
-          Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{inspect(commander)}
+      Logger.debug("""
+
+          Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{
+        inspect(commander)
+      }
           You may debug Drab functions in IEx by copy/paste the following:
       import Drab.{#{grouped}}
       socket = Drab.get_socket(pid("#{pid_string}"))
 
           Examples:
       #{examples |> Enum.join("\n")}
-      """
+      """)
     end
 
     verify_and_cast(:onconnect, [payload], socket)
   end
 
-  def handle_in("event", %{
-      # "event" => event_name,
-      "payload" => payload,
-      "event_handler_function" => event_handler_function,
-      "reply_to" => reply_to
-      }, socket) do
+  def handle_in(
+        "event",
+        %{
+          # "event" => event_name,
+          "payload" => payload,
+          "event_handler_function" => event_handler_function,
+          "reply_to" => reply_to
+        },
+        socket
+      ) do
     verify_and_cast(:event, [payload, event_handler_function, reply_to], socket)
   end
 

@@ -41,27 +41,37 @@ defmodule Drab.Live.HTML do
   def tokenize("") do
     [{:text, ""}]
   end
+
   def tokenize("<" <> rest) do
     case String.split(rest, ">", parts: 2) do
-      [tag] -> [{:naked, String.trim_leading(tag)}] # naked tag can be only at the end
-      [tag | tail] -> [{:tag, String.trim_leading(tag)} | tokenize(Enum.join(tail))]
+      # naked tag can be only at the end
+      [tag] ->
+        [{:naked, String.trim_leading(tag)}]
+
+      [tag | tail] ->
+        [{:tag, String.trim_leading(tag)} | tokenize(Enum.join(tail))]
     end
   end
+
   def tokenize(string) when is_binary(string) do
     case String.split(string, "<", parts: 2) do
       [no_more_tags] -> [{:text, no_more_tags}]
       [text, rest] -> [{:text, text} | tokenize("<" <> rest)]
     end
   end
+
   def tokenize({code, meta, args}) do
     {code, meta, tokenize(args)}
   end
+
   def tokenize([]) do
     [{:other, []}]
   end
+
   def tokenize([head | tail]) do
     [tokenize(head) | tokenize(tail)]
   end
+
   def tokenize(other) do
     other
   end
@@ -140,8 +150,12 @@ defmodule Drab.Live.HTML do
   def tokenized_to_html({code, meta, args}), do: {code, meta, tokenized_to_html(args)}
   def tokenized_to_html(text) when is_binary(text), do: text
   def tokenized_to_html(atom) when is_atom(atom), do: atom
-  def tokenized_to_html({atom, list}) when is_atom(atom) and is_list(list), do: {atom, tokenized_to_html(list)}
+
+  def tokenized_to_html({atom, list}) when is_atom(atom) and is_list(list),
+    do: {atom, tokenized_to_html(list)}
+
   def tokenized_to_html([list]) when is_list(list), do: [tokenized_to_html(list)]
+
   # def tokenized_to_html([head | tail]) when is_list(head) and is_list(tail), do: [tokenized_to_html(head) | tokenized_to_html(tail)]
   def tokenized_to_html([head | tail]) do
     # t = tokenized_to_html(tail)
@@ -156,6 +170,7 @@ defmodule Drab.Live.HTML do
       {h, t} -> [h | t]
     end
   end
+
   def tokenized_to_html(other), do: other
 
   @doc """
@@ -240,10 +255,12 @@ defmodule Drab.Live.HTML do
   end
 
   def inject_attribute_to_last_opened(buffer, attribute) do
-    {_, found, acc} = buffer
+    {_, found, acc} =
+      buffer
       |> tokenize()
       |> deep_reverse()
       |> do_inject(attribute, [], :not_found, [])
+
     acc = acc |> deep_reverse() |> tokenized_to_html()
 
     case found do
@@ -256,40 +273,50 @@ defmodule Drab.Live.HTML do
     area base br col embed hr img input keygen link meta param source track wbr
     area/ base/ br/ col/ embed/ hr/ img/ input/ keygen/ link/ meta/ param/ source/ track/ wbr/
   }
-  #TODO: refactor, must be a simpler way to do it
+  # TODO: refactor, must be a simpler way to do it
   defp do_inject([], _, opened, found, acc) do
     {opened, found, acc}
   end
+
   defp do_inject([head | tail], attribute, opened, found, acc) do
     case head do
       {:tag, "/" <> tag} ->
         # IO.puts "closing"
         do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
+
       {tag_type, tag} when tag_type in [:naked, :tag] ->
         # IO.puts "TAG"
         if Enum.find(opened, fn x -> tag_name(tag) == x end) do
           do_inject(tail, attribute, opened -- [tag_name(tag)], found, acc ++ [head])
         else
-          if found != :not_found || (tag_type != :naked && Enum.member?(@non_closing_tags, tag_name(tag))) do
+          if found != :not_found ||
+               (tag_type != :naked && Enum.member?(@non_closing_tags, tag_name(tag))) do
             do_inject(tail, attribute, opened, found, acc ++ [head])
           else
-            {result, injected} = case find_attribute(tag, attribute) do
-              nil -> {:ok, {tag_type, add_attribute(tag, attribute)}}
-              found_attr -> {found_attr, head}
-            end
+            {result, injected} =
+              case find_attribute(tag, attribute) do
+                nil -> {:ok, {tag_type, add_attribute(tag, attribute)}}
+                found_attr -> {found_attr, head}
+              end
+
             do_inject(tail, attribute, opened, result, acc ++ [injected])
           end
         end
+
       {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | buffer]} | rest]} ->
         # IO.puts "BUFFER"
         {op, fd, ac} = do_inject(buffer, attribute, opened, found, [])
         # IO.inspect ac
-        modified_buffer = {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | ac]} | rest]}
+        modified_buffer =
+          {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | ac]} | rest]}
+
         do_inject(tail, attribute, op, fd, acc ++ [modified_buffer])
+
       list when is_list(list) ->
         # IO.puts "LIST"
         {op, fd, modified_buffer} = do_inject(list, attribute, opened, found, [])
         do_inject(tail, attribute, op, fd, acc ++ [modified_buffer])
+
       _ ->
         # IO.puts "OTHER"
         do_inject(tail, attribute, opened, found, acc ++ [head])
@@ -326,9 +353,11 @@ defmodule Drab.Live.HTML do
       "attr='2'"
   """
   def find_attribute(tag, attr) do
-    [attr_name | _] = attr
+    [attr_name | _] =
+      attr
       |> trim_attr()
       |> String.split("=", parts: 2)
+
     # attr_name = String.trim(attr_name)
 
     case Regex.run(~r/(#{attr_name}\s*=\s*\S+)/, tag, capture: :first) do
@@ -353,19 +382,26 @@ defmodule Drab.Live.HTML do
   defp do_to_flat_html([]), do: []
   defp do_to_flat_html(body) when is_binary(body), do: [body]
   # tmp1 is in generating output expression <%= %>
-  defp do_to_flat_html({:__block__, [], [{:=, [], [{:tmp1, [], Drab.Live.EExEngine} | buffer]} | rest]}) do
+  defp do_to_flat_html(
+         {:__block__, [], [{:=, [], [{:tmp1, [], Drab.Live.EExEngine} | buffer]} | rest]}
+       ) do
     do_to_flat_html(buffer) ++ do_to_flat_html(rest)
   end
+
   # while tmp2 inidcates the expression inside <% %>
-  defp do_to_flat_html({:__block__, [], [{:=, [], [{:tmp2, [], Drab.Live.EExEngine} | buffer]} | _]}) do
+  defp do_to_flat_html(
+         {:__block__, [], [{:=, [], [{:tmp2, [], Drab.Live.EExEngine} | buffer]} | _]}
+       ) do
     do_to_flat_html(buffer)
   end
+
   defp do_to_flat_html([head | rest]), do: do_to_flat_html(head) ++ do_to_flat_html(rest)
   defp do_to_flat_html({_, _, list}) when is_list(list), do: do_to_flat_html(list)
   defp do_to_flat_html({_, _, _}), do: []
   defp do_to_flat_html(atom) when is_atom(atom), do: []
   defp do_to_flat_html({_, buffer}), do: do_to_flat_html(buffer)
-  defp do_to_flat_html(_), do: []  # TODO: rething, may be insecure
+  # TODO: rething, may be insecure
+  defp do_to_flat_html(_), do: []
 
   @doc """
   Returns true if the expression is directly under the opened tag
@@ -394,11 +430,13 @@ defmodule Drab.Live.HTML do
       true
   """
   def in_opened_tag?({:safe, body}), do: in_opened_tag?(body)
+
   def in_opened_tag?(body) do
     tokenized =
       body
       |> to_flat_html()
       |> tokenize()
+
     case last_tag(tokenized) do
       {_, tag} -> not String.starts_with?(tag, "/")
       nil -> false
@@ -407,13 +445,13 @@ defmodule Drab.Live.HTML do
 
   defp last_tag(tokenized) do
     tokenized
-      |> Enum.filter(fn
-            {:naked, _} -> true
-            {:tag, x} -> not (tag_name(x) in @non_closing_tags)
-            _ -> false
-         end)
-      |> Enum.reverse()
-      |> Enum.find(&(match?({_, _}, &1)))
+    |> Enum.filter(fn
+      {:naked, _} -> true
+      {:tag, x} -> tag_name(x) not in @non_closing_tags
+      _ -> false
+    end)
+    |> Enum.reverse()
+    |> Enum.find(&match?({_, _}, &1))
   end
 
   @doc """
@@ -422,47 +460,70 @@ defmodule Drab.Live.HTML do
   """
   def amperes_from_buffer({:safe, buffer}) when is_list(buffer) do
     amperes_from_html(to_flat_html(buffer))
-      |> Map.merge(amperes_from_buffer(buffer))
+    |> Map.merge(amperes_from_buffer(buffer))
   end
+
   def amperes_from_buffer([]) do
     %{}
   end
+
   def amperes_from_buffer([{atom, _, args} | tail]) when is_atom(atom) and is_list(args) do
     Map.merge(amperes_from_buffer(args), amperes_from_buffer(tail))
   end
+
   def amperes_from_buffer([head | tail]) do
     case head do
-      [{key, value}] when is_atom(key) -> Map.merge(amperes_from_buffer(tail), amperes_from_buffer(value))
-      _ -> amperes_from_buffer(tail)
+      [{key, value}] when is_atom(key) ->
+        Map.merge(amperes_from_buffer(tail), amperes_from_buffer(value))
+
+      _ ->
+        amperes_from_buffer(tail)
     end
   end
+
   def amperes_from_buffer({atom, _, args}) when is_atom(atom) and is_list(args) do
     amperes_from_buffer(args)
   end
+
   def amperes_from_buffer({atom, _, _}) when is_atom(atom) do
     %{}
   end
+
   def amperes_from_buffer({tuple, _, _}) when is_tuple(tuple) do
     amperes_from_buffer(tuple)
   end
+
   # def amperes_from_buffer(_) do
   #   %{}
   # end
 
   defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
+
   defp amperes_from_html(html) when is_binary(html) do
-    with_amperes = html
+    with_amperes =
+      html
       |> Floki.parse()
       |> Floki.find("[drab-ampere]")
+
     for {tag, attributes, inner_html} <- with_amperes, into: Map.new() do
       ampere = find_ampere(attributes)
-      html_part = if contains_expression?(inner_html), do: [{:html, tag, "innerHTML", Floki.raw_html(inner_html)}], else: []
-      attrs_part = for {attr_name, attr_pattern} <- attributes, contains_expression?(attr_pattern) do
-        case attr_name do
-          "@" <> prop_name -> {:prop, tag, case_sensitive_prop_name(html, ampere, prop_name), attr_pattern}
-          _ -> {:attr, tag, attr_name, attr_pattern}
+
+      html_part =
+        if contains_expression?(inner_html),
+          do: [{:html, tag, "innerHTML", Floki.raw_html(inner_html)}],
+          else: []
+
+      attrs_part =
+        for {attr_name, attr_pattern} <- attributes, contains_expression?(attr_pattern) do
+          case attr_name do
+            "@" <> prop_name ->
+              {:prop, tag, case_sensitive_prop_name(html, ampere, prop_name), attr_pattern}
+
+            _ ->
+              {:attr, tag, attr_name, attr_pattern}
+          end
         end
-      end
+
       {ampere, html_part ++ attrs_part}
     end
   end
@@ -471,30 +532,32 @@ defmodule Drab.Live.HTML do
   Finds a real property name (case sensitive), based on the attribute (lowercased) name
   """
   def case_sensitive_prop_name(html, ampere, prop_name) do
-    {:tag, body} = html
-    |> tokenize()
-    |> Enum.find(
-      fn x ->
+    {:tag, body} =
+      html
+      |> tokenize()
+      |> Enum.find(fn x ->
         case x do
           {:tag, tag} -> String.contains?(tag, "drab-ampere=\"#{ampere}\"")
           _ -> false
         end
       end)
+
     [_, property] = Regex.run(~r/@(#{prop_name})\s*=/i, body)
     property
   end
 
   defp find_ampere(attributes) do
-    {_, ampere} = Enum.find attributes, fn {name, _} -> name == "drab-ampere" end
+    {_, ampere} = Enum.find(attributes, fn {name, _} -> name == "drab-ampere" end)
     ampere
   end
 
   @expr_begin ~r/{{{{@drab-expr-hash:\S+}}}}/
-  @expr_end   ~r/{{{{\/@drab-expr-hash:\S+}}}}/
-  @partial    ~r/{{{{@drab-partial:\S+}}}}/
+  @expr_end ~r/{{{{\/@drab-expr-hash:\S+}}}}/
+  @partial ~r/{{{{@drab-partial:\S+}}}}/
   defp contains_expression?(html) when is_binary(html) do
     Regex.match?(@expr_begin, html)
   end
+
   defp contains_expression?(html) do
     html |> Floki.raw_html() |> contains_expression?()
   end
@@ -505,17 +568,20 @@ defmodule Drab.Live.HTML do
   def remove_drab_marks({:safe, buffer}) do
     {:safe, remove_drab_marks(buffer)}
   end
+
   def remove_drab_marks(buffer) do
-    Macro.prewalk buffer, fn
+    Macro.prewalk(buffer, fn
       text when is_binary(text) ->
         text
         |> String.replace(@expr_begin, "", global: true)
         |> String.replace(@expr_end, "", global: true)
         |> String.replace(@partial, "", global: true)
+
       x ->
         x
-    end
+    end)
   end
+
   # def remove_drab_marks([]) do
   #   []
   # end
@@ -585,11 +651,15 @@ defmodule Drab.Live.HTML do
       [4, [3, 2], 1]
   """
   def deep_reverse(list) do
-    list |> Enum.reverse() |> Enum.map(fn
+    list |> Enum.reverse()
+    |> Enum.map(fn
       {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | buffer]} | rest]} ->
-        {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | deep_reverse(buffer)]} | deep_reverse(rest)]}
+        {:__block__, [],
+         [{:=, [], [{tmp, [], Drab.Live.EExEngine} | deep_reverse(buffer)]} | deep_reverse(rest)]}
+
       x when is_list(x) ->
         deep_reverse(x)
+
       x ->
         x
     end)

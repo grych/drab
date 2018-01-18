@@ -10,8 +10,7 @@ config :drab, DrabTestApp.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "bP1ZF+DDZiAVGuIigj3UuAzBhDmxHSboH9EEH575muSET1g18BPO4HeZnggJA/7q",
   render_errors: [view: DrabTestApp.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: DrabTestApp.PubSub,
-           adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: DrabTestApp.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -20,13 +19,10 @@ config :logger, :console,
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
-import_config "#{Mix.env}.exs"
+import_config "#{Mix.env()}.exs"
 
-config :phoenix, :template_engines,
-  drab: Drab.Live.Engine
+config :phoenix, :template_engines, drab: Drab.Live.Engine
 
-config :drab,
-  templates_path: "test/support/priv/templates/drab"
+config :drab, templates_path: "test/support/priv/templates/drab"
 
-config :drab,
-  enable_live_scripts: true
+config :drab, enable_live_scripts: true

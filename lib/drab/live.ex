@@ -135,6 +135,7 @@ defmodule Drab.Live do
 
       <p>Chapter <%= nodrab(@chapter_no) %>.</p>
 
+  With Elixir 1.6, you may use the special marker "/", which disables Drab on the given expression
   In the future (Elixir 1.6), the `nodrab` keyword will be replaced by a special EEx mark `/` (expression
   will look like `<%/ @chapter_no %>`).
 
@@ -194,20 +195,8 @@ defmodule Drab.Live do
   require IEx
 
   use DrabModule
-  @doc false
-  def js_templates(),  do: ["drab.live.js"]
-
-  # @doc false
-  # def transform_socket(socket, payload, state) do
-  #   # store assigns in Drab Server
-  #   priv = Map.merge(state.priv, %{
-  #     __ampere_assigns: payload["__assigns"],
-  #     __amperes: payload["__amperes"],
-  #     __index:   payload["__index"]
-  #   })
-  #   Drab.pid(socket) |> Drab.set_priv(priv)
-  #   socket
-  # end
+  @impl true
+  def js_templates(), do: ["drab.live.js"]
 
   @doc """
   Returns the current value of the assign from the current (main) partial.
@@ -221,9 +210,8 @@ defmodule Drab.Live do
   gets its value only while rendering the page or via `poke`. After changing the value of node attribute
   or property on the client side, the assign value will remain the same.
   """
-  #TODO: think if it is needed to sign/encrypt
+  # TODO: think if it is needed to sign/encrypt
   def peek(socket, assign), do: peek(socket, nil, nil, assign)
-
 
   @doc """
   Like `peek/2`, but takes partial name and returns assign from that specified partial.
@@ -233,7 +221,7 @@ defmodule Drab.Live do
       iex> peek(socket, "users.html", :count)
       42
   """
-  #TODO: think if it is needed to sign/encrypt
+  # TODO: think if it is needed to sign/encrypt
   def peek(socket, partial, assign), do: peek(socket, nil, partial, assign)
 
   @doc """
@@ -250,8 +238,12 @@ defmodule Drab.Live do
     current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
 
     case current_assigns |> Map.fetch(assign) do
-      {:ok, val} -> val #|> Drab.Live.Crypto.decode64()
-      :error -> raise_assign_not_found(assign, current_assigns_keys)
+      # |> Drab.Live.Crypto.decode64()
+      {:ok, val} ->
+        val
+
+      :error ->
+        raise_assign_not_found(assign, current_assigns_keys)
     end
   end
 
@@ -294,7 +286,8 @@ defmodule Drab.Live do
 
   defp do_poke(socket, view, partial_name, assigns, function) do
     if Enum.member?(Keyword.keys(assigns), :conn) do
-      raise ArgumentError, message: """
+      raise ArgumentError,
+        message: """
         assign @conn is read only.
         """
     end
@@ -314,7 +307,8 @@ defmodule Drab.Live do
       end
     end
 
-    updated_assigns = current_assigns
+    updated_assigns =
+      current_assigns
       |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end)
       |> Keyword.merge(assigns)
 
@@ -323,32 +317,46 @@ defmodule Drab.Live do
       Drab.Config.get(:live_helper_modules)
     }
 
-    amperes_to_update = for {assign, _} <- assigns do
-      Drab.Live.Cache.get({partial, assign})
-    end |> List.flatten() |> Enum.uniq()
+    amperes_to_update =
+      for {assign, _} <- assigns do
+        Drab.Live.Cache.get({partial, assign})
+      end
+      |> List.flatten()
+      |> Enum.uniq()
 
     # construct the javascripts for update of amperes
-    #TODO: group updates on one node
-    update_javascripts = for ampere <- amperes_to_update,
-      {gender, tag, prop_or_attr, pattern, _} <- (Drab.Live.Cache.get({partial, ampere}) || []) do
-      # IO.inspect Drab.Live.Cache.get({partial, ampere})
+    # TODO: group updates on one node
+    update_javascripts =
+      for ampere <- amperes_to_update,
+          {gender, tag, prop_or_attr, pattern, _} <- Drab.Live.Cache.get({partial, ampere}) || [] do
+        # IO.inspect Drab.Live.Cache.get({partial, ampere})
         case gender do
           :html ->
             safe = eval_expr(pattern, modules, updated_assigns, gender)
-            new_value = safe |> safe_to_string() # |> Drab.Live.HTML.remove_drab_marks()
+            # |> Drab.Live.HTML.remove_drab_marks()
+            new_value = safe |> safe_to_string()
+
             case {tag, Drab.Config.get(:enable_live_scripts)} do
-              {"script", false} -> nil
-              {_, _} -> "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
+              {"script", false} ->
+                nil
+
+              {_, _} ->
+                "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
             end
+
           :attr ->
             new_value = eval_expr(pattern, modules, updated_assigns, gender) |> safe_to_string()
-            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(new_value)})"
+
+            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
+              encode_js(new_value)
+            })"
+
           :prop ->
             new_value = eval_expr(pattern, modules, updated_assigns, gender) |> safe_to_string()
             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
-          # _ -> ""
+            # _ -> ""
         end
-    end
+      end
 
     assign_updates = assign_updates_js(assigns_to_update, partial)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
@@ -358,16 +366,21 @@ defmodule Drab.Live do
     case function.(socket, all_javascripts |> Enum.join(";")) do
       {:ok, _} ->
         # Save updated assigns in the Drab Server
-        assigns_to_update = for {k, v} <- assigns_to_update, into: %{} do
-          {Atom.to_string(k), v}
-        end
-        updated_assigns = for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
-          {k, Drab.Live.Crypto.encode64(v)}
-        end
+        assigns_to_update =
+          for {k, v} <- assigns_to_update, into: %{} do
+            {Atom.to_string(k), v}
+          end
+
+        updated_assigns =
+          for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
+            {k, Drab.Live.Crypto.encode64(v)}
+          end
+
         priv = socket |> Drab.pid() |> Drab.get_priv()
         partial_assigns_updated = %{priv.__ampere_assigns | partial => updated_assigns}
         socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: partial_assigns_updated})
         socket
+
       other ->
         other
     end
@@ -427,23 +440,26 @@ defmodule Drab.Live do
 
   defp eval_expr(expr, modules, updated_assigns) do
     e = expr_with_imports(expr, modules)
+
     try do
-      {safe, _assigns} = Code.eval_quoted(e, [assigns: updated_assigns])
+      {safe, _assigns} = Code.eval_quoted(e, assigns: updated_assigns)
       safe
     rescue
-      #TODO: to be removed after solving #71
+      # TODO: to be removed after solving #71
       e in CompileError ->
-        msg = if String.contains?(e.description, "undefined function") do
-          """
-          #{e.description}
+        msg =
+          if String.contains?(e.description, "undefined function") do
+            """
+            #{e.description}
 
-          Using local variables defined in external blocks is prohibited in Drab.
-          Please check the following documentation page for more details:
-          https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
-          """
-        else
-          e.description
-        end
+            Using local variables defined in external blocks is prohibited in Drab.
+            Please check the following documentation page for more details:
+            https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
+            """
+          else
+            e.description
+          end
+
         raise CompileError, description: msg
     end
   end
@@ -454,6 +470,7 @@ defmodule Drab.Live do
       import unquote(view)
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
       use Phoenix.HTML
+
       unquote do
         for module <- modules do
           quote do
@@ -461,32 +478,43 @@ defmodule Drab.Live do
           end
         end
       end
+
       unquote(expr)
     end
   end
 
   defp assign_updates_js(assigns, partial) do
     Enum.map(assigns, fn {k, v} ->
-      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{Drab.Live.Crypto.encode64(v)}'"
+      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{
+        Drab.Live.Crypto.encode64(v)
+      }'"
     end)
   end
 
   # defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
 
-  defp safe_to_string(list) when is_list(list), do: Enum.map(list, &safe_to_string/1) |> Enum.join("")
+  defp safe_to_string(list) when is_list(list),
+    do: Enum.map(list, &safe_to_string/1) |> Enum.join("")
+
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
   defp assign_data_for_partial(socket, partial, partial_name) do
-    assigns = case socket
-      |> ampere_assigns()
-      |> Map.fetch(partial) do
-        {:ok, val} -> val
-        :error -> raise ArgumentError, message: """
-          Drab is unable to find a partial #{partial_name || "main"}.
-          Please check the path or specify the View.
-          """
+    assigns =
+      case socket
+           |> ampere_assigns()
+           |> Map.fetch(partial) do
+        {:ok, val} ->
+          val
+
+        :error ->
+          raise ArgumentError,
+            message: """
+            Drab is unable to find a partial #{partial_name || "main"}.
+            Please check the path or specify the View.
+            """
       end
+
     for {name, value} <- assigns, into: %{} do
       {name, Drab.Live.Crypto.decode64(value)}
     end
@@ -501,14 +529,15 @@ defmodule Drab.Live do
 
   defp index(socket) do
     socket
-      |> Drab.pid()
-      |> Drab.get_priv()
-      |> Map.get(:__index)
+    |> Drab.pid()
+    |> Drab.get_priv()
+    |> Map.get(:__index)
   end
 
   defp partial_hash(view, partial_name) do
     # Drab.Live.Cache.get({:partial, partial_path(view, partial_name)})
     path = partial_path(view, partial_name)
+
     case Drab.Live.Cache.get(path) do
       {hash, _assigns} -> hash
       _ -> raise_partial_not_found(path)
@@ -525,7 +554,8 @@ defmodule Drab.Live do
   end
 
   defp raise_assign_not_found(assign, current_keys) do
-    raise ArgumentError, message: """
+    raise ArgumentError,
+      message: """
       assign @#{assign} not found in Drab EEx template.
 
       Please make sure all proper assigns have been set. If this
@@ -533,12 +563,13 @@ defmodule Drab.Live do
       the parent template as they are not automatically forwarded.
 
       Available assigns:
-      #{inspect current_keys}
+      #{inspect(current_keys)}
       """
   end
 
   defp raise_partial_not_found(path) do
-    raise ArgumentError, message: """
+    raise ArgumentError,
+      message: """
       template `#{path}` not found.
 
       Please make sure this partial exists and has been compiled
@@ -548,5 +579,4 @@ defmodule Drab.Live do
       the other view, you need to specify the view name in `poke/4`.
       """
   end
-
 end

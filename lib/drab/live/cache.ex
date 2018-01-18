@@ -9,7 +9,7 @@ defmodule Drab.Live.Cache do
   @cache_file "drab.live.cache"
 
   require Logger
-  #TODO: clean the table on mix clean
+  # TODO: clean the table on mix clean
 
   # This module is the DETS cache for Drab Live expressions, amperes, partials, and shadow buffers.
   # DETS table is created and filled up during the compile-time.
@@ -17,7 +17,7 @@ defmodule Drab.Live.Cache do
   @doc false
   def start() do
     # if :dets.info(cache_file()) == :undefined do
-      {:ok, _} = :dets.open_file(cache_file(), [type: :set, ram_file: true])
+    {:ok, _} = :dets.open_file(cache_file(), type: :set, ram_file: true)
     # end
     :ok
   end
@@ -30,11 +30,13 @@ defmodule Drab.Live.Cache do
   # Runtime function. Lookup in the already opened ETS cache
   @doc false
   def get(k) do
-    val = case :dets.lookup(cache_file(), k) do
-      [{_, v}] -> v
-      [] -> nil
-      _ -> raise "Can't find the expression or hash #{inspect k} in the Drab.Live.Cache"
-    end
+    val =
+      case :dets.lookup(cache_file(), k) do
+        [{_, v}] -> v
+        [] -> nil
+        _ -> raise "Can't find the expression or hash #{inspect(k)} in the Drab.Live.Cache"
+      end
+
     val
   end
 

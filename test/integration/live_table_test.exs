@@ -8,7 +8,8 @@ defmodule DrabTestApp.LiveTableTest do
 
   setup do
     form_index() |> navigate_to()
-    find_element(:id, "page_loaded_indicator") # wait for the Drab to initialize
+    # wait for the Drab to initialize
+    find_element(:id, "page_loaded_indicator")
     [socket: drab_socket()]
   end
 

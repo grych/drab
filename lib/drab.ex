@@ -87,14 +87,19 @@ defmodule Drab do
   require Logger
   use GenServer
 
-  @type t :: %Drab{store: map, session: map, commander: atom, socket: Phoenix.Socket.t, priv: map}
+  @type t :: %Drab{
+          store: map,
+          session: map,
+          commander: atom,
+          socket: Phoenix.Socket.t(),
+          priv: map
+        }
 
   defstruct store: %{}, session: %{}, commander: nil, socket: nil, priv: %{}
 
   @doc false
   def start_link(socket) do
-    GenServer.start_link(__MODULE__,
-      %Drab{commander: Drab.get_commander(socket)})
+    GenServer.start_link(__MODULE__, %Drab{commander: Drab.get_commander(socket)})
   end
 
   @doc false
@@ -107,10 +112,9 @@ defmodule Drab do
   def terminate(_reason, %Drab{store: store, session: session, commander: commander} = state) do
     if commander.__drab__().ondisconnect do
       # TODO: timeout
-      :ok = apply(commander,
-            commander_config(commander).ondisconnect,
-            [store, session])
+      :ok = apply(commander, commander_config(commander).ondisconnect, [store, session])
     end
+
     {:noreply, state}
   end
 
@@ -131,10 +135,11 @@ defmodule Drab do
   @doc false
   def handle_info({:EXIT, pid, {reason, stack}}, state) when pid != self() do
     # subprocess died
-    Logger.error """
-      Drab Process #{inspect(pid)} died because of #{inspect(reason)}
-      #{Exception.format_stacktrace(stack)}
-      """
+    Logger.error("""
+    Drab Process #{inspect(pid)} died because of #{inspect(reason)}
+    #{Exception.format_stacktrace(stack)}
+    """)
+
     {:noreply, state}
   end
 
@@ -150,9 +155,13 @@ defmodule Drab do
 
     # IO.inspect payload
 
-    socket  = transform_socket(payload["payload"], socket, state)
+    socket = transform_socket(payload["payload"], socket, state)
 
-    Drab.Core.save_session(socket, Drab.Core.detokenize_store(socket, payload["drab_session_token"]))
+    Drab.Core.save_session(
+      socket,
+      Drab.Core.detokenize_store(socket, payload["drab_session_token"])
+    )
+
     Drab.Core.save_store(socket, Drab.Core.detokenize_store(socket, payload["drab_store_token"]))
     Drab.Core.save_socket(socket)
 
@@ -167,21 +176,22 @@ defmodule Drab do
     # {_, socket} = transform_payload_and_socket(payload, socket, commander_module)
     # IO.inspect payload
 
-    socket  = transform_socket(payload["payload"], socket, state)
+    socket = transform_socket(payload["payload"], socket, state)
 
     onload = commander_config(commander).onload
-    handle_callback(socket, commander, onload) #returns socket
+    # returns socket
+    handle_callback(socket, commander, onload)
     {:noreply, state}
   end
 
   # casts for update values from the state
   Enum.each([:store, :session, :socket, :priv], fn name ->
     msg_name = "set_#{name}" |> String.to_atom()
-      @doc false
-      def handle_cast({unquote(msg_name), value}, state) do
-        new_state = Map.put(state, unquote(name), value)
-        {:noreply, new_state}
-      end
+    @doc false
+    def handle_cast({unquote(msg_name), value}, state) do
+      new_state = Map.put(state, unquote(name), value)
+      {:noreply, new_state}
+    end
   end)
 
   @doc false
@@ -193,24 +203,26 @@ defmodule Drab do
   # calls for get values from the state
   Enum.each([:store, :session, :socket, :priv], fn name ->
     msg_name = "get_#{name}" |> String.to_atom()
-      @doc false
-      def handle_call(unquote(msg_name), _from, state) do
-        value = Map.get(state, unquote(name))
-        {:reply, value, state}
-      end
+    @doc false
+    def handle_call(unquote(msg_name), _from, state) do
+      value = Map.get(state, unquote(name))
+      {:reply, value, state}
+    end
   end)
 
   defp handle_callback(socket, commander, callback) do
     if callback do
       # TODO: rethink the subprocess strategies - now it is just spawn_link
-      spawn_link fn ->
+      spawn_link(fn ->
         try do
           apply(commander, callback, [socket])
-        rescue e ->
-          failed(socket, e)
+        rescue
+          e ->
+            failed(socket, e)
         end
-      end
+      end)
     end
+
     socket
   end
 
@@ -218,7 +230,7 @@ defmodule Drab do
     all_modules = DrabModule.all_modules_for(state.commander.__drab__().modules)
 
     # transform payload via callbacks in DrabModules
-    Enum.reduce(all_modules, payload, fn(m, p) ->
+    Enum.reduce(all_modules, payload, fn m, p ->
       m.transform_payload(p, state)
     end)
   end
@@ -227,51 +239,64 @@ defmodule Drab do
     all_modules = DrabModule.all_modules_for(state.commander.__drab__().modules)
 
     # transform socket via callbacks
-    Enum.reduce(all_modules, socket, fn(m, s) ->
+    Enum.reduce(all_modules, socket, fn m, s ->
       m.transform_socket(s, payload, state)
     end)
   end
 
-  defp handle_event(socket, _event_name, event_handler_function, payload, reply_to,
-                                        %Drab{commander: commander_module} = state) do
+  defp handle_event(
+         socket,
+         _event_name,
+         event_handler_function,
+         payload,
+         reply_to,
+         %Drab{commander: commander_module} = state
+       ) do
     # TODO: rethink the subprocess strategies - now it is just spawn_link
-    spawn_link fn ->
+    spawn_link(fn ->
       try do
-        {commander_module, event_handler} = case event_handler(event_handler_function) do
-          {nil, function} -> raise_if_handler_not_exists(commander_module, function)
-          {module, function} -> raise_if_handler_is_not_public(module, function)
-        end
+        {commander_module, event_handler} =
+          case event_handler(event_handler_function) do
+            {nil, function} -> raise_if_handler_not_exists(commander_module, function)
+            {module, function} -> raise_if_handler_is_not_public(module, function)
+          end
+
         payload = Map.delete(payload, "event_handler_function")
 
         payload = transform_payload(payload, state)
-        socket  = transform_socket(payload, socket, state)
+        socket = transform_socket(payload, socket, state)
 
         commander_cfg = commander_config(commander_module)
 
         # run before_handlers first
-        returns_from_befores = Enum.map(callbacks_for(event_handler, commander_cfg.before_handler),
-          fn callback_handler ->
-            apply(commander_module, callback_handler, [socket, payload])
-          end)
+        returns_from_befores =
+          Enum.map(
+            callbacks_for(event_handler, commander_cfg.before_handler),
+            fn callback_handler ->
+              apply(commander_module, callback_handler, [socket, payload])
+            end
+          )
 
         # if ANY of them fail (return false or nil), do not proceed
         unless Enum.any?(returns_from_befores, &(!&1)) do
           # run actuall event handler
           returned_from_handler = apply(commander_module, event_handler, [socket, payload])
 
-          Enum.map(callbacks_for(event_handler, commander_cfg.after_handler),
+          Enum.map(
+            callbacks_for(event_handler, commander_cfg.after_handler),
             fn callback_handler ->
               apply(commander_module, callback_handler, [socket, payload, returned_from_handler])
-            end)
+            end
+          )
         end
-
-      rescue e ->
-        failed(socket, e)
+      rescue
+        e ->
+          failed(socket, e)
       after
         # push reply to the browser, to re-enable controls
         push_reply(socket, reply_to, commander_module, event_handler_function)
       end
-    end
+    end)
 
     {:noreply, state}
   end
@@ -283,22 +308,25 @@ defmodule Drab do
 
       module_and_function ->
         module = List.delete_at(module_and_function, -1) |> Module.safe_concat()
+
         unless Code.ensure_loaded?(module) do
           raise """
-            module #{inspect(module)} does not exists.
-            """
+          module #{inspect(module)} does not exists.
+          """
         end
+
         function = List.last(module_and_function) |> String.to_existing_atom()
         {module, function}
     end
   end
 
   defp raise_if_handler_not_exists(module, function) do
-    #TODO: check if handler is not a callback
-    if !({function, 2} in apply(module, :__info__, [:functions])) || is_callback?(module, function)  do
+    # TODO: check if handler is not a callback
+    if !({function, 2} in apply(module, :__info__, [:functions])) ||
+         is_callback?(module, function) do
       raise """
-        handler `#{function}` does not exist.
-        """
+      handler `#{function}` does not exist.
+      """
     end
 
     {module, function}
@@ -306,26 +334,26 @@ defmodule Drab do
 
   defp is_callback?(module, function) do
     options = apply(module, :__drab__, [])
-    #TODO: group callbacks in compile time
-    callbacks = Map.get(options, :before_handler, []) ++
-                Map.get(options, :after_handler, [])
+    # TODO: group callbacks in compile time
+    callbacks = Map.get(options, :before_handler, []) ++ Map.get(options, :after_handler, [])
     function in callbacks
   end
 
   defp raise_if_handler_is_not_public(module, function) do
     if {:__drab__, 0} in apply(module, :__info__, [:functions]) do
       options = apply(module, :__drab__, [])
+
       unless function in Map.get(options, :public_handlers, []) do
         raise """
-          handler #{module}.#{function} is not public.
+        handler #{module}.#{function} is not public.
 
-          Use `Drab.Commander.public/1` macro to make it executable from any page.
-          """
+        Use `Drab.Commander.public/1` macro to make it executable from any page.
+        """
       end
     else
       raise """
-        #{module} is not a Drab module.
-        """
+      #{module} is not a Drab module.
+      """
     end
 
     {module, function}
@@ -337,11 +365,16 @@ defmodule Drab do
     #{Exception.format_banner(:error, e)}
     #{Exception.format_stacktrace(System.stacktrace())}
     """
-    Logger.error error
+
+    Logger.error(error)
+
     if socket do
-      js = Drab.Template.render_template(
-        "drab.error_handler.js",
-        message: Drab.Core.encode_js(error))
+      js =
+        Drab.Template.render_template(
+          "drab.error_handler.js",
+          message: Drab.Core.encode_js(error)
+        )
+
       {:ok, _} = Drab.Core.exec_js(socket, js)
     end
   end
@@ -360,17 +393,23 @@ defmodule Drab do
 
   @doc false
   def callbacks_for(event_handler_function, handler_config) do
-    #:uppercase, [{:run_before_each, []}, {:run_before_uppercase, [only: [:uppercase]]}]
+    # :uppercase, [{:run_before_each, []}, {:run_before_uppercase, [only: [:uppercase]]}]
     Enum.map(handler_config, fn {callback_name, callback_filter} ->
       case callback_filter do
-        [] -> callback_name
+        [] ->
+          callback_name
+
         [only: handlers] ->
           if event_handler_function in handlers, do: callback_name, else: false
+
         [except: handlers] ->
           if event_handler_function in handlers, do: false, else: callback_name
-        _ -> false
+
+        _ ->
+          false
       end
-    end) |> Enum.filter(&(&1))
+    end)
+    |> Enum.filter(& &1)
   end
 
   # setter and getter functions
@@ -394,11 +433,13 @@ defmodule Drab do
     ref = make_ref()
     push(socket, pid, ref, message, payload)
     timeout = options[:timeout] || Drab.Config.get(:browser_response_timeout)
+
     receive do
       {:got_results_from_client, status, ^ref, reply} ->
         {status, reply}
-      after timeout ->
-        #TODO: message is still in a queue
+    after
+      timeout ->
+        # TODO: message is still in a queue
         {:timeout, "timed out after #{timeout} ms."}
     end
   end
@@ -406,6 +447,7 @@ defmodule Drab do
   @doc false
   def push_and_wait_forever(socket, pid, message, payload \\ []) do
     push(socket, pid, nil, message, payload)
+
     receive do
       {:got_results_from_client, status, _, reply} ->
         {status, reply}
@@ -419,12 +461,18 @@ defmodule Drab do
 
   @doc false
   def broadcast(subject, pid, message, payload \\ [])
+
   def broadcast(%Phoenix.Socket{} = socket, pid, message, payload) do
     do_push_or_broadcast(socket, pid, nil, message, payload, &Phoenix.Channel.broadcast/3)
   end
 
   def broadcast(subject, _pid, message, payload) when is_binary(subject) do
-    Phoenix.Channel.Server.broadcast Drab.Config.pubsub(), "__drab:#{subject}", message, Map.new(payload)
+    Phoenix.Channel.Server.broadcast(
+      Drab.Config.pubsub(),
+      "__drab:#{subject}",
+      message,
+      Map.new(payload)
+    )
   end
 
   @doc false
@@ -432,6 +480,7 @@ defmodule Drab do
     for topic <- topics do
       broadcast(topic, nil, message, payload)
     end
+
     :ok
   end
 
@@ -439,7 +488,6 @@ defmodule Drab do
     m = payload |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, {pid, ref})})
     function.(socket, message, m)
   end
-
 
   @doc false
   def tokenize(socket, what, salt \\ "drab token") do
@@ -451,8 +499,10 @@ defmodule Drab do
     case Phoenix.Token.verify(socket, salt, token, max_age: 86400) do
       {:ok, detokenized} ->
         detokenized
+
       {:error, reason} ->
-        raise "Can't verify the token `#{salt}`: #{inspect(reason)}" # let it die
+        # let it die
+        raise "Can't verify the token `#{salt}`: #{inspect(reason)}"
     end
   end
 
@@ -491,5 +541,4 @@ defmodule Drab do
   # def config() do
   #   Drab.Config.config()
   # end
-
 end

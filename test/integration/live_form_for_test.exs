@@ -9,10 +9,10 @@ defmodule DrabTestApp.LiveFormForTest do
 
   setup do
     form_for_index() |> navigate_to()
-    find_element(:id, "page_loaded_indicator") # wait for the Drab to initialize
+    # wait for the Drab to initialize
+    find_element(:id, "page_loaded_indicator")
     [socket: drab_socket()]
   end
-
 
   describe "Drab.Live" do
     test "add item should preserve the value of the other input" do

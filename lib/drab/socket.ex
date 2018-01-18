@@ -56,7 +56,7 @@ defmodule Drab.Socket do
 
   defmacro __using__(_options) do
     quote do
-      channel "__drab:*", Drab.Channel
+      channel("__drab:*", Drab.Channel)
 
       def connect(%{"__drab_return" => _} = token, socket) do
         Drab.Socket.verify(socket, token)
@@ -75,16 +75,27 @@ defmodule Drab.Socket do
   To be used with custom `connect/2` callbacks.
   """
   def verify(socket, %{"__drab_return" => controller_and_action_token}) do
-    case Phoenix.Token.verify(socket, "controller_and_action", controller_and_action_token, max_age: 86400) do
+    case Phoenix.Token.verify(
+           socket,
+           "controller_and_action",
+           controller_and_action_token,
+           max_age: 86400
+         ) do
       {:ok, [__controller: controller, __action: action, __assigns: assigns]} ->
         own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
-        socket_plus_external_assings = %Phoenix.Socket{socket | assigns: own_plus_external_assigns}
-        {:ok , socket_plus_external_assings
-                |> Phoenix.Socket.assign(:__controller, controller)
-                |> Phoenix.Socket.assign(:__action, action)
 
+        socket_plus_external_assings = %Phoenix.Socket{
+          socket
+          | assigns: own_plus_external_assigns
         }
-      {:error, _reason} -> :error
+
+        {:ok,
+         socket_plus_external_assings
+         |> Phoenix.Socket.assign(:__controller, controller)
+         |> Phoenix.Socket.assign(:__action, action)}
+
+      {:error, _reason} ->
+        :error
     end
   end
 

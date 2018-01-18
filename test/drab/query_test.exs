@@ -43,5 +43,4 @@ defmodule Drab.QueryTest do
       Drab.Query.delete(nil, somewhere_wrong: "", from: "")
     end
   end
-
 end

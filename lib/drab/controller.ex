@@ -18,21 +18,22 @@ defmodule Drab.Controller do
   NameCommander. You may specify the commander module by using `commander` option:
 
       use Drab.Controller, commander: MyApp.NameController
-  
+
   See also `Drab.Commander`
   """
-  
+
   defmacro __using__(options) do
     quote bind_quoted: [options: options] do
       Module.put_attribute(__MODULE__, :__drab_opts__, options)
+
       unless Module.defines?(__MODULE__, {:__drab__, 0}) do
         def __drab__() do
           # default commander is named as a controller
           controller_path = __MODULE__ |> Atom.to_string() |> String.split(".")
           commander = controller_path |> List.last() |> String.replace("Controller", "Commander")
-          commander = controller_path |> List.replace_at(-1, commander) |> Module.concat
+          commander = controller_path |> List.replace_at(-1, commander) |> Module.concat()
           view = controller_path |> List.last() |> String.replace("Controller", "View")
-          view = controller_path |> List.replace_at(-1, view) |> Module.concat
+          view = controller_path |> List.replace_at(-1, view) |> Module.concat()
 
           Enum.into(@__drab_opts__, %{commander: commander, view: view, controller: __MODULE__})
         end

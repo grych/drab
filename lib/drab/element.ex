@@ -12,14 +12,14 @@ defmodule Drab.Element do
   require IEx
   use DrabModule
 
-  @doc false
-  def js_templates(),  do: ["drab.element.js"]
+  @impl true
+  def js_templates(), do: ["drab.element.js"]
 
-  @doc false
+  @impl true
   def transform_payload(payload, _state) do
     payload
-      |> Map.put_new("value", payload["val"])
-      |> Map.put_new(:params, payload["form"])
+    |> Map.put_new("value", payload["val"])
+    |> Map.put_new(:params, payload["form"])
   end
 
   @doc """
@@ -76,6 +76,7 @@ defmodule Drab.Element do
 
   """
   def query(socket, selector, property_or_properties_list)
+
   def query(socket, selector, property) when is_binary(property) or is_atom(property) do
     query(socket, selector, [property])
   end
@@ -91,11 +92,11 @@ defmodule Drab.Element do
     query!(socket, selector, [])
   end
 
-
   @doc """
   Like `query/3`, but raises instead of returning `{:error, reason}`.
   """
   def query!(socket, selector, property_or_properties_list)
+
   def query!(socket, selector, property) when is_binary(property) or is_atom(property) do
     query!(socket, selector, [property])
   end
@@ -135,10 +136,11 @@ defmodule Drab.Element do
     case query(socket, selector, property_or_properties_list) do
       {:ok, map} ->
         case Map.keys(map) do
-          []    -> {:ok, nil}
+          [] -> {:ok, nil}
           [key] -> {:ok, map[key]}
-          _     -> {:too_many, query_one_error_message(map, selector)}
+          _ -> {:too_many, query_one_error_message(map, selector)}
         end
+
       other ->
         other
     end
@@ -156,10 +158,11 @@ defmodule Drab.Element do
   """
   def query_one!(socket, selector, property_or_properties_list) do
     map = query!(socket, selector, property_or_properties_list)
+
     case Map.keys(map) do
-      []    -> nil
+      [] -> nil
       [key] -> map[key]
-      _     -> raise query_one_error_message(map, selector)
+      _ -> raise query_one_error_message(map, selector)
     end
   end
 
@@ -240,14 +243,14 @@ defmodule Drab.Element do
 
   """
   def set_style(socket, selector, properties) when is_list(properties) or is_map(properties) do
-    set_prop socket, selector, %{"style" => Map.new(properties)}
+    set_prop(socket, selector, %{"style" => Map.new(properties)})
   end
 
   @doc """
   Bang version of `set_style/3`. Raises exception on error.
   """
   def set_style!(socket, selector, properties) when is_list(properties) or is_map(properties) do
-    set_prop! socket, selector, %{"style" => Map.new(properties)}
+    set_prop!(socket, selector, %{"style" => Map.new(properties)})
   end
 
   @doc """
@@ -261,14 +264,14 @@ defmodule Drab.Element do
       {:ok, 1}
   """
   def set_attr(socket, selector, attributes) when is_list(attributes) or is_map(attributes) do
-    set_prop socket, selector, %{"attributes" => Map.new(attributes)}
+    set_prop(socket, selector, %{"attributes" => Map.new(attributes)})
   end
 
   @doc """
   Bang version of `set_attr/3`. Raises exception on error.
   """
   def set_attr!(socket, selector, attributes) when is_list(attributes) or is_map(attributes) do
-    set_prop! socket, selector, %{"attributes" => Map.new(attributes)}
+    set_prop!(socket, selector, %{"attributes" => Map.new(attributes)})
   end
 
   @doc """
@@ -282,14 +285,14 @@ defmodule Drab.Element do
       {:ok, 1}
   """
   def set_data(socket, selector, dataset) when is_list(dataset) or is_map(dataset) do
-    set_prop socket, selector, %{"dataset" => Map.new(dataset)}
+    set_prop(socket, selector, %{"dataset" => Map.new(dataset)})
   end
 
   @doc """
   Bang version of `set_data/3`. Raises exception on error.
   """
   def set_data!(socket, selector, dataset) when is_list(dataset) or is_map(dataset) do
-    set_prop! socket, selector, %{"dataset" => Map.new(dataset)}
+    set_prop!(socket, selector, %{"dataset" => Map.new(dataset)})
   end
 
   @doc """
@@ -340,5 +343,4 @@ defmodule Drab.Element do
   defp insert_js(selector, position, html) do
     "Drab.insert_html(#{encode_js(selector)}, #{encode_js(position)}, #{encode_js(html)})"
   end
-
 end

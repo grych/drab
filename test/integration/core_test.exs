@@ -8,12 +8,12 @@ defmodule DrabTestApp.CoreTest do
 
   setup do
     core_index() |> navigate_to()
-    find_element(:id, "page_loaded_indicator") # wait for a page to load
+    # wait for a page to load
+    find_element(:id, "page_loaded_indicator")
     [socket: drab_socket()]
   end
 
   describe "Drab.Core" do
-
     test "exec_js and broadcast_js" do
       # test execjs and broadcastjs
       standard_click_and_get_test("core1")
@@ -46,18 +46,18 @@ defmodule DrabTestApp.CoreTest do
 
     test "return values of exec_js!", context do
       assert exec_js!(context[:socket], "2 + 2") == 4
+
       assert_raise Drab.JSExecutionError, "nonexisting is not defined", fn ->
         exec_js!(context[:socket], "nonexisting")
-      end 
+      end
     end
-
   end
 
   describe "Drab.Core callbacks" do
     test "before all should set the store", context do
       socket = context[:socket]
       click_and_wait("core1_button")
-      
+
       assert get_store(socket, :set_in_before_all) == :before
     end
 
@@ -71,7 +71,7 @@ defmodule DrabTestApp.CoreTest do
       click_and_wait("core3_button")
 
       assert get_store(context[:socket], :should_never_be_assigned) == nil
-      assert find_element(:id, "core3_out") |> visible_text() == "" 
+      assert find_element(:id, "core3_out") |> visible_text() == ""
     end
 
     test "after handler `except` test 1", context do
@@ -99,5 +99,4 @@ defmodule DrabTestApp.CoreTest do
   end
 
   ### TODO: find out how to make persistent store test (not working in chromedriver by default, use profiles?)
-
 end

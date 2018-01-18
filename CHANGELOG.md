@@ -2,6 +2,8 @@
 # v0.6.4
 Changes:
 * possibility to provide own `connect/2` callback for socket authentication, etc
+* source code formatted with 1.6.0
+* use of `<%/ %>` marker to avoid using `Drab.Live` in a given expression
 
 Depreciations:
 * `Drab.Client.js/2` becomes `Drab.Client.run/2`

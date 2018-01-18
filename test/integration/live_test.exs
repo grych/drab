@@ -8,7 +8,8 @@ defmodule DrabTestApp.LiveTest do
 
   setup do
     live_index() |> navigate_to()
-    find_element(:id, "page_loaded_indicator") # wait for the Drab to initialize
+    # wait for the Drab to initialize
+    find_element(:id, "page_loaded_indicator")
     [socket: drab_socket()]
   end
 
@@ -28,70 +29,76 @@ defmodule DrabTestApp.LiveTest do
       assert_raise ArgumentError, fn ->
         poke(fixture.socket, nonexist: 42)
       end
+
       assert_raise ArgumentError, fn ->
         peek(fixture.socket, :nonexits)
       end
+
       assert_raise ArgumentError, fn ->
         poke(fixture.socket, "partial3.html", color: "red")
       end
+
       assert_raise ArgumentError, fn ->
         peek(fixture.socket, "partial3.html", :color)
       end
     end
 
     test "change assign in main should not touch partial", fixture do
-      poke fixture.socket, color: 42
+      poke(fixture.socket, color: 42)
       refute peek(fixture.socket, "partial1.html", :color) == 42
       assert peek(fixture.socket, :color) == 42
     end
 
     test "change assign in partial should not touch main", fixture do
-      poke fixture.socket, "partial1.html", color: 42
+      poke(fixture.socket, "partial1.html", color: 42)
       assert peek(fixture.socket, "partial1.html", :color) == 42
       refute peek(fixture.socket, :color) == 42
     end
 
     test "change assign in external partial should not touch main and internal one", fixture do
-      poke fixture.socket, DrabTestApp.Live2View, "partial2.html", color: 42
+      poke(fixture.socket, DrabTestApp.Live2View, "partial2.html", color: 42)
       assert peek(fixture.socket, DrabTestApp.Live2View, "partial2.html", :color) == 42
       refute peek(fixture.socket, "partial1.html", :color) == 42
       refute peek(fixture.socket, :color) == 42
     end
 
-    test "updating color in main should change style.backgroundColor in main, but not in partials", fixture do
+    test "updating color in main should change style.backgroundColor in main, but not in partials",
+         fixture do
       main_color = find_element(:id, "color_main")
       partial1_color = find_element(:id, "partial1_color")
       partial2_color = find_element(:id, "partial2_color")
       assert css_property(main_color, "backgroundColor") == "rgba(255, 255, 255, 1)"
       assert css_property(partial1_color, "backgroundColor") == "rgba(230, 230, 230, 1)"
       assert css_property(partial2_color, "backgroundColor") == "rgba(255, 204, 102, 1)"
-      poke fixture.socket, color: "red"
+      poke(fixture.socket, color: "red")
       assert css_property(main_color, "backgroundColor") == "rgba(255, 0, 0, 1)"
       assert css_property(partial1_color, "backgroundColor") == "rgba(230, 230, 230, 1)"
       assert css_property(partial2_color, "backgroundColor") == "rgba(255, 204, 102, 1)"
     end
 
-    test "updating color in partial should change style.backgroundColor in the partial only", fixture do
+    test "updating color in partial should change style.backgroundColor in the partial only",
+         fixture do
       main_color = find_element(:id, "color_main")
       partial1_color = find_element(:id, "partial1_color")
       partial2_color = find_element(:id, "partial2_color")
       assert css_property(main_color, "backgroundColor") == "rgba(255, 255, 255, 1)"
       assert css_property(partial1_color, "backgroundColor") == "rgba(230, 230, 230, 1)"
       assert css_property(partial2_color, "backgroundColor") == "rgba(255, 204, 102, 1)"
-      poke fixture.socket, "partial1.html", color: "red"
+      poke(fixture.socket, "partial1.html", color: "red")
       assert css_property(main_color, "backgroundColor") == "rgba(255, 255, 255, 1)"
       assert css_property(partial1_color, "backgroundColor") == "rgba(255, 0, 0, 1)"
       assert css_property(partial2_color, "backgroundColor") == "rgba(255, 204, 102, 1)"
     end
 
-    test "updating color in external partial should change style.backgroundColor in the partial only", fixture do
+    test "updating color in external partial should change style.backgroundColor in the partial only",
+         fixture do
       main_color = find_element(:id, "color_main")
       partial1_color = find_element(:id, "partial1_color")
       partial2_color = find_element(:id, "partial2_color")
       assert css_property(main_color, "backgroundColor") == "rgba(255, 255, 255, 1)"
       assert css_property(partial1_color, "backgroundColor") == "rgba(230, 230, 230, 1)"
       assert css_property(partial2_color, "backgroundColor") == "rgba(255, 204, 102, 1)"
-      poke fixture.socket, DrabTestApp.Live2View, "partial2.html", color: "red"
+      poke(fixture.socket, DrabTestApp.Live2View, "partial2.html", color: "red")
       assert css_property(main_color, "backgroundColor") == "rgba(255, 255, 255, 1)"
       assert css_property(partial1_color, "backgroundColor") == "rgba(230, 230, 230, 1)"
       assert css_property(partial2_color, "backgroundColor") == "rgba(255, 0, 0, 1)"
@@ -101,13 +108,13 @@ defmodule DrabTestApp.LiveTest do
       partial1_href = find_element(:id, "partial1_href")
       partial2_href = find_element(:id, "partial2_href")
       assert attribute_value(partial1_href, "href") == "https://tg.pl/"
-      poke fixture.socket, "partial1.html", link: "https://tg.pl/drab"
+      poke(fixture.socket, "partial1.html", link: "https://tg.pl/drab")
       assert attribute_value(partial1_href, "href") == "https://tg.pl/drab"
       assert attribute_value(partial2_href, "href") == "https://tg.pl/"
     end
 
     test "script test", fixture do
-      poke fixture.socket, "partial1.html", in_partial: "partial1_updated"
+      poke(fixture.socket, "partial1.html", in_partial: "partial1_updated")
       test_val = Drab.Core.exec_js!(fixture.socket, "__drab_test")
       assert test_val == "partial1_updated"
     end
@@ -116,6 +123,7 @@ defmodule DrabTestApp.LiveTest do
       assert_raise ArgumentError, fn ->
         poke(fixture.socket, conn: "whatever")
       end
+
       assert_raise ArgumentError, fn ->
         peek(fixture.socket, :conn)
       end
@@ -124,7 +132,12 @@ defmodule DrabTestApp.LiveTest do
     test "Drab.Live.assigns should return the proper assigns list", fixture do
       assert Enum.sort(assigns(fixture.socket)) == [:color, :count, :text, :users]
       assert Enum.sort(assigns(fixture.socket, "partial1.html")) == [:color, :in_partial, :link]
-      assert Enum.sort(assigns(fixture.socket, DrabTestApp.Live2View, "partial2.html")) == [:color, :in_partial, :link]
+
+      assert Enum.sort(assigns(fixture.socket, DrabTestApp.Live2View, "partial2.html")) == [
+               :color,
+               :in_partial,
+               :link
+             ]
     end
   end
 end

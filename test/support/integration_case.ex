@@ -26,8 +26,8 @@ defmodule DrabTestApp.IntegrationCase do
   def wait_for_enable(element) do
     if element |> element_enabled? do
       :ok
-    else 
-      Process.sleep 100
+    else
+      Process.sleep(100)
       wait_for_enable(element)
     end
   end
@@ -41,7 +41,7 @@ defmodule DrabTestApp.IntegrationCase do
   def standard_click_and_get_test(test_name) do
     click_and_wait("#{test_name}_button")
     out = find_element(:id, "#{test_name}_out")
-    assert visible_text(out) == test_name        
+    assert visible_text(out) == test_name
   end
 
   defp drab_pid() do
@@ -60,24 +60,27 @@ defmodule DrabTestApp.IntegrationCase do
 
   def add_page_loaded_indicator(socket) do
     js = """
-      var begin = document.getElementById("begin")
-      var txt = document.createTextNode("Page Loaded")
-      var elem = document.createElement("h3")
-      elem.appendChild(txt)
-      elem.setAttribute("id", "page_loaded_indicator");
-      begin.parentNode.insertBefore(elem, begin.nextElementSibling)
-      """
-    {:ok, _} = Drab.Core.exec_js(socket, js)    
+    var begin = document.getElementById("begin")
+    var txt = document.createTextNode("Page Loaded")
+    var elem = document.createElement("h3")
+    elem.appendChild(txt)
+    elem.setAttribute("id", "page_loaded_indicator");
+    begin.parentNode.insertBefore(elem, begin.nextElementSibling)
+    """
+
+    {:ok, _} = Drab.Core.exec_js(socket, js)
   end
 
   def add_pid(socket) do
     p = inspect(socket.assigns.__drab_pid)
     pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
+
     js = """
-      var pid = document.getElementById("drab_pid")
-      var txt = document.createTextNode("#{pid_string}")
-      pid.appendChild(txt)
-      """
-    {:ok, _} = Drab.Core.exec_js(socket, js)    
+    var pid = document.getElementById("drab_pid")
+    var txt = document.createTextNode("#{pid_string}")
+    pid.appendChild(txt)
+    """
+
+    {:ok, _} = Drab.Core.exec_js(socket, js)
   end
 end

@@ -8,15 +8,16 @@ defmodule Drab.Template do
 
   # compiling internal templates only
   # TODO: find a way to compile also user additional templates
-  Logger.info "Compiling Drab Templates"
+  Logger.info("Compiling Drab Templates")
 
-  drab_templates = Path.join([:code.priv_dir(:drab) |> to_string(), @drab_templates, "*"]) |> Path.wildcard()
+  drab_templates =
+    Path.join([:code.priv_dir(:drab) |> to_string(), @drab_templates, "*"]) |> Path.wildcard()
 
   for template_with_path <- drab_templates do
     @external_resource template_with_path
 
     filename = Path.basename(template_with_path)
-    compiled = EEx.compile_file(template_with_path) |> Macro.escape
+    compiled = EEx.compile_file(template_with_path) |> Macro.escape()
 
     defp compiled_template(unquote(filename)) do
       unquote(compiled)
@@ -32,7 +33,8 @@ defmodule Drab.Template do
   def render_template(filename, bindings) do
     # TODO: this is not very efficient, as it searches for a template every single time
     p = Path.join(user_templates(), filename)
-    if p |> File.exists? do
+
+    if p |> File.exists?() do
       EEx.eval_file(p, bindings)
     else
       {result, _} = Code.eval_quoted(compiled_template(filename), bindings)

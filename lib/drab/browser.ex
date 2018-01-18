@@ -1,5 +1,6 @@
 defmodule Drab.Browser do
   import Drab.Core
+
   @moduledoc """
   Browser related functions.
 
@@ -7,23 +8,24 @@ defmodule Drab.Browser do
   """
 
   @now_js """
-    var d = new Date();
-    var retval = {
-      year: d.getFullYear(),
-      month: d.getMonth(),
-      day: d.getDate(),
-      hour: d.getHours(),
-      minute: d.getMinutes(),
-      second: d.getSeconds(),
-      millisecond: d.getMilliseconds()
-    };
-    retval
-    """
+  var d = new Date();
+  var retval = {
+    year: d.getFullYear(),
+    month: d.getMonth(),
+    day: d.getDate(),
+    hour: d.getHours(),
+    minute: d.getMinutes(),
+    second: d.getSeconds(),
+    millisecond: d.getMilliseconds()
+  };
+  retval
+  """
 
   defp js_to_naive_date(js_object) do
     NaiveDateTime.new(
       js_object["year"],
-      js_object["month"] + 1, # in the world of JS, February is a first month
+      # in the world of JS, February is a first month
+      js_object["month"] + 1,
       js_object["day"],
       js_object["hour"],
       js_object["minute"],
@@ -55,15 +57,17 @@ defmodule Drab.Browser do
   """
   def now!(socket) do
     browser_now = exec_js!(socket, @now_js)
+
     case js_to_naive_date(browser_now) do
       {:ok, now} ->
         now
+
       _ ->
         raise """
-          can't convert JS object to NaiveDateTime.
+        can't convert JS object to NaiveDateTime.
 
-          #{inspect browser_now}
-          """
+        #{inspect(browser_now)}
+        """
     end
   end
 
@@ -173,9 +177,10 @@ defmodule Drab.Browser do
 
   @doc false
   def redirect_to!(socket, url) do
-    Deppie.warn """
-      Drab.Live.redirect_to! (broadcasting version of redirect_to/1) has been renamed to broadcast_redirect_to!/1
-      """
+    Deppie.warn("""
+    Drab.Live.redirect_to! (broadcasting version of redirect_to/1) has been renamed to broadcast_redirect_to!/1
+    """)
+
     broadcast_redirect_to(socket, url)
   end
 
@@ -201,9 +206,10 @@ defmodule Drab.Browser do
 
   @doc false
   def console!(socket, log) do
-    Deppie.warn """
-      Drab.Live.console (broadcasting version of console/1) has been renamed to broadcast_console/1
-      """
+    Deppie.warn("""
+    Drab.Live.console (broadcasting version of console/1) has been renamed to broadcast_console/1
+    """)
+
     broadcast_console(socket, log)
     socket
   end
@@ -222,7 +228,6 @@ defmodule Drab.Browser do
     broadcast_js(socket, "console.log(#{Drab.Core.encode_js(log)})")
   end
 
-
   @doc """
   Replaces the URL in the browser navigation bar for the given URL.
 
@@ -238,18 +243,18 @@ defmodule Drab.Browser do
 
   """
   def set_url(socket, url) do
-    exec_js socket, """
+    exec_js(socket, """
     window.history.pushState({}, "", #{Drab.Core.encode_js(url)});
-    """
+    """)
   end
 
   @doc """
   Like `set_url/2`, but broadcasting the change to all connected browsers.
   """
   def broadcast_set_url(socket, url) do
-    broadcast_js socket, """
+    broadcast_js(socket, """
     window.history.pushState({}, "", #{Drab.Core.encode_js(url)});
-    """
+    """)
   end
 
   @doc """
@@ -263,8 +268,8 @@ defmodule Drab.Browser do
 
   """
   def set_url!(socket, url) do
-    exec_js! socket, """
+    exec_js!(socket, """
     window.history.pushState({}, "", #{Drab.Core.encode_js(url)});
-    """
+    """)
   end
 end

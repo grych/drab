@@ -9,45 +9,62 @@ defmodule DrabTestApp.QueryTest do
 
   setup do
     query_index() |> navigate_to()
-    find_element(:id, "page_loaded_indicator") # wait for the Drab to initialize
+    # wait for the Drab to initialize
+    find_element(:id, "page_loaded_indicator")
     [socket: drab_socket()]
   end
 
   describe "Drab.Query select" do
-
     test "basic select/3", context do
       socket = context[:socket]
       text = socket |> select(:text, from: "#select1_div")
       assert text == "text in select1_div"
 
       texts = socket |> select(:texts, from: ".select_div")
-      assert texts == %{"__undefined_0" => "text in select3_div",
-                        "select1_div" => "text in select1_div",
-                        "select2_div" => "text in select2_div"}
+
+      assert texts == %{
+               "__undefined_0" => "text in select3_div",
+               "select1_div" => "text in select1_div",
+               "select2_div" => "text in select2_div"
+             }
 
       html = socket |> select(:html, from: "#select1_div")
       assert html == "<b>text in select1_div</b>"
 
       htmls = socket |> select(:htmls, from: ".select_div")
-      assert htmls == %{"__undefined_0" => "text in select3_div",
-                        "select1_div" => "<b>text in select1_div</b>",
-                        "select2_div" => "text in select2_div"}
 
-      val = socket |> select(:val, from: ".select_input") # should return first value
+      assert htmls == %{
+               "__undefined_0" => "text in select3_div",
+               "select1_div" => "<b>text in select1_div</b>",
+               "select2_div" => "text in select2_div"
+             }
+
+      # should return first value
+      val = socket |> select(:val, from: ".select_input")
       assert val == "select1 value"
 
       vals = socket |> select(:vals, from: ".select_input")
-      assert vals == %{"__undefined_0" => "select3 value",
-                        "select1_input" => "select1 value",
-                        "select2_input" => "select2 value"}
+
+      assert vals == %{
+               "__undefined_0" => "select3 value",
+               "select1_input" => "select1 value",
+               "select2_input" => "select2 value"
+             }
     end
 
     test "extended select/3 which returns an integer" do
       socket = drab_socket()
       selector = "#select1_div"
-      tests = [{:width, :widths}, {:height, :heights}, 
-               {:innerWidth, :innerWidths}, {:innerHeight, :innerHeights}, 
-               {:scrollTop, :scrollTops}, {:scrollLeft, :scrollLefts}]
+
+      tests = [
+        {:width, :widths},
+        {:height, :heights},
+        {:innerWidth, :innerWidths},
+        {:innerHeight, :innerHeights},
+        {:scrollTop, :scrollTops},
+        {:scrollLeft, :scrollLefts}
+      ]
+
       for {singular, plural} <- tests do
         # this test does not check the exact return of jquery method
         ret = socket |> select(singular, from: selector)
@@ -69,6 +86,7 @@ defmodule DrabTestApp.QueryTest do
       socket = drab_socket()
       selector = "#select1_div"
       tests = [{:position, :positions}, {:offset, :offsets}]
+
       for {singular, plural} <- tests do
         ret = socket |> select(singular, from: selector)
         assert is_map(ret)
@@ -101,7 +119,7 @@ defmodule DrabTestApp.QueryTest do
       # property is not an attribute!
       ret = socket |> select(prop: :test_prop, from: "#select2_div")
       assert ret == nil
-      socket |> update(prop: :test_prop, set: "prop2_updated", on: "#select2_div")  
+      socket |> update(prop: :test_prop, set: "prop2_updated", on: "#select2_div")
       ret = socket |> select(prop: :test_prop, from: "#select2_div")
       assert ret == "prop2_updated"
       ret = socket |> select(props: :test_prop, from: "#select2_div")
@@ -147,6 +165,7 @@ defmodule DrabTestApp.QueryTest do
 
     test "wrong jQuery method" do
       socket = drab_socket()
+
       assert_raise ArgumentError, fn ->
         socket |> select(:wrong, from: "anything")
       end
@@ -178,9 +197,8 @@ defmodule DrabTestApp.QueryTest do
     test "more update/3" do
       socket = drab_socket()
       selector = "#select1_div"
-      tests = [:width, :height,
-               :innerWidth, :innerHeight]
-               # TODO: :scrollTop, :scrollLeft are not tested, as it can't be changed (always return 0)
+      tests = [:width, :height, :innerWidth, :innerHeight]
+      # TODO: :scrollTop, :scrollLeft are not tested, as it can't be changed (always return 0)
       for method <- tests do
         r = Enum.random(100..200)
         socket |> update(method, set: "#{r}px", on: selector)
@@ -199,11 +217,11 @@ defmodule DrabTestApp.QueryTest do
     end
 
     test "cycle update/3 text" do
-      cycle_test :text, "#select1_div", ["One", "Two", "Three"]
+      cycle_test(:text, "#select1_div", ["One", "Two", "Three"])
     end
 
     test "cycle update/3 text one element" do
-      cycle_test :text, "#select1_div", ["One"]
+      cycle_test(:text, "#select1_div", ["One"])
     end
 
     test "cycle update/3 text zero elements list should not change the value" do
@@ -225,19 +243,19 @@ defmodule DrabTestApp.QueryTest do
     end
 
     test "cycle update/3 html" do
-      cycle_test :html, "#select1_div", ["One", "Two"]
+      cycle_test(:html, "#select1_div", ["One", "Two"])
     end
 
     test "cycle update/3 val" do
-      cycle_test :val, "#select1_input", ["One", "Two", "Three", "Four"]
+      cycle_test(:val, "#select1_input", ["One", "Two", "Three", "Four"])
     end
 
     test "cycle update/3 height" do
-      cycle_test :height, "#select1_input", [33, 66, 99]
+      cycle_test(:height, "#select1_input", [33, 66, 99])
     end
 
     test "cycle update/3 width" do
-      cycle_test :width, "#select1_input", [33, 66, 99]
+      cycle_test(:width, "#select1_input", [33, 66, 99])
     end
 
     test "update/2 css" do
@@ -245,9 +263,9 @@ defmodule DrabTestApp.QueryTest do
       selector = "#select1_div"
       div = find_element(:id, "select1_div")
 
-      socket |> update(css: "font-size", set: "33px", on: selector )
+      socket |> update(css: "font-size", set: "33px", on: selector)
       ret = socket |> select(css: "font-size", from: selector)
-      assert ret == css_property(div, "font-size") 
+      assert ret == css_property(div, "font-size")
       assert ret == "33px"
     end
 
@@ -255,7 +273,7 @@ defmodule DrabTestApp.QueryTest do
       socket = drab_socket()
       selector = "#select1_div"
 
-      socket |> update(data: "testdata", set: "test for data", on: selector )
+      socket |> update(data: "testdata", set: "test for data", on: selector)
       ret = socket |> select(data: "testdata", from: selector)
       assert ret == "test for data"
     end
@@ -297,17 +315,18 @@ defmodule DrabTestApp.QueryTest do
         assert has_class?(div, "select_div")
         socket |> update(:class, set: list, on: selector)
       end
+
       assert has_class?(div, "more")
       assert has_class?(div, "select_div")
       refute has_class?(div, "another")
       refute has_class?(div, "class")
     end
-
   end
 
   describe "Drab.Query insert" do
-    defp setup_insert() do 
-      {drab_socket(), "#insert1_div", find_element(:id, "insert1_div"), find_element(:id, "insert_wrapper")}
+    defp setup_insert() do
+      {drab_socket(), "#insert1_div", find_element(:id, "insert1_div"),
+       find_element(:id, "insert_wrapper")}
     end
 
     test "insert/3 append" do
@@ -316,7 +335,9 @@ defmodule DrabTestApp.QueryTest do
       socket |> insert(" appended", append: selector)
       assert visible_text(wrapper) == "Insert DIV appended"
       assert visible_text(div) == "Insert DIV appended"
-      assert inner_html(wrapper) |> String.trim() == "<div id=\"insert1_div\">Insert DIV appended</div>"
+
+      assert inner_html(wrapper) |> String.trim() ==
+               "<div id=\"insert1_div\">Insert DIV appended</div>"
     end
 
     test "insert/3 prepend" do
@@ -325,7 +346,9 @@ defmodule DrabTestApp.QueryTest do
       socket |> insert("Prepended ", prepend: selector)
       assert visible_text(wrapper) == "Prepended Insert DIV"
       assert visible_text(div) == "Prepended Insert DIV"
-      assert inner_html(wrapper) |> String.trim() == "<div id=\"insert1_div\">Prepended Insert DIV</div>"
+
+      assert inner_html(wrapper) |> String.trim() ==
+               "<div id=\"insert1_div\">Prepended Insert DIV</div>"
     end
 
     test "insert/3 after" do
@@ -334,7 +357,9 @@ defmodule DrabTestApp.QueryTest do
       socket |> insert(" appended", after: selector)
       assert visible_text(wrapper) == "Insert DIV\nappended"
       assert visible_text(div) == "Insert DIV"
-      assert inner_html(wrapper) |> String.trim() == "<div id=\"insert1_div\">Insert DIV</div> appended"
+
+      assert inner_html(wrapper) |> String.trim() ==
+               "<div id=\"insert1_div\">Insert DIV</div> appended"
     end
 
     test "insert/3 before" do
@@ -343,21 +368,25 @@ defmodule DrabTestApp.QueryTest do
       socket |> insert("Prepended ", before: selector)
       assert visible_text(wrapper) == "Prepended\nInsert DIV"
       assert visible_text(div) == "Insert DIV"
-      assert inner_html(wrapper) |> String.trim() == "Prepended <div id=\"insert1_div\">Insert DIV</div>"
+
+      assert inner_html(wrapper) |> String.trim() ==
+               "Prepended <div id=\"insert1_div\">Insert DIV</div>"
     end
   end
 
   describe "Drab.Query delete" do
-    defp setup_delete() do 
+    defp setup_delete() do
       {drab_socket(), "#delete1_div", find_element(:id, "delete1_div")}
     end
 
     test "delete/2 - remove the whole element" do
       {socket, selector, _div} = setup_delete()
 
-      find_element(:id, "delete1_div") # should be there before removing
+      # should be there before removing
+      find_element(:id, "delete1_div")
       # function delete/2 imported from both Drab.Query and Phoenix.ConnTest, call is ambiguous
       socket |> Drab.Query.delete(selector)
+
       assert_raise Hound.NoSuchElementError, fn ->
         find_element(:id, "delete1_div")
       end
@@ -379,7 +408,7 @@ defmodule DrabTestApp.QueryTest do
       socket |> Drab.Query.delete(class: "class2", from: selector)
       assert has_class?(div, "class1")
       refute has_class?(div, "class2")
-    end     
+    end
 
     test "delete/2 - remove the attribute" do
       {socket, selector, div} = setup_delete()
@@ -389,7 +418,7 @@ defmodule DrabTestApp.QueryTest do
       socket |> Drab.Query.delete(attr: "class", from: selector)
       refute has_class?(div, "class1")
       refute has_class?(div, "class2")
-    end     
+    end
 
     test "delete/2 - remove the property" do
       {socket, selector, _div} = setup_delete()
@@ -398,11 +427,11 @@ defmodule DrabTestApp.QueryTest do
       assert socket |> select(prop: "p1", from: selector) == "new"
       socket |> Drab.Query.delete(prop: "p1", from: selector)
       assert socket |> select(prop: "p1", from: selector) == nil
-    end     
+    end
   end
 
   describe "Drab.Query execute" do
-    defp setup_execute() do 
+    defp setup_execute() do
       {drab_socket(), "#execute1_input", find_element(:id, "execute1_input")}
     end
 

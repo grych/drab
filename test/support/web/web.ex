@@ -1,6 +1,6 @@
 defmodule DrabTestApp.Web do
   @moduledoc false
-  
+
   def model do
     quote do
       # Define common model functionality

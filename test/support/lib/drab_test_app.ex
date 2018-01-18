@@ -1,6 +1,6 @@
 defmodule DrabTestApp do
   @moduledoc false
-  
+
   use Application
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
@@ -11,7 +11,7 @@ defmodule DrabTestApp do
     # Define workers and child supervisors to be supervised
     children = [
       # Start the endpoint when the application starts
-      supervisor(DrabTestApp.Endpoint, []),
+      supervisor(DrabTestApp.Endpoint, [])
       # Start your own worker by calling: DrabTestApp.Worker.start_link(arg1, arg2, arg3)
       # worker(DrabTestApp.Worker, [arg1, arg2, arg3]),
     ]

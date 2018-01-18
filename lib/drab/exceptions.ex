@@ -4,4 +4,3 @@ defmodule Drab.JSExecutionError do
   """
   defexception message: "JavaScript error"
 end
-

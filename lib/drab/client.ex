@@ -78,10 +78,11 @@ defmodule Drab.Client do
 
   @doc false
   def js(conn, assigns \\ []) do
-    Deppie.warn """
-      Drab.Client.js/2 is depreciated.
-      Please use Drab.Client.run/2 or Drab.client.generate/2 instead.
-      """
+    Deppie.warn("""
+    Drab.Client.js/2 is depreciated.
+    Please use Drab.Client.run/2 or Drab.client.generate/2 instead.
+    """)
+
     run(conn, assigns)
   end
 
@@ -112,17 +113,24 @@ defmodule Drab.Client do
     # Enable Drab only if Controller compiles with `use Drab.Controller`
     # in this case controller contains function `__drab__/0`
     if Enum.member?(controller.__info__(:functions), {:__drab__, 0}) do
-      controller_and_action = Phoenix.Token.sign(conn, "controller_and_action",
-                              [__controller: controller,
-                               __action: Phoenix.Controller.action_name(conn),
-                               __assigns: assigns])
+      controller_and_action =
+        Phoenix.Token.sign(
+          conn,
+          "controller_and_action",
+          __controller: controller,
+          __action: Phoenix.Controller.action_name(conn),
+          __assigns: assigns
+        )
+
       commander = controller.__drab__()[:commander]
       broadcast_topic = topic(commander.__drab__().broadcasting, controller, conn.request_path)
 
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
       access_session = commander.__drab__().access_session
-      session = access_session
+
+      session =
+        access_session
         |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end)
         |> Enum.into(%{})
 
@@ -139,11 +147,11 @@ defmodule Drab.Client do
 
       js = render_template("drab.js", bindings)
 
-      Phoenix.HTML.raw """
+      Phoenix.HTML.raw("""
       <script>
         #{js}
       </script>
-      """
+      """)
     else
       ""
     end

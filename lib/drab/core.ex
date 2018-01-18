@@ -147,15 +147,15 @@ defmodule Drab.Core do
   """
   require Logger
 
-  # @behaviour Drab
   use DrabModule
-  # def prerequisites(), do: []
+
+  @impl true
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
 
-  @doc false
+  @impl true
   def transform_payload(payload, _state) do
     case payload["form"] do
-      nil  -> payload
+      nil -> payload
       form -> payload |> Map.put_new(:params, form |> normalize_params())
     end
   end
@@ -385,7 +385,7 @@ defmodule Drab.Core do
 
   @doc false
   def store(socket) do
-    #TODO: error {:error, "The operation is insecure."}
+    # TODO: error {:error, "The operation is insecure."}
     {:ok, store_token} = exec_js(socket, "Drab.get_drab_store_token()")
     detokenize_store(socket, store_token)
   end
@@ -402,7 +402,8 @@ defmodule Drab.Core do
   end
 
   @doc false
-  def detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{} # empty store
+  # empty store
+  def detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{}
 
   def detokenize_store(socket, drab_store_token) do
     # we just ignore wrong token and defauklt the store to %{}
@@ -410,6 +411,7 @@ defmodule Drab.Core do
     case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token, max_age: 86400) do
       {:ok, drab_store} ->
         drab_store
+
       {:error, _reason} ->
         %{}
     end
@@ -444,10 +446,14 @@ defmodule Drab.Core do
   """
   def this!(sender) do
     id = sender["id"]
-    unless id, do: raise ArgumentError, """
-    Try to use Drab.Core.this!/1 on DOM object without an ID:
-    #{inspect(sender)}
-    """
+
+    unless id,
+      do:
+        raise(ArgumentError, """
+        Try to use Drab.Core.this!/1 on DOM object without an ID:
+        #{inspect(sender)}
+        """)
+
     "##{id}"
   end
 end

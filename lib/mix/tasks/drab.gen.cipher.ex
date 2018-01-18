@@ -47,10 +47,10 @@
 #   defp file_unwritable!(config_file_path, reason, keys) do
 #     Mix.raise """
 #       Can't open the config file: #{config_file_path} (#{reason}).
-      
+
 #       Please add the following:
 #       #{keys}
-      
+
 #       manually to your real config file.
 #         """
 #   end

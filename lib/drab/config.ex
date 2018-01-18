@@ -10,20 +10,21 @@ defmodule Drab.Config do
       :drab
   """
   def app_name() do
-    get(:main_phoenix_app) || case Code.ensure_loaded(Mix.Project) do
-      {:module, Mix.Project} -> Mix.Project.config()[:app] || raise_app_not_found()
-      {:error, _} -> raise_app_not_found()
-    end
+    get(:main_phoenix_app) ||
+      case Code.ensure_loaded(Mix.Project) do
+        {:module, Mix.Project} -> Mix.Project.config()[:app] || raise_app_not_found()
+        {:error, _} -> raise_app_not_found()
+      end
   end
 
   defp raise_app_not_found() do
     raise """
-        drab can't find the main Phoenix application name.
+    drab can't find the main Phoenix application name.
 
-        Please check your mix.exs or set the name in confix.exs:
+    Please check your mix.exs or set the name in confix.exs:
 
-            config :drab, main_phoenix_app: :my_app
-        """
+        config :drab, main_phoenix_app: :my_app
+    """
   end
 
   @doc """
@@ -35,12 +36,14 @@ defmodule Drab.Config do
   def endpoint() do
     # IO.inspect app_env()
     # TODO: bad performance
-    {endpoint, _} = app_env()
-    |> Enum.filter(fn {x, _} -> first_uppercase?(x) end)
-    |> Enum.find(fn {base, _} ->
-      # Code.ensure_compiled(base) # needs to be compiled before View
-      is_endpoint?(base)
-    end)
+    {endpoint, _} =
+      app_env()
+      |> Enum.filter(fn {x, _} -> first_uppercase?(x) end)
+      |> Enum.find(fn {base, _} ->
+        # Code.ensure_compiled(base) # needs to be compiled before View
+        is_endpoint?(base)
+      end)
+
     endpoint
   end
 
@@ -52,13 +55,13 @@ defmodule Drab.Config do
   """
   def pubsub() do
     with {:ok, pubsub_conf} <- Keyword.fetch(Drab.Config.app_config(), :pubsub),
-         {:ok, name} <- Keyword.fetch(pubsub_conf, :name)
-    do
+         {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
       name
     else
-      _ -> raise """
-      Can't find the PubSub module. Please ensure that it exists in config.exs.
-      """
+      _ ->
+        raise """
+        Can't find the PubSub module. Please ensure that it exists in config.exs.
+        """
     end
   end
 
@@ -70,9 +73,9 @@ defmodule Drab.Config do
   # TODO: find a better way to check if the module is an Endpoint
   defp is_endpoint?(module) when is_atom(module) do
     {loaded, _} = Code.ensure_loaded(module)
-    loaded == :module
-      && function_exported?(module, :struct_url, 0)
-      && function_exported?(module, :url, 0)
+
+    loaded == :module && function_exported?(module, :struct_url, 0) &&
+      function_exported?(module, :url, 0)
   end
 
   @doc """
@@ -132,8 +135,10 @@ defmodule Drab.Config do
       ".drab"
   """
   def drab_extension() do
-    {drab_ext, Drab.Live.Engine} = Application.get_env(:phoenix, :compiled_template_engines)
+    {drab_ext, Drab.Live.Engine} =
+      Application.get_env(:phoenix, :compiled_template_engines)
       |> Enum.find(fn {_, v} -> v == Drab.Live.Engine end)
+
     "." <> to_string(drab_ext)
   end
 
@@ -168,34 +173,40 @@ defmodule Drab.Config do
   * `live_helper_modules` - a list of modules to be imported when Drab.Live evaluates expression with living assign;
     default is `[Router.Helpers, ErrorHelpers, Gettext]`
   """
-  def get(:templates_path), do:
-    Application.get_env(:drab, :templates_path, "priv/templates/drab")
-  def get(:disable_controls_while_processing), do:
-    Application.get_env(:drab, :disable_controls_while_processing, true)
-  def get(:events_to_disable_while_processing), do:
-    Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
-  def get(:disable_controls_when_disconnected), do:
-    Application.get_env(:drab, :disable_controls_when_disconnected, true)
-  def get(:socket), do:
-    Application.get_env(:drab, :socket, "/socket")
-  def get(:drab_store_storage), do:
-    Application.get_env(:drab, :drab_store_storage, :session_storage)
-  def get(:browser_response_timeout), do:
-    Application.get_env(:drab, :browser_response_timeout, 5000)
-  def get(:main_phoenix_app), do:
-    Application.get_env(:drab, :main_phoenix_app, nil)
-  def get(:enable_live_scripts), do:
-    Application.get_env(:drab, :enable_live_scripts, false)
+  def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
+
+  def get(:disable_controls_while_processing),
+    do: Application.get_env(:drab, :disable_controls_while_processing, true)
+
+  def get(:events_to_disable_while_processing),
+    do: Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
+
+  def get(:disable_controls_when_disconnected),
+    do: Application.get_env(:drab, :disable_controls_when_disconnected, true)
+
+  def get(:socket), do: Application.get_env(:drab, :socket, "/socket")
+
+  def get(:drab_store_storage),
+    do: Application.get_env(:drab, :drab_store_storage, :session_storage)
+
+  def get(:browser_response_timeout),
+    do: Application.get_env(:drab, :browser_response_timeout, 5000)
+
+  def get(:main_phoenix_app), do: Application.get_env(:drab, :main_phoenix_app, nil)
+  def get(:enable_live_scripts), do: Application.get_env(:drab, :enable_live_scripts, false)
+
   def get(:live_helper_modules) do
     case Application.get_env(:drab, :live_helper_modules, [Router.Helpers, ErrorHelpers, Gettext]) do
-      list when is_list(list) -> with_app_module(list)
-      tuple when is_tuple(tuple) -> with_app_module(Tuple.to_list(tuple)) # for backwards compatibility
+      list when is_list(list) ->
+        with_app_module(list)
+
+      # for backwards compatibility
+      tuple when is_tuple(tuple) ->
+        with_app_module(Tuple.to_list(tuple))
     end
   end
-  def get(_), do:
-    nil
 
-  defp with_app_module(list), do:
-    Enum.map list, fn x -> Module.concat(app_module(), x) end
+  def get(_), do: nil
 
+  defp with_app_module(list), do: Enum.map(list, fn x -> Module.concat(app_module(), x) end)
 end

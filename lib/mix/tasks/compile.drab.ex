@@ -8,9 +8,9 @@ defmodule Mix.Tasks.Compile.Drab do
 
   @doc false
   def run(_args) do
-    IO.puts "Compiling Drab templates"
+    IO.puts("Compiling Drab templates")
     Code.compiler_options(ignore_module_conflict: true)
-    Kernel.ParallelCompiler.files([Drab.Template.__info__(:compile)[:source] |> List.to_string])
+    Kernel.ParallelCompiler.files([Drab.Template.__info__(:compile)[:source] |> List.to_string()])
     Code.compiler_options(ignore_module_conflict: false)
     :ok
   end

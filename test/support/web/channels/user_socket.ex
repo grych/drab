@@ -8,10 +8,10 @@ defmodule DrabTestApp.UserSocket do
   # channel "room:*", DrabTestApp.RoomChannel
 
   ## Transports
-  transport :websocket, Phoenix.Transports.WebSocket
+  transport(:websocket, Phoenix.Transports.WebSocket)
   # transport :longpoll, Phoenix.Transports.LongPoll
 
-  channel "__drab:*", Drab.Channel
+  channel("__drab:*", Drab.Channel)
 
   # def connect(params, socket) do
   #   Drab.Socket.verify(socket, params)

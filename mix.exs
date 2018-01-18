@@ -3,46 +3,55 @@ defmodule Drab.Mixfile do
   @version "0.6.3"
 
   def project do
-    [app: :drab,
-     version: @version,
-     elixir: ">= 1.4.0 and < 1.5.0 or >= 1.5.1 and < 1.7.0", # a bug in EEx in 1.5.0
-     # elixir: "~> 1.5.1",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     elixirc_paths: elixirc_paths(Mix.env),
-     deps: deps(),
-     description: description(),
-     package: package(),
-     docs: [main: "Drab", logo: "priv/static/drab-400.png",
-      extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"]], # , filter_prefix: "Drab."
-     compilers: [:phoenix, :gettext] ++ Mix.compilers
-     # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
-   ]
+    [
+      app: :drab,
+      version: @version,
+      # a bug in EEx in 1.5.0
+      elixir: ">= 1.4.0 and < 1.5.0 or >= 1.5.1 and < 1.7.0",
+      # elixir: "~> 1.5.1",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
+      deps: deps(),
+      description: description(),
+      package: package(),
+      docs: [
+        main: "Drab",
+        logo: "priv/static/drab-400.png",
+        # , filter_prefix: "Drab."
+        extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"]
+      ],
+      compilers: [:phoenix, :gettext] ++ Mix.compilers()
+      # compilers: [:phoenix, :gettext] ++ Mix.compilers ++ [:drab]
+    ]
   end
 
   def application do
-    [mod: {Drab.Supervisor, []},
-     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :deppie]]
+    [
+      mod: {Drab.Supervisor, []},
+      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :deppie]
+    ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(:dev),  do: ["lib", "test/support"]
-  defp elixirc_paths(_),     do: ["lib"]
+  defp elixirc_paths(:dev), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
-    [{:phoenix, "~> 1.2"},
-     {:phoenix_html, "~> 2.6"},
-     {:phoenix_pubsub, "~> 1.0"},
-     {:phoenix_live_reload, "~> 1.0", only: :dev},
-     {:gettext, "~> 0.11"},
-     {:cowboy, "~> 1.0"},
-     {:ex_doc, "~> 0.18", only: :dev, runtime: false},
-     {:hound, "~> 1.0", only: [:dev, :test]},
-     # {:inch_ex, "~> 0.5", only: [:dev, :test, :docs]},
-     {:deppie, "~> 1.0"},
-     # {:floki, "~> 0.19.0"}
-     {:floki, "0.18.1"}
-   ]
+    [
+      {:phoenix, "~> 1.2"},
+      {:phoenix_html, "~> 2.6"},
+      {:phoenix_pubsub, "~> 1.0"},
+      {:phoenix_live_reload, "~> 1.0", only: :dev},
+      {:gettext, "~> 0.11"},
+      {:cowboy, "~> 1.0"},
+      {:ex_doc, "~> 0.18", only: :dev, runtime: false},
+      {:hound, "~> 1.0", only: [:dev, :test]},
+      # {:inch_ex, "~> 0.5", only: [:dev, :test, :docs]},
+      {:deppie, "~> 1.0"},
+      # {:floki, "~> 0.19.0"}
+      {:floki, "0.18.1"}
+    ]
   end
 
   defp description() do

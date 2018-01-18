@@ -1,5 +1,6 @@
 defmodule Drab.Waiter do
   require Logger
+
   @moduledoc """
   Enables Drab Waiter functionality - synchronous wait for browser events in the Commander handler function.
 
@@ -16,9 +17,8 @@ defmodule Drab.Waiter do
   Requires Drab.Query.
   """
 
-  # @behaviour Drab
   use DrabModule
-  # def prerequisites(), do: []
+  @impl true
   def js_templates(), do: ["drab.waiter.js"]
 
   @doc """
@@ -40,20 +40,23 @@ defmodule Drab.Waiter do
       waiters = get_buffer(var!(buffer, Drab.Waiter)) |> Map.delete(:timeout)
       :ok = stop_buffer(var!(buffer, Drab.Waiter))
 
-      with_tokens = Enum.map waiters, fn {ref, {selector, event_name, function, pid}} ->
-        waiter_token = tokenize_waiter(unquote(socket), pid, ref)
-        %{selector: selector, event_name: event_name, drab_waiter_token: waiter_token}
-      end
+      with_tokens =
+        Enum.map(waiters, fn {ref, {selector, event_name, function, pid}} ->
+          waiter_token = tokenize_waiter(unquote(socket), pid, ref)
+          %{selector: selector, event_name: event_name, drab_waiter_token: waiter_token}
+        end)
 
       Drab.push(unquote(socket), self(), nil, "register_waiters", waiters: with_tokens)
 
-      ret = receive do
-        {:waiter, ref, sender} ->
-          {selector, event_name, function, pid} = waiters[ref]
-          function.(sender)
-        after timeout ->
-          timeout_function.()
-      end
+      ret =
+        receive do
+          {:waiter, ref, sender} ->
+            {selector, event_name, function, pid} = waiters[ref]
+            function.(sender)
+        after
+          timeout ->
+            timeout_function.()
+        end
 
       # TODO: remove token from with_tokens to save bandwitdh
       Drab.push(unquote(socket), self(), nil, "unregister_waiters", waiters: with_tokens)
@@ -106,14 +109,15 @@ defmodule Drab.Waiter do
   def stop_buffer(buff), do: Agent.stop(buff)
 
   @doc false
-  def put_buffer(buff, key, value), do: Agent.update(buff, fn state -> Map.put(state, key, value) end)
+  def put_buffer(buff, key, value),
+    do: Agent.update(buff, fn state -> Map.put(state, key, value) end)
 
   @doc false
-  def get_buffer(buff), do: Agent.get(buff, &(&1))
+  def get_buffer(buff), do: Agent.get(buff, & &1)
 
   @doc false
   def tokenize_waiter(socket, pid, ref) do
-    Phoenix.Token.sign(socket, "drab_waiter_token",  {pid, ref})
+    Phoenix.Token.sign(socket, "drab_waiter_token", {pid, ref})
   end
 
   @doc false

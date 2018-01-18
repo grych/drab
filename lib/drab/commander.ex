@@ -161,13 +161,19 @@ defmodule Drab.Commander do
 
   defmacro __using__(options) do
     opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
-    modules = Enum.map(opts.modules, fn x ->
-      case x do
-        # TODO: don't like this hack
-        {:__aliases__, _, m} -> Module.concat(m)
-        _ -> x
-      end
-    end)
+
+    modules =
+      Enum.map(opts.modules, fn x ->
+        case x do
+          # TODO: don't like this hack
+          {:__aliases__, _, m} ->
+            Module.concat(m)
+
+          _ ->
+            x
+        end
+      end)
+
     modules_to_import = DrabModule.all_modules_for(modules)
 
     quote do
@@ -178,16 +184,17 @@ defmodule Drab.Commander do
 
       commander_path = __MODULE__ |> Atom.to_string() |> String.split(".")
       controller = commander_path |> List.last() |> String.replace("Commander", "Controller")
-      controller = commander_path |> List.replace_at(-1, controller) |> Module.concat
+      controller = commander_path |> List.replace_at(-1, controller) |> Module.concat()
       view = commander_path |> List.last() |> String.replace("Commander", "View")
-      view = commander_path |> List.replace_at(-1, view) |> Module.concat
+      view = commander_path |> List.replace_at(-1, view) |> Module.concat()
       commander_config = %Drab.Commander.Config{controller: controller, view: view}
 
       @options Map.merge(commander_config, o)
 
       unquote do
         # opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
-        modules_to_import |> Enum.map(fn module ->
+        modules_to_import
+        |> Enum.map(fn module ->
           quote do
             import unquote(module)
           end
@@ -254,7 +261,11 @@ defmodule Drab.Commander do
 
   defmacro public(handlers) when is_list(handlers) do
     quote do
-      @options Map.put(@options, :public_handlers, Map.get(@options, :public_handlers) ++ unquote(handlers))
+      @options Map.put(
+                 @options,
+                 :public_handlers,
+                 Map.get(@options, :public_handlers) ++ unquote(handlers)
+               )
     end
   end
 
@@ -268,15 +279,19 @@ defmodule Drab.Commander do
     """
     defmacro unquote(macro_name)(event_handler) when is_atom(event_handler) do
       m = unquote(macro_name)
+
       quote bind_quoted: [m: m], unquote: true do
-        Map.get(@options, m) && raise CompileError, description: "Only one `#{inspect m}` definition is allowed"
+        Map.get(@options, m) &&
+          raise CompileError, description: "Only one `#{inspect(m)}` definition is allowed"
+
         @options Map.put(@options, m, unquote(event_handler))
       end
     end
 
     defmacro unquote(macro_name)(unknown_argument) do
-      raise CompileError, description: """
-        Only atom is allowed in `#{unquote(macro_name)}`. Given: #{inspect unknown_argument}
+      raise CompileError,
+        description: """
+        Only atom is allowed in `#{unquote(macro_name)}`. Given: #{inspect(unknown_argument)}
         """
     end
   end)
@@ -309,8 +324,9 @@ defmodule Drab.Commander do
   end
 
   defmacro access_session(unknown_argument) do
-    raise CompileError, description: """
-      Only atom or list are allowed in `access_session`. Given: #{inspect unknown_argument}
+    raise CompileError,
+      description: """
+      Only atom or list are allowed in `access_session`. Given: #{inspect(unknown_argument)}
       """
   end
 
@@ -326,15 +342,17 @@ defmodule Drab.Commander do
 
     defmacro unquote(macro_name)(event_handler, filter) when is_atom(event_handler) do
       m = unquote(macro_name)
+
       quote bind_quoted: [m: m], unquote: true do
         handlers = Map.get(@options, m)
-        @options Map.put(@options, m, handlers ++ [{unquote(event_handler), unquote(filter)}] )
+        @options Map.put(@options, m, handlers ++ [{unquote(event_handler), unquote(filter)}])
       end
     end
 
     defmacro unquote(macro_name)(unknown_argument, _filter) do
-      raise CompileError, description: """
-        only atom is allowed in `#{unquote(macro_name)}`, given: #{inspect unknown_argument}
+      raise CompileError,
+        description: """
+        only atom is allowed in `#{unquote(macro_name)}`, given: #{inspect(unknown_argument)}
         """
     end
   end)
@@ -373,8 +391,9 @@ defmodule Drab.Commander do
   end
 
   defmacro broadcasting(unknown_argument) do
-    raise CompileError, description: """
-      invalid `broadcasting` option: #{inspect unknown_argument}.
+    raise CompileError,
+      description: """
+      invalid `broadcasting` option: #{inspect(unknown_argument)}.
 
       Available: :same_path, :same_controller, "topic"
       """
