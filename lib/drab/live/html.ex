@@ -500,7 +500,7 @@ defmodule Drab.Live.HTML do
   #   %{}
   # end
 
-  # defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
+  defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
 
   defp amperes_from_html(html) when is_binary(html) do
     with_amperes =
