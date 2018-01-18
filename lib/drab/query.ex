@@ -54,12 +54,14 @@ defmodule Drab.Query do
     d = payload["dataset"] || %{}
 
     d =
-      Enum.map(d, fn {k, v} ->
+      d
+      |> Enum.map(fn {k, v} ->
         {k, Drab.Core.decode_js(v)}
       end)
       |> Map.new()
 
-    Map.merge(payload, %{"data" => d})
+    payload
+    |> Map.merge(%{"data" => d})
     |> Map.put_new("val", payload["value"])
   end
 
@@ -267,7 +269,7 @@ defmodule Drab.Query do
     c = socket |> select(attrs: "class", from: selector)
     one_element_selector_only!(c, selector)
 
-    classes = Map.values(c) |> Enum.map(&String.split/1) |> List.first()
+    classes = c |> Map.values() |> Enum.map(&String.split/1) |> List.first()
 
     replaced =
       Enum.map(classes, fn c ->
@@ -278,13 +280,14 @@ defmodule Drab.Query do
         end
       end)
 
-    classes_together =
+    replaced =
       if replaced == classes do
         [List.first(values) | classes]
       else
         replaced
       end
-      |> Enum.join(" ")
+
+    classes_together = replaced |> Enum.join(" ")
 
     do_update(socket, broadcast, attr: "class", set: classes_together, on: selector)
   end
@@ -539,7 +542,8 @@ defmodule Drab.Query do
 
   defp build_js(selector, {:all, "()"}, :select) do
     # val: $(this).val(), html: $(this).html(), text: $(this).text()
-    methods = Enum.map(@methods -- [:all], fn m -> "#{m}: $(this).#{m}()" end) |> Enum.join(", ")
+    methods =
+      (@methods -- [:all]) |> Enum.map(fn m -> "#{m}: $(this).#{m}()" end) |> Enum.join(", ")
 
     """
     var vals = {}

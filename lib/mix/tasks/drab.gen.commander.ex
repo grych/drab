@@ -78,9 +78,9 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     end
   end
 
-  defp phoenix12?(), do: Regex.match?(~r/^1.2/, Application.spec(:phoenix, :vsn) |> to_string())
+  defp phoenix12?(), do: Regex.match?(~r/^1.2/, to_string(Application.spec(:phoenix, :vsn)))
 
-  if Regex.match?(~r/^1.2/, Application.spec(:phoenix, :vsn) |> to_string()) do
+  if Regex.match?(~r/^1.2/, to_string(Application.spec(:phoenix, :vsn))) do
     defp copy_from(paths, source_path, binding, mapping) do
       Mix.Phoenix.copy_from(paths, source_path, "", binding, mapping)
     end

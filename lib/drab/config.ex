@@ -127,7 +127,8 @@ defmodule Drab.Config do
   """
   def app_module() do
     # in 1.3 app module is not under the endpoint
-    Module.split(endpoint())
+    endpoint()
+    |> Module.split()
     |> Enum.drop(-1)
     |> Module.concat()
   end
@@ -149,7 +150,7 @@ defmodule Drab.Config do
       "bP1ZF+DDZiAVGuIixHSboET1g18BPO4HeZnggJA/7q"
   """
   def app_config(config_key) do
-    Keyword.fetch!(app_env(), endpoint()) |> Keyword.fetch!(config_key)
+    app_env() |> Keyword.fetch!(endpoint()) |> Keyword.fetch!(config_key)
   end
 
   @doc """
@@ -177,7 +178,8 @@ defmodule Drab.Config do
   """
   def drab_extension() do
     {drab_ext, Drab.Live.Engine} =
-      Application.get_env(:phoenix, :compiled_template_engines)
+      :phoenix
+      |> Application.get_env(:compiled_template_engines)
       |> Enum.find(fn {_, v} -> v == Drab.Live.Engine end)
 
     "." <> to_string(drab_ext)

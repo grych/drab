@@ -170,7 +170,8 @@ defmodule Drab.Core do
 
   @doc false
   def normalize_params(params) do
-    Enum.reduce(params, "", fn {k, v}, acc ->
+    params
+    |> Enum.reduce("", fn {k, v}, acc ->
       acc <> k <> "=" <> URI.encode_www_form(v) <> "&"
     end)
     |> String.trim_trailing("&")
@@ -354,7 +355,7 @@ defmodule Drab.Core do
   """
   @spec put_store(Phoenix.Socket.t(), atom, term) :: Phoenix.Socket.t()
   def put_store(socket, key, value) do
-    store = store(socket) |> Map.merge(%{key => value})
+    store = socket |> store() |> Map.merge(%{key => value})
     {:ok, _} = exec_js(socket, "Drab.set_drab_store_token(\"#{tokenize_store(socket, store)}\")")
 
     # store the store in Drab server, to have it on terminate

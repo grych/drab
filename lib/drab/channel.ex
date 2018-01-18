@@ -71,7 +71,8 @@ defmodule Drab.Channel do
       modules = DrabModule.all_modules_for(commander.__drab__().modules)
 
       grouped =
-        Enum.map(modules, fn module ->
+        modules
+        |> Enum.map(fn module ->
           [_ | rest] = Module.split(module)
           Enum.join(rest, ".")
         end)
@@ -97,13 +98,12 @@ defmodule Drab.Channel do
       module_examples = Map.merge(live_example, other_examples)
 
       examples =
-        Enum.map(modules, fn module ->
-          module_examples[module]
-        end)
+        modules
+        |> Enum.map(fn module -> module_examples[module] end)
         |> Enum.filter(fn x -> !is_nil(x) end)
 
       p = inspect(socket.assigns.__drab_pid)
-      pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
+      pid_string = ~r/#PID<(?<pid>.*)>/ |> Regex.named_captures(p) |> Map.get("pid")
 
       IO.puts("""
 

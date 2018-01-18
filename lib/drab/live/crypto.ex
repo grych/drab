@@ -55,7 +55,9 @@ defmodule Drab.Live.Crypto do
 
   @doc false
   def hash(term) do
-    :erlang.phash2(term, 4_294_967_296) |> to_string()
+    term
+    |> :erlang.phash2(4_294_967_296)
+    |> to_string()
     |> Base.encode32(padding: false, case: :lower)
   end
 end

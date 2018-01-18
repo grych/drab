@@ -37,7 +37,7 @@ defmodule Drab.Waiter do
       end
 
       {timeout, timeout_function} = get_buffer(var!(buffer, Drab.Waiter))[:timeout]
-      waiters = get_buffer(var!(buffer, Drab.Waiter)) |> Map.delete(:timeout)
+      waiters = buffer |> var!(Drab.Waiter) |> get_buffer() |> Map.delete(:timeout)
       :ok = stop_buffer(var!(buffer, Drab.Waiter))
 
       with_tokens =

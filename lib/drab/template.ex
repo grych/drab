@@ -11,13 +11,13 @@ defmodule Drab.Template do
   Logger.info("Compiling Drab Templates")
 
   drab_templates =
-    Path.join([:code.priv_dir(:drab) |> to_string(), @drab_templates, "*"]) |> Path.wildcard()
+    [:drab |> :code.priv_dir() |> to_string(), @drab_templates, "*"] |> Path.join() |> Path.wildcard()
 
   for template_with_path <- drab_templates do
     @external_resource template_with_path
 
     filename = Path.basename(template_with_path)
-    compiled = EEx.compile_file(template_with_path) |> Macro.escape()
+    compiled = template_with_path |> EEx.compile_file() |> Macro.escape()
 
     defp compiled_template(unquote(filename)) do
       unquote(compiled)

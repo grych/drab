@@ -45,7 +45,7 @@ defmodule Drab.Browser do
   @spec now(Phoenix.Socket.t()) :: {Drab.Core.status(), NaiveDateTime.t()}
   def now(socket) do
     case exec_js(socket, @now_js) do
-      {:ok, browser_now} -> {:ok, js_to_naive_date(browser_now)}
+      {:ok, %{} = browser_now} -> js_to_naive_date(browser_now)
       other -> other
     end
   end

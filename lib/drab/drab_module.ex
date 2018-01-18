@@ -30,15 +30,15 @@ defmodule DrabModule do
 
   @doc false
   def all_modules_for(modules) do
-    modules = prereqs_for(modules) |> List.flatten() |> Enum.reverse()
+    modules = modules |> prereqs_for() |> List.flatten() |> Enum.reverse()
     Enum.uniq(modules ++ [Drab.Core])
   end
 
   @doc false
   def all_templates_for(modules) do
-    Enum.map(all_modules_for(modules), fn mod ->
-      mod.js_templates
-    end)
+    modules
+    |> all_modules_for()
+    |> Enum.map(fn mod -> mod.js_templates end)
     |> List.flatten()
     |> Enum.uniq()
   end

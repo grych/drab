@@ -316,7 +316,7 @@ defmodule Drab do
         {nil, String.to_existing_atom(function)}
 
       module_and_function ->
-        module = List.delete_at(module_and_function, -1) |> Module.safe_concat()
+        module = module_and_function |> List.delete_at(-1) |> Module.safe_concat()
 
         unless Code.ensure_loaded?(module) do
           raise """
@@ -324,7 +324,7 @@ defmodule Drab do
           """
         end
 
-        function = List.last(module_and_function) |> String.to_existing_atom()
+        function = module_and_function |> List.last() |> String.to_existing_atom()
         {module, function}
     end
   end
@@ -404,7 +404,8 @@ defmodule Drab do
   @doc false
   def callbacks_for(event_handler_function, handler_config) do
     # :uppercase, [{:run_before_each, []}, {:run_before_uppercase, [only: [:uppercase]]}]
-    Enum.map(handler_config, fn {callback_name, callback_filter} ->
+    handler_config
+    |> Enum.map(fn {callback_name, callback_filter} ->
       case callback_filter do
         [] ->
           callback_name

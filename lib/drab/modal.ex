@@ -89,7 +89,8 @@ defmodule Drab.Modal do
   end
 
   defp buttons_html(buttons) do
-    Enum.map(buttons, fn {button, label} ->
+    buttons
+    |> Enum.map(fn {button, label} ->
       render_template("modal.alert.button.#{Atom.to_string(button)}.html.eex", label: label)
     end)
     |> Enum.join("\n")

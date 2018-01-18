@@ -129,7 +129,8 @@ defmodule Drab.Live.EExEngine do
 
   @impl true
   def init(opts) do
-    unless Path.basename(opts[:file], Drab.Config.drab_extension())
+    unless opts[:file]
+           |> Path.basename(Drab.Config.drab_extension())
            |> Path.extname()
            |> String.downcase() == ".html" do
       raise EEx.SyntaxError,
@@ -175,7 +176,8 @@ defmodule Drab.Live.EExEngine do
         ampere_values =
           for {gender, tag, prop_or_attr, pattern} <- vals do
             compiled =
-              compiled_from_pattern(gender, pattern, tag, prop_or_attr)
+              gender
+              |> compiled_from_pattern(pattern, tag, prop_or_attr)
               |> remove_drab_marks()
 
             assigns = assigns_from_pattern(pattern)
@@ -271,7 +273,8 @@ defmodule Drab.Live.EExEngine do
   end
 
   defp compiled_from_pattern(_, pattern, _, _) do
-    String.split(pattern, @expr, include_captures: true, trim: true)
+    pattern
+    |> String.split(@expr, include_captures: true, trim: true)
     |> Enum.map(&expr_from_cache/1)
   end
 

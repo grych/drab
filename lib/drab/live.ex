@@ -240,7 +240,7 @@ defmodule Drab.Live do
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
     current_assigns = assign_data_for_partial(socket, hash, partial)
-    current_assigns_keys = Map.keys(current_assigns) |> Enum.map(&String.to_existing_atom/1)
+    current_assigns_keys = current_assigns |> Map.keys() |> Enum.map(&String.to_existing_atom/1)
 
     case current_assigns |> Map.fetch(assign) do
       # |> Drab.Live.Crypto.decode64()
@@ -500,7 +500,7 @@ defmodule Drab.Live do
   # defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
 
   defp safe_to_string(list) when is_list(list),
-    do: Enum.map(list, &safe_to_string/1) |> Enum.join("")
+    do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
 
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)

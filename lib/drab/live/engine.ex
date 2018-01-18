@@ -12,6 +12,6 @@ defmodule Drab.Live.Engine do
 
   @impl true
   def compile(path, _name) do
-    File.read!(path) |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
+    path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
   end
 end
