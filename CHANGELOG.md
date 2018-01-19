@@ -1,6 +1,6 @@
 # CHANGELOG
 ## v0.7.0
-Updated the Drab core to introduce few important features. Tested with Elixir 1.6.0.
+Updated the Drab core to introduce few important features. Fixed to Elixir version `~> 1.5.2`. Tested with Elixir 1.6.0.
 
 ### Possibility to provide own `connect/2` callback for socket authentication, etc
 Previously, Drab intercepted the `connect/2` callback in your `UserSocket`. Now, there is a possibility to use your own callback:

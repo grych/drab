@@ -6,9 +6,7 @@ defmodule Drab.Mixfile do
     [
       app: :drab,
       version: @version,
-      # a bug in EEx in 1.5.0
-      elixir: ">= 1.4.0 and < 1.5.0 or >= 1.5.1 and < 1.7.0",
-      # elixir: "~> 1.5.1",
+      elixir: "~> 1.5.2",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
