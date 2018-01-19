@@ -1,17 +1,15 @@
 
 ## Bugs:
-* Ignoring unmatched topic "drab:/drab" in DrabPoc.UserSocket
 
 ## Future
 Changes:
+* [1.6] consider DynamicSupervisor as a replacement for Drab GenServer
 * is `use Drab.Commander` really necessary?
 * <p drab-commander>
 * check token on each incoming message
 * is controller, action and assigns neccasary in drab token on page generation?
 * security concerns when onload
-* topic, authorization and authentication
 * check if the handler exists in a compile time
-* @impl
 * benchmarks (compare to AJAX)
 * extract Drab Store and Session to standalone module (loaded by default)
 * disconnect after inactive time might be hard to survive when you broadcast changes (Safari)
@@ -21,6 +19,7 @@ Changes:
 * Also, instead of 'broadcasting' a change to all browsers, why not do what Phoenix.pubsub does? Allow you to override an outgoing message (then in your time broadcast example you could 'catch' the outgoing message and reformat it?)
 * should take Safe in all html related functions
 * use <%/ %> to not drab the specific one
+* [1.7] change deppie to @deprecated and @since
 
 Changes:
 * group JS commands to be launched in one step, if possible
