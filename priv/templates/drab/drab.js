@@ -88,8 +88,11 @@
       this.channel.push("event", message);
     },
     run_handler: function(event_name, event_handler, payload, execute_after) {
-      console.log("Drab.run_handler() is depreciated. Please use Drab.exec_elixir() instead");
+      Drab.error("Drab.run_handler() is depreciated. Please use Drab.exec_elixir() instead");
       this.exec_elixir(event_handler, payload, execute_after);
+    },
+    error: function (message) {
+      console.log("[drab] " + message);
     },
     connected: [],
     disconnected: [],

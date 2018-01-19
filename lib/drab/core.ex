@@ -1,33 +1,69 @@
 defmodule Drab.Core do
   @moduledoc ~S"""
-  Drab Module with the basic communication from Server to the Browser. Does not require any libraries like jQuery,
-  works on pure Phoenix.
+  Drab module providing the base of communication between the browser and the server.
 
-      defmodule DrabPoc.JquerylessCommander do
+  `Drab.Core` defines the method to declare client-side events, which are handled server-side in the commander
+  module. Also provides basic function for running JS code directly from Phoenix on the browser.
+
+  ## Commander
+  Commander is the module to keep your Drab functions (event handlers) in. See `Drab.Commander` for more info,
+  and just for this part of docs let's assume you have the following one defined:
+
+      defmodule DrabExample.PageCommander do
         use Drab.Commander, modules: []
 
-        def clicked(socket, payload) do
+        def button_clicked(socket, payload) do
           socket |> console("You've sent me this: #{payload |> inspect}")
         end
       end
 
-  See `Drab.Commander` for more info on Drab Modules.
-
   ## Events
-  Events are defined directly in the HTML by adding `drab-event` and `drab-handler` properties:
+  Events are defined directly in the HTML by adding the `drab` attribute with the following pattern:
 
-      <button drab-event='click' drab-handler='button_clicked'>clickme</button>
+      <button drab='event_name#options:event_handler_function_name'>clickme</button>
 
-  Clicking such button launches `DrabExample.PageCommander.button_clicked/2` on the Phoenix server.
+  * `event_name` is the DOM event name, eg. "click", "blur"
+  * `event_handler_function_name` - the name of the event handler function in the commander on the server side
+  * `options` - optional, so far the only available option is "debounce(milliseconds)" for "keyup" event
 
-  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For this event
-  an attribute `drab-EVENT_NAME` must be set. The following like is an equivalent for the previous one:
+  Example:
+
+      <button drab='click:button_clicked'>clickme</button>
+
+  Clicking such button launches `DrabExample.PageCommander.button_clicked/2` on the server side.
+
+  You may have multiple events defined for a DOM object, but the specific event may appear there only once
+  (can't define two handlers for one event). Separate `event:handler` pairs with whitespaces:
+
+      <button drab='click:button_clicked mouseover:prepare_button'>clickme</button>
+
+  #### Shortcut form
+  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For those events
+  an attribute `drab-EVENTNAME` must be set. The following is an equivalent for the previous one:
 
       <button drab-click='button_clicked'>clickme</button>
 
-  Normally Drab operates on the user interface of the browser which generared the event, but it is possible to broadcast
-  the change to all the browsers which are currently viewing the same page. See the bang functions in `Drab.Query`
-  module.
+  As above, there is a possibility to define multiple event handlers for one DOM object, but the only one
+  handler for the event. The following form is valid:
+
+      <button drab-click='button_clicked' drab-mouseover='prepare_button'>clickme</button>
+
+  But the next one is prohibited:
+
+      <button drab-click='handler1' drab-click='handler2'>INCORRECT</button>
+
+  In this case you may provide options with `drab-options` attribute, but only when you have the only one
+  event defined.
+
+  There is a possibility to configure the shortcut list:
+
+      config :drab, :events_shorthands, ["click", "keyup", "blur"]
+
+  Please keep this list short, as it affects client script performance.
+
+  #### Long form [depreciated]
+  You may also configure drab handler with `drab-event` and `drab-handler` combination, but please don't.
+  This is coming from the ancient version of the software and will be removed in the stable release.
 
   ### Handling event in any commander (Shared Commander)
   By default Drab runs the event handler in the commander module corresponding to the controller, which rendered
@@ -120,8 +156,8 @@ defmodule Drab.Core do
   There is no way to update the session from Drab. Session is read-only.
 
   ## Broadcasting
-
-  You may use Drab for broadcasting changes to all connected browsers. Drab uses a *subject* for distinguishing
+  Normally Drab operates on the user interface of the browser which generared the event, but
+  you may use it for broadcasting changes to all connected browsers. Drab uses a *subject* for distinguishing
   browsers, which are allowed to receive the change.
 
   Broadcasting function receives `socket` or `subject` as the first argument. If `socket` is used, function

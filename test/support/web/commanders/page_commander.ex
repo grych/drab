@@ -110,6 +110,55 @@ defmodule DrabTestApp.PageCommander do
     put_store(socket, :should_never_be_assigned, true)
   end
 
+  def core4_click(socket, _sender) do
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core4_out').innerHTML = 'core4'")
+
+    42
+  end
+
+  def core5_click(socket, _sender) do
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core5_out').innerHTML = 'core5'")
+
+    42
+  end
+
+  def core6_click(socket, _sender) do
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core6_out').innerHTML = 'core6'")
+
+    42
+  end
+
+  def core7_click(socket, _sender) do
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core7_out').innerHTML = 'core7'")
+
+    42
+  end
+
+  def input1_change(socket, _sender) do
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('input1_out').innerHTML = 'input1'")
+
+    42
+  end
+
+  def input2_change(socket, _sender) do
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('input2_out').innerHTML = 'input2'")
+
+    42
+  end
+
+  def input3_change(socket, _sender) do
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('input3_out').innerHTML = 'input3'")
+
+    42
+  end
+
   def set_store_click(socket, _sender) do
     Drab.Core.put_store(socket, :test_store_value, "test store value")
   end

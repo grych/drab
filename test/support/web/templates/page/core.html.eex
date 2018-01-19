@@ -11,7 +11,7 @@
 <span id="core1_out"></span>
 <br>
 
-<button id="core2_button" class="btn btn-primary" drab-click="core2_click">core2</button>
+<button id="core2_button" class="btn btn-primary" drab-event="click" drab-handler="core2_click">core2</button>
 <span id="core2_out"></span>
 <br>
 
@@ -19,9 +19,46 @@
 <span id="core3_out"></span>
 <br>
 
+<button id="core4_button" class="btn btn-primary" drab="click:core4_click mousedown:core5_click">core4 (double events)</button>
+<span id="core4_out"></span>
+<span id="core5_out"></span>
+<br>
+
+<button id="core6_button" class="btn btn-primary" drab-click="core6_click" drab-mousedown="core7_click">core6 (double events)</button>
+<span id="core6_out"></span>
+<span id="core7_out"></span>
+<br>
+
+
 <button id="set_store_button" class="btn btn-primary"  drab-click="set_store_click">set store</button><br>
 <button id="get_store_button" class="btn btn-primary"  drab-click="get_store_click">get store</button><br>
 <span id="store1_out"></span>
-
 <br>
 
+<input type="text" id="core1_input" drab="keyup#debounce(500):input1_change">
+<span id="input1_out"></span>
+<br>
+
+<input type="text" id="core2_input" drab-event="keyup" drab-handler="input2_change" drab-options="debounce(500)">
+<span id="input2_out"></span>
+<br>
+
+<input type="text" id="core3_input" drab-keyup="input3_change" drab-options="debounce(500)">
+<span id="input3_out"></span>
+<br>
+<br>
+
+<button class="btn btn-primary" drab-event="click">Wrong attributes</button>
+<br>
+<button class="btn btn-primary" drab-handler="core2_click">Wrong attributes</button>
+<br>
+<button class="btn btn-primary" drab="wrong">Wrong attributes</button>
+<br>
+<button class="btn btn-primary" drab="wrong.">Wrong attributes</button>
+<br>
+<button class="btn btn-primary" drab="wrong:">Wrong attributes</button>
+<br>
+<button class="btn btn-primary" drab=":wrong">Wrong attributes</button>
+<br>
+<button class="btn btn-primary" drab=".">Wrong attributes</button>
+<br>

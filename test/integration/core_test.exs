@@ -20,6 +20,39 @@ defmodule DrabTestApp.CoreTest do
       standard_click_and_get_test("core2")
     end
 
+    test "multiple events on object", fixture do
+      standard_click_and_get_test("core4")
+
+      assert Drab.Core.exec_js(fixture.socket, "document.getElementById('core5_out').innerHTML") ==
+               {:ok, "core5"}
+    end
+
+    test "multiple events on object defined with shorthand form", fixture do
+      standard_click_and_get_test("core6")
+
+      assert Drab.Core.exec_js(fixture.socket, "document.getElementById('core7_out').innerHTML") ==
+               {:ok, "core7"}
+    end
+
+    test "debounce", fixture do
+      for t <- ["1", "2", "3"] do
+        input = find_element(:id, "core#{t}_input")
+        fill_field(input, "something")
+
+        assert Drab.Core.exec_js(
+                 fixture.socket,
+                 "document.getElementById('input#{t}_out').innerHTML"
+               ) == {:ok, ""}
+
+        Process.sleep(600)
+
+        assert Drab.Core.exec_js(
+                 fixture.socket,
+                 "document.getElementById('input#{t}_out').innerHTML"
+               ) == {:ok, "input#{t}"}
+      end
+    end
+
     test "session" do
       # this session value should be visible
       session_value = find_element(:id, "test_session_value1")

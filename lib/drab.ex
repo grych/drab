@@ -530,7 +530,8 @@ defmodule Drab do
   end
 
   @doc false
-  @spec detokenize(Phoenix.Socket.t() | Plug.Conn.t(), String.t(), String.t()) :: term() | no_return
+  @spec detokenize(Phoenix.Socket.t() | Plug.Conn.t(), String.t(), String.t()) ::
+          term() | no_return
   def detokenize(socket, token, salt \\ "drab token") do
     case Phoenix.Token.verify(socket, salt, token, max_age: 86_400) do
       {:ok, detokenized} ->

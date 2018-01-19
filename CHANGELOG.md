@@ -1,6 +1,6 @@
 # CHANGELOG
-## v0.6.4
-Adds few important features. Tested with Elixir 1.6.0.
+## v0.7.0
+Updated the Drab core to introduce few important features. Tested with Elixir 1.6.0.
 
 ### Possibility to provide own `connect/2` callback for socket authentication, etc
 Previously, Drab intercepted the `connect/2` callback in your `UserSocket`. Now, there is a possibility to use your own callback:
@@ -15,7 +15,7 @@ Previously, Drab intercepted the `connect/2` callback in your `UserSocket`. Now,
       end
     end
 
-[Further reading](https://hexdocs.pm/drab/Drab.Socket.html#module-method-2-use-your-own-connect-2-callback)
+[Do You Want to Know More?](https://hexdocs.pm/drab/Drab.Socket.html#module-method-2-use-your-own-connect-2-callback)
 
 ### Use of the custom marker "/" in Drab templates
 This version allow you to use of `<%/ %>` marker to avoid using `Drab.Live` for a given expression. The expression would be treaten as a normal Phoenix one, so will be displayed in rendered html, but Drab will have no access to it.
@@ -26,7 +26,22 @@ This version allow you to use of `<%/ %>` marker to avoid using `Drab.Live` for 
 </div>
 ```
 
-[Further reading](https://hexdocs.pm/drab/Drab.Live.html#module-avoiding-using-drab)
+[Do You Want to Know More?](https://hexdocs.pm/drab/Drab.Live.html#module-avoiding-using-drab)
+
+### Changed event definition core
+The existing syntax `drab-event` and `drab-handler` attributes does not allow having multiple events on the one DOM object (#73). This form is now depreciated and replaces with the brand new, better syntax of:
+
+    <tag drab="event:handler">
+
+Now may set more event on the single object:
+
+    <input drab="focus:input_focus blur:input_blur"
+
+or: 
+
+    <input drab-focus="input_focus" drab-blur="input_blur">
+
+[Do You Want to Know More?](https://hexdocs.pm/drab/Drab.Core.html#module-events)
 
 ### Event shorthands list is now configurable
 By default, you can use only few arbitrary-chosen shorthands for the event name / handler name (`drab-click="clicked"`) attribute. Now you may configure the list with `:events_shorthands` config.
@@ -35,12 +50,12 @@ See #73.
 ### Style changes:
 * source code formatted with 1.6.0
 * use `@impl true` in behaviour callbacks
+* started annotating all functions with `@spec` (so far only few)
+* small style improvements suggested by Credo
 
 ### Depreciations:
 * `Drab.Client.js/2` becomes `Drab.Client.run/2`
-
-### More:
-* small fixes as suggested by Dialyzer and Credo
+* `drab-event` and `drab-handler` attributes combination replaced by `drab`
 
 ## v0.6.3
 Changes:

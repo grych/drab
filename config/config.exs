@@ -26,3 +26,5 @@ config :phoenix, :template_engines, drab: Drab.Live.Engine
 config :drab, templates_path: "test/support/priv/templates/drab"
 
 config :drab, enable_live_scripts: true
+
+config :drab, :events_shorthands, ["click", "keyup", "keydown", "change", "mousedown"]

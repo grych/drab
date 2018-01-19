@@ -133,81 +133,99 @@ Drab.enable_drab_on = function(selector) {
   Drab.set_event_handlers(selector);
 }
 
+function add_drab_attribute(node, event, handler, options) {
+  if ((!event) || (!handler)) {
+    Drab.error("Event and handler name must be set for: " + node);
+  } else {
+    var events_and_handlers = node.getAttribute("drab");
+    node.setAttribute("drab",
+      (events_and_handlers ? events_and_handlers + " " : "") +
+      event + (options ? "#" + options : "") +
+      ":" + handler
+      );
+  }
+}
+
 // re-read event handlers
 Drab.set_event_handlers = function (obj) {
   var drab_objects = [];
-  var drab_objects_shortcut = [];
+  var drab_objects_shortcutted = [];
+  var where = obj ? document.querySelector(obj).parentNode : document;
 
-  // first serve the shortcut controls by adding the longcut attributes
+  // first serve the shortcut controls by adding the internal attribute
   for (var ei = 0; ei < EVENT_SHORTCUTS.length; ei++) {
     var ev = EVENT_SHORTCUTS[ei];
-    if (obj) {
-      var o = document.querySelector(obj);
-      if (o) {
-        drab_objects_shortcut = o.parentNode.querySelectorAll("[drab-" + ev + "]");
-      }
-    } else {
-      drab_objects_shortcut = document.querySelectorAll("[drab-" + ev + "]");
-    }
-    for (var i = 0; i < drab_objects_shortcut.length; i++) {
-      var node = drab_objects_shortcut[i];
-      node.setAttribute("drab-event", ev);
-      node.setAttribute("drab-handler", node.getAttribute("drab-" + ev));
+
+    drab_objects_shortcutted = where.querySelectorAll("[drab-" + ev + "]");
+    for (var i = 0; i < drab_objects_shortcutted.length; i++) {
+      var node = drab_objects_shortcutted[i];
+      add_drab_attribute(node, ev, node.getAttribute("drab-" + ev), node.getAttribute("drab-options"));
     };
   }
 
-  if (obj) {
-    var o = document.querySelector(obj);
-    if (o) {
-      drab_objects = o.parentNode.querySelectorAll("[drab-event]");
-    }
-  } else {
-    drab_objects = document.querySelectorAll("[drab-event]");
+  // long way, to be depreciated
+  // drab-event= drab-handler= drab-options=
+  var drab_objects_long = where.querySelectorAll("[drab-event]");
+  for (var i = 0; i < drab_objects_long.length; i++) {
+    var node = drab_objects_long[i];
+    add_drab_attribute(
+      node,
+      node.getAttribute("drab-event"),
+      node.getAttribute("drab-handler"),
+      node.getAttribute("drab-options")
+      )
   }
 
   var events_to_disable = EVENTS_TO_DISABLE;
+  drab_objects = where.querySelectorAll("[drab]")
 
   for (var i = 0; i < drab_objects.length; i++) {
     var node = drab_objects[i];
-    if (node.getAttribute("drab-handler")) {
+    var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
+    for (var j = 0; j < events_and_handlers.length; j++) {
+      var event_and_handler = events_and_handlers[j];
+      var l = event_and_handler.split(":");
+      var event_with_options = l[0].split("#");
+      var event_name = event_with_options[0];
+      var options = event_with_options[1];
+      let handler_name = l[1];
 
-      var event_handler_function = function (event) {
-        // disable current control - will be re-enabled after finish
-        var n = this;
-        <%= if Drab.Config.get(:disable_controls_while_processing) do %>
-          if (events_to_disable.indexOf(event.type) >= 0) {
-            n['disabled'] = true;
-          }
-        <% end %>
-        Drab.setid(n);
-        // send the message back to the server
-        Drab.exec_elixir(
-          n.getAttribute("drab-handler"),
-          payload(n, event)
-          <%= if Drab.Config.get(:disable_controls_while_processing) do %>
-            , function() {
-                n['disabled'] = false
-              }
-          <% end %>
-        );
-        return false; // prevent default
-      };
-
-      var event_name = node.getAttribute("drab-event");
-
-      // options. Wraps around event_handler_function, eg. debounce(event_handler_function, 500)
-      var options = node.getAttribute("drab-options");
-      var matched = /(\w+)\s*\((.*)\)/.exec(options);
-      if (matched) {
-        var fname = matched[1];
-        var fargs = matched[2].replace(/^\s+|\s+$/g, ''); // strip whitespace
-        var f = fname + "(event_handler_function" + (fargs == "" ? "" : ", " + fargs) + ")";
-        update_event_handler(node, event_name, eval(f));
+      if ((!handler_name) || (!event_name)) {
+        Drab.error("Drab attribute value '" + event_and_handler + "' incorrect for " + node)
       } else {
-        update_event_handler(node, event_name, event_handler_function);
+        var event_handler_function = function (event) {
+          // disable current control - will be re-enabled after finish
+          var n = this;
+          <%= if Drab.Config.get(:disable_controls_while_processing) do %>
+            if (events_to_disable.indexOf(event.type) >= 0) {
+              n['disabled'] = true;
+            }
+          <% end %>
+          Drab.setid(n);
+          // send the message back to the server
+          Drab.exec_elixir(
+            handler_name,
+            payload(n, event)
+            <%= if Drab.Config.get(:disable_controls_while_processing) do %>
+              , function() {
+                  n['disabled'] = false
+                }
+            <% end %>
+          );
+          return false; // prevent default
+        };
+
+        // options. Wraps around event_handler_function, eg. debounce(event_handler_function, 500)
+        var matched = /(\w+)\s*\((.*)\)/.exec(options);
+        if (matched) {
+          var fname = matched[1];
+          var fargs = matched[2].replace(/^\s+|\s+$/g, ''); // strip whitespace
+          var f = fname + "(event_handler_function" + (fargs == "" ? "" : ", " + fargs) + ")";
+          update_event_handler(node, event_name, eval(f));
+        } else {
+          update_event_handler(node, event_name, event_handler_function);
+        }
       }
-    } else {
-      console.log("Drab Error: drab-event definded without drab-handler", this);
     }
   };
 };
