@@ -137,12 +137,13 @@ function add_drab_attribute(node, event, handler, options) {
   if ((!event) || (!handler)) {
     Drab.error("Event and handler name must be set for: " + node);
   } else {
-    var events_and_handlers = node.getAttribute("drab");
-    node.setAttribute("drab",
-      (events_and_handlers ? events_and_handlers + " " : "") +
-      event + (options ? "#" + options : "") +
-      ":" + handler
-      );
+    var events_and_handlers = node.getAttribute("drab") || "";
+    var new_event_handler = event + (options ? "#" + options : "") + ":" + handler;
+    if (events_and_handlers.indexOf(new_event_handler) == -1) {
+      node.setAttribute("drab",
+        events_and_handlers + " " + new_event_handler
+        );
+    }
   }
 }
 
