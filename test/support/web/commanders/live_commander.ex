@@ -96,7 +96,6 @@ defmodule DrabTestApp.LiveCommander do
     # peek(socket, :in_partial) |> IO.inspect()
   end
 
-
   # defp loop(socket) do
   #   IO.inspect self()
   #   IO.inspect socket
