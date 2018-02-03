@@ -1,5 +1,5 @@
 # CHANGELOG
-## [v0.7.0]
+## [0.7.0]
 Updated the Drab core to introduce few important features. Fixed to Elixir version `>= 1.5.2`. Tested with Elixir 1.6.0.
 
 ### Possibility to provide own `connect/2` callback for socket authentication, etc
