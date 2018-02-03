@@ -1,5 +1,11 @@
 # CHANGELOG
-## [0.7.0] - 2018-01-20
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [Unreleased][unreleased]
+
+## [v0.7.0] - 2018-01-20
 Updated the Drab core to introduce few important features. Fixed to Elixir version `>= 1.5.2`. Tested with Elixir 1.6.0.
 
 ### Possibility to provide own `connect/2` callback for socket authentication, etc
