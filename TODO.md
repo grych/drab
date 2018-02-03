@@ -3,7 +3,8 @@
 
 ## Future
 Changes:
-* [1.6] consider DynamicSupervisor as a replacement for Drab GenServer
+* <input drab="focus:input_focus(42) blur:input_blur()" />
+* consider DynamicSupervisor as a replacement for Drab GenServer
 * is `use Drab.Commander` really necessary?
 * <p drab-commander>
 * check token on each incoming message
