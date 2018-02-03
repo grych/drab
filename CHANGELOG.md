@@ -1,11 +1,5 @@
 # CHANGELOG
-
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
-
-## [Unreleased][unreleased]
-
-## [v0.7.0] - 2018-01-20
+## v0.7.0
 Updated the Drab core to introduce few important features. Fixed to Elixir version `>= 1.5.2`. Tested with Elixir 1.6.0.
 
 ### Possibility to provide own `connect/2` callback for socket authentication, etc
@@ -63,7 +57,7 @@ See #73.
 * `Drab.Client.js/2` becomes `Drab.Client.run/2`
 * `drab-event` and `drab-handler` attributes combination replaced by `drab`
 
-## [v0.6.3]
+## v0.6.3
 Changes:
 * workaround for #71: better docs and error message
 * `Drab.Live.poke` returns {:error, description} on error
@@ -71,7 +65,7 @@ Changes:
 * assign list with `Drab.Live.assigns` (#72)
 
 
-## [v0.6.2]
+## v0.6.2
 Bug fixes:
 * live_helper_modules config entry now allows list (#66)
 * when updating `value` attribute, `poke` updates property as well (for inputs and textareas)
@@ -79,7 +73,7 @@ Bug fixes:
 * changed the way drab is asking for a store and session on connect; probably fixed #68
 
 
-## [v0.6.1]
+## v0.6.1
 This release fixes new, better bugs introduced in v0.6.0:
 * "atom :save_assigns not found" error
 * `@conn` case (it was not removing @conn from the initial)
@@ -88,7 +82,7 @@ This release fixes new, better bugs introduced in v0.6.0:
 ### Please read documentation for `Drab.Browser`, the API has changed
 * cleaned up the mess with API in `Drab.Browser`
 
-## [v0.6.0]
+## v0.6.0
 This is a major release. The biggest change is completely redesigned engine for `Drab.Live` with `nodrab` option. Also introducting **shared commanders**, updates in `Drab.Browser`, performance and bug fixes.
 
 ### Migration from 0.5
