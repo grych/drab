@@ -9,7 +9,6 @@ install: # Install ChromeDriver (64bits; replace 64 with 32 for 32bits).
   - sudo mv -f ~/chromedriver /usr/local/share/
   - sudo chmod +x /usr/local/share/chromedriver
   - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
-  - nohup /usr/local/bin/chromedriver &
   - mix local.hex --force
   - mix local.rebar --force
   - mix deps.get
@@ -25,6 +24,7 @@ env:
   - WEBDRIVER=chromedriver_linux64.zip
 
 before_script:
+  - nohup /usr/local/bin/chromedriver &
   - #"export DISPLAY=:99.0"
   - #"/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
   - #bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
