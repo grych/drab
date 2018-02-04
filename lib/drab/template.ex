@@ -26,6 +26,7 @@ defmodule Drab.Template do
   end
 
   # catch-all is to give a warning when file not found
+  @spec compiled_template(String.t()) :: String.t() | no_return
   defp compiled_template(filename) do
     raise "Can't find the template `#{filename}` in `#{user_templates()}`"
   end
