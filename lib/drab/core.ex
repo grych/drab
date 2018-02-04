@@ -195,7 +195,7 @@ defmodule Drab.Core do
   @type result :: {status, return}
 
   @typedoc "Return value of `broadcast_js/2`"
-  @type bcast_result :: :ok | {:error, term}
+  @type bcast_result :: {:ok, term} | {:error, term}
 
   @typedoc "Subject for broadcasting"
   @type subject :: Phoenix.Socket.t() | String.t() | list

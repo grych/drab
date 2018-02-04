@@ -43,6 +43,9 @@ defmodule Drab.Query do
   `Drab.Commander.broadcasting/1` to find out more).
   """
 
+  @typedoc "The return value of select functions"
+  @type selected :: String.t() | map | no_return
+
   use DrabModule
 
   @impl true
@@ -116,6 +119,7 @@ defmodule Drab.Query do
 
   Additionally, `id` and `name` attributes are included into a Map.
   """
+  @spec select(Phoenix.Socket.t(), Keyword.t()) :: selected
   def select(socket, options)
 
   def select(socket, [{method, argument}, from: selector])
@@ -128,6 +132,7 @@ defmodule Drab.Query do
   end
 
   @doc "See `Drab.Query.select/2`"
+  @spec select(Phoenix.Socket.t(), atom, Keyword.t()) :: selected
   def select(socket, method, options)
 
   def select(socket, method, from: selector)
@@ -185,6 +190,7 @@ defmodule Drab.Query do
 
   Available jQuery methods: see `Drab.Query.select/2`
   """
+  @spec update(Phoenix.Socket.t(), Keyword.t()) :: Phoenix.Socket.t()
   def update(socket, attr: "data-" <> data, set: set, on: on) do
     data_attr_warn!(data, set, on)
     do_update(socket, @broadcast, attr: "data-" <> data, set: set, on: on)
@@ -201,6 +207,7 @@ defmodule Drab.Query do
   end
 
   @doc "See `Drab.Query.update/2`"
+  @spec update(Phoenix.Socket.t(), atom, Keyword.t()) :: Phoenix.Socket.t()
   def update(socket, method, options) do
     do_update(socket, @no_broadcast, method, options)
     socket
@@ -213,17 +220,20 @@ defmodule Drab.Query do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
+  @spec update!(Drab.Core.subject(), Keyword.t()) :: Drab.Core.subject()
   def update!(socket, options) do
     do_update(socket, @broadcast, options)
     socket
   end
 
   @doc "See `Drab.Query.update!/2`"
+  @spec update!(Drab.Core.subject(), atom, Keyword.t()) :: Drab.Core.subject()
   def update!(socket, method, options) do
     do_update(socket, @broadcast, method, options)
     socket
   end
 
+  @spec do_update(Drab.Core.subject(), function, Keyword.t()) :: tuple | no_return
   defp do_update(socket, broadcast, [{method, argument}, set: values, on: selector])
        when method in @methods_with_argument do
     value = next_value(socket, values, method, argument, selector)
@@ -358,12 +368,14 @@ defmodule Drab.Query do
       socket |> insert(class: "btn-success", into: "#button")
       socket |> insert("<b>warning</b>", before: "#pane")
   """
+  @spec insert(Phoenix.Socket.t(), Keyword.t()) :: Phoenix.Socket.t()
   def insert(socket, options) do
     do_insert(socket, @no_broadcast, options)
     socket
   end
 
   @doc "See `Drab.Query.insert/2`"
+  @spec insert(Phoenix.Socket.t(), String.t(), Keyword.t()) :: Phoenix.Socket.t()
   def insert(socket, html, options) do
     do_insert(socket, @no_broadcast, html, options)
     socket
@@ -376,17 +388,20 @@ defmodule Drab.Query do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
+  @spec insert!(Drab.Core.subject(), Keyword.t()) :: Drab.Core.subject()
   def insert!(socket, options) do
     do_insert(socket, @broadcast, options)
     socket
   end
 
   @doc "See `Drab.Query.insert/2`"
+  @spec insert!(Drab.Core.subject(), String.t(), Keyword.t()) :: Drab.Core.subject()
   def insert!(socket, html, options) do
     do_insert(socket, @broadcast, html, options)
     socket
   end
 
+  @spec do_insert(Drab.Core.subject(), function, Keyword.t()) :: tuple | no_return
   defp do_insert(socket, broadcast, class: class, into: selector) do
     {:ok, do_query(socket, selector, jquery_method(:addClass, class), :insert, broadcast)}
   end
@@ -424,6 +439,7 @@ defmodule Drab.Query do
       socket |> delete(from: "code") # empty all `<code>`, but node remains
       socket |> delete(class: "btn-success", from: "#button")
   """
+  @spec delete(Phoenix.Socket.t(), Keyword.t() | String.t()) :: Phoenix.Socket.t()
   def delete(socket, options) do
     do_delete(socket, @no_broadcast, options)
     socket
@@ -436,11 +452,13 @@ defmodule Drab.Query do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
+  @spec delete!(Drab.Core.subject(), Keyword.t() | String.t()) :: Drab.Core.subject()
   def delete!(socket, options) do
     do_delete(socket, @broadcast, options)
     socket
   end
 
+  @spec do_delete(Drab.Core.subject(), function, Keyword.t() | String.t()) :: tuple | no_return
   defp do_delete(socket, broadcast, from: selector) do
     {:ok, do_query(socket, selector, jquery_method(:empty), :delete, broadcast)}
   end
@@ -474,6 +492,7 @@ defmodule Drab.Query do
       socket |> execute(trigger: "click", on: "#mybutton")
       socket |> execute("trigger(\"click\")", on: "#mybutton")
   """
+  @spec execute(Phoenix.Socket.t(), Keyword.t()) :: Phoenix.Socket.t()
   def execute(socket, options) do
     do_execute(socket, @no_broadcast, options)
     socket
@@ -482,6 +501,7 @@ defmodule Drab.Query do
   @doc """
   See `Drab.Query.execute/2`
   """
+  @spec execute(Phoenix.Socket.t(), String.t(), Keyword.t()) :: Phoenix.Socket.t()
   def execute(socket, method, options) do
     do_execute(socket, @no_broadcast, method, options)
     socket
@@ -494,6 +514,7 @@ defmodule Drab.Query do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
+  @spec execute!(Drab.Core.subject(), Keyword.t()) :: Drab.Core.subject()
   def execute!(socket, options) do
     do_execute(socket, @broadcast, options)
     socket
@@ -502,6 +523,7 @@ defmodule Drab.Query do
   @doc """
   See `Drab.Query.execute!/2`
   """
+  @spec execute!(Drab.Core.subject(), String.t(), Keyword.t()) :: Drab.Core.subject()
   def execute!(socket, method, options) do
     do_execute(socket, @broadcast, method, options)
     socket

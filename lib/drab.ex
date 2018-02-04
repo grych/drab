@@ -487,12 +487,13 @@ defmodule Drab do
   end
 
   @doc false
+  @spec push(Phoenix.Socket.t(), pid, reference | nil, String.t(), Keyword.t()) :: :ok | no_return
   def push(socket, pid, ref, message, payload \\ []) do
     do_push_or_broadcast(socket, pid, ref, message, payload, &Phoenix.Channel.push/3)
   end
 
   @doc false
-  # @spec broadcast(Drab.Core.subject(), pid, String.t(), Keyword.t()) :: :ok
+  @spec broadcast(Drab.Core.subject(), pid | nil, String.t(), Keyword.t()) :: :ok | no_return
   def broadcast(subject, pid, message, payload \\ [])
 
   def broadcast(%Phoenix.Socket{} = socket, pid, message, payload) do
@@ -517,7 +518,14 @@ defmodule Drab do
     :ok
   end
 
-  # @spec do_push_or_broadcast(Phoenix.Socket.t(), pid, reference, String.t(), map, function) :: any
+  @spec do_push_or_broadcast(
+          Phoenix.Socket.t() | Drab.Core.subject(),
+          pid | nil,
+          reference | nil,
+          String.t(),
+          Keyword.t(),
+          function
+        ) :: :ok | no_return
   defp do_push_or_broadcast(socket, pid, ref, message, payload, function) do
     m = payload |> Enum.into(%{}) |> Map.merge(%{sender: tokenize(socket, {pid, ref})})
     function.(socket, message, m)

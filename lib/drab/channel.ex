@@ -4,6 +4,7 @@ defmodule Drab.Channel do
 
   use Phoenix.Channel
 
+  @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}
   def join("__drab:" <> broadcast_topic, _, socket) do
     # socket already contains controller and action
     socket_with_topic = socket |> assign(:__broadcast_topic, broadcast_topic)
@@ -15,6 +16,7 @@ defmodule Drab.Channel do
     {:ok, socket_with_pid}
   end
 
+  @spec handle_in(String.t(), map, Phoenix.Socket.t()) :: {:noreply, Phoenix.Socket.t()}
   def handle_in("execjs", %{"ok" => [sender_encrypted, reply]}, socket) do
     # sender contains PID of the process which sent the query
     # sender is waiting for the result
@@ -135,12 +137,14 @@ defmodule Drab.Channel do
     verify_and_cast(:event, [payload, event_handler_function, reply_to], socket)
   end
 
+  @spec verify_and_cast(atom, list, Phoenix.Socket.t()) :: {:noreply, Phoenix.Socket.t()}
   defp verify_and_cast(event_name, params, socket) do
     p = [event_name, socket] ++ params
     GenServer.cast(socket.assigns.__drab_pid, List.to_tuple(p))
     {:noreply, socket}
   end
 
+  @spec sender(Phoenix.Socket.t(), String.t()) :: {pid, reference}
   defp sender(socket, sender_encrypted) do
     Drab.detokenize(socket, sender_encrypted)
   end
