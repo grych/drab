@@ -36,12 +36,14 @@ defmodule Drab.Live.Crypto do
   end
 
   @doc false
+  @spec encrypt(term) :: String.t()
   def encrypt(term) do
     {secret, sign_secret} = keys()
     MessageEncryptor.encrypt(:erlang.term_to_binary(term), secret, sign_secret)
   end
 
   @doc false
+  @spec decrypt(String.t()) :: term
   def decrypt(crypted) do
     {secret, sign_secret} = keys()
     {:ok, decrypted} = MessageEncryptor.decrypt(crypted, secret, sign_secret)
@@ -49,6 +51,7 @@ defmodule Drab.Live.Crypto do
   end
 
   @doc false
+  @spec keys :: {String.t(), String.t()}
   defp keys() do
     secret_key_base = Drab.Config.app_config(:secret_key_base)
     secret = KeyGenerator.generate(secret_key_base, "Drab.Live.Crypto salt")
@@ -56,9 +59,11 @@ defmodule Drab.Live.Crypto do
     {secret, sign_secret}
   end
 
+  @spec now_ms :: integer
   defp now_ms(), do: System.system_time(:millisecond)
 
   @doc false
+  @spec hash(term) :: String.t()
   def hash(term) do
     term
     |> :erlang.phash2(4_294_967_296)
