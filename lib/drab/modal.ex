@@ -66,6 +66,8 @@ defmodule Drab.Modal do
                   buttons: [ok: "Yes", cancel: "No", unspecified: "Don't know"])
 
   """
+  @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) :: Drab.Core.return()
+  @spec alert(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return()
   def alert(socket, title, body, options \\ []) do
     buttons = options[:buttons] || [ok: "OK"]
 
@@ -88,6 +90,7 @@ defmodule Drab.Modal do
     result
   end
 
+  @spec buttons_html(Keyword.t()) :: String.t()
   defp buttons_html(buttons) do
     buttons
     |> Enum.map(fn {button, label} ->
