@@ -19,9 +19,9 @@ defmodule DrabTestApp.IntegrationCase do
     end
   end
 
-  setup _tags do
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
-  end
+  # setup _tags do
+  #   {:ok, conn: Phoenix.ConnTest.build_conn()}
+  # end
 
   def wait_for_enable(element) do
     if element |> element_enabled? do
