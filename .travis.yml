@@ -2,9 +2,18 @@ language: elixir
 dist: trusty
 addons:
   chrome: stable
+install: # Install ChromeDriver (64bits; replace 64 with 32 for 32bits).
+  - wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip -P ~/
+  - unzip ~/chromedriver_linux64.zip -d ~/
+  - rm ~/chromedriver_linux64.zip
+  - sudo mv -f ~/chromedriver /usr/local/share/
+  - sudo chmod +x /usr/local/share/chromedriver
+  - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
+before_install:
+  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
 
 elixir:
-  - 1.4
+  - 1.5.1
 otp_release:
   - 19.3
 
@@ -12,11 +21,11 @@ env:
   - WEBDRIVER=selenium
 
 before_script:
-  - "export DISPLAY=:99.0"
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
-  - bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
+  - #"export DISPLAY=:99.0"
+  - #"/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  - #bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
 
-script: mix test 
+script: mix test
 
 after_script:
   - cd $TRAVIS_BUILD_DIR
