@@ -15,6 +15,7 @@ defmodule Drab.Live.Cache do
   # DETS table is created and filled up during the compile-time.
 
   @doc false
+  @spec start:: :ok
   def start() do
     # if :dets.info(cache_file()) == :undefined do
     {:ok, _} = :dets.open_file(cache_file(), type: :set, ram_file: true)
@@ -23,6 +24,7 @@ defmodule Drab.Live.Cache do
   end
 
   @doc false
+  @spec stop:: :ok
   def stop() do
     :dets.close(cache_file())
   end
