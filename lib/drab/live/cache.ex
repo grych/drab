@@ -15,7 +15,7 @@ defmodule Drab.Live.Cache do
   # DETS table is created and filled up during the compile-time.
 
   @doc false
-  @spec start:: :ok
+  @spec start :: :ok
   def start() do
     # if :dets.info(cache_file()) == :undefined do
     {:ok, _} = :dets.open_file(cache_file(), type: :set, ram_file: true)
@@ -24,13 +24,14 @@ defmodule Drab.Live.Cache do
   end
 
   @doc false
-  @spec stop:: :ok
+  @spec stop :: :ok
   def stop() do
     :dets.close(cache_file())
   end
 
   # Runtime function. Lookup in the already opened ETS cache
   @doc false
+  @spec get(atom | String.t() | tuple) :: term
   def get(k) do
     val =
       case :dets.lookup(cache_file(), k) do
@@ -43,12 +44,14 @@ defmodule Drab.Live.Cache do
   end
 
   @doc false
+  @spec set(atom | String.t() | tuple, term) :: :ok
   def set(k, v) do
     :dets.insert(cache_file(), {k, v})
     :dets.sync(cache_file())
   end
 
   @doc false
+  @spec add(atom | String.t() | tuple, term) :: :ok
   def add(k, v) do
     list = get(k) || []
     :dets.insert(cache_file(), {k, list ++ [v]})
@@ -56,6 +59,7 @@ defmodule Drab.Live.Cache do
   end
 
   @doc false
+  @spec cache_file :: String.t()
   def cache_file() do
     # "#{Path.join(Drab.Config.app_name() |> :code.priv_dir() |> to_string(), @cache_file)}"
     "#{Path.join(:drab |> :code.priv_dir() |> to_string(), @cache_file)}"
