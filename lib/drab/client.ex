@@ -72,11 +72,13 @@ defmodule Drab.Client do
   Please remember that your parameters are passed to the browser as Phoenix Token. Token is signed,
   but not ciphered. Do not put any secret data in it.
   """
+  @spec run(Plug.Conn.t(), Keyword.t()) :: String.t()
   def run(conn, assigns \\ []) do
     generate_drab_js(conn, true, assigns)
   end
 
   @doc false
+  @spec js(Plug.Conn.t(), Keyword.t()) :: String.t()
   def js(conn, assigns \\ []) do
     Deppie.warn("""
     Drab.Client.js/2 is depreciated.
@@ -104,10 +106,12 @@ defmodule Drab.Client do
 
   Please check `Drab.Socket` for more information about how to handle the auth tokens with Drab.
   """
+  @spec generate(Plug.Conn.t(), Keyword.t()) :: String.t()
   def generate(conn, assigns \\ []) do
     generate_drab_js(conn, false, assigns)
   end
 
+  @spec generate_drab_js(Plug.Conn.t(), boolean, Keyword.t()) :: String.t()
   defp generate_drab_js(conn, connect?, assigns) do
     controller = Phoenix.Controller.controller_module(conn)
     # Enable Drab only if Controller compiles with `use Drab.Controller`
@@ -158,6 +162,7 @@ defmodule Drab.Client do
   end
 
   # defp topic(:all, _, _), do: "all"
+  @spec topic(atom | String.t(), atom | String.t(), String.t()) :: String.t()
   defp topic(:same_path, _, path), do: Drab.Core.same_path(path)
   defp topic(:same_controller, controller, _), do: Drab.Core.same_controller(controller)
   defp topic(topic, _, _) when is_binary(topic), do: Drab.Core.same_topic(topic)
