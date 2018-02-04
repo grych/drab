@@ -1,6 +1,8 @@
 defmodule Drab.Live.HTML do
   @moduledoc false
 
+  @type token :: {:tag, String.t()} | {:text, String.t()} | {:naked, String.t()}
+
   @doc """
   Simple html tokenizer. Works with nested lists.
 
@@ -38,7 +40,7 @@ defmodule Drab.Live.HTML do
       iex> tokenize(["<tag", :atom, ">"])
       [[naked: "tag"], :atom, [{:text, ">"}], {:other, []}]
   """
-  @spec tokenize(String.t() | list) :: list
+  @spec tokenize(String.t() | list) :: [token]
   def tokenize("") do
     [{:text, ""}]
   end
@@ -142,6 +144,7 @@ defmodule Drab.Live.HTML do
   """
   # def tokenized_to_html([:empty]), do: []
   # def tokenized_to_html(:empty), do: ""
+  @spec tokenized_to_html([token | Macro.t() | String.t()]) :: String.t() | list
   def tokenized_to_html([{:other, []}]), do: []
   def tokenized_to_html({:other, []}), do: ""
   def tokenized_to_html([]), do: ""
@@ -249,6 +252,7 @@ defmodule Drab.Live.HTML do
     iex> inject_attribute_to_last_opened "<img attr=2 src", "attr=1"
     {:already_there, "<img attr=2 src", "attr=2"}
   """
+  @spec inject_attribute_to_last_opened(String.t() | list | Macro.t(), String.t()) :: String.t() | list | Macro.t()
   def inject_attribute_to_last_opened(buffer, attribute) when is_tuple(buffer) do
     # in case when there is no text between expressions
     {result, [acc], attribute} = inject_attribute_to_last_opened([buffer], attribute)
@@ -335,6 +339,7 @@ defmodule Drab.Live.HTML do
       iex> add_attribute("tag tag=2", "attr=1")
       "tag attr=1 tag=2"
   """
+  @spec add_attribute(String.t(), String.t()) :: String.t()
   def add_attribute(tag, attribute) do
     String.replace(tag, tag_name(tag), "#{tag_name(tag)} #{attribute}", global: false)
   end
@@ -354,6 +359,7 @@ defmodule Drab.Live.HTML do
       iex> find_attribute("tag attrx = 1 attr = '2' attra= 4 ", "attr = 3")
       "attr='2'"
   """
+  @spec find_attribute(String.t(), String.t()) :: String.t() | nil
   def find_attribute(tag, attr) do
     [attr_name | _] =
       attr
@@ -378,6 +384,7 @@ defmodule Drab.Live.HTML do
   @doc """
   Converts buffer to html. Nested expressions are ignored.
   """
+  @spec to_flat_html(Phoenix.HTML.safe() | list) :: String.t()
   def to_flat_html({:safe, body}), do: to_flat_html(body)
   def to_flat_html(body), do: body |> do_to_flat_html() |> List.flatten() |> Enum.join()
 
@@ -431,6 +438,7 @@ defmodule Drab.Live.HTML do
       iex> in_opened_tag? "<input type='text' value='"
       true
   """
+  @spec in_opened_tag?(Phoenix.HTML.safe() | list) :: boolean
   def in_opened_tag?({:safe, body}), do: in_opened_tag?(body)
 
   def in_opened_tag?(body) do
@@ -460,6 +468,7 @@ defmodule Drab.Live.HTML do
   Returns amperes and patterns from flat html.
   Pattern is processed by Floki, so it doesn't have to be the same as original!
   """
+  @spec amperes_from_buffer(Phoenix.HTML.safe() | list) :: map
   def amperes_from_buffer({:safe, buffer}) when is_list(buffer) do
     buffer
     |> to_flat_html()
@@ -502,7 +511,7 @@ defmodule Drab.Live.HTML do
   # end
 
   # defp amperes_from_html(list) when is_list(list), do: amperes_from_html(to_flat_html(list))
-
+  @spec amperes_from_html(String.t()) :: map
   defp amperes_from_html(html) when is_binary(html) do
     with_amperes =
       html
@@ -535,6 +544,7 @@ defmodule Drab.Live.HTML do
   @doc """
   Finds a real property name (case sensitive), based on the attribute (lowercased) name
   """
+  @spec case_sensitive_prop_name(String.t(), String.t(), String.t()) :: String.t()
   def case_sensitive_prop_name(html, ampere, prop_name) do
     {:tag, body} =
       html
@@ -569,6 +579,7 @@ defmodule Drab.Live.HTML do
   @doc """
   Removes all Drab's marks from the buffer
   """
+  @spec remove_drab_marks(Phoenix.HTML.safe() | list) :: Phoenix.HTML.safe() | list
   def remove_drab_marks({:safe, buffer}) do
     {:safe, remove_drab_marks(buffer)}
   end
@@ -654,6 +665,7 @@ defmodule Drab.Live.HTML do
       iex> deep_reverse [1, [2, 3], 4]
       [4, [3, 2], 1]
   """
+  @spec deep_reverse(list) :: list
   def deep_reverse(list) do
     list |> Enum.reverse()
     |> Enum.map(fn
