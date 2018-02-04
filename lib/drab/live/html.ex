@@ -38,6 +38,7 @@ defmodule Drab.Live.HTML do
       iex> tokenize(["<tag", :atom, ">"])
       [[naked: "tag"], :atom, [{:text, ">"}], {:other, []}]
   """
+  @spec tokenize(String.t() | list) :: list
   def tokenize("") do
     [{:text, ""}]
   end
