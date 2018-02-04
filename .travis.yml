@@ -9,6 +9,9 @@ install: # Install ChromeDriver (64bits; replace 64 with 32 for 32bits).
   - sudo mv -f ~/chromedriver /usr/local/share/
   - sudo chmod +x /usr/local/share/chromedriver
   - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
+  - nohup /usr/local/bin/chromedriver &
+  - mix local.hex --force
+  - mix deps.get
 before_install:
   - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
 
