@@ -273,7 +273,7 @@ defmodule Drab.Core do
             lib/drab/core.ex:114: Drab.Core.exec_js!/3
 
   """
-  @spec exec_js!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: return
+  @spec exec_js!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: return | no_return
   def exec_js!(socket, js, options \\ []) do
     case exec_js(socket, js, options) do
       {:ok, result} -> result
