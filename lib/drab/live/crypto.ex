@@ -5,26 +5,31 @@ defmodule Drab.Live.Crypto do
   alias Plug.Crypto.MessageEncryptor
 
   @doc false
+  @spec uuid :: String.t()
   def uuid(), do: "u" <> ({now_ms(), make_ref()} |> hash())
 
   # The most effective way for store assigns in the browser is basic encode
   @doc false
+  @spec encode32(term) :: String.t()
   def encode32(term) do
     term |> :erlang.term_to_binary() |> Base.encode32(padding: false, case: :lower)
   end
 
   @doc false
+  @spec decode32(String.t()) :: term()
   def decode32(string) do
     string |> Base.decode32!(padding: false, case: :lower) |> :erlang.binary_to_term()
   end
 
   @doc false
+  @spec encode64(term) :: String.t()
   def encode64(term) do
     # term |> :erlang.term_to_binary() |> Base.url_encode64()
     term |> encrypt()
   end
 
   @doc false
+  @spec decode64(String.t()) :: term()
   def decode64(string) do
     # string |> Base.url_decode64!() |> :erlang.binary_to_term()
     string |> decrypt()
