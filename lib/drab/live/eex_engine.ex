@@ -249,6 +249,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/Us
+  @spec compiled_from_pattern(atom, String.t(), String.t(), String.t()) :: Macro.t() | no_return
   defp compiled_from_pattern(:prop, pattern, tag, property) do
     case compiled_from_pattern(:other, pattern, tag, property) do
       [expr | []] when is_tuple(expr) ->
@@ -278,6 +279,7 @@ defmodule Drab.Live.EExEngine do
     |> Enum.map(&expr_from_cache/1)
   end
 
+  @spec expr_from_cache(String.t()) :: Macro.t()
   defp expr_from_cache(text) do
     # TODO: not sure
     case Regex.run(@expr, text) do
@@ -295,6 +297,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   @doc false
+  @spec assigns_from_pattern(String.t()) :: [atom]
   def assigns_from_pattern(pattern) do
     # do not search under nested ampered tags
     pattern =
@@ -321,6 +324,7 @@ defmodule Drab.Live.EExEngine do
     |> Enum.uniq()
   end
 
+  @spec ampered_tag?({any, [String.t()], any} | String.t()) :: boolean
   defp ampered_tag?({_, attributes, _}) do
     Enum.find(attributes, fn {attribute, _} -> attribute == @drab_id end)
   end
@@ -337,7 +341,7 @@ defmodule Drab.Live.EExEngine do
      end}
   end
 
-  @doc false
+  @impl true
   def handle_text("", text) do
     handle_text({:safe, ""}, text)
   end
@@ -477,6 +481,7 @@ defmodule Drab.Live.EExEngine do
      end}
   end
 
+  @spec partial(list) :: String.t() | nil
   defp partial(body) do
     html = to_flat_html(body)
     p = Regex.run(~r/{{{{@drab-partial:([^']+)}}}}/Uis, html)
@@ -484,6 +489,7 @@ defmodule Drab.Live.EExEngine do
     if p, do: List.last(p), else: nil
   end
 
+  @spec find_attr_in_html(String.t()) :: String.t() | nil
   defp find_attr_in_html(html) do
     args_removed = args_removed(html)
 
@@ -499,6 +505,7 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
+  @spec args_removed(String.t()) :: String.t()
   defp args_removed(html) do
     html
     |> String.split(~r/<\S+/s)
@@ -506,6 +513,7 @@ defmodule Drab.Live.EExEngine do
     |> remove_full_args()
   end
 
+  @spec remove_full_args(String.t()) :: String.t()
   defp remove_full_args(string) do
     string
     |> String.replace(~r/\S+\s*=\s*'[^']*'/s, "")
@@ -513,27 +521,33 @@ defmodule Drab.Live.EExEngine do
     |> String.replace(~r/\S+\s*=\s*[^'"\s]+\s+/s, "")
   end
 
+  @spec take_at(list, integer) :: term
   defp take_at(list, index) do
     {item, _} = List.pop_at(list, index)
     item
   end
 
+  @spec no_tags(String.t()) :: String.t()
   defp no_tags(html), do: String.replace(html, ~r/<\S+.*>/s, "")
 
+  @spec script_tag(String.t() | []) :: [String.t()] | []
   defp script_tag([]), do: []
 
   defp script_tag(js) do
     ["<script drab-script>", js, "</script>\n"]
   end
 
+  @spec assign_js(String.t(), atom) :: [String.t()]
   defp assign_js(partial, assign) do
     ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = '", encoded_assign(assign), "';"]
   end
 
+  @spec property_js(String.t(), atom, Macro.t()) :: [String.t()]
   defp property_js(ampere, property, expr) do
     ["#{@jsvar}.properties['#{ampere}']['#{property}'] = ", encoded_expr(expr), ";"]
   end
 
+  @spec encoded_assign(atom) :: Macro.t()
   defp encoded_assign(assign) do
     assign_expr =
       quote @anno do
@@ -543,6 +557,7 @@ defmodule Drab.Live.EExEngine do
     base64_encoded_expr(assign_expr)
   end
 
+  @spec base64_encoded_expr(Macro.t()) :: Macro.t()
   defp base64_encoded_expr(expr) do
     quote @anno do
       Drab.Live.Crypto.encode64(unquote(expr))
@@ -550,18 +565,21 @@ defmodule Drab.Live.EExEngine do
   end
 
   @doc false
+  @spec encoded_expr(Macro.t()) :: Macro.t()
   def encoded_expr(expr) do
     quote @anno do
       Drab.Core.encode_js(unquote(expr))
     end
   end
 
+  @spec line_from_expr(Macro.t()) :: integer | nil
   defp line_from_expr({_, meta, _}) when is_list(meta), do: Keyword.get(meta, :line)
   defp line_from_expr(_), do: nil
 
   # @doc false
   # defp to_safe(literal), do: to_safe(literal, @anno)
 
+  @spec to_safe(Macro.t(), integer | nil) :: iodata
   defp to_safe(literal, _line) when is_binary(literal) or is_atom(literal) or is_number(literal) do
     Phoenix.HTML.Safe.to_iodata(literal)
   end
@@ -584,6 +602,7 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
+  @spec handle_assign(Macro.t()) :: Macro.t()
   defp handle_assign({:@, meta, [{name, _, atom}]}) when is_atom(name) and is_atom(atom) do
     quote line: meta[:line] || 0 do
       Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(name))
@@ -592,6 +611,7 @@ defmodule Drab.Live.EExEngine do
 
   defp handle_assign(arg), do: arg
 
+  @spec find_assigns(Macro.t()) :: [atom]
   defp find_assigns(ast) do
     {_, result} =
       Macro.prewalk(ast, [], fn node, acc ->
@@ -609,6 +629,7 @@ defmodule Drab.Live.EExEngine do
   end
 
   @doc false
+  @spec shallow_find_assigns(Macro.t()) :: [atom]
   def shallow_find_assigns(ast) do
     {_, assigns} = do_find(ast, [])
     Enum.uniq(assigns)
@@ -655,6 +676,7 @@ defmodule Drab.Live.EExEngine do
     end)
   end
 
+  @spec find_assign(Macro.t()) :: atom | false
   defp find_assign(
          {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]}
        )
