@@ -196,6 +196,9 @@ defmodule Drab.Live do
   There are also some limits for defining attributes, properties, local variables, etc. See `Drab.Live.EExEngine`
   for a full description.
   """
+
+  @type result :: Phoenix.Socket.t() | Drab.Core.result() | no_return
+
   import Drab.Core
   require IEx
 
@@ -268,6 +271,7 @@ defmodule Drab.Live do
       iex> poke(socket, count: 42)
       %Phoenix.Socket{ ...
   """
+  @spec poke(Phoenix.Socket.t(), Keyword.t()) :: result
   def poke(socket, assigns) do
     do_poke(socket, nil, nil, assigns, &Drab.Core.exec_js/2)
   end
@@ -278,6 +282,7 @@ defmodule Drab.Live do
       iex> poke(socket, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
   """
+  @spec poke(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
   def poke(socket, partial, assigns) do
     do_poke(socket, nil, partial, assigns, &Drab.Core.exec_js/2)
   end
@@ -288,10 +293,12 @@ defmodule Drab.Live do
       iex> poke(socket, MyApp.UserView, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
   """
+  @spec poke(Phoenix.Socket.t(), atom, String.t(), Keyword.t()) :: result
   def poke(socket, view, partial, assigns) do
     do_poke(socket, view, partial, assigns, &Drab.Core.exec_js/2)
   end
 
+  @spec do_poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t(), function) :: result
   defp do_poke(socket, view, partial_name, assigns, function) do
     if Enum.member?(Keyword.keys(assigns), :conn) do
       raise ArgumentError,
@@ -402,6 +409,7 @@ defmodule Drab.Live do
       iex> Drab.Live.assigns(socket)
       [:welcome_text]
   """
+  @spec assigns(Phoenix.Socket.t()) :: list
   def assigns(socket) do
     assigns(socket, nil, nil)
   end
@@ -414,6 +422,7 @@ defmodule Drab.Live do
       iex> assigns(socket, "user.html")
       [:name, :age, :email]
   """
+  @spec assigns(Phoenix.Socket.t(), String.t() | nil) :: list
   def assigns(socket, partial) do
     assigns(socket, nil, partial)
   end
@@ -424,6 +433,7 @@ defmodule Drab.Live do
       iex> assigns(socket, MyApp.UserView, "user.html")
       [:name, :age, :email]
   """
+  @spec assigns(Phoenix.Socket.t(), atom | nil, String.t() | nil) :: list
   def assigns(socket, view, partial) do
     view = view || Drab.get_view(socket)
     partial_hash = if partial, do: partial_hash(view, partial), else: index(socket)
@@ -438,6 +448,7 @@ defmodule Drab.Live do
     end
   end
 
+  @spec eval_expr(Macro.t(), {atom, list}, Keyword.t(), atom) :: term | no_return
   defp eval_expr(expr, modules, updated_assigns, :prop) do
     eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
   end
@@ -446,6 +457,7 @@ defmodule Drab.Live do
     eval_expr(expr, modules, updated_assigns)
   end
 
+  @spec eval_expr(Macro.t(), {atom, list}, Keyword.t()) :: term | no_return
   defp eval_expr(expr, modules, updated_assigns) do
     e = expr_with_imports(expr, modules)
 
@@ -473,6 +485,7 @@ defmodule Drab.Live do
     end
   end
 
+  @spec expr_with_imports(Macro.t(), {atom, list}) :: Macro.t()
   defp expr_with_imports(expr, {view, modules}) do
     quote do
       import Phoenix.View
@@ -492,6 +505,7 @@ defmodule Drab.Live do
     end
   end
 
+  @spec assign_updates_js(map, String.t()) :: [String.t()]
   defp assign_updates_js(assigns, partial) do
     Enum.map(assigns, fn {k, v} ->
       "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{
@@ -502,12 +516,14 @@ defmodule Drab.Live do
 
   # defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
 
+  @spec safe_to_string(Phoenix.HTML.safe() | [Phoenix.HTML.safe()]) :: String.t()
   defp safe_to_string(list) when is_list(list),
     do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
 
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
+  @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) :: map | no_return
   defp assign_data_for_partial(socket, partial, partial_name) do
     assigns =
       case socket
@@ -529,6 +545,7 @@ defmodule Drab.Live do
     end
   end
 
+  @spec ampere_assigns(Phoenix.Socket.t()) :: map
   defp ampere_assigns(socket) do
     socket
     |> Drab.pid()
@@ -536,6 +553,7 @@ defmodule Drab.Live do
     |> Map.get(:__ampere_assigns, %{})
   end
 
+  @spec index(Phoenix.Socket.t()) :: String.t()
   defp index(socket) do
     socket
     |> Drab.pid()
@@ -543,6 +561,7 @@ defmodule Drab.Live do
     |> Map.get(:__index)
   end
 
+  @spec partial_hash(atom, String.t()) :: String.t() | no_return
   defp partial_hash(view, partial_name) do
     # Drab.Live.Cache.get({:partial, partial_path(view, partial_name)})
     path = partial_path(view, partial_name)
@@ -553,15 +572,18 @@ defmodule Drab.Live do
     end
   end
 
+  @spec partial_path(atom, String.t()) :: String.t()
   defp partial_path(view, partial_name) do
     templates_path(view) <> partial_name <> Drab.Config.drab_extension()
   end
 
+  @spec templates_path(atom) :: String.t()
   defp templates_path(view) do
     {path, _, _} = view.__templates__()
     path <> "/"
   end
 
+  @spec raise_assign_not_found(atom, list) :: no_return
   defp raise_assign_not_found(assign, current_keys) do
     raise ArgumentError,
       message: """
@@ -576,6 +598,7 @@ defmodule Drab.Live do
       """
   end
 
+  @spec raise_partial_not_found(String.t()) :: no_return
   defp raise_partial_not_found(path) do
     raise ArgumentError,
       message: """
