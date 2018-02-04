@@ -95,6 +95,7 @@ defmodule Drab.Socket do
 
   To be used with custom `connect/2` callbacks.
   """
+  @spec verify(Phoenix.Socket.t(), map) :: {:ok, term} | :error
   def verify(socket, %{"__drab_return" => controller_and_action_token}) do
     case Phoenix.Token.verify(
            socket,
