@@ -416,6 +416,7 @@ defmodule Drab.Commander do
   @doc """
   Retrieves controller module, which generated the page the handler function is calling from, from the socket.
   """
+  @spec controller(Phoenix.Socket.t()) :: atom
   def controller(socket) do
     socket.assigns.__controller
   end
@@ -423,6 +424,7 @@ defmodule Drab.Commander do
   @doc """
   Retrieves action name in the controller, which rendered the page where handler is called from.
   """
+  @spec action(Phoenix.Socket.t()) :: atom
   def action(socket) do
     socket.assigns.__action
   end
