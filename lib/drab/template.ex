@@ -26,12 +26,13 @@ defmodule Drab.Template do
   end
 
   # catch-all is to give a warning when file not found
-  @spec compiled_template(String.t()) :: String.t() | no_return
+  @spec compiled_template(String.t()) :: Macro.t() | no_return
   defp compiled_template(filename) do
     raise "Can't find the template `#{filename}` in `#{user_templates()}`"
   end
 
   @doc false
+  @spec render_template(String.t(), Keyword.t()) :: String.t()
   def render_template(filename, bindings) do
     # TODO: this is not very efficient, as it searches for a template every single time
     p = Path.join(user_templates(), filename)
