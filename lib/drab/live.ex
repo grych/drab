@@ -216,6 +216,7 @@ defmodule Drab.Live do
   or property on the client side, the assign value will remain the same.
   """
   # TODO: think if it is needed to sign/encrypt
+  @spec peek(Phoenix.Socket.t(), atom) :: term | no_return
   def peek(socket, assign), do: peek(socket, nil, nil, assign)
 
   @doc """
@@ -227,6 +228,7 @@ defmodule Drab.Live do
       42
   """
   # TODO: think if it is needed to sign/encrypt
+  @spec peek(Phoenix.Socket.t(), String.t(), atom) :: term | no_return
   def peek(socket, partial, assign), do: peek(socket, nil, partial, assign)
 
   @doc """
@@ -235,6 +237,7 @@ defmodule Drab.Live do
       iex> peek(socket, MyApp.UserView, "users.html", :count)
       42
   """
+  @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) :: term | no_return
   def peek(socket, view, partial, assign) when is_binary(assign) do
     view = view || Drab.get_view(socket)
     hash = if partial, do: partial_hash(view, partial), else: index(socket)

@@ -670,7 +670,7 @@ defmodule Drab.Query do
   defp raise_wrong_query(selector, method, arguments \\ nil) do
     raise ArgumentError,
       message: """
-      Drab.Query does not recognize your query:
+      Drab does not recognize your query:
         selector:  #{inspect(selector)}
         method:    #{inspect(method)}
         arguments: #{inspect(arguments)}
