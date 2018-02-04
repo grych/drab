@@ -50,6 +50,7 @@ defmodule Drab.Config do
       iex> Drab.Config.app_name()
       :drab
   """
+  @spec app_name :: atom
   def app_name() do
     get(:main_phoenix_app) ||
       case Code.ensure_loaded(Mix.Project) do
@@ -58,6 +59,7 @@ defmodule Drab.Config do
       end
   end
 
+  @spec raise_app_not_found :: no_return
   defp raise_app_not_found() do
     raise """
     drab can't find the main Phoenix application name.
@@ -74,6 +76,7 @@ defmodule Drab.Config do
       iex> Drab.Config.endpoint()
       DrabTestApp.Endpoint
   """
+  @spec endpoint :: atom
   def endpoint() do
     # IO.inspect app_env()
     # TODO: bad performance
@@ -94,6 +97,7 @@ defmodule Drab.Config do
       iex> Drab.Config.pubsub()
       DrabTestApp.PubSub
   """
+  @spec pubsub :: atom | no_return
   def pubsub() do
     with {:ok, pubsub_conf} <- Keyword.fetch(Drab.Config.app_config(), :pubsub),
          {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
@@ -106,12 +110,14 @@ defmodule Drab.Config do
     end
   end
 
+  @spec first_uppercase?(atom) :: boolean
   defp first_uppercase?(atom) do
     x = atom |> Atom.to_string() |> String.first()
     x == String.upcase(x)
   end
 
   # TODO: find a better way to check if the module is an Endpoint
+  @spec is_endpoint?(atom) :: boolean
   defp is_endpoint?(module) when is_atom(module) do
     {loaded, _} = Code.ensure_loaded(module)
 
@@ -125,6 +131,7 @@ defmodule Drab.Config do
       iex> Drab.Config.app_module()
       DrabTestApp
   """
+  @spec app_module :: atom
   def app_module() do
     # in 1.3 app module is not under the endpoint
     endpoint()
@@ -139,6 +146,7 @@ defmodule Drab.Config do
       iex> is_list(Drab.Config.app_config())
       true
   """
+  @spec app_env :: Keyword.t()
   def app_env() do
     Application.get_all_env(app_name())
   end
@@ -149,6 +157,7 @@ defmodule Drab.Config do
       iex> Drab.app_config(:secret_key_base)
       "bP1ZF+DDZiAVGuIixHSboET1g18BPO4HeZnggJA/7q"
   """
+  @spec app_config(atom) :: term
   def app_config(config_key) do
     app_env() |> Keyword.fetch!(endpoint()) |> Keyword.fetch!(config_key)
   end
@@ -159,6 +168,7 @@ defmodule Drab.Config do
       iex> is_list(Drab.Config.app_config())
       true
   """
+  @spec app_config :: Keyword.t()
   def app_config() do
     Keyword.fetch!(app_env(), endpoint())
   end
@@ -176,6 +186,7 @@ defmodule Drab.Config do
       iex> Drab.Config.drab_extension()
       ".drab"
   """
+  @spec drab_extension :: String.t()
   def drab_extension() do
     {drab_ext, Drab.Live.Engine} =
       :phoenix
@@ -195,6 +206,7 @@ defmodule Drab.Config do
 
       config :drab, disable_controls_while_processing: false
   """
+  @spec get(atom) :: term
   def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
 
   def get(:disable_controls_while_processing),
@@ -234,5 +246,6 @@ defmodule Drab.Config do
 
   def get(_), do: nil
 
+  @spec with_app_module(list) :: list
   defp with_app_module(list), do: Enum.map(list, fn x -> Module.concat(app_module(), x) end)
 end

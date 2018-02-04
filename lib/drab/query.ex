@@ -666,11 +666,11 @@ defmodule Drab.Query do
   defp escape_value(value) when is_nil(value), do: "\"\""
   defp escape_value(value), do: "#{Drab.Core.encode_js(value)}"
 
-  @spec raise_wrong_query(String.t() | atom, String.t() | atom, Keyword.t()) :: no_return
+  @spec raise_wrong_query(String.t() | atom, String.t() | atom, Keyword.t() | nil) :: no_return
   defp raise_wrong_query(selector, method, arguments \\ nil) do
     raise ArgumentError,
       message: """
-      Drab does not recognize your query:
+      Drab.Query does not recognize your query:
         selector:  #{inspect(selector)}
         method:    #{inspect(method)}
         arguments: #{inspect(arguments)}
