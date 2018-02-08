@@ -129,7 +129,7 @@ defmodule Drab.Core do
   in the Store. It works exactly the same way as a "normal", Phoenix session.
 
   * By default, Drab Store is kept in browser Local Storage. This means it is gone when you close the browser
-    or the tab. You may set up where to keep the data with drab_store_storage config entry.
+    or the tab. You may set up where to keep the data with `drab_store_storage` config entry, see Drab.Config
   * Drab Store is not the Plug Session! This is a different entity. Anyway, you have an access
     to the Plug Session (details below).
   * Drab Store is stored on the client side and it is signed, but - as the Plug Session cookie - not ciphered.
