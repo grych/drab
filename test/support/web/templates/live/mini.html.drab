@@ -1,6 +1,6 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
-<div><%= @text %>
+<div><%= @text %></div>
 <br><br>
 
 <%= for u <- @users do %>

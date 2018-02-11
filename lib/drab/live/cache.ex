@@ -14,6 +14,14 @@ defmodule Drab.Live.Cache do
   # This module is the DETS cache for Drab Live expressions, amperes, partials, and shadow buffers.
   # DETS table is created and filled up during the compile-time.
 
+  # Internal representation:
+  # {"partial_hash", "ampere_id"} => [amperes]
+  #   amperes - {:gender, "tag", "prop_or_attr", compiled, [:assigns]}
+  #   one ampere_id may contain more amperes, for different properties or attributes
+  # "expr_hash" => {:expr, "expr", [assigns]}
+  # "partial_hash" => {"partial_path", [assigns]}
+  # "partial_path" => {"partial_hash", [assigns]
+
   @doc false
   @spec start :: :ok
   def start() do

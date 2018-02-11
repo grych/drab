@@ -3,6 +3,7 @@
 
 ## Future
 Changes:
+* optimistic updates
 * <input drab="focus:input_focus(42) blur:input_blur()" />
 * consider DynamicSupervisor as a replacement for Drab GenServer
 * is `use Drab.Commander` really necessary?
