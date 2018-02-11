@@ -18,7 +18,8 @@ defmodule Drab.Live.Cache do
   # {"partial_hash", "ampere_id"} => [amperes]
   #   amperes - {:gender, "tag", "prop_or_attr", compiled, [:assigns]}
   #   one ampere_id may contain more amperes, for different properties or attributes
-  # "expr_hash" => {:expr, "expr", [assigns]}
+  # {"partial_hash", :assign} => ["ampere_ids"]
+  # "expr_hash" => {:expr, [], expr, [assigns]}
   # "partial_hash" => {"partial_path", [assigns]}
   # "partial_path" => {"partial_hash", [assigns]
 

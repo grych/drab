@@ -11,6 +11,7 @@
   <% end %>
 <% end %>
 
+<div><%= @user %></div>
 <button drab-click="update_mini">update mini</button>
 
 <br><br>

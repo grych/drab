@@ -284,10 +284,9 @@ defmodule Drab.Live.EExEngine do
     # TODO: not sure
     case Regex.run(@expr, text) do
       [_, expr_hash] ->
-        {:expr, buffer, expr, _} = Drab.Live.Cache.get(expr_hash)
+        {:expr, expr, _} = Drab.Live.Cache.get(expr_hash)
 
         quote do
-          tmp3 = unquote(buffer)
           unquote(expr)
         end
 
@@ -317,7 +316,7 @@ defmodule Drab.Live.EExEngine do
     expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
 
     for expr_hash <- expressions do
-      {:expr, _, _, assigns} = Drab.Live.Cache.get(expr_hash)
+      {:expr, _, assigns} = Drab.Live.Cache.get(expr_hash)
       assigns
     end
     |> List.flatten()
@@ -419,7 +418,7 @@ defmodule Drab.Live.EExEngine do
     hash = hash(expr)
     # TODO: not sure
     # Drab.Live.Cache.set(hash, {:expr, buffer, remove_drab_marks(expr), found_assigns})
-    Drab.Live.Cache.set(hash, {:expr, [], remove_drab_marks(expr), found_assigns})
+    Drab.Live.Cache.set(hash, {:expr, remove_drab_marks(expr), found_assigns})
 
     # TODO: REFACTOR
     attr = html |> find_attr_in_html()
