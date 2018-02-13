@@ -166,3 +166,15 @@ Drab.insert_html = function (selector, position, html, where) {
   return i;
 };
 
+Drab.replace_html = function (selector, html, where) {
+  var searchie = where || document;
+  var i = 0;
+  var found = searchie.querySelectorAll(selector);
+  for (i = 0; i < found.length; i++) {
+    var element = found[i];
+    element.outerHTML = html;
+  };
+  Drab.enable_drab_on(selector);
+  return i;
+};
+

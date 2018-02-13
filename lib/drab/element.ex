@@ -348,6 +348,32 @@ defmodule Drab.Element do
     exec_js!(socket, insert_js(selector, position, html))
   end
 
+  
+  @doc """
+  Replaces the resulting nodes into the DOM tree
+
+  Visit https://developer.mozilla.org/en-US/docs/Web/API/Element/outerHTML for more information.
+
+  Returns tuple `{:ok, number}` with number of replaced elements or `{:error, description}`.
+
+  Examples:
+
+      ex> replace_html(socket, "#id", "<a id='id'>replaced_link</a>")
+      {:ok, 2}
+  """
+  @spec replace_html(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.result()
+  def replace_html(socket, selector, html) do
+    exec_js(socket, replace_js(selector, html))
+  end
+
+  @doc """
+  Exception-throwing version of `replace_html/4`
+  """
+  @spec replace_html!(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
+  def replace_html!(socket, selector, html) do
+    exec_js!(socket, replace_js(selector, html))
+  end
+
   @doc """
   Broadcasting version of `insert_html/4`.
 
@@ -366,5 +392,10 @@ defmodule Drab.Element do
   @spec insert_js(String.t(), atom, String.t()) :: String.t()
   defp insert_js(selector, position, html) do
     "Drab.insert_html(#{encode_js(selector)}, #{encode_js(position)}, #{encode_js(html)})"
+  end
+
+  @spec replace_js(String.t(), String.t()) :: String.t()
+  defp replace_js(selector, html) do
+    "Drab.replace_html(#{encode_js(selector)}, #{encode_js(html)})"
   end
 end
