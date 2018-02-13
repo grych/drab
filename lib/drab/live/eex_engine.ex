@@ -156,12 +156,7 @@ defmodule Drab.Live.EExEngine do
   @impl true
   def handle_body({:safe, body}) do
     body = List.flatten(body)
-
     partial_hash = partial(body)
-    # found_assigns = find_assigns(body)
-    # assigns_js = found_assigns |> Enum.map(fn assign ->
-    #   assign_js(partial_hash, assign)
-    # end) |> script_tag()
 
     init_js = """
     if (typeof window.#{@jsvar} == 'undefined') {#{@jsvar} = {assigns: {}, properties: {}}};
@@ -180,13 +175,15 @@ defmodule Drab.Live.EExEngine do
               |> compiled_from_pattern(pattern, tag, prop_or_attr)
               |> remove_drab_marks()
 
-            assigns = assigns_from_pattern(pattern)
-            {gender, tag, prop_or_attr, compiled, assigns}
+            {assigns, children} = assigns_and_children_from_pattern(pattern)
+            {gender, tag, prop_or_attr, compiled, assigns, children}
           end
+
+        # IO.inspect ampere_values
 
         Drab.Live.Cache.set({partial_hash, ampere_id}, ampere_values)
 
-        for {_, _, _, _, assigns} <- ampere_values,
+        for {_, _, _, _, assigns, _} <- ampere_values,
             assign <- assigns do
           {assign, ampere_id}
         end
@@ -194,8 +191,6 @@ defmodule Drab.Live.EExEngine do
       |> List.flatten()
       |> Enum.uniq()
       |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
-
-    # it is cached as {partial_hash, ampere_id}
 
     # ampere-to_assign list
     for {assign, amperes} <- amperes_to_assigns do
@@ -211,10 +206,6 @@ defmodule Drab.Live.EExEngine do
       end)
       |> script_tag()
 
-    # other cached stuff:
-    # "expr_hash" => {:expr, "expr", [assigns]}
-    # "partial_hash" => {"partial_path", [assigns]}
-    # "partial_path" => {"partial_hash", [assigns]
     partial_path = Drab.Live.Cache.get(partial_hash)
     Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
     Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
@@ -249,7 +240,8 @@ defmodule Drab.Live.EExEngine do
   end
 
   @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/Us
-  @spec compiled_from_pattern(atom, String.t(), String.t(), String.t()) :: Macro.t() | no_return
+  @spec compiled_from_pattern(atom, String.t(), String.t(), String.t()) ::
+          Macro.t() | [Macro.t()] | no_return
   defp compiled_from_pattern(:prop, pattern, tag, property) do
     case compiled_from_pattern(:other, pattern, tag, property) do
       [expr | []] when is_tuple(expr) ->
@@ -284,7 +276,7 @@ defmodule Drab.Live.EExEngine do
     # TODO: not sure
     case Regex.run(@expr, text) do
       [_, expr_hash] ->
-        {:expr, expr, _} = Drab.Live.Cache.get(expr_hash)
+        {:expr, expr, _, _} = Drab.Live.Cache.get(expr_hash)
 
         quote do
           unquote(expr)
@@ -296,9 +288,10 @@ defmodule Drab.Live.EExEngine do
   end
 
   @doc false
-  @spec assigns_from_pattern(String.t()) :: [atom]
-  def assigns_from_pattern(pattern) do
+  @spec assigns_and_children_from_pattern(String.t()) :: {[atom], [atom]}
+  def assigns_and_children_from_pattern(pattern) do
     # do not search under nested ampered tags
+    # IO.inspect pattern
     pattern =
       case Floki.parse(pattern) do
         {_, _, _} ->
@@ -315,12 +308,19 @@ defmodule Drab.Live.EExEngine do
 
     expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
 
-    for expr_hash <- expressions do
-      {:expr, _, assigns} = Drab.Live.Cache.get(expr_hash)
-      assigns
-    end
-    |> List.flatten()
-    |> Enum.uniq()
+    {assigns, children} =
+      for expr_hash <- expressions do
+        {:expr, _, assigns, children} = Drab.Live.Cache.get(expr_hash)
+        {assigns, children}
+      end
+      |> Enum.unzip()
+
+    {assigns
+     |> List.flatten()
+     |> Enum.uniq(),
+     children
+     |> List.flatten()
+     |> Enum.uniq()}
   end
 
   @spec ampered_tag?({any, [String.t()], any} | String.t()) :: boolean
@@ -345,13 +345,15 @@ defmodule Drab.Live.EExEngine do
     handle_text({:safe, ""}, text)
   end
 
-  # @doc false
-  # def handle_end(quoted) do
-  #   # do not drab anything inside the expression, all is handled by the parent
-  #   # TODO: not sure
-  #   remove_drab_marks(quoted)
-  #   # quoted
-  # end
+  @impl true
+  def handle_begin(_previous) do
+    {:safe, ""}
+  end
+
+  @impl true
+  def handle_end(quoted) do
+    quoted
+  end
 
   @impl true
   def handle_expr("", marker, expr) do
@@ -373,7 +375,6 @@ defmodule Drab.Live.EExEngine do
   @impl true
   def handle_expr({:safe, buffer}, "=", expr) do
     # check if the expression is in the nodrab/1
-    # to be changed to "/" mark in Elixir 1.6
     {expr, nodrab} =
       case expr do
         {:nodrab, _, [only_one_parameter]} -> {only_one_parameter, true}
@@ -388,6 +389,12 @@ defmodule Drab.Live.EExEngine do
     found_assigns = find_assigns(expr)
     # found_assigns = shallow_find_assigns(expr)
     found_assigns? = found_assigns != []
+
+    # IO.puts("")
+    # # # IO.inspect buffer
+    # IO.inspect("EXPR:")
+    # # IO.inspect expr
+    # IO.inspect(children_assigns_from_hashes(find_expr_hashes(expr)))
 
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
@@ -416,9 +423,11 @@ defmodule Drab.Live.EExEngine do
       end
 
     hash = hash(expr)
-    # TODO: not sure
-    # Drab.Live.Cache.set(hash, {:expr, buffer, remove_drab_marks(expr), found_assigns})
-    Drab.Live.Cache.set(hash, {:expr, remove_drab_marks(expr), found_assigns})
+
+    Drab.Live.Cache.set(
+      hash,
+      {:expr, remove_drab_marks(expr), found_assigns, children_assigns_from_hashes(find_expr_hashes(expr))}
+    )
 
     # TODO: REFACTOR
     attr = html |> find_attr_in_html()
@@ -478,6 +487,17 @@ defmodule Drab.Live.EExEngine do
        tmp1 = unquote(buffer)
        [tmp1, unquote(to_safe(expr, line))]
      end}
+  end
+
+  @spec children_assigns_from_hashes([String.t()]) :: [atom]
+  defp children_assigns_from_hashes(hashes) do
+    hashes
+    |> Enum.map(fn hash ->
+      {:expr, _, assigns, children} = Drab.Live.Cache.get(hash)
+      children ++ assigns
+    end)
+    |> List.flatten()
+    |> Enum.uniq()
   end
 
   @spec partial(list) :: String.t() | nil

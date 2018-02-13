@@ -15,13 +15,12 @@ defmodule Drab.Live.Cache do
   # DETS table is created and filled up during the compile-time.
 
   # Internal representation:
+  # "expr_hash" => {:expr, expression, [:assigns], [:children]}
   # {"partial_hash", "ampere_id"} => [amperes]
-  #   amperes - {:gender, "tag", "prop_or_attr", compiled, [:assigns]}
+  #   amperes - {:html | :prop | :attr, "tag", "prop_or_attr", expression, [:assigns], [:children]}
   #   one ampere_id may contain more amperes, for different properties or attributes
   # {"partial_hash", :assign} => ["ampere_ids"]
-  # "expr_hash" => {:expr, expr, [assigns]}
-  # "partial_hash" => {"partial_path", [assigns]}
-  # "partial_path" => {"partial_hash", [assigns]
+  # "partial_hash" => {"partial_path", [:assigns]}
 
   @doc false
   @spec start :: :ok

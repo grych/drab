@@ -240,7 +240,8 @@ defmodule Drab.Live do
       iex> peek(socket, MyApp.UserView, "users.html", :count)
       42
   """
-  @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) :: term | no_return
+  @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
+          term | no_return
   def peek(socket, view, partial, assign) when is_binary(assign) do
     view = view || Drab.get_view(socket)
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
@@ -343,11 +344,11 @@ defmodule Drab.Live do
     # TODO: group updates on one node
     update_javascripts =
       for ampere <- amperes_to_update,
-          {gender, tag, prop_or_attr, pattern, _} <- Drab.Live.Cache.get({partial, ampere}) || [] do
+          {gender, tag, prop_or_attr, expr, _, _} <- Drab.Live.Cache.get({partial, ampere}) || [] do
         # IO.inspect Drab.Live.Cache.get({partial, ampere})
         case gender do
           :html ->
-            safe = eval_expr(pattern, modules, updated_assigns, gender)
+            safe = eval_expr(expr, modules, updated_assigns, gender)
             # |> Drab.Live.HTML.remove_drab_marks()
             new_value = safe |> safe_to_string()
 
@@ -360,16 +361,15 @@ defmodule Drab.Live do
             end
 
           :attr ->
-            new_value = pattern |> eval_expr(modules, updated_assigns, gender) |> safe_to_string()
+            new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
             "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
               encode_js(new_value)
             })"
 
           :prop ->
-            new_value = pattern |> eval_expr(modules, updated_assigns, gender) |> safe_to_string()
+            new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
-            # _ -> ""
         end
       end
 
@@ -523,7 +523,8 @@ defmodule Drab.Live do
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
-  @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) :: map | no_return
+  @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) ::
+          map | no_return
   defp assign_data_for_partial(socket, partial, partial_name) do
     assigns =
       case socket

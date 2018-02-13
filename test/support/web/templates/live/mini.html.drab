@@ -1,18 +1,16 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
-<div><%= @text %></div>
 <br><br>
 
-<%= for u <- @users do %>
-  <%= if u != @user do %>
-    <tr>
-      <td><%= u %></td>
-    </tr>
+FOR:<%= for u <- @users do %>
+  IF:<%= if u != @user do %>
+    ONLY_U:<%= u %>
   <% end %>
 <% end %>
 
-<div><%= @user %></div>
+<div><%# @user %></div>
 <button drab-click="update_mini">update mini</button>
 
 <br><br>
 
+<div>1. <%= @text %> </div>

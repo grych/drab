@@ -119,10 +119,10 @@ defmodule Drab.Live.EExEngineTest do
   """
 
   test "assigns from simple pattern" do
-    assert assigns_from_pattern(@simple_pattern) == [:color]
+    assert assigns_and_children_from_pattern(@simple_pattern) == {[:color], []}
   end
 
   test "assigns from netsted pattern" do
-    assert assigns_from_pattern(@nested_pattern) == [:link]
+    assert assigns_and_children_from_pattern(@nested_pattern) == {[:link], []}
   end
 end

@@ -252,7 +252,8 @@ defmodule Drab.Live.HTML do
     iex> inject_attribute_to_last_opened "<img attr=2 src", "attr=1"
     {:already_there, "<img attr=2 src", "attr=2"}
   """
-  @spec inject_attribute_to_last_opened(String.t() | list | Macro.t(), String.t()) :: String.t() | list | Macro.t()
+  @spec inject_attribute_to_last_opened(String.t() | list | Macro.t(), String.t()) ::
+          String.t() | list | Macro.t()
   def inject_attribute_to_last_opened(buffer, attribute) when is_tuple(buffer) do
     # in case when there is no text between expressions
     {result, [acc], attribute} = inject_attribute_to_last_opened([buffer], attribute)
@@ -565,7 +566,7 @@ defmodule Drab.Live.HTML do
     ampere
   end
 
-  @expr_begin ~r/{{{{@drab-expr-hash:\S+}}}}/
+  @expr_begin ~r/{{{{@drab-expr-hash:(\S+)}}}}/
   @expr_end ~r/{{{{\/@drab-expr-hash:\S+}}}}/
   @partial ~r/{{{{@drab-partial:\S+}}}}/
   defp contains_expression?(html) when is_binary(html) do
@@ -597,58 +598,28 @@ defmodule Drab.Live.HTML do
     end)
   end
 
-  # def remove_drab_marks([]) do
-  #   []
-  # end
-  # def remove_drab_marks([head | tail]) when is_binary(head) do
-  #   if Regex.match?(@expr_begin, head) || Regex.match?(@expr_end, head) || Regex.match?(@partial, head) do
-  #     [remove_drab_marks(head) | remove_drab_marks(tail)]
-  #   else
-  #     [head | remove_drab_marks(tail)]
-  #   end
-  # end
-  # def remove_drab_marks([[{atom, args}] | tail]) when is_atom(atom) do
-  #   [[{atom, remove_drab_marks(args)}] | remove_drab_marks(tail)]
-  # end
-  # def remove_drab_marks([head | tail]) when is_atom(head) do
-  #   [head | remove_drab_marks(tail)]
-  # end
-  # def remove_drab_marks([head | tail]) when is_list(head) do
-  #   [remove_drab_marks(head) | remove_drab_marks(tail)]
-  # end
-  # def remove_drab_marks([{atom, meta, args} | tail]) when is_list(args) do
-  #   [{atom, meta, remove_drab_marks(args)} | remove_drab_marks(tail)]
-  # end
-  # def remove_drab_marks([{atom, meta, args} | tail]) when is_atom(args) do
-  #   [{atom, meta, args} | remove_drab_marks(tail)]
-  # end
-  # def remove_drab_marks({atom, meta, args}) when is_list(args) do
-  #   {atom, meta, remove_drab_marks(args)}
-  # end
-  # def remove_drab_marks({atom, meta, args}) when is_atom(args) do
-  #   {atom, meta, args}
-  # end
-  # # def remove_drab_marks(tuple) when is_tuple(tuple) do
-  # #   tuple
-  # # end
-  # def remove_drab_marks(text) when is_binary(text) do
-  #   text
-  #   |> String.replace(@expr_begin, "", global: true)
-  #   |> String.replace(@expr_end, "", global: true)
-  #   |> String.replace(@partial, "", global: true)
-  # end
-  # def remove_drab_marks(list) when is_list(list) do
-  #   list
-  # end
-  # def remove_drab_marks(nil) do
-  #   []
-  # end
-  # def remove_drab_marks(atom) when is_atom(atom) do
-  #   atom
-  # end
-  # # def remove_drab_marks(other) do
-  # #   other
-  # # end
+  @doc """
+  Find drab marks inside the given expression, used to determine children expressions
+  """
+  @spec find_expr_hashes(Macro.t()) :: [String.t()]
+  def find_expr_hashes(buffer) do
+    {_, acc} =
+      Macro.prewalk(buffer, [], fn
+        text, acc when is_binary(text) ->
+          if Regex.match?(@expr_begin, text) do
+            {text, [text | acc]}
+          else
+            {text, acc}
+          end
+
+        x, acc ->
+          {x, acc}
+      end)
+
+    acc
+    |> Enum.map(&Regex.run(@expr_begin, &1, capture: :all_but_first))
+    |> List.flatten()
+  end
 
   @doc """
   Deep reverse of the list
