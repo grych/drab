@@ -344,7 +344,7 @@ defmodule Drab.Live do
     # TODO: group updates on one node
     update_javascripts =
       for ampere <- amperes_to_update,
-          {gender, tag, prop_or_attr, expr, _, _} <- Drab.Live.Cache.get({partial, ampere}) || [] do
+        {gender, tag, prop_or_attr, expr, _, _} <- Drab.Live.Cache.get({partial, ampere}) || [] do
         # IO.inspect Drab.Live.Cache.get({partial, ampere})
         case gender do
           :html ->
