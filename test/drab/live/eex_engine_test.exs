@@ -1,6 +1,6 @@
 defmodule Drab.Live.EExEngineTest do
   use ExUnit.Case, ascync: true
-  doctest Drab.Live.EExEngine
+  # doctest Drab.Live.EExEngine
   import Drab.Live.EExEngine
 
   @simple_expr {{:., [line: 7],
@@ -119,10 +119,10 @@ defmodule Drab.Live.EExEngineTest do
   """
 
   test "assigns from simple pattern" do
-    assert assigns_and_children_from_pattern(@simple_pattern) == {[:color], []}
+    assert assigns_and_parents_from_pattern(@simple_pattern) == {[:color], [:users]}
   end
 
   test "assigns from netsted pattern" do
-    assert assigns_and_children_from_pattern(@nested_pattern) == {[:link], []}
+    assert assigns_and_parents_from_pattern(@nested_pattern) == {[:link], []}
   end
 end

@@ -344,8 +344,9 @@ defmodule Drab.Live do
     # TODO: group updates on one node
     update_javascripts =
       for ampere <- amperes_to_update,
-        {gender, tag, prop_or_attr, expr, _, _} <- Drab.Live.Cache.get({partial, ampere}) || [] do
-        # IO.inspect Drab.Live.Cache.get({partial, ampere})
+          {gender, tag, prop_or_attr, expr, _, parent_assigns} <-
+            Drab.Live.Cache.get({partial, ampere}) || [],
+          !is_a_child?(parent_assigns, assigns_to_update_keys) do
         case gender do
           :html ->
             safe = eval_expr(expr, modules, updated_assigns, gender)
@@ -369,6 +370,7 @@ defmodule Drab.Live do
 
           :prop ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
+
             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
         end
       end
@@ -399,6 +401,15 @@ defmodule Drab.Live do
       other ->
         other
     end
+  end
+
+  # the case when the expression is inside another expression
+  # and we update assigns of the parent expression as well
+  defp is_a_child?(list1, list2) do
+    not Enum.empty?(list1) &&
+      Enum.all?(list1, fn element ->
+        element in list2
+      end)
   end
 
   @doc """

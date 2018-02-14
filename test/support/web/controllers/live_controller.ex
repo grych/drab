@@ -52,6 +52,16 @@ defmodule DrabTestApp.LiveController do
     )
   end
 
+  def advanced(conn, _params) do
+    render(
+      conn,
+      "advanced.html",
+      users: ["Mirmił", "Hegemon", "Kokosz"],
+      excluded: "Kokosz",
+      text: "set in the controller"
+    )
+  end
+
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
     render(

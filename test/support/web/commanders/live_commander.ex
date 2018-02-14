@@ -78,8 +78,8 @@ defmodule DrabTestApp.LiveCommander do
     Drab.Live.poke(socket, list: new_list)
   end
 
-  def update_mini(socket, sender) do
-    IO.inspect(sender)
+  def update_mini(socket, _sender) do
+    # IO.inspect(sender)
     # poke socket, class1: "btn", class2: "btn-warning",
     #   hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
     # poke socket, "users.html", color: "color"
@@ -91,9 +91,21 @@ defmodule DrabTestApp.LiveCommander do
     # partial4 = render_to_string(DrabTestApp.LiveView, "partial4.html", in_partial: "in partial4",
     #   color: "#aaaabb", link: "http://tg.pl")
     # set_prop(socket, "#partial4_placeholder", innerHTML: partial4)
-    poke(socket, users: ["Stefan", "Marian"], user: "Zdzicha")
+    poke(socket, users: peek(socket, :users), user: "Hendryk")
     # poke(socket, in_partial: "in_partial after") |> IO.inspect()
     # peek(socket, :in_partial) |> IO.inspect()
+  end
+
+  def update_users(socket, _sender) do
+    poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
+  end
+
+  def update_excluded_and_users(socket, _sender) do
+    poke(socket, users: peek(socket, :users), excluded: "Hegemon")
+  end
+
+  def update_excluded(socket, _sender) do
+    poke(socket, excluded: "Hegemon")
   end
 
   # defp loop(socket) do

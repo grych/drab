@@ -12,5 +12,5 @@ FOR:<%= for u <- @users do %>
 <button drab-click="update_mini">update mini</button>
 
 <br><br>
-
-<div>1. <%= @text %> </div>
+<div><%= @user %></div>
+<div><%= @text %> </div>

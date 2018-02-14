@@ -6,7 +6,6 @@ defmodule Drab.Live.EExEngine do
   a proper HTML. Also, there are some rules to obey, see limitations below.
 
   ### Limitations
-
   Because `Drab.Live` always tries to update the smallest portion of the html, it has some limits described below.
   It is very important to understand how Drab re-evaluates the expressions with the new assign values. Consider the
   comprehension with the condition as below:
@@ -21,10 +20,18 @@ defmodule Drab.Live.EExEngine do
   value of `@users` is poked, all works as expected: the list is refreshed. But when you poke the `@user` assign,
   system will return an error that the `u()` function is not defined. This is because Drab tries to re-evaluate
   the expression with the `@user` assign - the `if` statement, and the `u` variable is defined elsewhere.
+  Updating `@user` will raise `CompileError`:
+
+      iex> poke socket, user: "Changed"
+      ** (CompileError)  undefined function u/0
+
+      Using local variables defined in external blocks is prohibited in Drab.
+      Please check the following documentation page for more details:
+      https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
 
   But what was your goal when poking the `@user` assign? You wanted to update the whole `for` expression, because
-  the displayed users list should be refreshed. In the current version of Drab, the only way to archive it
-  is to move `@user` assign to the parent expression. In this case it would be a filter on the comprehension:
+  the displayed users list should be refreshed. The best way to accomplish the goal - reload the whole for
+  comprehension - is to move `@user` assign to the parent expression. In this case it would be a filter:
 
       <%= for u <- @users, u != @user do %>
         <%= u %> <br>
@@ -32,7 +39,23 @@ defmodule Drab.Live.EExEngine do
 
   In this case the whole `for` expression is evaluated when the `@user` assign is changed.
 
-  #### Avalibility of assigns
+  There is also the other way to solve this issue, described in the next paragraph.
+
+  #### Parent/child Expression Detection
+  Drab is able to detect when updating both parent and child expression (child is the one inside the block).
+  In the case above, the parent expression is the `for` comprehension with `@users` assign, and the child
+  is the `if` containing only `@user`. When you update both assigns with the same `poke`, Drab would
+  be able to detect that the `if` is inside `for`, and should not be refreshed.
+
+  This means that you may solve the case above with:
+
+      poke socket, users: peek(socket, :users), user: "Changed"
+
+  This statement will update the whole `for` loop, without any changes to `@users`, but with changed
+  `@user` assign.
+
+
+  #### Avalibility of Assigns
   To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format. Passing it
   to `render` in the controller is not enough.
 
@@ -44,7 +67,7 @@ defmodule Drab.Live.EExEngine do
 
   poking `@assign` will not update anything.
 
-  #### Local variables
+  #### Local Variables
   Local variables are only visible in its `do...end` block. You can't use a local variable from outside the block.
   So, the following is allowed:
 
@@ -175,11 +198,9 @@ defmodule Drab.Live.EExEngine do
               |> compiled_from_pattern(pattern, tag, prop_or_attr)
               |> remove_drab_marks()
 
-            {assigns, children} = assigns_and_children_from_pattern(pattern)
-            {gender, tag, prop_or_attr, compiled, assigns, children}
+            {assigns, parents} = assigns_and_parents_from_pattern(pattern)
+            {gender, tag, prop_or_attr, compiled, assigns, parents}
           end
-
-        # IO.inspect ampere_values
 
         Drab.Live.Cache.set({partial_hash, ampere_id}, ampere_values)
 
@@ -288,8 +309,8 @@ defmodule Drab.Live.EExEngine do
   end
 
   @doc false
-  @spec assigns_and_children_from_pattern(String.t()) :: {[atom], [atom]}
-  def assigns_and_children_from_pattern(pattern) do
+  @spec assigns_and_parents_from_pattern(String.t()) :: {[atom], [atom]}
+  def assigns_and_parents_from_pattern(pattern) do
     # do not search under nested ampered tags
     # IO.inspect pattern
     pattern =
@@ -308,17 +329,17 @@ defmodule Drab.Live.EExEngine do
 
     expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
 
-    {assigns, children} =
+    {assigns, parents} =
       for expr_hash <- expressions do
-        {:expr, _, assigns, children} = Drab.Live.Cache.get(expr_hash)
-        {assigns, children}
+        {:expr, _, assigns, parents} = Drab.Live.Cache.get(expr_hash)
+        {assigns, parents}
       end
       |> Enum.unzip()
 
     {assigns
      |> List.flatten()
      |> Enum.uniq(),
-     children
+     parents
      |> List.flatten()
      |> Enum.uniq()}
   end
@@ -387,14 +408,15 @@ defmodule Drab.Live.EExEngine do
     expr = Macro.prewalk(expr, &handle_assign/1)
 
     found_assigns = find_assigns(expr)
-    # found_assigns = shallow_find_assigns(expr)
+    shallow_assigns = shallow_find_assigns(expr)
     found_assigns? = found_assigns != []
 
-    # IO.puts("")
-    # # # IO.inspect buffer
-    # IO.inspect("EXPR:")
-    # # IO.inspect expr
-    # IO.inspect(children_assigns_from_hashes(find_expr_hashes(expr)))
+    # set up parent assigns for all found children
+    for child_expr_hash <- find_expr_hashes(expr) do
+      {:expr, expression, assigns, parent_assigns} = Drab.Live.Cache.get(child_expr_hash)
+      parent_assigns = Enum.uniq(parent_assigns ++ shallow_assigns) -- assigns
+      Drab.Live.Cache.set(child_expr_hash, {:expr, expression, assigns, parent_assigns})
+    end
 
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
@@ -426,7 +448,7 @@ defmodule Drab.Live.EExEngine do
 
     Drab.Live.Cache.set(
       hash,
-      {:expr, remove_drab_marks(expr), found_assigns, children_assigns_from_hashes(find_expr_hashes(expr))}
+      {:expr, remove_drab_marks(expr), found_assigns, []}
     )
 
     # TODO: REFACTOR
@@ -487,17 +509,6 @@ defmodule Drab.Live.EExEngine do
        tmp1 = unquote(buffer)
        [tmp1, unquote(to_safe(expr, line))]
      end}
-  end
-
-  @spec children_assigns_from_hashes([String.t()]) :: [atom]
-  defp children_assigns_from_hashes(hashes) do
-    hashes
-    |> Enum.map(fn hash ->
-      {:expr, _, assigns, children} = Drab.Live.Cache.get(hash)
-      children ++ assigns
-    end)
-    |> List.flatten()
-    |> Enum.uniq()
   end
 
   @spec partial(list) :: String.t() | nil

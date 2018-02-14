@@ -1,4 +1,9 @@
 # CHANGELOG
+## v0.7.1
+### Major bugfixes
+* Parent/child expression case in Drab.Live (#71) solved
+ 
+
 ## v0.7.0
 Updated the Drab core to introduce few important features. Fixed to Elixir version `>= 1.5.2`. Tested with Elixir 1.6.0.
 

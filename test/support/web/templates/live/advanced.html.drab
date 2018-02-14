@@ -1,0 +1,17 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<div id="users_list">
+  <%= for u <- @users do %>
+    <%= if u != @excluded do %><%= u %> <% end %>
+  <% end %>
+</div>
+
+<br>
+<button drab-click="update_excluded">update excluded (should raise)</button><br>
+<button drab-click="update_users">update users</button><br>
+<button drab-click="update_excluded_and_users">update excluded and users</button><br>
+
+<br><br>
+<div id="excluded"><%= @excluded %></div>
+<div><%= @text %> </div>
