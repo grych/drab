@@ -28,7 +28,7 @@ Drab needs help with the documentation: it must be more clear to readers and che
 * Create a [Pull Request](https://github.com/grych/drab/pulls)
 
 
-## Current areas needed help
+## Current areas in need of help
 If you are thinking about contributing to Drab, below is the area of topics I suggest to start.
 Don't worry if you find it complicated. Some parts are, but you can always start with the easier stuff, the get deeper and help refactor the core code. I could suggest few areas to work with:
 
