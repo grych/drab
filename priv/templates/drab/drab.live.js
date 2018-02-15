@@ -19,8 +19,8 @@ Drab.on_connect(function(resp, drab) {
   save_assigns();
 })
 
-Drab.on_change(function(selector) {
-  var node = document.querySelector(selector);
+Drab.on_change(function(node) {
+  // var node = document.querySelector(selector);
   if (node) {
     // search_for_drab(node);
     run_drab_scripts_on(node);

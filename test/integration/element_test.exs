@@ -159,5 +159,22 @@ defmodule DrabTestApp.ElementTest do
       assert query(socket, "#p1", :anything) == {:ok, %{"#p1" => %{}}}
       assert query(socket, "#p2", :anything) == {:ok, %{"#p2" => %{}}}
     end
+
+    test "adding an element with innerHTML should allow Drab events", fixture do
+      test_inner_outer(fixture.socket, :innerHTML)
+    end
+
+    test "adding an element with outerHTML should allow Drab events", fixture do
+      test_inner_outer(fixture.socket, :outerHTML)
+    end
+  end
+
+  defp test_inner_outer(socket, property) do
+    button = "<button id='inner_outer_button' drab='click:inner_outer_clicked'>injected</button>"
+    set_prop socket, "#inner_outer", [{property, button}]
+    click_and_wait("inner_outer_button")
+
+    out = find_element(:id, "inner_outer_out")
+    assert visible_text(out) == "inner outer clicked"
   end
 end

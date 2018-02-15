@@ -2,15 +2,16 @@
 <div id="drab_pid" style="display: none;"></div>
 <br><br>
 
-FOR:<%= for u <- @users do %>
-  IF:<%= if u != @user do %>
-    ONLY_U:<%= u %>
-  <% end %>
+<%= if @user && Enum.count(@users) > 0 do %>
+  <%=
+    Enum.map(@users, fn u ->
+      render("user.html", user: u, conn: @conn)
+    end)
+  %>
 <% end %>
 
-<div><%# @user %></div>
 <button drab-click="update_mini">update mini</button>
 
 <br><br>
 <div><%= @user %></div>
-<div><%= @text %> </div>
+<div><%= @text %></div>

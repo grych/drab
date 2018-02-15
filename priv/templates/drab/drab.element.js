@@ -145,6 +145,11 @@ Drab.set_prop = function (selector, what, where) {
           element[property] = what[property];
           Drab.enable_drab_on(selector);
           break;
+        case "outerHTML":
+          var parent = element.parentNode;
+          element[property] = what[property];
+          Drab.enable_drab_on(parent);
+          break;
         default:
           element[property] = what[property];
           break;

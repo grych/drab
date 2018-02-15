@@ -1,6 +1,8 @@
 # CHANGELOG
 ## v0.7.1
-### Major bugfixes
+Finally, all functions got their own `@spec` and Drab is now dializable.
+
+### Bugfixes
 * Parent/child expression case in Drab.Live (#71) solved
 * Updated floki to 0.20; fixed #76
  

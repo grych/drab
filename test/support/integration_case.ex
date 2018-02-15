@@ -34,8 +34,8 @@ defmodule DrabTestApp.IntegrationCase do
 
   def click_and_wait(button_id) do
     button = find_element(:id, button_id)
-    button |> click()
-    button |> wait_for_enable()
+    click(button)
+    wait_for_enable(button)
   end
 
   def standard_click_and_get_test(test_name) do

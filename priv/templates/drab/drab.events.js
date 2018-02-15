@@ -125,12 +125,17 @@ function update_event_handler(node, event, func) {
   node["on" + event] = func;
 }
 
-Drab.enable_drab_on = function(selector) {
+Drab.enable_drab_on = function(selector_or_node) {
+  var node;
+  if (typeof selector_or_node == "string" || selector_or_node instanceof String)
+    node = document.querySelector(selector_or_node);
+  else
+    node = selector_or_node;
   for (var i = 0; i < Drab.change.length; i++) {
     var fx = Drab.change[i];
-    fx(selector);
+    fx(node);
   }
-  Drab.set_event_handlers(selector);
+  Drab.set_event_handlers(node);
 }
 
 function add_drab_attribute(node, event, handler, options) {
@@ -148,10 +153,10 @@ function add_drab_attribute(node, event, handler, options) {
 }
 
 // re-read event handlers
-Drab.set_event_handlers = function (obj) {
+Drab.set_event_handlers = function (node) {
   var drab_objects = [];
   var drab_objects_shortcutted = [];
-  var where = obj ? document.querySelector(obj).parentNode : document;
+  var where = node ? node.parentNode : document;
 
   // first serve the shortcut controls by adding the internal attribute
   for (var ei = 0; ei < EVENT_SHORTCUTS.length; ei++) {
