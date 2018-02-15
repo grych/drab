@@ -2,6 +2,7 @@
 ## v0.7.1
 ### Major bugfixes
 * Parent/child expression case in Drab.Live (#71) solved
+* Updated floki to 0.20; fixed #76
  
 
 ## v0.7.0

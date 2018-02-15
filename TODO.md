@@ -20,7 +20,6 @@ Changes:
 * think if drab_store shouldn't be page or controller/based
 * Also, instead of 'broadcasting' a change to all browsers, why not do what Phoenix.pubsub does? Allow you to override an outgoing message (then in your time broadcast example you could 'catch' the outgoing message and reformat it?)
 * should take Safe in all html related functions
-* use <%/ %> to not drab the specific one
 * [1.7] change deppie to @deprecated and @since
 
 Changes:
@@ -29,19 +28,8 @@ Changes:
 
 Bugs:
 * exec_elixir should be able to take any argument, not only a map
-* spawn_link in handler does not terminate the spawned process
 
 Performance:
 * render additional, user templates in a compile-time
 * compress Drab templates (js)
 
-
-Drab.Live:
-
-      <%= for u <- @users do %>
-        <%= if u != @user do %>
-          <%= u %> <br>
-        <% end %>
-      <% end %>
-
-poking @users AND @user in the same time should only update the parent
