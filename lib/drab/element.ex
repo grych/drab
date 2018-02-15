@@ -7,6 +7,21 @@ defmodule Drab.Element do
 
   `set_prop/3` is a general function for update elements properties. There are also a bunch of helpers
   (`set_style/3` or `set_attr/3`), for updating a style of attributes of an element.
+
+  ### Automatic Conversion of Collections
+  Some of the properties, both whem using getters and setters, are converted automatically from JS collections
+  (eg. `HTMLOptionsCollection`) to plain objects, so they can be get and set as an Elixir map:
+  * `attributes` (used `getAttribute()` and `setAttribute()`)
+  * `style`
+  * `dataset`
+  * `options` (only when it is instance of `HTMLOptionsCollection`)
+
+  Example:
+
+      iex> set_prop socket, "#select_input", options: %{"One" => "Jeden", "Two" => "Dwa"}
+      {:ok, 1}
+      iex> query socket, "#select_input", :options
+      {:ok, %{"#select_input" => %{"options" => %{"One" => "Jeden", "Two" => "Dwa"}}}}
   """
   import Drab.Core
   require IEx

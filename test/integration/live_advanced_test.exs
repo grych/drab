@@ -26,12 +26,13 @@ defmodule DrabTestApp.LiveAdvancedTest do
 
       assert query_one!(fixture.socket, "#users_list", :innerText) ==
                %{"innerText" => "Mirmił Kokosz"}
+
       assert query_one!(fixture.socket, "#excluded", :innerText) == %{"innerText" => "Hegemon"}
     end
 
     test "update child should raise", fixture do
       Code.compiler_options(warnings_as_errors: true)
-      IO.puts "\n--> the following warning is expected:"
+      IO.puts("\n--> the following warning is expected:")
       assert_raise CompileError, fn -> poke(fixture.socket, excluded: "Hegemon") end
     end
   end

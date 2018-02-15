@@ -1,10 +1,12 @@
 # CHANGELOG
 ## v0.7.1
 Finally, all functions got their own `@spec` and Drab is now dializable.
+Changed JSON encoder to Jason.
 
 ### Bugfixes
 * Parent/child expression case in Drab.Live (#71) solved
 * Updated floki to 0.20; fixed #76
+* special case for outerHTML in `Drab.Element.set_prop`, fixed #80
  
 
 ## v0.7.0

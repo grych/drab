@@ -10,11 +10,11 @@ defmodule DrabTestApp.ElementCommander do
   end
 
   def inner_outer_clicked(socket, _) do
-    set_prop socket, "#inner_outer_out", innerText: "inner outer clicked"
+    set_prop(socket, "#inner_outer_out", innerText: "inner outer clicked")
   end
 
   def add_outer(socket, _) do
     button = "<button id='inner_outer_button' drab='click:inner_outer_clicked'>injected</button>"
-    set_prop socket, "#inner_outer", outerHTML: button
+    set_prop(socket, "#inner_outer", outerHTML: button)
   end
 end

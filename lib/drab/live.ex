@@ -108,7 +108,7 @@ defmodule Drab.Live do
   give more than one expression. Property must be solid bind to the expression.
 
   The expression binded with the property *must be encodable to JSON*, so, for example, tuples are not allowed here.
-  Please refer to `Poison` for more information about encoding JS.
+  Please refer to `Jason` for more information about encoding JS.
 
   #### Scripts
   When the assign we want to change is inside the `<script></script>` tag, Drab will re-evaluate the whole

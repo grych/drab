@@ -1,5 +1,5 @@
 defmodule DrabTestApp.LiveFormTest do
-  import Drab.Live
+  import Drab.{Live, Element}
   use DrabTestApp.IntegrationCase
 
   defp form_index do
@@ -14,8 +14,8 @@ defmodule DrabTestApp.LiveFormTest do
   end
 
   describe "Drab.Live" do
-    test "form should return initial values" do
-      socket = drab_socket()
+    test "form should return initial values", fixture do
+      socket = fixture.socket
       assert peek(socket, :out) == %{}
       click_and_wait("update_form_button")
 
@@ -28,8 +28,8 @@ defmodule DrabTestApp.LiveFormTest do
              }
     end
 
-    test "poking should update form" do
-      socket = drab_socket()
+    test "poking should update form", fixture do
+      socket = fixture.socket
       assert peek(socket, :out) == %{}
 
       poke(
@@ -51,6 +51,29 @@ defmodule DrabTestApp.LiveFormTest do
                "checkbox1" => "1",
                "checkbox3" => "3"
              }
+    end
+
+    test "should return proper options map from select", fixture do
+      %{"#select_input" => %{"options" => options}} =
+        query!(fixture.socket, "#select_input", :options)
+
+      assert options == %{"1" => "One", "2" => "Two", "3" => "Three"}
+    end
+
+    test "options for select should be setable as a plain map", fixture do
+      set_prop(fixture.socket, "#select_input", options: %{"One" => "Jeden", "Two" => "Dwa"})
+
+      %{"#select_input" => %{"options" => options}} =
+        query!(fixture.socket, "#select_input", :options)
+
+      assert options == %{"One" => "Jeden", "Two" => "Dwa"}
+    end
+
+    test "but for the plain object it should not be converted to the map", fixture do
+      set_prop(fixture.socket, "#out", options: "text")
+      %{"#out" => %{"options" => options}} = query!(fixture.socket, "#out", :options)
+
+      assert options == "text"
     end
   end
 end

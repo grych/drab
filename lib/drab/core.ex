@@ -360,13 +360,13 @@ defmodule Drab.Core do
   def same_topic(topic), do: "topic:#{topic}"
 
   @doc false
-  @spec encode_js(Poison.Encoder.t()) :: iodata | no_return
-  def encode_js(value), do: Poison.encode!(value)
+  @spec encode_js(term) :: String.t() | no_return
+  def encode_js(value), do: Jason.encode!(value)
 
   @doc false
-  @spec decode_js(iodata) :: Poison.Parser.t()
+  @spec decode_js(iodata) :: term
   def decode_js(value) do
-    case Poison.decode(value) do
+    case Jason.decode(value) do
       {:ok, v} -> v
       _ -> value
     end

@@ -59,7 +59,7 @@ defmodule DrabTestApp.ElementTest do
                )
 
       {:ok, ret} = query_one(socket, "button", :style)
-      assert ret["style"]["cssText"] == "width: 200px; background-color: red;"
+      assert ret["style"]["cssText"] == "background-color: red; width: 200px;"
 
       assert {:ok, 1} == set_prop(socket, "a", attributes: %{"href" => "https://tg.pl/drab"})
       {:ok, ret} = query_one(socket, "a", :attributes)
@@ -90,7 +90,7 @@ defmodule DrabTestApp.ElementTest do
                )
 
       {:ok, ret} = query_one(socket, "button", :style)
-      assert ret["style"]["cssText"] == "width: 200px; background-color: red;"
+      assert ret["style"]["cssText"] == "background-color: red; width: 200px;"
 
       assert {:ok, :broadcasted} ==
                broadcast_prop(socket, "a", attributes: %{"href" => "https://tg.pl/drab"})
@@ -106,7 +106,7 @@ defmodule DrabTestApp.ElementTest do
                set_style(socket, "button", %{"backgroundColor" => "red", "width" => "200px"})
 
       {:ok, ret} = query_one(socket, "button", :style)
-      assert ret["style"]["cssText"] == "width: 200px; background-color: red;"
+      assert ret["style"]["cssText"] == "background-color: red; width: 200px;"
     end
 
     test "set_attr" do
@@ -171,7 +171,7 @@ defmodule DrabTestApp.ElementTest do
 
   defp test_inner_outer(socket, property) do
     button = "<button id='inner_outer_button' drab='click:inner_outer_clicked'>injected</button>"
-    set_prop socket, "#inner_outer", [{property, button}]
+    set_prop(socket, "#inner_outer", [{property, button}])
     click_and_wait("inner_outer_button")
 
     out = find_element(:id, "inner_outer_out")

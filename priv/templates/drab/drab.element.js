@@ -98,6 +98,18 @@ Drab.query = function (selector, what, where) {
           case "classList":
             ret[id_selector][property] = to_array(element.classList);
             break;
+          case "options":
+            var options = element.options;
+            if (options instanceof HTMLOptionsCollection) {
+              var ret_options = {};
+              for (var j = 0; j < options.length; j++) {
+                ret_options[options[j].value] = options[j].text;
+              }
+              ret[id_selector][property] = ret_options;
+            } else {
+              ret[id_selector][property] = element.options;
+            }
+            break;
           default:
             ret[id_selector][property] = element[property];
             break;
@@ -150,6 +162,20 @@ Drab.set_prop = function (selector, what, where) {
           element[property] = what[property];
           Drab.enable_drab_on(parent);
           break;
+        case "options":
+          if (element.options instanceof HTMLOptionsCollection) {
+            element.length = 0;
+            for (var p in value) {
+              var option = document.createElement("option");
+              option.value = p;
+              option.text = value[p];
+              element.add(option);
+            }
+          } else {
+            element[property] = what[property];
+          }
+          break;
+
         default:
           element[property] = what[property];
           break;
