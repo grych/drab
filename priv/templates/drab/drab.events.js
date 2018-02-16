@@ -180,7 +180,6 @@ function find_drab_commander_attr(where) {
 }
 
 function parse_drab_attr(attr) {
-  console.log(attr);
   var l = attr.split(":");
   var event_with_options = l[0].split("#");
   var event_name = event_with_options[0];

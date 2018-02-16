@@ -26,6 +26,17 @@ is equivalent of:
       <button drab-click="DrabExample.AnotherCommander.button3_clicked">1</button>
     </div>
 
+#### Client-side errors now appears in the application log
+For developer happines, all client-side errors are now displayed both on JS console and on the Phoenix side.
+
+Example:
+
+    <button drab=":wrong">
+
+generates:
+
+    [error] Browser reports: Drab attribute value ':wrong' is incorrect.
+
 ### Bugfixes
 * Parent/child expression case in Drab.Live (#71) solved
 * Updated floki to 0.20; fixed #76
