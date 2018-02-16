@@ -145,9 +145,41 @@ function add_drab_attribute(node, event, handler, options) {
     var events_and_handlers = node.getAttribute("drab") || "";
     var new_event_handler = event + (options ? "#" + options : "") + ":" + handler;
     if (events_and_handlers.indexOf(new_event_handler) == -1) {
-      node.setAttribute("drab",
-        events_and_handlers + " " + new_event_handler
-        );
+      var attr = events_and_handlers + " " + new_event_handler;
+      node.setAttribute("drab", attr.trim());
+    }
+  }
+}
+
+function add_drab_commander(node, commander) {
+  var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
+  var attr = "";
+  for (var i = 0; i < events_and_handlers.length; i++) {
+    var event_and_handler = events_and_handlers[i];
+    var l = event_and_handler.split(":");
+    var event_name = l[0];
+    var handler_name = l[1];
+    if ((!handler_name) || (!event_name)) {
+      Drab.error("Drab attribute value '" + event_and_handler + "' incorrect for " + node)
+    } else {
+      if (handler_name.indexOf(".") === -1) {
+        handler_name = commander + "." + handler_name;
+      }
+    }
+    attr = attr + event_name + ":" + handler_name + " ";
+  }
+  node.setAttribute("drab", attr.trim());
+}
+
+function find_drab_commander_attr(where) {
+  var commander_nodes = where.querySelectorAll("[drab-commander");
+  for (var i = 0; i < commander_nodes.length; i++) {
+    var commander_node = commander_nodes[i];
+    var commander = commander_node.getAttribute("drab-commander");
+    var nodes = commander_node.querySelectorAll("[drab]");
+    for (var j = 0; j < nodes.length; j++) {
+      var node = nodes[j];
+      add_drab_commander(node, commander);
     }
   }
 }
@@ -181,6 +213,8 @@ Drab.set_event_handlers = function (node) {
       node.getAttribute("drab-options")
       )
   }
+
+  find_drab_commander_attr(where);
 
   var events_to_disable = EVENTS_TO_DISABLE;
   drab_objects = where.querySelectorAll("[drab]")

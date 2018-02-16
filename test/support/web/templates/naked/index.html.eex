@@ -6,8 +6,19 @@
 <div id="run_handler_test"></div>
 
 <br>
-<button id="exec_lone_handler" drab-click="DrabTestApp.LoneCommander.lone_handler">
-  DrabTestApp.LoneCommander.lone_handler/2
+<div drab-commander="DrabTestApp.LoneCommander">
+  <button id="exec_lone_handler" drab-click="DrabTestApp.LoneCommander.lone_handler" drab-change="DrabTestApp.LoneCommander.other_handler">
+    DrabTestApp.LoneCommander.lone_handler/2
+  </button>
+
+  <button id="exec_lone_handler_2" drab-click="lone_handler" drab-change="other_handler">
+    lone_handler/2 under drab-commander="DrabTestApp.LoneCommander"
+  </button>
+</div>
+
+<br>
+<button id="outside_drab_commander" drab-click="run_handler_test">
+  Handler in my own Commander
 </button>
 
 <br>

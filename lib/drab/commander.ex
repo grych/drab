@@ -60,6 +60,26 @@ defmodule Drab.Commander do
   If you want to restrict shared controller for only specified controller, you must use `before_handler/1`
   callback with `controller/1` and `action/1` functions to check out where the function is calling from.
 
+  #### Define Shared Commander with `drab-commander` attribute on all children nodes
+  If you add `drab-commander` attribute to any tag, all children of this tag will use Shared Commander defined
+  in this tag. Notice it will not redefine nodes, which already has Shared Commander defined.
+
+  Thus this:
+
+      <div drab-commander="DrabExample.SharedCommander">
+        <button drab-click="button1_clicked">1</button>
+        <button drab-click="button2_clicked">1</button>
+        <button drab-click="DrabExample.AnotherCommander.button3_clicked">1</button>
+      </div>
+
+  is equivalent of:
+
+      <div>
+        <button drab-click="DrabExample.SharedCommander.button1_clicked">1</button>
+        <button drab-click="DrabExample.SharedCommander.button2_clicked">1</button>
+        <button drab-click="DrabExample.AnotherCommander.button3_clicked">1</button>
+      </div>
+
   ## Callbacks
 
   Callbacks are an automatic events which are launched by the system. They are defined by the macro in the

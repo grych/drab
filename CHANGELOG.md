@@ -1,12 +1,33 @@
 # CHANGELOG
 ## v0.7.1
-Finally, all functions got their own `@spec` and Drab is now dializable.
+Finally, most functions got their own `@spec` and Drab is now dialyzable.
 Changed JSON encoder to Jason.
+
+### New Features
+#### Define Shared Commander with `drab-commander` on all children nodes
+If you add `drab-commander` attribute to any tag, all children of this tag will use Shared Commander defined in this tag. Notice it will not redefine nodes, which already has Shared Commander defined.
+
+Thus this:
+
+    <div drab-commander="DrabExample.SharedCommander">
+      <button drab-click="button1_clicked">1</button>
+      <button drab-click="button2_clicked">1</button>
+      <button drab-click="DrabExample.AnotherCommander.button3_clicked">1</button>
+    </div>
+
+is equivalent of:
+
+    <div>
+      <button drab-click="DrabExample.SharedCommander.button1_clicked">1</button>
+      <button drab-click="DrabExample.SharedCommander.button2_clicked">1</button>
+      <button drab-click="DrabExample.AnotherCommander.button3_clicked">1</button>
+    </div>
 
 ### Bugfixes
 * Parent/child expression case in Drab.Live (#71) solved
 * Updated floki to 0.20; fixed #76
-* special case for outerHTML in `Drab.Element.set_prop`, fixed #80
+* Special case for outerHTML in `Drab.Element.set_prop`, fixed #80
+* Special case for HTMLOptionsCollection; fixed #75
  
 
 ## v0.7.0

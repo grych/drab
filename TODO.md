@@ -6,8 +6,6 @@ Changes:
 * optimistic updates
 * <input drab="focus:input_focus(42) blur:input_blur()" />
 * consider DynamicSupervisor as a replacement for Drab GenServer
-* is `use Drab.Commander` really necessary?
-* <p drab-commander>
 * check token on each incoming message
 * is controller, action and assigns neccasary in drab token on page generation?
 * security concerns when onload
