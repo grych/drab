@@ -3,6 +3,9 @@
 Finally, most functions got their own `@spec` and Drab is now dialyzable.
 Changed JSON encoder to Jason.
 
+### Warning!
+`Drab.Live` cache file has changed, please ensure your `"*.drab` templates are recompiled after the upgrade.
+
 ### New Features
 #### Define Shared Commander with `drab-commander` on all children nodes
 If you add `drab-commander` attribute to any tag, all children of this tag will use Shared Commander defined in this tag. Notice it will not redefine nodes, which already has Shared Commander defined.

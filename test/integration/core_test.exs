@@ -14,12 +14,15 @@ defmodule DrabTestApp.CoreTest do
   end
 
   describe "Drab.Core" do
+    @tag capture_log: true # we don't want to see Drab Errors in the log
     test "exec_js and broadcast_js" do
       # test execjs and broadcastjs
       standard_click_and_get_test("core1")
       standard_click_and_get_test("core2")
     end
 
+
+    @tag capture_log: true
     test "multiple events on object", fixture do
       standard_click_and_get_test("core4")
 
@@ -27,6 +30,7 @@ defmodule DrabTestApp.CoreTest do
                {:ok, "core5"}
     end
 
+    @tag capture_log: true
     test "multiple events on object defined with shorthand form", fixture do
       standard_click_and_get_test("core6")
 
@@ -34,6 +38,7 @@ defmodule DrabTestApp.CoreTest do
                {:ok, "core7"}
     end
 
+    @tag capture_log: true
     test "debounce", fixture do
       for t <- ["1", "2", "3"] do
         input = find_element(:id, "core#{t}_input")
@@ -53,6 +58,7 @@ defmodule DrabTestApp.CoreTest do
       end
     end
 
+    @tag capture_log: true
     test "session" do
       # this session value should be visible
       session_value = find_element(:id, "test_session_value1")
@@ -63,6 +69,7 @@ defmodule DrabTestApp.CoreTest do
       assert visible_text(session_value) == ""
     end
 
+    @tag capture_log: true
     test "store" do
       # test if the store is set up correctly
       click_and_wait("set_store_button")
@@ -72,11 +79,13 @@ defmodule DrabTestApp.CoreTest do
       assert visible_text(store_value) == "test store value"
     end
 
+    @tag capture_log: true
     test "return values of exec_js", context do
       assert exec_js(context[:socket], "2 + 2") == {:ok, 4}
       assert exec_js(context[:socket], "nonexisting") == {:error, "nonexisting is not defined"}
     end
 
+    @tag capture_log: true
     test "return values of exec_js!", context do
       assert exec_js!(context[:socket], "2 + 2") == 4
 
@@ -87,6 +96,7 @@ defmodule DrabTestApp.CoreTest do
   end
 
   describe "Drab.Core callbacks" do
+    @tag capture_log: true
     test "before all should set the store", context do
       socket = context[:socket]
       click_and_wait("core1_button")
@@ -94,12 +104,14 @@ defmodule DrabTestApp.CoreTest do
       assert get_store(socket, :set_in_before_all) == :before
     end
 
+    @tag capture_log: true
     test "after all should get the handler return value", context do
       click_and_wait("core1_button")
 
       assert get_store(context[:socket], :set_in_after_all) == 42
     end
 
+    @tag capture_log: true
     test "before handler which returns false should stop processing", context do
       click_and_wait("core3_button")
 
@@ -107,25 +119,30 @@ defmodule DrabTestApp.CoreTest do
       assert find_element(:id, "core3_out") |> visible_text() == ""
     end
 
+    @tag capture_log: true
     test "after handler `except` test 1", context do
       click_and_wait("core1_button")
       assert get_store(context[:socket], :shouldnt_be_set_in_core3) == true
     end
 
+    @tag capture_log: true
     test "after handler `except` test 2", context do
       click_and_wait("core2_button")
       assert get_store(context[:socket], :shouldnt_be_set_in_core3) == true
     end
 
+    @tag capture_log: true
     test "after handler `except` test 3", context do
       click_and_wait("core3_button")
       assert get_store(context[:socket], :shouldnt_be_set_in_core3) == nil
     end
 
+    @tag capture_log: true
     test "onconnect should go before onload" do
       assert find_element(:id, "onconnect_counter") |> visible_text() == "1"
     end
 
+    @tag capture_log: true
     test "onload should go after onconnect" do
       assert find_element(:id, "onload_counter") |> visible_text() == "2"
     end

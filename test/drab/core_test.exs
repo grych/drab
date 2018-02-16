@@ -1,7 +1,7 @@
 defmodule Drab.CoreTest do
   import Drab.Core
 
-  use ExUnit.Case, ascync: true
+  use ExUnit.Case, async: true
   doctest Drab.Core, only: [same_path: 1, same_controller: 1, same_topic: 1]
 
   test "this/1 should return drab_id" do

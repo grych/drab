@@ -155,18 +155,13 @@ function add_drab_commander(node, commander) {
   var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
   var attr = "";
   for (var i = 0; i < events_and_handlers.length; i++) {
-    var event_and_handler = events_and_handlers[i];
-    var l = event_and_handler.split(":");
-    var event_name = l[0];
-    var handler_name = l[1];
-    if ((!handler_name) || (!event_name)) {
-      Drab.error("Drab attribute value '" + event_and_handler + "' incorrect for " + node)
-    } else {
-      if (handler_name.indexOf(".") === -1) {
-        handler_name = commander + "." + handler_name;
+    var drab_attr = parse_drab_attr(events_and_handlers[i]);
+    if (drab_attr) {
+      if (!drab_attr.in_shared_commander) {
+        drab_attr.handler_name = commander + "." + drab_attr.handler_name;
       }
     }
-    attr = attr + event_name + ":" + handler_name + " ";
+    attr = attr + drab_attr.event_name + ":" + drab_attr.handler_name + " ";
   }
   node.setAttribute("drab", attr.trim());
 }
@@ -181,6 +176,27 @@ function find_drab_commander_attr(where) {
       var node = nodes[j];
       add_drab_commander(node, commander);
     }
+  }
+}
+
+function parse_drab_attr(attr) {
+  console.log(attr);
+  var l = attr.split(":");
+  var event_with_options = l[0].split("#");
+  var event_name = event_with_options[0];
+  var options = event_with_options[1];
+  var handler_name = l[1];
+  var shared = handler_name && (handler_name.indexOf(".") !== -1)
+  if (event_name && handler_name) {
+    return {
+      handler_name: handler_name,
+      event_name: event_name,
+      options: options,
+      in_shared_commander: shared
+    };
+  } else {
+    Drab.error("Drab attribute value '" + attr + "' is incorrect.");
+    return false;
   }
 }
 
@@ -223,16 +239,10 @@ Drab.set_event_handlers = function (node) {
     var node = drab_objects[i];
     var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
     for (var j = 0; j < events_and_handlers.length; j++) {
-      var event_and_handler = events_and_handlers[j];
-      var l = event_and_handler.split(":");
-      var event_with_options = l[0].split("#");
-      var event_name = event_with_options[0];
-      var options = event_with_options[1];
-      let handler_name = l[1];
+      var drab_attr = parse_drab_attr(events_and_handlers[j]);
+      let handler_name = drab_attr.handler_name;
 
-      if ((!handler_name) || (!event_name)) {
-        Drab.error("Drab attribute value '" + event_and_handler + "' incorrect for " + node)
-      } else {
+      if (drab_attr) {
         var event_handler_function = function (event) {
           // disable current control - will be re-enabled after finish
           var n = this;
@@ -256,14 +266,14 @@ Drab.set_event_handlers = function (node) {
         };
 
         // options. Wraps around event_handler_function, eg. debounce(event_handler_function, 500)
-        var matched = /(\w+)\s*\((.*)\)/.exec(options);
+        var matched = /(\w+)\s*\((.*)\)/.exec(drab_attr.options);
         if (matched) {
           var fname = matched[1];
           var fargs = matched[2].replace(/^\s+|\s+$/g, ''); // strip whitespace
           var f = fname + "(event_handler_function" + (fargs == "" ? "" : ", " + fargs) + ")";
-          update_event_handler(node, event_name, eval(f));
+          update_event_handler(node, drab_attr.event_name, eval(f));
         } else {
-          update_event_handler(node, event_name, event_handler_function);
+          update_event_handler(node, drab_attr.event_name, event_handler_function);
         }
       }
     }

@@ -1,6 +1,6 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.7.0"
+  @version "0.7.1"
 
   def project do
     [

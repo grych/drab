@@ -93,6 +93,7 @@
     },
     error: function (message) {
       console.log("[drab] " + message);
+      Drab.exec_elixir("Drab.Logger.error", {message: message});
     },
     connected: [],
     disconnected: [],
