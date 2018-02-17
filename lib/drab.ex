@@ -272,15 +272,16 @@ defmodule Drab do
        ) do
     spawn_link(fn ->
       try do
-        {commander_module, event_handler} =
-          case event_handler(event_handler_function) do
-            {nil, function} -> raise_if_handler_not_exists(commander_module, function)
-            {module, function} -> raise_if_handler_is_not_public(module, function)
-          end
-
         # payload = Map.delete(payload, "event_handler_function")
         argument = payload["__additional_argument"]
         payload = Map.delete(payload, "__additional_argument")
+        arity = if argument, do: 3, else: 2
+
+        {commander_module, event_handler} =
+          case event_handler(event_handler_function) do
+            {nil, function} -> raise_if_handler_not_exists(commander_module, function, arity)
+            {module, function} -> raise_if_handler_is_not_public(module, function)
+          end
 
         payload = transform_payload(payload, state)
         socket = transform_socket(payload, socket, state)
@@ -344,10 +345,10 @@ defmodule Drab do
     end
   end
 
-  @spec raise_if_handler_not_exists(atom, atom) :: {atom, atom} | no_return
-  defp raise_if_handler_not_exists(module, function) do
+  @spec raise_if_handler_not_exists(atom, atom, integer) :: {atom, atom} | no_return
+  defp raise_if_handler_not_exists(module, function, arity) do
     # TODO: check if handler is not a callback
-    if !({function, 2} in apply(module, :__info__, [:functions])) ||
+    if !({function, arity} in apply(module, :__info__, [:functions])) ||
          is_callback?(module, function) do
       raise """
       handler `#{function}` does not exist.
