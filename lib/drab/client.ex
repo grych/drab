@@ -52,6 +52,18 @@ defmodule Drab.Client do
 
   The code above runs function named `clicked` in the corresponding Commander, with
   the argument `%{"click" => "clickety-click}"`
+
+  ### Drab.enable_drab_on(selector_or_node)
+  Evaluates DOM to set up Drab events.
+
+  Called automatically on page load for the whole document. You need to call it after adding/changing html fragments
+  from the client side. No need to call it when updating html with Drab commands (`poke`, `insert_html`, etc).
+
+  Arguments:
+  * selector_or_node - DOM object or its selector under which Drab re-evaluate the html; uses `document` if not given
+
+  Return:
+  * no return
   """
 
   import Drab.Template

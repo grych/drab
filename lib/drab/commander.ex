@@ -53,7 +53,7 @@ defmodule Drab.Commander do
       end
 
   To call the shared commander function from page generated with the different controller, you need to specify
-  its full path"
+  its full path".
 
       <button drab-click="DrabExample.SharedCommander.click_button_handler">Clickety</button>
 
@@ -117,6 +117,9 @@ defmodule Drab.Commander do
           # this callback gets return value of the corresponding event handler
         end
       end
+
+  Notice that `oload`, `onconnect` and `ondisconnect` callbacks are not working with Shared Commander,
+  they are only are invoked in the main one.
 
   #### `onconnect`
   Launched every time client browser connects to the server, including reconnects after server
