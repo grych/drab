@@ -1,10 +1,11 @@
 # CHANGELOG
 ## v0.7.1
+This version is a step forward for creating component-like pieces of code with Drab, with enhanced Shared Commanders and possibility to pass additional argument to the handler function.
+
 Finally, most functions got their own `@spec` and Drab is now dialyzable.
-Changed JSON encoder to Jason.
 
 ### Warning!
-`Drab.Live` cache file has changed, please ensure your `"*.drab` templates are recompiled after the upgrade.
+`Drab.Live` cache DETS has changed, please ensure your `"*.drab` templates are recompiled after the upgrade.
 
 ### New Features
 #### Define Shared Commander with `drab-commander` on all children nodes
@@ -25,6 +26,34 @@ is equivalent of:
       <button drab-click="DrabExample.SharedCommander.button2_clicked">1</button>
       <button drab-click="DrabExample.AnotherCommander.button3_clicked">1</button>
     </div>
+
+#### Additional argument for handlers
+Since this version you may create handler with arity of 3, and pass the additional parameter using parenthesis after the handler name in `drab` attribute:
+
+    <button drab-click='button_clicked(42)'>
+
+This will run `button_clicked/3` instead of `button_clicked/2` in your Commander:
+
+    def button_clicked(socket, sender, the_answer_for_the_ultimate_question)
+
+The attribute is evaluated on the client side, so it could be any valid JS expression:
+
+    <button drab-click='button_clicked({the_answer: 42})'>
+    <button drab-click='button_clicked(window.location)'>
+
+#### `drab-argument`
+
+Analogically to `drab-commander` attribute, there is a `drab-argument` to set this argument for more nodes. Notice that the existing arguments are not overwritten, so this:
+
+    <div drab-argument='42'>
+      <button drab-click='button_clicked'>
+      <button drab-click='button_clicked(43)'>
+    </div>
+
+is the equivalent to:
+
+    <button drab-click='button_clicked(42)'>
+    <button drab-click='button_clicked(43)'>
 
 #### Client-side errors now appears in the application log
 For developer happines, all client-side errors are now displayed both on JS console and on the Phoenix side.

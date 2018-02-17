@@ -168,15 +168,43 @@ function add_drab_commander(node, commander) {
   node.setAttribute("drab", attr.trim());
 }
 
+function add_drab_argument(node, argument) {
+  var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
+  var attr;
+  for (var i = 0; i < events_and_handlers.length; i++) {
+    // var drab_attr = parse_drab_attr(events_and_handlers[i]);
+    var drab_attr = events_and_handlers[i];
+    var m = /(.+)\((.*)\)$/.exec(drab_attr);
+    if (m) {
+      if (m[2] == "") {
+        attr = m[1] + "(" + argument + ")"
+      } else {
+        attr = drab_attr;
+      }
+    } else {
+      attr = drab_attr + "(" + argument + ")";
+    }
+  }
+  node.setAttribute("drab", attr);
+}
+
 function find_drab_commander_attr(where) {
-  var commander_nodes = where.querySelectorAll("[drab-commander");
-  for (var i = 0; i < commander_nodes.length; i++) {
-    var commander_node = commander_nodes[i];
-    var commander = commander_node.getAttribute("drab-commander");
-    var nodes = commander_node.querySelectorAll("[drab]");
+  do_find_drab_attr(where, "drab-commander", add_drab_commander);
+}
+
+function find_drab_argument_attr(where) {
+  do_find_drab_attr(where, "drab-argument", add_drab_argument);
+}
+
+function do_find_drab_attr(where, attr_name, add_drab_function) {
+  var attribute_nodes = where.querySelectorAll("[" + attr_name + "]");
+  for (var i = 0; i < attribute_nodes.length; i++) {
+    var attribute_node = attribute_nodes[i];
+    var attribute = attribute_node.getAttribute(attr_name);
+    var nodes = attribute_node.querySelectorAll("[drab]");
     for (var j = 0; j < nodes.length; j++) {
       var node = nodes[j];
-      add_drab_commander(node, commander);
+      add_drab_function(node, attribute);
     }
   }
 }
@@ -237,6 +265,7 @@ Drab.set_event_handlers = function (node) {
   }
 
   find_drab_commander_attr(where);
+  find_drab_argument_attr(where);
 
   var events_to_disable = EVENTS_TO_DISABLE;
   drab_objects = where.querySelectorAll("[drab]")

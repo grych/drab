@@ -20,24 +20,33 @@ defmodule Drab.Core do
   ## Events
   Events are defined directly in the HTML by adding the `drab` attribute with the following pattern:
 
-      <button drab='event_name#options:event_handler_function_name'>clickme</button>
+      <button drab='event_name#options:event_handler_function_name(argument)'>clickme</button>
 
   * `event_name` is the DOM event name, eg. "click", "blur"
   * `event_handler_function_name` - the name of the event handler function in the commander on the server side
   * `options` - optional, so far the only available option is "debounce(milliseconds)" for "keyup" event
+  * `argument` - optional, additional argument to be passed to the event handler function as a third argument
 
   Example:
 
       <button drab='click:button_clicked'>clickme</button>
 
-  Clicking such button launches `DrabExample.PageCommander.button_clicked/2` on the server side.
+  Clicking above button launches `DrabExample.PageCommander.button_clicked/2` on the server side.
+
+      <button drab='click:button_clicked(42)'>clickme</button>
+
+  Clicking the button above launches `DrabExample.PageCommander.button_clicked/3` on the server side, with third
+  argument of value 42. This is evaluated on the client side, so it could be any valid JS expression:
+
+      <button drab='click:button_clicked({the_answer: 42})'>
+      <button drab='click:button_clicked(window.location)'>
 
   You may have multiple events defined for a DOM object, but the specific event may appear there only once
   (can't define two handlers for one event). Separate `event:handler` pairs with whitespaces:
 
       <button drab='click:button_clicked mouseover:prepare_button'>clickme</button>
 
-  #### Shortcut form
+  ### Shortcut form
   There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For those events
   an attribute `drab-EVENTNAME` must be set. The following is an equivalent for the previous one:
 
@@ -46,7 +55,7 @@ defmodule Drab.Core do
   As above, there is a possibility to define multiple event handlers for one DOM object, but the only one
   handler for the event. The following form is valid:
 
-      <button drab-click='button_clicked' drab-mouseover='prepare_button'>clickme</button>
+      <button drab-click='button_clicked' drab-mouseover='prepare_button(42)'>clickme</button>
 
   But the next one is prohibited:
 
@@ -61,9 +70,23 @@ defmodule Drab.Core do
 
   Please keep this list short, as it affects client script performance.
 
-  #### Long form [depreciated]
+  ### Long form [depreciated]
   You may also configure drab handler with `drab-event` and `drab-handler` combination, but please don't.
   This is coming from the ancient version of the software and will be removed in the stable release.
+
+  #### Defining optional argument in multiple nodes with `drab-argument` attribute
+  If you add `drab-argument` attribute to any tag, all children of this tag will use this as an optional
+  attribute. Notice that the existing arguments are not overwritten, so this:
+
+      <div drab-argument='42'>
+        <button drab-click='button_clicked'>
+        <button drab-click='button_clicked(43)'>
+      </div>
+
+  is the equivalent to:
+
+      <button drab-click='button_clicked(42)'>
+      <button drab-click='button_clicked(43)'>
 
   ### Handling event in any commander (Shared Commander)
   By default Drab runs the event handler in the commander module corresponding to the controller, which rendered
@@ -73,42 +96,6 @@ defmodule Drab.Core do
 
   Notice that the module must be a commander module, ie. it must be marked with `use Drab.Commander`, and the function
   must be marked as public with `Drab.Commander.public/1` macro.
-
-  ## Event handler functions
-  The event handler function receives two parameters:
-  * `socket` - the websocket used to communicate back to the page by `Drab.Query` functions
-  * `sender` - a map contains information of the object which sent the event; keys are binary strings
-
-  The `sender` map:
-
-      %{
-        "id"      => "sender object ID attribute",
-        "name"    => "sender object 'name' attribute",
-        "class"   => "sender object 'class' attribute",
-        "text"    => "sender node 'text'",
-        "html"    => "sender node 'html', result of running .html() on the node",
-        "value"   => "sender object value",
-        "data"    => "a map with sender object 'data-xxxx' attributes, where 'xxxx' are the keys",
-        "event"   => "a map with choosen properties of `event` object"
-        "drab_id" => "internal"
-        "form"    => "a map of values of the sourrounding form"
-        :params   => "a map of values of the sourrounding form, normalized to controller type params"
-      }
-
-  The `event` map contains choosen properties of `event` object:
-
-      altKey, data, key, keyCode, metaKey, shiftKey, ctrlKey, type, which,
-      clientX, clientY, offsetX, offsetY, pageX, pageY, screenX, screenY
-
-
-  Example:
-
-      def button_clicked(socket, sender) do
-        # using Drab.Query
-        socket |> update(:text, set: "clicked", on: this(sender))
-      end
-
-  `sender` may contain more fields, depending on the used Drab module. Refer to module documentation for more.
 
   ### Form values
 

@@ -141,6 +141,34 @@ defmodule DrabTestApp.NakedTest do
       click_and_wait("shared_handler_with_param_3")
       assert inner_text(find_element(:id, "run_handler_test")) == "with argument: [object Object]"
     end
+
+    test "set with drab-argument attribute should be correctly parsed" do
+      assert drab_attribute("handler_under_div_with_null_param") == "click:run_handler_test('text:text.(text)')"
+
+      assert drab_attribute("handler_under_div_without_param") == "click:run_handler_test('text:text.(text)')"
+
+      assert drab_attribute("handler_under_div_with_some_param") == "click:run_handler_test(43)"
+    end
+
+    test "set with drab-argument should be correctly executed" do
+      click_and_wait("handler_under_div_with_null_param")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
+
+      click_and_wait("handler_under_div_with_some_param")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: 43"
+
+      click_and_wait("handler_under_div_without_param")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
+
+      click_and_wait("shared_handler_under_div_with_null_param")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
+
+      click_and_wait("shared_handler_under_div_with_some_param")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: 43"
+
+      click_and_wait("shared_handler_under_div_without_param")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
+    end
   end
 
   defp log_for_handler(socket, handler) do

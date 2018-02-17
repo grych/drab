@@ -74,3 +74,35 @@
   </button>
 </div>
 
+<hr>
+<div drab-argument="'text:text.(text)'">
+  <button id="handler_under_div_with_null_param" drab-click="run_handler_test()">
+    run_handler_test()
+  </button>
+  <br>
+
+  <button id="handler_under_div_without_param" drab-click="run_handler_test">
+    run_handler_test
+  </button>
+  <br>
+
+  <button id="handler_under_div_with_some_param" drab-click="run_handler_test(43)">
+    run_handler_test(43)
+  </button>
+  <br>
+
+  <button id="shared_handler_under_div_with_null_param" drab-click="DrabTestApp.LoneCommander.lone_handler()">
+    DrabTestApp.LoneCommander.lone_handler()
+  </button>
+  <br>
+
+  <button id="shared_handler_under_div_without_param" drab-click="DrabTestApp.LoneCommander.lone_handler">
+    DrabTestApp.LoneCommander.lone_handler
+  </button>
+  <br>
+
+  <button id="shared_handler_under_div_with_some_param" drab-click="DrabTestApp.LoneCommander.lone_handler(43)">
+    DrabTestApp.LoneCommander.lone_handler(43)
+  </button>
+  <br>
+</div>

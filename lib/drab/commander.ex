@@ -11,7 +11,11 @@ defmodule Drab.Commander do
       defmodule DrabExample.PageCommander do
         use Drab.Commander
 
-        def click_button_handler(socket, dom_sender) do
+        def click_button_handler(socket, sender) do
+          ...
+        end
+
+        def click_button_handler(socket, sender, optional) do
           ...
         end
       end
@@ -20,12 +24,44 @@ defmodule Drab.Commander do
 
   ## Event handler functions
   Event handler is the function which process the request coming from the browser. It is done by running JS method
-  `Drab.exec_elixir()` or from the DOM object with `drab-handler` attribute. See `Drab.Core` for a better description.
+  `Drab.exec_elixir()` or from the DOM object with `drab` attribute. See `Drab.Core`, section Events, for a more
+  description.
 
-  The event handler function receives two parameters:
+  The event handler function receives two or three parameters:
   * `socket` - the websocket used to communicate back to the page
-  * `argument` - an argument used in JS Drab.exec_elixir() method; when lauching an event via
-    `drab-handler=function` atrribute, it is a map describing the sender object
+  * `argument` or `sender` - an argument used in JS Drab.exec_elixir() method; when lauching an event via
+    `drab=...` atrribute, it is a map which describes the sender object
+  * `optional` - optional argument which may be defined directly in HTML, with `drab` attribute
+
+  The `sender` map:
+
+      %{
+        "id"      => "sender object ID attribute",
+        "name"    => "sender object 'name' attribute",
+        "class"   => "sender object 'class' attribute",
+        "text"    => "sender node 'text'",
+        "html"    => "sender node 'html', result of running .html() on the node",
+        "value"   => "sender object value",
+        "data"    => "a map with sender object 'data-xxxx' attributes, where 'xxxx' are the keys",
+        "event"   => "a map with choosen properties of `event` object"
+        "drab_id" => "internal"
+        "form"    => "a map of values of the sourrounding form"
+        :params   => "a map of values of the sourrounding form, normalized to controller type params"
+      }
+
+  The `event` map contains choosen properties of `event` object:
+
+      altKey, data, key, keyCode, metaKey, shiftKey, ctrlKey, type, which,
+      clientX, clientY, offsetX, offsetY, pageX, pageY, screenX, screenY
+
+  Example:
+
+      def button_clicked(socket, sender) do
+        # using Drab.Query
+        socket |> update(:text, set: "clicked", on: this(sender))
+      end
+
+  `sender` may contain more fields, depending on the used Drab module. Refer to module documentation for more.
 
   Event handlers are running in their own processes, and they are linked to the channel process. This means that
   in case of disconnect or navigate away from the page, event handler processes are going to terminate. But please
@@ -33,8 +69,8 @@ defmodule Drab.Commander do
   which means all the linked processes are not going to stop. If you run infinite loop with `spawn_link` from
   the handler, and the handler finish normally, the loop will be unlinked and will stay with us forever.
 
-  ### All public functions with arity of 2 in the commander module must be considered as handlers
-  Please keep in mind that all public functions with arity of 2 in the commander may be called remotely from
+  ### All public functions with arity of 2 or 3 in the commander module must be considered as handlers
+  Please keep in mind that all public functions with arity of 2 or 3 in the commander may be called remotely from
   the browser.
 
   ## Shared commanders
@@ -47,7 +83,7 @@ defmodule Drab.Commander do
         use Drab.Commander
         public [:click_button_handler]
 
-        def click_button_handler(socket, dom_sender) do
+        def click_button_handler(socket, sender) do
           ...
         end
       end
