@@ -47,7 +47,7 @@ end
 
   1. Erlang ~> 19
 
-  2. Elixir ~> 1.4
+  2. Elixir >= 1.5.1
 
   3. Phoenix ~> 1.2
 
@@ -55,13 +55,13 @@ end
 
 ## Installation
 
-  So far the process of the installation is rather manual. In the future it will be automated.
+  So far the process of the installation is mostly manual. In the future it will be automated.
 
   1. Add `drab` to your list of dependencies in `mix.exs` in your Phoenix application and install it:
 
 ```elixir
 def deps do
-  [{:drab, "~> 0.6"}]
+  [{:drab, "~> 0.7"}]
 end
 ```
 

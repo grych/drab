@@ -13,7 +13,21 @@ defmodule DrabTestApp.NakedCommander do
   def run_handler_test(socket, payload) do
     exec_js!(
       socket,
-      "document.getElementById('run_handler_test').innerHTML = '#{inspect(payload)}';"
+      "document.getElementById('run_handler_test').innerHTML = '#{inspect payload}';"
+    )
+
+    exec_js!(
+      socket,
+      "document.getElementById('run_handler_test').payload = #{encode_js(payload)};"
+    )
+  end
+
+  def run_handler_test(socket, payload, argument) do
+    argument = argument || "empty"
+
+    exec_js!(
+      socket,
+      "document.getElementById('run_handler_test').innerHTML = 'with argument: #{argument}';"
     )
 
     exec_js!(

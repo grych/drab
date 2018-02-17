@@ -270,7 +270,6 @@ defmodule Drab do
          reply_to,
          %Drab{commander: commander_module} = state
        ) do
-    # TODO: rethink the subprocess strategies - now it is just spawn_link
     spawn_link(fn ->
       try do
         {commander_module, event_handler} =
@@ -279,7 +278,9 @@ defmodule Drab do
             {module, function} -> raise_if_handler_is_not_public(module, function)
           end
 
-        payload = Map.delete(payload, "event_handler_function")
+        # payload = Map.delete(payload, "event_handler_function")
+        argument = payload["__additional_argument"]
+        payload = Map.delete(payload, "__additional_argument")
 
         payload = transform_payload(payload, state)
         socket = transform_socket(payload, socket, state)
@@ -298,7 +299,11 @@ defmodule Drab do
         # if ANY of them fail (return false or nil), do not proceed
         unless Enum.any?(returns_from_befores, &(!&1)) do
           # run actuall event handler
-          returned_from_handler = apply(commander_module, event_handler, [socket, payload])
+          arguments =
+            if argument,
+              do: [socket, payload, argument],
+              else: [socket, payload]
+          returned_from_handler = apply(commander_module, event_handler, arguments)
 
           Enum.map(
             callbacks_for(event_handler, commander_cfg.after_handler),

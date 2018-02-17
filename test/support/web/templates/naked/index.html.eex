@@ -36,4 +36,41 @@
   DrabTestApp.FakeCommander.fake_handler/2
 </button>
 
+<hr>
+
+<br>
+<button id="handler_with_null_param" drab-click="run_handler_test()">
+  run_handler_test()
+</button>
+
+<br>
+<button id="handler_with_param_1" drab-click="run_handler_test('text:text')">
+  run_handler_test('text:text')
+</button>
+
+<br>
+<button id="handler_with_param_2" drab-click="run_handler_test(Drab.toLocaleString())">
+  run_handler_test(Drab.toLocaleString())
+</button>
+
+<div drab-commander="Fake">
+  <button id="shared_handler_with_null_param" drab-click="DrabTestApp.LoneCommander.lone_handler()">
+    DrabTestApp.LoneCommander.lone_handler()
+  </button>
+
+  <br>
+  <button id="shared_handler_with_param_1" drab-click="DrabTestApp.LoneCommander.lone_handler('text:text')">
+    DrabTestApp.LoneCommander.lone_handler('text:text')
+  </button>
+
+  <br>
+  <button id="shared_handler_with_param_2" drab-click="DrabTestApp.LoneCommander.lone_handler(42)">
+    DrabTestApp.LoneCommander.lone_handler(42)
+  </button>
+
+  <br>
+  <button id="shared_handler_with_param_3" drab-click="DrabTestApp.LoneCommander.lone_handler(Drab.toLocaleString())">
+    DrabTestApp.LoneCommander.lone_handler(Drab.toLocaleString())
+  </button>
+</div>
 

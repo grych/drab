@@ -17,13 +17,12 @@ defmodule DrabTestApp.NakedTest do
   describe "Drab.Core in naked mode" do
     test "exec_elixir should set up the value of the DIV correctly", fixture do
       socket = fixture.socket
-      exec_js!(socket, "Drab.exec_elixir('run_handler_test', {click: 'clickety-click'});")
+      exec_js!(socket, "Drab.exec_elixir('run_handler_test', {argument: 'clickety-click'});")
 
-      assert inner_text(find_element(:id, "run_handler_test")) ==
-               "%{\"click\" => \"clickety-click\"}"
+      assert inner_text(find_element(:id, "run_handler_test")) == "%{\"argument\" => \"clickety-click\"}"
 
       assert exec_js!(socket, "document.getElementById('run_handler_test').payload") == %{
-               "click" => "clickety-click"
+               "argument" => "clickety-click"
              }
     end
   end
@@ -34,13 +33,13 @@ defmodule DrabTestApp.NakedTest do
 
       exec_js!(
         socket,
-        "Drab.exec_elixir('DrabTestApp.LoneCommander.lone_handler', {lone: ['lone one']});"
+        "Drab.exec_elixir('DrabTestApp.LoneCommander.lone_handler', {click: ['click one']});"
       )
 
-      assert inner_text(find_element(:id, "run_handler_test")) == "%{\"lone\" => [\"lone one\"]}"
+      assert inner_text(find_element(:id, "run_handler_test")) == "%{\"click\" => [\"click one\"]}"
 
       assert exec_js!(socket, "document.getElementById('run_handler_test').payload") == %{
-               "lone" => ["lone one"]
+               "click" => ["click one"]
              }
     end
 
@@ -71,15 +70,17 @@ defmodule DrabTestApp.NakedTest do
     end
 
     test "drab attribute should be unmodified for outside_drab_commander button" do
-      button = find_element(:id, "outside_drab_commander")
-
-      assert String.trim(attribute_value(button, "drab")) == "click:run_handler_test"
+      assert drab_attribute("outside_drab_commander") == "click:run_handler_test"
     end
 
     @tag capture_log: true
     test "non public handler should raise", fixture do
       log = log_for_handler(fixture.socket, "DrabTestApp.LoneCommander.non_public_handler")
-      assert String.contains?(log, "handler Elixir.DrabTestApp.LoneCommander.non_public_handler is not public")
+
+      assert String.contains?(
+               log,
+               "handler Elixir.DrabTestApp.LoneCommander.non_public_handler is not public"
+             )
     end
 
     @tag capture_log: true
@@ -95,13 +96,67 @@ defmodule DrabTestApp.NakedTest do
     end
   end
 
+  describe "optional argument" do
+    test "should be correctly parsed" do
+      assert drab_attribute("handler_with_null_param") == "click:run_handler_test()"
+      assert drab_attribute("handler_with_param_1") == "click:run_handler_test('text:text')"
+
+      assert drab_attribute("handler_with_param_2") ==
+               "click:run_handler_test(Drab.toLocaleString())"
+
+      assert drab_attribute("shared_handler_with_null_param") ==
+               "click:DrabTestApp.LoneCommander.lone_handler()"
+
+      assert drab_attribute("shared_handler_with_param_1") ==
+               "click:DrabTestApp.LoneCommander.lone_handler('text:text')"
+
+      assert drab_attribute("shared_handler_with_param_2") ==
+               "click:DrabTestApp.LoneCommander.lone_handler(42)"
+
+      assert drab_attribute("shared_handler_with_param_3") ==
+               "click:DrabTestApp.LoneCommander.lone_handler(Drab.toLocaleString())"
+    end
+
+    test "should run handler/3 in case there is an additional argument" do
+      assert inner_text(find_element(:id, "run_handler_test")) == ""
+
+      click_and_wait("handler_with_null_param")
+      assert inner_text(find_element(:id, "run_handler_test")) |> String.contains?(":params")
+
+      click_and_wait("handler_with_param_1")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text"
+
+      click_and_wait("handler_with_param_2")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: [object Object]"
+
+      click_and_wait("shared_handler_with_null_param")
+      assert inner_text(find_element(:id, "run_handler_test")) |> String.contains?(":params")
+
+      click_and_wait("shared_handler_with_param_1")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text"
+
+      click_and_wait("shared_handler_with_param_2")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: 42"
+
+      click_and_wait("shared_handler_with_param_3")
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: [object Object]"
+    end
+  end
+
   defp log_for_handler(socket, handler) do
     capture_log(fn ->
       exec_js!(
         socket,
         "Drab.exec_elixir('#{handler}', {lone: ['lone one']});"
       )
-      Process.sleep(500) # wait for a log to appear
+
+      # wait for a log to appear
+      Process.sleep(500)
     end)
+  end
+
+  defp drab_attribute(node_id) do
+    button = find_element(:id, node_id)
+    String.trim(attribute_value(button, "drab"))
   end
 end

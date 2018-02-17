@@ -14,13 +14,13 @@ defmodule DrabTestApp.CoreTest do
   end
 
   describe "Drab.Core" do
-    @tag capture_log: true # we don't want to see Drab Errors in the log
+    # we don't want to see Drab Errors in the log
+    @tag capture_log: true
     test "exec_js and broadcast_js" do
       # test execjs and broadcastjs
       standard_click_and_get_test("core1")
       standard_click_and_get_test("core2")
     end
-
 
     @tag capture_log: true
     test "multiple events on object", fixture do

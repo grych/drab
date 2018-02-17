@@ -28,7 +28,7 @@ function debounce(func, wait, immediate) {
   };
 };
 
-function payload(sender, event) {
+function payload(sender, event, argument) {
   var p;
   if (sender) {
     p = default_payload(sender, event);
@@ -40,6 +40,8 @@ function payload(sender, event) {
     var fx = Drab.additional_payloads[i];
     p = Object.assign(p, fx(sender, event));
   }
+
+  p.__additional_argument = argument;
 
   return p;
 }
@@ -179,19 +181,24 @@ function find_drab_commander_attr(where) {
   }
 }
 
+function split_to_first(str, pattern) {
+  var i = str.indexOf(pattern);
+  return [str.substring(0, i), str.substring(i+1)]
+}
+
 function parse_drab_attr(attr) {
-  var l = attr.split(":");
+  var l = split_to_first(attr, ":");
   var event_with_options = l[0].split("#");
   var event_name = event_with_options[0];
   var options = event_with_options[1];
   var handler_name = l[1];
-  var shared = handler_name && (handler_name.indexOf(".") !== -1)
+  var in_shared_commander = handler_name && (handler_name.indexOf(".") !== -1)
   if (event_name && handler_name) {
     return {
       handler_name: handler_name,
       event_name: event_name,
       options: options,
-      in_shared_commander: shared
+      in_shared_commander: in_shared_commander
     };
   } else {
     Drab.error("Drab attribute value '" + attr + "' is incorrect.");
@@ -238,7 +245,7 @@ Drab.set_event_handlers = function (node) {
     var node = drab_objects[i];
     var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
     for (var j = 0; j < events_and_handlers.length; j++) {
-      var drab_attr = parse_drab_attr(events_and_handlers[j]);
+      let drab_attr = parse_drab_attr(events_and_handlers[j]);
       let handler_name = drab_attr.handler_name;
 
       if (drab_attr) {
@@ -251,10 +258,15 @@ Drab.set_event_handlers = function (node) {
             }
           <% end %>
           Drab.setid(n);
+          var m, argument, parsed_handler_name;
+          if ((m = /([\w\.]+)\((.*)\)$/.exec(handler_name)) !== null) {
+            parsed_handler_name = m[1];
+            argument = eval(m[2]);
+          }
           // send the message back to the server
           Drab.exec_elixir(
-            handler_name,
-            payload(n, event)
+            parsed_handler_name || handler_name,
+            payload(n, event, argument)
             <%= if Drab.Config.get(:disable_controls_while_processing) do %>
               , function() {
                   n['disabled'] = false

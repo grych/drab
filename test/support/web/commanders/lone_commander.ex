@@ -10,7 +10,19 @@ defmodule DrabTestApp.LoneCommander do
   def lone_handler(socket, payload) do
     exec_js!(
       socket,
-      "document.getElementById('run_handler_test').innerHTML = '#{inspect(payload)}';"
+      "document.getElementById('run_handler_test').innerHTML = '#{inspect payload}';"
+    )
+
+    exec_js!(
+      socket,
+      "document.getElementById('run_handler_test').payload = #{encode_js(payload)};"
+    )
+  end
+
+  def lone_handler(socket, payload, option) do
+    exec_js!(
+      socket,
+      "document.getElementById('run_handler_test').innerHTML = 'with argument: #{option}';"
     )
 
     exec_js!(
@@ -20,9 +32,11 @@ defmodule DrabTestApp.LoneCommander do
   end
 
   def non_public_handler(socket, payload) do
+    argument = payload["argument"] || "empty"
+
     exec_js!(
       socket,
-      "document.getElementById('run_handler_test').innerHTML = '#{inspect(payload)}';"
+      "document.getElementById('run_handler_test').innerHTML = '#{argument}';"
     )
 
     exec_js!(
