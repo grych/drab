@@ -351,7 +351,7 @@ defmodule Drab do
     if !({function, arity} in apply(module, :__info__, [:functions])) ||
          is_callback?(module, function) do
       raise """
-      handler `#{function}` does not exist.
+      handler `#{function}/#{arity}` does not exist.
       """
     end
 
