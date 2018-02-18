@@ -53,6 +53,31 @@
   run_handler_test(Drab.toLocaleString())
 </button>
 
+<br>
+<button id="handler_with_param_3" drab-click="run_handler_test({one: 1, two: 2})">
+  run_handler_test({one: 1, two: 2})
+</button>
+
+<br>
+<button id="handler_with_param_4" drab-click="My.Commander.run_handler_test({one: 1, two: 2})">
+  My.Commander.run_handler_test({one: 1, two: 2})
+</button>
+
+<br>
+<button id="handler_with_param_5" drab-click="run_handler_test({one: 1, two: 2})" drab-options="debounce(500)">
+  run_handler_test({one: 1, two: 2}) with debounce
+</button>
+
+<br>
+<button id="handler_with_param_6" drab-click="My.Commander.run_handler_test({one: 1, two: 2})" drab-options="debounce(500)">
+  My.Commander.run_handler_test({one: 1, two: 2}) with debounce
+</button>
+
+<br>
+<button id="handler_with_param_7" drab="click:My.Commander.run_handler_test({one: 1, two: 2}) keyup#debounce(500):My.Commander.run_handler_test({one: 1, two: 2})">
+  My.Commander.run_handler_test({one: 1, two: 2}) with debounce
+</button>
+
 <div drab-commander="Fake">
   <button id="shared_handler_with_null_param" drab-click="DrabTestApp.LoneCommander.lone_handler()">
     DrabTestApp.LoneCommander.lone_handler()

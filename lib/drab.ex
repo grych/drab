@@ -304,6 +304,7 @@ defmodule Drab do
             if argument,
               do: [socket, payload, argument],
               else: [socket, payload]
+
           returned_from_handler = apply(commander_module, event_handler, arguments)
 
           Enum.map(

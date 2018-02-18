@@ -234,6 +234,32 @@ function parse_drab_attr(attr) {
   }
 }
 
+function count(string, regexp) {
+  return (string.match(new RegExp(regexp, 'g')) || []).length;
+}
+
+function split_drab_attribute(attr) {
+  var list = attr.match(/\S+/g);
+  var ret = [];
+  for (var i = 0; i < list.length; i++) {
+    var str = list[i];
+    var opened = count(str, "\\(");
+    var closed = count(str, "\\)");
+    if (opened != closed) {
+      do {
+        i++;
+        if (i == list.length) break;
+        var s = list[i];
+        opened = opened + count(s, "\\(");
+        closed = closed + count(s, "\\)");
+        str = str + " " + s;
+      } while (opened !== closed);
+    }
+    ret.push(str);
+  }
+  return ret;
+}
+
 // re-read event handlers
 Drab.set_event_handlers = function (node) {
   var drab_objects = [];
@@ -272,7 +298,7 @@ Drab.set_event_handlers = function (node) {
 
   for (var i = 0; i < drab_objects.length; i++) {
     var node = drab_objects[i];
-    var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
+    var events_and_handlers = split_drab_attribute(node.getAttribute("drab"));
     for (var j = 0; j < events_and_handlers.length; j++) {
       let drab_attr = parse_drab_attr(events_and_handlers[j]);
       let handler_name = drab_attr.handler_name;
@@ -290,7 +316,8 @@ Drab.set_event_handlers = function (node) {
           var m, argument, parsed_handler_name;
           if ((m = /([\w\.]+)\((.*)\)$/.exec(handler_name)) !== null) {
             parsed_handler_name = m[1];
-            argument = eval(m[2]);
+            // console.log(m);
+            argument = eval("var tmp=" + m[2] + "; tmp");
           }
           // send the message back to the server
           Drab.exec_elixir(

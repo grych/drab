@@ -10,7 +10,7 @@ defmodule DrabTestApp.LoneCommander do
   def lone_handler(socket, payload) do
     exec_js!(
       socket,
-      "document.getElementById('run_handler_test').innerHTML = '#{inspect payload}';"
+      "document.getElementById('run_handler_test').innerHTML = '#{inspect(payload)}';"
     )
 
     exec_js!(
