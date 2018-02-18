@@ -273,6 +273,7 @@ Drab.set_event_handlers = function (node) {
     drab_objects_shortcutted = where.querySelectorAll("[drab-" + ev + "]");
     for (var i = 0; i < drab_objects_shortcutted.length; i++) {
       var node = drab_objects_shortcutted[i];
+      // console.log(node);
       add_drab_attribute(node, ev, node.getAttribute("drab-" + ev), node.getAttribute("drab-options"));
     };
   }
@@ -290,8 +291,8 @@ Drab.set_event_handlers = function (node) {
       )
   }
 
-  find_drab_commander_attr(where);
   find_drab_argument_attr(where);
+  find_drab_commander_attr(where);
 
   var events_to_disable = EVENTS_TO_DISABLE;
   drab_objects = where.querySelectorAll("[drab]")
