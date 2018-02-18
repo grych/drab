@@ -154,7 +154,7 @@ function add_drab_attribute(node, event, handler, options) {
 }
 
 function add_drab_commander(node, commander) {
-  var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
+  var events_and_handlers = split_drab_attribute(node.getAttribute("drab"));
   var attr = "";
   for (var i = 0; i < events_and_handlers.length; i++) {
     var drab_attr = parse_drab_attr(events_and_handlers[i]);
@@ -169,7 +169,7 @@ function add_drab_commander(node, commander) {
 }
 
 function add_drab_argument(node, argument) {
-  var events_and_handlers = node.getAttribute("drab").match(/\S+/g);
+  var events_and_handlers = split_drab_attribute(node.getAttribute("drab"));
   var attr;
   for (var i = 0; i < events_and_handlers.length; i++) {
     // var drab_attr = parse_drab_attr(events_and_handlers[i]);

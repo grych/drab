@@ -131,3 +131,36 @@
   </button>
   <br>
 </div>
+
+<hr>
+<div drab-commander="My.Commander" drab-argument="{some: 'object'}">
+  <button disabled=true id="handler_under_double_div_with_null_param" drab-click="run_handler_test()">
+    run_handler_test()
+  </button>
+  <br>
+
+  <button disabled=true id="handler_under_double_div_without_param" drab-click="run_handler_test">
+    run_handler_test
+  </button>
+  <br>
+
+  <button disabled=true id="handler_under_double_div_with_some_param" drab-click="run_handler_test({id: 43})">
+    run_handler_test(43)
+  </button>
+  <br>
+
+  <button disabled=true id="handler_under_double_div_with_null_param_with_commander" drab-click="Other.run_handler_test()">
+    Other.run_handler_test()
+  </button>
+  <br>
+
+  <button disabled=true id="handler_under_double_div_without_param_with_commander" drab-click="Other.run_handler_test">
+    Other.run_handler_test
+  </button>
+  <br>
+
+  <button disabled=true id="handler_under_double_div_with_param_with_commander" drab-click="Other.run_handler_test({id: 43})">
+    Other.run_handler_test(43)
+  </button>
+
+</div>

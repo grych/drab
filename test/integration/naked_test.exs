@@ -178,6 +178,25 @@ defmodule DrabTestApp.NakedTest do
       click_and_wait("shared_handler_under_div_without_param")
       assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
     end
+
+    test "set with drab-argument and drab-commander should be correctly parsed" do
+      assert drab_attribute("handler_under_double_div_with_null_param") ==
+               "click:My.Commander.run_handler_test({some: 'object'})"
+
+      assert drab_attribute("handler_under_double_div_without_param") ==
+               "click:My.Commander.run_handler_test({some: 'object'})"
+
+      assert drab_attribute("handler_under_double_div_with_some_param") == "click:My.Commander.run_handler_test({id: 43})"
+
+      assert drab_attribute("handler_under_double_div_with_null_param_with_commander") ==
+               "click:Other.run_handler_test({some: 'object'})"
+
+      assert drab_attribute("handler_under_double_div_without_param_with_commander") ==
+               "click:Other.run_handler_test({some: 'object'})"
+
+      assert drab_attribute("handler_under_double_div_with_param_with_commander") ==
+               "click:Other.run_handler_test({id: 43})"
+    end
   end
 
   defp log_for_handler(socket, handler) do
