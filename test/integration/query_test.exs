@@ -325,8 +325,7 @@ defmodule DrabTestApp.QueryTest do
 
   describe "Drab.Query insert" do
     defp setup_insert() do
-      {drab_socket(), "#insert1_div", find_element(:id, "insert1_div"),
-       find_element(:id, "insert_wrapper")}
+      {drab_socket(), "#insert1_div", find_element(:id, "insert1_div"), find_element(:id, "insert_wrapper")}
     end
 
     test "insert/3 append" do
@@ -336,8 +335,7 @@ defmodule DrabTestApp.QueryTest do
       assert visible_text(wrapper) == "Insert DIV appended"
       assert visible_text(div) == "Insert DIV appended"
 
-      assert inner_html(wrapper) |> String.trim() ==
-               "<div id=\"insert1_div\">Insert DIV appended</div>"
+      assert inner_html(wrapper) |> String.trim() == "<div id=\"insert1_div\">Insert DIV appended</div>"
     end
 
     test "insert/3 prepend" do
@@ -347,8 +345,7 @@ defmodule DrabTestApp.QueryTest do
       assert visible_text(wrapper) == "Prepended Insert DIV"
       assert visible_text(div) == "Prepended Insert DIV"
 
-      assert inner_html(wrapper) |> String.trim() ==
-               "<div id=\"insert1_div\">Prepended Insert DIV</div>"
+      assert inner_html(wrapper) |> String.trim() == "<div id=\"insert1_div\">Prepended Insert DIV</div>"
     end
 
     test "insert/3 after" do
@@ -358,8 +355,7 @@ defmodule DrabTestApp.QueryTest do
       assert visible_text(wrapper) == "Insert DIV\nappended"
       assert visible_text(div) == "Insert DIV"
 
-      assert inner_html(wrapper) |> String.trim() ==
-               "<div id=\"insert1_div\">Insert DIV</div> appended"
+      assert inner_html(wrapper) |> String.trim() == "<div id=\"insert1_div\">Insert DIV</div> appended"
     end
 
     test "insert/3 before" do
@@ -369,8 +365,7 @@ defmodule DrabTestApp.QueryTest do
       assert visible_text(wrapper) == "Prepended\nInsert DIV"
       assert visible_text(div) == "Insert DIV"
 
-      assert inner_html(wrapper) |> String.trim() ==
-               "Prepended <div id=\"insert1_div\">Insert DIV</div>"
+      assert inner_html(wrapper) |> String.trim() == "Prepended <div id=\"insert1_div\">Insert DIV</div>"
     end
   end
 

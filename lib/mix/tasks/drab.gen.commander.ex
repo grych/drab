@@ -38,9 +38,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     controller_file = "#{web_path()}/controllers/#{path}_controller.ex"
 
     unless File.exists?(controller_file) do
-      unless Mix.shell().yes?(
-               "Can't find corresponding #{module}Controller in #{controller_file}. Proceed? "
-             ) do
+      unless Mix.shell().yes?("Can't find corresponding #{module}Controller in #{controller_file}. Proceed? ") do
         Mix.raise("Aborted")
       end
     end

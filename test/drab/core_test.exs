@@ -17,11 +17,9 @@ defmodule Drab.CoreTest do
   test "this!/1 should raise when there is no ID" do
     dom_sender = %{"drab_id" => "there is a DRAB_ID, but not actual id"}
 
-    assert_raise ArgumentError,
-                 ~r"Try to use Drab.Core.this!/1 on DOM object without an ID:",
-                 fn ->
-                   Drab.Core.this!(dom_sender)
-                 end
+    assert_raise ArgumentError, ~r"Try to use Drab.Core.this!/1 on DOM object without an ID:", fn ->
+      Drab.Core.this!(dom_sender)
+    end
   end
 
   test "encode_js" do

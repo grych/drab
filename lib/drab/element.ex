@@ -232,8 +232,7 @@ defmodule Drab.Element do
 
   Returns number of updated element.
   """
-  @spec set_prop!(Phoenix.Socket.t(), String.t(), Keyword.t() | map) ::
-          Drab.Core.return() | no_return
+  @spec set_prop!(Phoenix.Socket.t(), String.t(), Keyword.t() | map) :: Drab.Core.return() | no_return
   def set_prop!(socket, selector, properties) when is_map(properties) or is_list(properties) do
     exec_js!(socket, set_js(selector, Map.new(properties)))
   end
@@ -253,8 +252,7 @@ defmodule Drab.Element do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
-  @spec broadcast_prop(Drab.Core.subject(), String.t(), map | Keyword.t()) ::
-          Drab.Core.bcast_result()
+  @spec broadcast_prop(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.bcast_result()
   def broadcast_prop(subject, selector, properties) when is_map(properties) or is_list(properties) do
     broadcast_js(subject, set_js(selector, Map.new(properties)))
   end
@@ -281,8 +279,7 @@ defmodule Drab.Element do
   @doc """
   Bang version of `set_style/3`. Raises exception on error.
   """
-  @spec set_style!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) ::
-          Drab.Core.return() | no_return
+  @spec set_style!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) :: Drab.Core.return() | no_return
   def set_style!(socket, selector, properties) when is_list(properties) or is_map(properties) do
     set_prop!(socket, selector, %{"style" => Map.new(properties)})
   end
@@ -305,8 +302,7 @@ defmodule Drab.Element do
   @doc """
   Bang version of `set_attr/3`. Raises exception on error.
   """
-  @spec set_attr!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) ::
-          Drab.Core.return() | no_return
+  @spec set_attr!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) :: Drab.Core.return() | no_return
   def set_attr!(socket, selector, attributes) when is_list(attributes) or is_map(attributes) do
     set_prop!(socket, selector, %{"attributes" => Map.new(attributes)})
   end
@@ -329,8 +325,7 @@ defmodule Drab.Element do
   @doc """
   Bang version of `set_data/3`. Raises exception on error.
   """
-  @spec set_data!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) ::
-          Drab.Core.return() | no_return
+  @spec set_data!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) :: Drab.Core.return() | no_return
   def set_data!(socket, selector, dataset) when is_list(dataset) or is_map(dataset) do
     set_prop!(socket, selector, %{"dataset" => Map.new(dataset)})
   end
@@ -363,8 +358,7 @@ defmodule Drab.Element do
   @doc """
   Exception-throwing version of `insert_html/4`
   """
-  @spec insert_html!(Phoenix.Socket.t(), String.t(), atom, String.t()) ::
-          Drab.Core.return() | no_return
+  @spec insert_html!(Phoenix.Socket.t(), String.t(), atom, String.t()) :: Drab.Core.return() | no_return
   def insert_html!(socket, selector, position, html) do
     exec_js!(socket, insert_js(selector, position, html))
   end
@@ -379,8 +373,7 @@ defmodule Drab.Element do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
-  @spec broadcast_insert(Drab.Core.subject(), String.t(), atom, String.t()) ::
-          Drab.Core.bcast_result()
+  @spec broadcast_insert(Drab.Core.subject(), String.t(), atom, String.t()) :: Drab.Core.bcast_result()
   def broadcast_insert(subject, selector, position, html) do
     broadcast_js(subject, insert_js(selector, position, html))
   end

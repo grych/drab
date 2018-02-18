@@ -290,12 +290,9 @@ defmodule Drab do
 
         # run before_handlers first
         returns_from_befores =
-          Enum.map(
-            callbacks_for(event_handler, commander_cfg.before_handler),
-            fn callback_handler ->
-              apply(commander_module, callback_handler, [socket, payload])
-            end
-          )
+          Enum.map(callbacks_for(event_handler, commander_cfg.before_handler), fn callback_handler ->
+            apply(commander_module, callback_handler, [socket, payload])
+          end)
 
         # if ANY of them fail (return false or nil), do not proceed
         unless Enum.any?(returns_from_befores, &(!&1)) do
@@ -307,12 +304,9 @@ defmodule Drab do
 
           returned_from_handler = apply(commander_module, event_handler, arguments)
 
-          Enum.map(
-            callbacks_for(event_handler, commander_cfg.after_handler),
-            fn callback_handler ->
-              apply(commander_module, callback_handler, [socket, payload, returned_from_handler])
-            end
-          )
+          Enum.map(callbacks_for(event_handler, commander_cfg.after_handler), fn callback_handler ->
+            apply(commander_module, callback_handler, [socket, payload, returned_from_handler])
+          end)
         end
       rescue
         e ->
@@ -349,8 +343,7 @@ defmodule Drab do
   @spec raise_if_handler_not_exists(atom, atom, integer) :: {atom, atom} | no_return
   defp raise_if_handler_not_exists(module, function, arity) do
     # TODO: check if handler is not a callback
-    if !({function, arity} in apply(module, :__info__, [:functions])) ||
-         is_callback?(module, function) do
+    if !({function, arity} in apply(module, :__info__, [:functions])) || is_callback?(module, function) do
       raise """
       handler `#{function}/#{arity}` does not exist.
       """
@@ -482,8 +475,7 @@ defmodule Drab do
   end
 
   @doc false
-  @spec push_and_wait_forever(Phoenix.Socket.t(), pid, String.t(), Keyword.t()) ::
-          Drab.Core.result()
+  @spec push_and_wait_forever(Phoenix.Socket.t(), pid, String.t(), Keyword.t()) :: Drab.Core.result()
   def push_and_wait_forever(socket, pid, message, payload \\ []) do
     push(socket, pid, nil, message, payload)
 
@@ -545,8 +537,7 @@ defmodule Drab do
   end
 
   @doc false
-  @spec detokenize(Phoenix.Socket.t() | Plug.Conn.t(), String.t(), String.t()) ::
-          term() | no_return
+  @spec detokenize(Phoenix.Socket.t() | Plug.Conn.t(), String.t(), String.t()) :: term() | no_return
   def detokenize(socket, token, salt \\ "drab token") do
     case Phoenix.Token.verify(socket, salt, token, max_age: 86_400) do
       {:ok, detokenized} ->

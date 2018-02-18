@@ -354,8 +354,7 @@ defmodule Drab.Commander do
       m = unquote(macro_name)
 
       quote bind_quoted: [m: m], unquote: true do
-        Map.get(@options, m) &&
-          raise CompileError, description: "Only one `#{inspect(m)}` definition is allowed"
+        Map.get(@options, m) && raise CompileError, description: "Only one `#{inspect(m)}` definition is allowed"
 
         @options Map.put(@options, m, unquote(event_handler))
       end

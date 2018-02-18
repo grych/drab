@@ -52,8 +52,7 @@ defmodule DrabTestApp.PartialsCommander do
     # poke socket, live_partial2: partial2
   end
 
-  defp button(i),
-    do: "<button id='button#{i}' drab-click='change_partial1'>Change partial1</button>"
+  defp button(i), do: "<button id='button#{i}' drab-click='change_partial1'>Change partial1</button>"
 
   def change_partial1(socket, _sender) do
     poke(

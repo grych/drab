@@ -19,8 +19,7 @@ defmodule DrabTestApp.NakedTest do
       socket = fixture.socket
       exec_js!(socket, "Drab.exec_elixir('run_handler_test', {argument: 'clickety-click'});")
 
-      assert inner_text(find_element(:id, "run_handler_test")) ==
-               "%{\"argument\" => \"clickety-click\"}"
+      assert inner_text(find_element(:id, "run_handler_test")) == "%{\"argument\" => \"clickety-click\"}"
 
       assert exec_js!(socket, "document.getElementById('run_handler_test').payload") == %{
                "argument" => "clickety-click"
@@ -37,8 +36,7 @@ defmodule DrabTestApp.NakedTest do
         "Drab.exec_elixir('DrabTestApp.LoneCommander.lone_handler', {click: ['click one']});"
       )
 
-      assert inner_text(find_element(:id, "run_handler_test")) ==
-               "%{\"click\" => [\"click one\"]}"
+      assert inner_text(find_element(:id, "run_handler_test")) == "%{\"click\" => [\"click one\"]}"
 
       assert exec_js!(socket, "document.getElementById('run_handler_test').payload") == %{
                "click" => ["click one"]
@@ -103,16 +101,13 @@ defmodule DrabTestApp.NakedTest do
       assert drab_attribute("handler_with_null_param") == "click:run_handler_test()"
       assert drab_attribute("handler_with_param_1") == "click:run_handler_test('text:text')"
 
-      assert drab_attribute("handler_with_param_2") ==
-               "click:run_handler_test(Drab.toLocaleString())"
+      assert drab_attribute("handler_with_param_2") == "click:run_handler_test(Drab.toLocaleString())"
 
       assert drab_attribute("handler_with_param_3") == "click:run_handler_test({one: 1, two: 2})"
 
-      assert drab_attribute("handler_with_param_4") ==
-               "click:My.Commander.run_handler_test({one: 1, two: 2})"
+      assert drab_attribute("handler_with_param_4") == "click:My.Commander.run_handler_test({one: 1, two: 2})"
 
-      assert drab_attribute("handler_with_param_5") ==
-               "click#debounce(500):run_handler_test({one: 1, two: 2})"
+      assert drab_attribute("handler_with_param_5") == "click#debounce(500):run_handler_test({one: 1, two: 2})"
 
       assert drab_attribute("handler_with_param_6") ==
                "click#debounce(500):My.Commander.run_handler_test({one: 1, two: 2})"
@@ -120,14 +115,12 @@ defmodule DrabTestApp.NakedTest do
       assert drab_attribute("handler_with_param_7") ==
                "click:My.Commander.run_handler_test({one: 1, two: 2}) keyup#debounce(500):My.Commander.run_handler_test({one: 1, two: 2})"
 
-      assert drab_attribute("shared_handler_with_null_param") ==
-               "click:DrabTestApp.LoneCommander.lone_handler()"
+      assert drab_attribute("shared_handler_with_null_param") == "click:DrabTestApp.LoneCommander.lone_handler()"
 
       assert drab_attribute("shared_handler_with_param_1") ==
                "click:DrabTestApp.LoneCommander.lone_handler('text:text')"
 
-      assert drab_attribute("shared_handler_with_param_2") ==
-               "click:DrabTestApp.LoneCommander.lone_handler(42)"
+      assert drab_attribute("shared_handler_with_param_2") == "click:DrabTestApp.LoneCommander.lone_handler(42)"
 
       assert drab_attribute("shared_handler_with_param_3") ==
                "click:DrabTestApp.LoneCommander.lone_handler(Drab.toLocaleString())"
@@ -159,41 +152,31 @@ defmodule DrabTestApp.NakedTest do
     end
 
     test "set with drab-argument attribute should be correctly parsed" do
-      assert drab_attribute("handler_under_div_with_null_param") ==
-               "click:run_handler_test('text:text.(text)')"
+      assert drab_attribute("handler_under_div_with_null_param") == "click:run_handler_test('text:text.(text)')"
 
-      assert drab_attribute("handler_under_div_without_param") ==
-               "click:run_handler_test('text:text.(text)')"
+      assert drab_attribute("handler_under_div_without_param") == "click:run_handler_test('text:text.(text)')"
 
       assert drab_attribute("handler_under_div_with_some_param") == "click:run_handler_test(43)"
     end
 
     test "set with drab-argument should be correctly executed" do
       click_and_wait("handler_under_div_with_null_param")
-
-      assert inner_text(find_element(:id, "run_handler_test")) ==
-               "with argument: text:text.(text)"
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
 
       click_and_wait("handler_under_div_with_some_param")
       assert inner_text(find_element(:id, "run_handler_test")) == "with argument: 43"
 
       click_and_wait("handler_under_div_without_param")
-
-      assert inner_text(find_element(:id, "run_handler_test")) ==
-               "with argument: text:text.(text)"
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
 
       click_and_wait("shared_handler_under_div_with_null_param")
-
-      assert inner_text(find_element(:id, "run_handler_test")) ==
-               "with argument: text:text.(text)"
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
 
       click_and_wait("shared_handler_under_div_with_some_param")
       assert inner_text(find_element(:id, "run_handler_test")) == "with argument: 43"
 
       click_and_wait("shared_handler_under_div_without_param")
-
-      assert inner_text(find_element(:id, "run_handler_test")) ==
-               "with argument: text:text.(text)"
+      assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text.(text)"
     end
   end
 

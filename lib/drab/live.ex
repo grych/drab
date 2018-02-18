@@ -240,8 +240,7 @@ defmodule Drab.Live do
       iex> peek(socket, MyApp.UserView, "users.html", :count)
       42
   """
-  @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
-          term | no_return
+  @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) :: term | no_return
   def peek(socket, view, partial, assign) when is_binary(assign) do
     view = view || Drab.get_view(socket)
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
@@ -344,8 +343,7 @@ defmodule Drab.Live do
     # TODO: group updates on one node
     update_javascripts =
       for ampere <- amperes_to_update,
-          {gender, tag, prop_or_attr, expr, _, parent_assigns} <-
-            Drab.Live.Cache.get({partial, ampere}) || [],
+          {gender, tag, prop_or_attr, expr, _, parent_assigns} <- Drab.Live.Cache.get({partial, ampere}) || [],
           !is_a_child?(parent_assigns, assigns_to_update_keys) do
         case gender do
           :html ->
@@ -364,9 +362,7 @@ defmodule Drab.Live do
           :attr ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
-            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
-              encode_js(new_value)
-            })"
+            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(new_value)})"
 
           :prop ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
@@ -519,23 +515,19 @@ defmodule Drab.Live do
   @spec assign_updates_js(map, String.t()) :: [String.t()]
   defp assign_updates_js(assigns, partial) do
     Enum.map(assigns, fn {k, v} ->
-      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{
-        Drab.Live.Crypto.encode64(v)
-      }'"
+      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{Drab.Live.Crypto.encode64(v)}'"
     end)
   end
 
   # defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
 
   @spec safe_to_string(Phoenix.HTML.safe() | [Phoenix.HTML.safe()]) :: String.t()
-  defp safe_to_string(list) when is_list(list),
-    do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
+  defp safe_to_string(list) when is_list(list), do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
 
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
-  @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) ::
-          map | no_return
+  @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) :: map | no_return
   defp assign_data_for_partial(socket, partial, partial_name) do
     assigns =
       case socket

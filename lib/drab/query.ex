@@ -336,8 +336,7 @@ defmodule Drab.Query do
   defp one_element_selector_only!(v, selector) do
     # TODO: maybe it would be better to allow multiple-element cycling?
     if Enum.count(v) != 1 do
-      raise ArgumentError,
-            "Cycle is possible only on one element selector, given: \"#{selector}\""
+      raise ArgumentError, "Cycle is possible only on one element selector, given: \"#{selector}\""
     end
   end
 
@@ -564,8 +563,7 @@ defmodule Drab.Query do
 
   defp build_js(selector, {:all, "()"}, :select) do
     # val: $(this).val(), html: $(this).html(), text: $(this).text()
-    methods =
-      (@methods -- [:all]) |> Enum.map(fn m -> "#{m}: $(this).#{m}()" end) |> Enum.join(", ")
+    methods = (@methods -- [:all]) |> Enum.map(fn m -> "#{m}: $(this).#{m}()" end) |> Enum.join(", ")
 
     """
     var vals = {}
