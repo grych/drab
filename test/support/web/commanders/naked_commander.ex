@@ -24,6 +24,7 @@ defmodule DrabTestApp.NakedCommander do
 
   def run_handler_test(socket, payload, argument) do
     argument = argument || "empty"
+    argument = if is_map(argument), do: "map", else: argument
 
     exec_js!(
       socket,

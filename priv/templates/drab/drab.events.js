@@ -316,8 +316,8 @@ Drab.set_event_handlers = function (node) {
           var m, argument, parsed_handler_name;
           if ((m = /([\w\.]+)\((.*)\)$/.exec(handler_name)) !== null) {
             parsed_handler_name = m[1];
-            // console.log(m);
-            argument = eval("var tmp=" + m[2] + "; tmp");
+            var t = m[2].trim() == "" ? null : m[2];
+            argument = eval("var tmp=" + t + "; tmp");
           }
           // send the message back to the server
           Drab.exec_elixir(
@@ -336,7 +336,7 @@ Drab.set_event_handlers = function (node) {
         var matched = /(\w+)\s*\((.*)\)/.exec(drab_attr.options);
         if (matched) {
           var fname = matched[1];
-          var fargs = matched[2].replace(/^\s+|\s+$/g, ''); // strip whitespace
+          var fargs = matched[2].trim();
           var f = fname + "(event_handler_function" + (fargs == "" ? "" : ", " + fargs) + ")";
           update_event_handler(node, drab_attr.event_name, eval(f));
         } else {

@@ -59,7 +59,7 @@
 </button>
 
 <br>
-<button id="handler_with_param_4" drab-click="My.Commander.run_handler_test({one: 1, two: 2})">
+<button disabled=true id="handler_with_param_4" drab-click="My.Commander.run_handler_test({one: 1, two: 2})">
   My.Commander.run_handler_test({one: 1, two: 2})
 </button>
 
@@ -69,12 +69,12 @@
 </button>
 
 <br>
-<button id="handler_with_param_6" drab-click="My.Commander.run_handler_test({one: 1, two: 2})" drab-options="debounce(500)">
+<button disabled=true id="handler_with_param_6" drab-click="My.Commander.run_handler_test({one: 1, two: 2})" drab-options="debounce(500)">
   My.Commander.run_handler_test({one: 1, two: 2}) with debounce
 </button>
 
 <br>
-<button id="handler_with_param_7" drab="click:My.Commander.run_handler_test({one: 1, two: 2}) keyup#debounce(500):My.Commander.run_handler_test({one: 1, two: 2})">
+<button disabled=true id="handler_with_param_7" drab="click:My.Commander.run_handler_test({one: 1, two: 2}) keyup#debounce(500):My.Commander.run_handler_test({one: 1, two: 2})">
   My.Commander.run_handler_test({one: 1, two: 2}) with debounce
 </button>
 
