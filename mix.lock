@@ -13,7 +13,7 @@
   "file_system": {:hex, :file_system, "0.2.4", "f0bdda195c0e46e987333e986452ec523aed21d784189144f647c43eaf307064", [:mix], [], "hexpm"},
   "floki": {:hex, :floki, "0.20.0", "fd018e3e1c7a77cafbe4d51c9811102f701bbbbbd4c818e974ea371348bd0719", [:mix], [{:html_entities, "~> 0.4.0", [hex: :html_entities, repo: "hexpm", optional: false]}, {:mochiweb, "~> 2.15", [hex: :mochiweb, repo: "hexpm", optional: false]}], "hexpm"},
   "fs": {:hex, :fs, "0.9.2", "ed17036c26c3f70ac49781ed9220a50c36775c6ca2cf8182d123b6566e49ec59", [:rebar], []},
-  "gettext": {:hex, :gettext, "0.14.1", "a666b6782fdb6ccb4736170ccb0928c0f773aa0e47c694d4b7d0338f724ff189", [:mix], [], "hexpm"},
+  "gettext": {:hex, :gettext, "0.15.0", "40a2b8ce33a80ced7727e36768499fc9286881c43ebafccae6bab731e2b2b8ce", [:mix], [], "hexpm"},
   "hackney": {:hex, :hackney, "1.11.0", "4951ee019df102492dabba66a09e305f61919a8a183a7860236c0fde586134b6", [:rebar3], [{:certifi, "2.0.0", [hex: :certifi, repo: "hexpm", optional: false]}, {:idna, "5.1.0", [hex: :idna, repo: "hexpm", optional: false]}, {:metrics, "1.0.1", [hex: :metrics, repo: "hexpm", optional: false]}, {:mimerl, "1.0.2", [hex: :mimerl, repo: "hexpm", optional: false]}, {:ssl_verify_fun, "1.1.1", [hex: :ssl_verify_fun, repo: "hexpm", optional: false]}], "hexpm"},
   "hound": {:hex, :hound, "1.0.4", "31db3c013f0ed321b5eb4c573bf3fbc0b74e12fc8da134f9f616527bf0906431", [:mix], [{:hackney, "~> 1.5", [hex: :hackney, repo: "hexpm", optional: false]}, {:poison, ">= 1.4.0", [hex: :poison, repo: "hexpm", optional: false]}], "hexpm"},
   "html_entities": {:hex, :html_entities, "0.4.0", "f2fee876858cf6aaa9db608820a3209e45a087c5177332799592142b50e89a6b", [:mix], [], "hexpm"},
