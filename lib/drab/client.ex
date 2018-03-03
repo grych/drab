@@ -128,7 +128,7 @@ defmodule Drab.Client do
     controller = Phoenix.Controller.controller_module(conn)
     # Enable Drab only if Controller compiles with `use Drab.Controller`
     # in this case controller contains function `__drab__/0`
-    if Enum.member?(controller.__info__(:functions), {:__drab__, 0}) do
+    if Enum.member?(controller.module_info(:exports), {:__drab__, 0}) do
       controller_and_action =
         Phoenix.Token.sign(
           conn,
