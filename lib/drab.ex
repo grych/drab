@@ -509,7 +509,7 @@ defmodule Drab do
   end
 
   @doc false
-  def broadcast(topics, _pid, _ref, message, payload) when is_list(topics) do
+  def broadcast(topics, _pid, message, payload) when is_list(topics) do
     for topic <- topics do
       broadcast(topic, nil, message, payload)
     end

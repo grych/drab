@@ -15,11 +15,17 @@ defmodule DrabTestApp.IntegrationCase do
       # The default endpoint for testing
       @endpoint DrabTestApp.Endpoint
 
-    hound_session(driver: %{chromeOptions: %{"args" => [
-      "--user-agent=#{Hound.Browser.user_agent(:chrome)}",
-      "--headless",
-      "--disable-gpu"
-    ]}})
+      hound_session(
+        driver: %{
+          chromeOptions: %{
+            "args" => [
+              "--user-agent=#{Hound.Browser.user_agent(:chrome)}",
+              "--headless",
+              "--disable-gpu"
+            ]
+          }
+        }
+      )
     end
   end
 

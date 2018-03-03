@@ -4,13 +4,12 @@ defmodule Drab.Config do
 
   ## Configuration options:
 
-  #### :templates_path *(default: "priv/templates/drab")*
-    Path to the user-defined Drab templates (not to be confused with Phoenix application templates, these are
-    to be used internally, see `Drab.Modal` for the example usage).
-
   #### :disable_controls_while_processing *(default: `true`)*
     After sending request to the server, sender object will be disabled until it gets the answer.
     Warning: this behaviour is not broadcasted, so only the control in the current browser is going to be disabled.
+
+  #### :disable_controls_when_disconnected *(default: `true`)*
+    Shall controls be disabled when there is no connectivity between the browser and the server?
 
   #### :events_to_disable_while_processing *(default: `["click"]`)*
     The list of events which will be disabled when waiting for server response.
@@ -18,9 +17,6 @@ defmodule Drab.Config do
   #### :events_shorthands *(default: `["click", "change", "keyup", "keydown"]`)*
     The list of the shorthand attributes to be used in drab-controlled DOM object, ie: `<drab-click="handler">`.
     Please keep the list small, as it affects the client JS performance.
-
-  #### :disable_controls_when_disconnected *(default: `true`)*
-    Shall controls be disabled when there is no connectivity between the browser and the server?
 
   #### :socket *(default: `"/socket"`)*
     Path to the socket on which Drab operates.
@@ -42,6 +38,10 @@ defmodule Drab.Config do
 
   #### :live_helper_modules *(default: `[Router.Helpers, ErrorHelpers, Gettext]`)*
     A list of modules to be imported when Drab.Live evaluates expression with living assigns.
+
+  #### :templates_path *(default: "priv/templates/drab")*
+    Path to the user-defined Drab templates (not to be confused with Phoenix application templates, these are
+    to be used internally, see `Drab.Modal` for the example usage).
   """
 
   @doc """
@@ -153,8 +153,8 @@ defmodule Drab.Config do
   @doc """
   Returns any config key for current main Application
 
-      iex> Drab.app_config(:secret_key_base)
-      "bP1ZF+DDZiAVGuIixHSboET1g18BPO4HeZnggJA/7q"
+      iex> Drab.Config.app_config(:secret_key_base) |> String.length()
+      64
   """
   @spec app_config(atom) :: term
   def app_config(config_key) do
@@ -193,6 +193,43 @@ defmodule Drab.Config do
       |> Enum.find(fn {_, v} -> v == Drab.Live.Engine end)
 
     "." <> to_string(drab_ext)
+  end
+
+  @doc false
+  @spec controller_for(atom | nil) :: atom | nil
+  def controller_for(commander) do
+    controller = replace_last(commander, "Commander", "Controller")
+    if Code.ensure_compiled?(controller), do: controller, else: nil
+  end
+
+  @doc false
+  @spec view_for(atom | nil) :: atom | nil
+  def view_for(commander) do
+    # TODO: check if there is more phoenixy way to find a view for controller
+    case controller_for(commander) do
+      nil -> nil
+      controller -> replace_last(controller, "Controller", "View")
+    end
+  end
+
+  @doc false
+  @spec commander_for(atom | nil) :: atom | nil
+  def commander_for(controller) do
+    commander = replace_last(controller, "Controller", "Commander")
+    if Code.ensure_compiled?(commander), do: commander, else: nil
+  end
+
+  @spec replace_last(atom, String.t(), String.t()) :: atom
+  def replace_last(atom, from, to) do
+    path = Module.split(atom)
+    new_last = path |> List.last() |> String.replace(from, to)
+    new_path = List.replace_at(path, -1, new_last)
+    # TODO: don't like this way
+    try do
+      Module.safe_concat(new_path)
+    rescue
+      ArgumentError -> nil
+    end
   end
 
   @doc """

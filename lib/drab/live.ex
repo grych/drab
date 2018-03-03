@@ -328,7 +328,7 @@ defmodule Drab.Live do
       |> Keyword.merge(assigns)
 
     modules = {
-      socket.assigns.__controller.__drab__().view,
+      Drab.get_view(socket),
       Drab.Config.get(:live_helper_modules)
     }
 
