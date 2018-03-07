@@ -23,7 +23,7 @@
     </div> <!-- /container -->
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
     <%= Drab.Client.generate(@conn, additional_assign: "whatever") %>
-    <script type="text/javascript">
+    <script>
       if (window.Drab) Drab.connect({additional_token: "something"});
     </script>
   </body>

@@ -164,7 +164,7 @@ defmodule Drab.Client do
       js = render_template("drab.js", bindings)
 
       Phoenix.HTML.raw("""
-      <script language="javascript">
+      <script>
         #{js}
       </script>
       """)
