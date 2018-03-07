@@ -24,7 +24,7 @@ defmodule Drab.Client do
 
       <%= Drab.Client.generate(@conn) %>
       <script>
-        Drab.connect({auth_token: window.my_token});
+        if (window.Drab) Drab.connect({auth_token: window.my_token});
       </script>
 
 
@@ -111,7 +111,7 @@ defmodule Drab.Client do
       </script>
       <%= Drab.Client.generate(@conn) %>
       <script>
-        Drab.connect({auth_token: window.my_token});
+        if (window.Drab) Drab.connect({auth_token: window.my_token});
       </script>
 
   Like in `run/2`, you may use optional arguments, which will become socket's assigns.
@@ -164,7 +164,7 @@ defmodule Drab.Client do
       js = render_template("drab.js", bindings)
 
       Phoenix.HTML.raw("""
-      <script>
+      <script language="javascript">
         #{js}
       </script>
       """)

@@ -27,6 +27,8 @@ defmodule DrabTestApp.Router do
     get("/tests/waiter", PageController, :waiter, as: :waiter)
     get("/tests/browser", PageController, :browser, as: :browser)
 
+    get("/tests/nodrab", NodrabController, :index, as: :nodrab)
+
     get("/tests/broadcast1", Broadcast1Controller, :index, as: :broadcast1)
     get("/tests/broadcast2", Broadcast2Controller, :index, as: :broadcast2)
     get("/tests/broadcast2/different_url", Broadcast2Controller, :index, as: :different_url)

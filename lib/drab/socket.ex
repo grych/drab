@@ -51,7 +51,7 @@ defmodule Drab.Socket do
       ### app.html.eex
       <%= Drab.Client.generate(@conn) %>
       <script>
-        Drab.connect({auth_token: "forty-two"});
+        if (window.Drab) Drab.connect({auth_token: "forty-two"});
       </script>
 
   Please do not forget to verify Drab token, even when using external authorization library:
