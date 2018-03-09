@@ -17,7 +17,7 @@ defmodule Drab.Controller do
   By default Drab searches for the Commander with the name corresponding to the Controller, eg. NameController -
   NameCommander. You may specify the commander module by using `commander` option:
 
-      use Drab.Controller, commander: MyApp.NameController
+      use Drab.Controller, commander: MyApp.NameCommander
 
   See also `Drab.Commander`
   """
