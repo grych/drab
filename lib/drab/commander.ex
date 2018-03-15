@@ -255,11 +255,6 @@ defmodule Drab.Commander do
 
       o = Enum.into(unquote(options) || [], %{commander: __MODULE__})
 
-      # commander_path = __MODULE__ |> Atom.to_string() |> String.split(".")
-      # controller = commander_path |> List.last() |> String.replace("Commander", "Controller")
-      # controller = commander_path |> List.replace_at(-1, controller) |> Module.concat()
-      # view = commander_path |> List.last() |> String.replace("Commander", "View")
-      # view = commander_path |> List.replace_at(-1, view) |> Module.concat()
       controller = Drab.Config.default_controller_for(__MODULE__)
       view = Drab.Config.default_view_for(__MODULE__)
       commander_config = %Drab.Commander.Config{controller: controller, view: view}

@@ -1,4 +1,9 @@
 # CHANGELOG
+## v0.7.2
+### New Features
+#### `use Drab.Controller` is now optional
+When using default commander name, corresponding to the controller (PageCommander -> PageController), there is no need to mark controller as Drab anymore.
+
 ## v0.7.1
 This version is a step forward for creating component-like pieces of code with Drab, with enhanced Shared Commanders and possibility to pass additional argument to the handler function.
 
@@ -71,7 +76,7 @@ generates:
 * Updated floki to 0.20; fixed #76
 * Special case for outerHTML in `Drab.Element.set_prop`, fixed #80
 * Special case for HTMLOptionsCollection; fixed #75
- 
+
 
 ## v0.7.0
 Updated the Drab core to introduce few important features. Fixed to Elixir version `>= 1.5.2`. Tested with Elixir 1.6.0.

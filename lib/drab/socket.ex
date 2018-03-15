@@ -103,7 +103,7 @@ defmodule Drab.Socket do
            controller_and_action_token,
            max_age: 86_400
          ) do
-      {:ok, [__controller: controller, __action: action, __assigns: assigns]} ->
+      {:ok, [__controller: controller, __commander: commander, __view: view, __action: action, __assigns: assigns]} ->
         own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
 
         socket_plus_external_assings = %Phoenix.Socket{
@@ -114,6 +114,8 @@ defmodule Drab.Socket do
         {:ok,
          socket_plus_external_assings
          |> Phoenix.Socket.assign(:__controller, controller)
+         |> Phoenix.Socket.assign(:__commander, commander)
+         |> Phoenix.Socket.assign(:__view, view)
          |> Phoenix.Socket.assign(:__action, action)}
 
       {:error, _reason} ->

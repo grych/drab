@@ -126,19 +126,22 @@ defmodule Drab.Client do
   @spec generate_drab_js(Plug.Conn.t(), boolean, Keyword.t()) :: String.t()
   defp generate_drab_js(conn, connect?, assigns) do
     controller = Phoenix.Controller.controller_module(conn)
-    # Enable Drab only if Controller compiles with `use Drab.Controller`
-    # in this case controller contains function `__drab__/0`
-    if Enum.member?(controller.module_info(:exports), {:__drab__, 0}) do
+
+    if enables_drab?(controller) do
+      commander = commander_for(controller)
+      view = view_for(controller)
+
       controller_and_action =
         Phoenix.Token.sign(
           conn,
           "controller_and_action",
           __controller: controller,
+          __commander: commander,
+          __view: view,
           __action: Phoenix.Controller.action_name(conn),
           __assigns: assigns
         )
 
-      commander = controller.__drab__()[:commander]
       broadcast_topic = topic(commander.__drab__().broadcasting, controller, conn.request_path)
 
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
@@ -170,6 +173,34 @@ defmodule Drab.Client do
       """)
     else
       ""
+    end
+  end
+
+  defp commander_for(controller) do
+    case Enum.member?(controller.module_info(:exports), {:__drab__, 0}) do
+      true -> controller.__drab__()[:commander]
+      _ -> Drab.Config.default_commander_for(controller)
+    end
+  end
+
+  defp view_for(controller) do
+    case Enum.member?(controller.module_info(:exports), {:__drab__, 0}) do
+      true -> controller.__drab__()[:view]
+      _ -> Drab.Config.default_view_for(controller)
+    end
+  end
+
+  @spec enables_drab?(atom) :: boolean
+  defp enables_drab?(controller) do
+    # Enable Drab only if Controller compiles with `use Drab.Controller`
+    # or default commander exists
+    case Enum.member?(controller.module_info(:exports), {:__drab__, 0}) do
+      true ->
+        true
+
+      _ ->
+        commander = Drab.Config.default_commander_for(controller)
+        Code.ensure_compiled?(commander) and Enum.member?(commander.module_info(:exports), {:__drab__, 0})
     end
   end
 

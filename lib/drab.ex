@@ -553,8 +553,7 @@ defmodule Drab do
   @doc false
   @spec get_commander(Phoenix.Socket.t()) :: atom
   def get_commander(socket) do
-    controller = socket.assigns.__controller
-    controller.__drab__()[:commander]
+    socket.assigns.__commander
   end
 
   # returns the controller name used with the socket
@@ -568,8 +567,7 @@ defmodule Drab do
   @doc false
   @spec get_view(Phoenix.Socket.t()) :: atom
   def get_view(socket) do
-    controller = socket.assigns.__controller
-    controller.__drab__()[:view]
+    socket.assigns.__view
   end
 
   # returns the drab_pid from socket
