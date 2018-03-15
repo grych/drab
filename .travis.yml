@@ -22,11 +22,11 @@ env:
   - MIX_ENV=test
 
 before_script:
-  - "export PATH=$PATH:/usr/lib/chromium-browser/"
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
+  - export PATH=$PATH:/usr/lib/chromium-browser/
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
   - sleep 3 # give xvfb some time to start
-  - "nohup chromedriver &"
+  - nohup chromedriver &
 
 script: mix test && mix dialyzer
 
