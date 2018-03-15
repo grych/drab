@@ -5,6 +5,7 @@ defmodule Drab.CommanderTest do
   defmodule TestController do
     use Drab.Controller
   end
+
   defmodule TestCommander do
     use Drab.Commander, modules: [Drab.Query]
     onload(:onload_function)

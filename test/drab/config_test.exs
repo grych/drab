@@ -3,7 +3,9 @@ defmodule Drab.ConfigTest do
   doctest Drab.Config
 
   test "controller_for" do
-    assert Drab.Config.default_controller_for(DrabTestApp.SomeContext.SomeCommander) == DrabTestApp.SomeContext.SomeController
+    assert Drab.Config.default_controller_for(DrabTestApp.SomeContext.SomeCommander) ==
+             DrabTestApp.SomeContext.SomeController
+
     assert Drab.Config.default_controller_for(DrabTestApp.LoneCommander) == DrabTestApp.LoneController
     assert Drab.Config.default_controller_for(DrabTestApp.PageCommander) == DrabTestApp.PageController
   end
