@@ -220,7 +220,7 @@ defmodule Drab.Config do
   end
 
   @spec replace_last(atom, String.t(), String.t()) :: atom
-  def replace_last(atom, from, to) do
+  defp replace_last(atom, from, to) do
     path = Module.split(atom)
     new_last = path |> List.last() |> String.replace(from, to)
     new_path = List.replace_at(path, -1, new_last)

@@ -3,34 +3,41 @@ dist: trusty
 addons:
   chrome: stable
 install: # Install ChromeDriver (64bits; replace 64 with 32 for 32bits).
-  - wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip -P ~/
-  - unzip ~/chromedriver_linux64.zip -d ~/
-  - rm ~/chromedriver_linux64.zip
-  - sudo mv -f ~/chromedriver /usr/local/share/
-  - sudo chmod +x /usr/local/share/chromedriver
-  - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
+  # - wget -N http://chromedriver.storage.googleapis.com/2.30/chromedriver_linux64.zip -P ~/
+  # - unzip ~/chromedriver_linux64.zip -d ~/
+  # - rm ~/chromedriver_linux64.zip
+  # - sudo mv -f ~/chromedriver /usr/local/share/
+  # - sudo chmod +x /usr/local/share/chromedriver
+  # - sudo ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
   - mix local.hex --force
   - mix local.rebar --force
   - mix deps.get
+# before_install:
+#   - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
 before_install:
-  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
+ - sudo apt-get update
+ - sudo apt-get install chromium-chromedriver
 
 elixir:
   - 1.5.2
 otp_release:
   - 19.3
 
-env:
-  - WEBDRIVER=chromedriver_linux64.zip
+# env:
+#   - WEBDRIVER=chromedriver_linux64.zip
 
 before_script:
-  - nohup /usr/local/bin/chromedriver &
-  - #"export DISPLAY=:99.0"
-  - #"/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
-  - #bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
+  - "export PATH=$PATH:/usr/lib/chromium-browser/"
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+  # - nohup /usr/local/bin/chromedriver &
+  # - #"export DISPLAY=:99.0"
+  # - #"/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  # - #bash $TRAVIS_BUILD_DIR/test/start_webdriver.sh
 
 script: mix test
 
-after_script:
-  - cd $TRAVIS_BUILD_DIR
-  - MIX_ENV=docs mix inch.report
+# after_script:
+#   - cd $TRAVIS_BUILD_DIR
+#   - MIX_ENV=docs mix inch.report
