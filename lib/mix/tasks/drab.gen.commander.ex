@@ -26,12 +26,6 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     copy_from(paths(), "priv/templates/drab/", [module: module], [
       {:eex, "drab.gen.commander.ex.eex", "#{web_path()}/commanders/#{path}_commander.ex"}
     ])
-
-    Mix.shell().info("""
-
-    Add the following line to your #{module}Controller:
-        use Drab.Controller
-    """)
   end
 
   defp check_controller_existence!(path, module) do

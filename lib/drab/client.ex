@@ -73,7 +73,7 @@ defmodule Drab.Client do
   Generates JS code and runs Drab.
 
   Passes controller and action name, tokenized for safety. Works only when the controller, which renders
-  the current action has been compiled with `use Drab.Controller`.
+  the current action, has a corresponding commander, or has been compiled with `use Drab.Controller`.
 
   Optional argument may be a list of parameters which will be added to assigns to the socket.
   Example of `layout/app.html.eex`:
