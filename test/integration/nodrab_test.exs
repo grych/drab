@@ -6,7 +6,7 @@ defmodule DrabTestApp.NodrabTest do
   end
 
   setup do
-    nodrab_index() |> navigate_to()
+    navigate_to(nodrab_index())
     :ok
   end
 

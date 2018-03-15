@@ -5,6 +5,7 @@
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/drab/)
 [![Build Status](https://travis-ci.org/grych/drab.svg?branch=master)](https://travis-ci.org/grych/drab)
 [![Inline docs](http://inch-ci.org/github/grych/drab.svg)](http://inch-ci.org/github/grych/drab)
+[![Ebert](https://ebertapp.io/github/grych/drab.svg)](https://ebertapp.io/github/grych/drab)
 
 ### See [Demo Page](https://tg.pl/drab) for live demo and description.
 
