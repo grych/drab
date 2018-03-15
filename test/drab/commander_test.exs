@@ -2,11 +2,19 @@ defmodule Drab.CommanderTest do
   use ExUnit.Case, ascync: true
   doctest Drab.Commander
 
+  defmodule TestController do
+    use Drab.Controller
+  end
+  defmodule TestCommander do
+    use Drab.Commander, modules: [Drab.Query]
+    onload(:onload_function)
+  end
+
   test "__drab__/0 should return the valid config for test commander" do
-    assert DrabTestApp.TestCommander.__drab__() == %Drab.Commander.Config{
-             commander: DrabTestApp.TestCommander,
-             controller: DrabTestApp.TestController,
-             view: nil, # because view does not exist
+    assert Drab.CommanderTest.TestCommander.__drab__() == %Drab.Commander.Config{
+             commander: Drab.CommanderTest.TestCommander,
+             controller: Drab.CommanderTest.TestController,
+             view: Drab.CommanderTest.TestView,
              onload: :onload_function,
              modules: [Drab.Query]
            }

@@ -196,27 +196,21 @@ defmodule Drab.Config do
   end
 
   @doc false
-  @spec controller_for(atom | nil) :: atom | nil
-  def controller_for(commander) do
-    controller = replace_last(commander, "Commander", "Controller")
-    if Code.ensure_compiled?(controller), do: controller, else: nil
+  @spec default_controller_for(atom | nil) :: atom | nil
+  def default_controller_for(commander) do
+    replace_last(commander, "Commander", "Controller")
   end
 
   @doc false
-  @spec view_for(atom | nil) :: atom | nil
-  def view_for(commander) do
-    # TODO: check if there is more phoenixy way to find a view for controller
-    case controller_for(commander) do
-      nil -> nil
-      controller -> replace_last(controller, "Controller", "View")
-    end
+  @spec default_view_for(atom | nil) :: atom | nil
+  def default_view_for(commander) do
+    replace_last(default_controller_for(commander), "Controller", "View")
   end
 
   @doc false
-  @spec commander_for(atom | nil) :: atom | nil
-  def commander_for(controller) do
-    commander = replace_last(controller, "Controller", "Commander")
-    if Code.ensure_compiled?(commander), do: commander, else: nil
+  @spec default_commander_for(atom | nil) :: atom | nil
+  def default_commander_for(controller) do
+    replace_last(controller, "Controller", "Commander")
   end
 
   @spec replace_last(atom, String.t(), String.t()) :: atom
@@ -224,12 +218,13 @@ defmodule Drab.Config do
     path = Module.split(atom)
     new_last = path |> List.last() |> String.replace(from, to)
     new_path = List.replace_at(path, -1, new_last)
+    Module.concat(new_path)
     # TODO: don't like this way
-    try do
-      Module.safe_concat(new_path)
-    rescue
-      ArgumentError -> nil
-    end
+    # try do
+    #   Module.safe_concat(new_path)
+    # rescue
+    #   ArgumentError -> nil
+    # end
   end
 
   @doc """

@@ -260,8 +260,8 @@ defmodule Drab.Commander do
       # controller = commander_path |> List.replace_at(-1, controller) |> Module.concat()
       # view = commander_path |> List.last() |> String.replace("Commander", "View")
       # view = commander_path |> List.replace_at(-1, view) |> Module.concat()
-      controller = Drab.Config.controller_for(__MODULE__)
-      view = Drab.Config.view_for(__MODULE__)
+      controller = Drab.Config.default_controller_for(__MODULE__)
+      view = Drab.Config.default_view_for(__MODULE__)
       commander_config = %Drab.Commander.Config{controller: controller, view: view}
 
       @options Map.merge(commander_config, o)

@@ -34,8 +34,8 @@ defmodule Drab.Controller do
           # commander = controller_path |> List.replace_at(-1, commander) |> Module.concat()
           # view = controller_path |> List.last() |> String.replace("Controller", "View")
           # view = controller_path |> List.replace_at(-1, view) |> Module.concat()
-          commander = Drab.Config.commander_for(__MODULE__)
-          view = Drab.Config.view_for(commander)
+          commander = Drab.Config.default_commander_for(__MODULE__)
+          view = Drab.Config.default_view_for(commander)
 
           Enum.into(@__drab_opts__, %{commander: commander, view: view, controller: __MODULE__})
         end
