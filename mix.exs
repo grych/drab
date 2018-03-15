@@ -46,12 +46,10 @@ defmodule Drab.Mixfile do
       {:cowboy, "~> 1.0 or ~> 2.2.2 or ~> 2.3"},
       {:ex_doc, "~> 0.18", only: :dev, runtime: false},
       {:hound, "~> 1.0", only: [:dev, :test]},
-      {:inch_ex, "~> 0.5", only: [:docs]},
+      {:inch_ex, "~> 0.5", only: [:docs], runtime: false},
       {:deppie, "~> 1.0"},
       {:floki, "~> 0.20"},
-      # {:floki, "~> 0.19.0", github: "philss/floki"},
-      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-      # {:credo, "~> 0.9.0-rc1", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:jason, "~> 1.0"}
     ]
   end
