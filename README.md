@@ -3,6 +3,7 @@
 [![hex.pm version](https://img.shields.io/hexpm/v/drab.svg)](https://hex.pm/packages/drab)
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/drab.svg?style=flat)](https://hex.pm/packages/drab)
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/drab/)
+[![Build Status](https://travis-ci.org/grych/drab.svg?branch=master)](https://travis-ci.org/grych/drab)
 [![Inline docs](http://inch-ci.org/github/grych/drab.svg)](http://inch-ci.org/github/grych/drab)
 
 ### See [Demo Page](https://tg.pl/drab) for live demo and description.
