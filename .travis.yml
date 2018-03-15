@@ -16,7 +16,7 @@ before_install:
 elixir:
   - 1.6.0
 otp_release:
-  - 20.2
+  - 20.0
 
 env:
   - MIX_ENV=test
@@ -27,13 +27,8 @@ before_script:
   - sh -e /etc/init.d/xvfb start
   - sleep 3 # give xvfb some time to start
   - nohup chromedriver &
-  - export PLT_FILENAME=elixir-${TRAVIS_ELIXIR_VERSION}_${TRAVIS_OTP_RELEASE}.plt
-  - export PLT_LOCATION=/home/travis/$PLT_FILENAME
-  - wget -O $PLT_LOCATION https://raw.github.com/danielberkompas/travis_elixir_plts/master/$PLT_FILENAME
 
-script:
-  - mix test
-  - dialyzer --no_check_plt --plt $PLT_LOCATION --no_native _build/test/lib/drab/ebin
+script: mix test
 
 after_script:
   - cd $TRAVIS_BUILD_DIR
