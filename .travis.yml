@@ -27,11 +27,15 @@ before_script:
   - sh -e /etc/init.d/xvfb start
   - sleep 3 # give xvfb some time to start
   - nohup chromedriver &
+  - export PLT_FILENAME=elixir-${TRAVIS_ELIXIR_VERSION}_${TRAVIS_OTP_RELEASE}.plt
+  - export PLT_LOCATION=/home/travis/$PLT_FILENAME
+  - wget -O $PLT_LOCATION https://raw.github.com/danielberkompas/travis_elixir_plts/master/$PLT_FILENAME
 
-script: mix test && mix dialyzer
+script:
+  - mix test
+  - dialyzer --no_check_plt --plt $PLT_LOCATION --no_native _build/test/lib/drab/ebin
 
 after_script:
   - cd $TRAVIS_BUILD_DIR
   - MIX_ENV=docs mix inch.report
-
 
