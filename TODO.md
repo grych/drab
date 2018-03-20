@@ -1,3 +1,5 @@
+## v0.8.0
+* depreciate undeclared handlers
 
 ## Bugs:
 

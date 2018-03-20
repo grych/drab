@@ -3,7 +3,7 @@ defmodule Drab.ControllerTest do
   doctest Drab.Controller
 
   defmodule TestController do
-    use Drab.Controller
+    use Drab.Controller, commander: Drab.ControllerTest.TestCommander
   end
 
   defmodule TestCommander do

@@ -2,7 +2,7 @@ defmodule DrabTestApp.QueryController do
   @moduledoc false
 
   use DrabTestApp.Web, :controller
-  use Drab.Controller
+  # use Drab.Controller
 
   def query(conn, _params) do
     render(conn, "query.html")

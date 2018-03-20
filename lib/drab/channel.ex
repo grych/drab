@@ -2,6 +2,7 @@ defmodule Drab.Channel do
   require Logger
   @moduledoc false
 
+  # , log_handle_in: false
   use Phoenix.Channel
 
   @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}

@@ -2,7 +2,7 @@ defmodule DrabTestApp.PartialsController do
   @moduledoc false
 
   use DrabTestApp.Web, :controller
-  use Drab.Controller
+  # use Drab.Controller
 
   require Logger
 
