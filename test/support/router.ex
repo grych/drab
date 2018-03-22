@@ -26,6 +26,7 @@ defmodule DrabTestApp.Router do
     get("/tests/modal", QueryController, :modal, as: :modal)
     get("/tests/waiter", PageController, :waiter, as: :waiter)
     get("/tests/browser", PageController, :browser, as: :browser)
+    get("/tests/share", ShareController, :index, as: :share)
 
     get("/tests/nodrab", NodrabController, :index, as: :nodrab)
 

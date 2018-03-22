@@ -5,7 +5,7 @@ defmodule Drab.Live.Commander do
   public(:save_assigns)
 
   @spec save_assigns(Phoenix.Socket.t(), map) :: Phoenix.Socket.t()
-  def save_assigns(socket, payload) do
+  defhandler save_assigns(socket, payload) do
     # store assigns in Drab Server
     drab = Drab.pid(socket)
 

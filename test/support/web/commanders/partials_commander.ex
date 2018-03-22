@@ -54,7 +54,7 @@ defmodule DrabTestApp.PartialsCommander do
 
   defp button(i), do: "<button id='button#{i}' drab-click='change_partial1'>Change partial1</button>"
 
-  def change_partial1(socket, _sender) do
+  defhandler change_partial1(socket, _sender) do
     poke(
       socket,
       DrabTestApp.LiveView,
@@ -65,7 +65,7 @@ defmodule DrabTestApp.PartialsCommander do
     )
   end
 
-  def change_partial2(socket, _sender) do
+  defhandler change_partial2(socket, _sender) do
     poke(
       socket,
       DrabTestApp.Live2View,
@@ -76,7 +76,7 @@ defmodule DrabTestApp.PartialsCommander do
     )
   end
 
-  def change_partial4(socket, _sender) do
+  defhandler change_partial4(socket, _sender) do
     poke(
       socket,
       DrabTestApp.LiveView,

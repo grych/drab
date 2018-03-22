@@ -29,7 +29,7 @@ defmodule DrabTestApp.Broadcast3Commander do
     socket |> Drab.Query.update(:text, set: "", on: "#broadcast_out")
   end
 
-  def broadcast3(socket, _) do
+  defhandler broadcast3(socket, _) do
     socket |> update!(:text, set: "Broadcasted Text to the topic", on: "#broadcast_out")
   end
 end

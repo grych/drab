@@ -14,6 +14,7 @@ defmodule Drab.ControllerTest do
   test "__drab__/0 should return the valid commander" do
     assert Drab.ControllerTest.TestController.__drab__() == %{
              commander: Drab.ControllerTest.TestCommander,
+             commanders: [],
              controller: Drab.ControllerTest.TestController,
              view: Drab.ControllerTest.TestView
            }

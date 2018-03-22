@@ -23,7 +23,7 @@ defmodule Drab.Controller do
           commander = Drab.Config.default_commander_for(__MODULE__)
           view = Drab.Config.default_view_for(commander)
 
-          Enum.into(@__drab_opts__, %{commander: commander, view: view, controller: __MODULE__})
+          Enum.into(@__drab_opts__, %{commanders: [], commander: commander, view: view, controller: __MODULE__})
         end
       end
     end

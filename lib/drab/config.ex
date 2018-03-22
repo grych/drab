@@ -227,6 +227,12 @@ defmodule Drab.Config do
     # end
   end
 
+  @doc false
+  @spec drab_internal_commanders() :: list
+  def drab_internal_commanders() do
+    [Drab.Live.Commander]
+  end
+
   @doc """
   Returns Drab configuration for the given atom.
 

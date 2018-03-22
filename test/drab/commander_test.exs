@@ -33,7 +33,21 @@ defmodule Drab.CommanderTest do
              onconnect: :page_connected,
              ondisconnect: nil,
              onload: :page_loaded,
-             public_handlers: [],
+             public_handlers: [
+               :core1_click,
+               :core2_click,
+               :core3_click,
+               :core4_click,
+               :core5_click,
+               :core6_click,
+               :core7_click,
+               :input1_change,
+               :input2_change,
+               :input3_change,
+               :set_store_click,
+               :get_store_click,
+               :start_waiter
+             ],
              view: DrabTestApp.PageView
            }
   end

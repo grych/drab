@@ -27,7 +27,7 @@ defmodule DrabTestApp.Broadcast2Commander do
     socket |> Drab.Query.update(:text, set: "", on: "#broadcast_out")
   end
 
-  def broadcast2(socket, _) do
+  defhandler broadcast2(socket, _) do
     socket |> update!(:text, set: "Broadcasted Text to same controller", on: "#broadcast_out")
   end
 end

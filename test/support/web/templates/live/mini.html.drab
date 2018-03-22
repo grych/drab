@@ -10,7 +10,11 @@
   %>
 <% end %>
 
-<button drab-click="update_mini">update mini</button>
+<form drab="submit:update_mini">
+  <input>
+  <button type="submit" >update mini</button>
+</form>
+
 
 <br><br>
 <div><%= @user %></div>

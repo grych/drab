@@ -1,11 +1,12 @@
 [![drab logo](https://raw.githubusercontent.com/grych/drab-poc/master/web/static/assets/images/drab-banner.png)](https://tg.pl/drab)
 
+[![Build Status](https://travis-ci.org/grych/drab.svg?branch=master)](https://travis-ci.org/grych/drab)
 [![hex.pm version](https://img.shields.io/hexpm/v/drab.svg)](https://hex.pm/packages/drab)
 [![hex.pm downloads](https://img.shields.io/hexpm/dt/drab.svg?style=flat)](https://hex.pm/packages/drab)
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/drab/)
-[![Build Status](https://travis-ci.org/grych/drab.svg?branch=master)](https://travis-ci.org/grych/drab)
 [![Inline docs](http://inch-ci.org/github/grych/drab.svg)](http://inch-ci.org/github/grych/drab)
 [![Ebert](https://ebertapp.io/github/grych/drab.svg)](https://ebertapp.io/github/grych/drab)
+[![Deps Status](https://beta.hexfaktor.org/badge/all/github/grych/drab.svg)](https://beta.hexfaktor.org/github/grych/drab)
 
 ### See [Demo Page](https://tg.pl/drab) for live demo and description.
 

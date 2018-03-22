@@ -2,7 +2,7 @@ defmodule Drab.Commander do
   require Logger
 
   @moduledoc """
-  Drab Commander is a module to keep event handlers.
+  Drab Commander is a module to keep event handler functions.
 
   All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`. Think about
   it as a controller for the living pages. Commanders should be placed in `web/commanders` directory. They should
@@ -11,11 +11,11 @@ defmodule Drab.Commander do
       defmodule DrabExample.PageCommander do
         use Drab.Commander
 
-        def click_button_handler(socket, sender) do
+        defhandler click_button_handler(socket, sender) do
           ...
         end
 
-        def click_button_handler(socket, sender, optional) do
+        defhandler click_button_handler(socket, sender, optional) do
           ...
         end
       end
@@ -56,7 +56,7 @@ defmodule Drab.Commander do
 
   Example:
 
-      def button_clicked(socket, sender) do
+      defhandler button_clicked(socket, sender) do
         # using Drab.Query
         socket |> update(:text, set: "clicked", on: this(sender))
       end
@@ -69,21 +69,18 @@ defmodule Drab.Commander do
   which means all the linked processes are not going to stop. If you run infinite loop with `spawn_link` from
   the handler, and the handler finish normally, the loop will be unlinked and will stay with us forever.
 
-  ### All public functions with arity of 2 or 3 in the commander module must be considered as handlers
-  Please keep in mind that all public functions with arity of 2 or 3 in the commander may be called remotely from
-  the browser.
+  ### The only functions defined with `defhandler/2` or `public/1` are considered as handlers.
+  For the safety, you must declare your function in the commander as a handler, using `defhandler/2` or `public/1`
+  macro.
 
   ## Shared commanders
   By default, only the page rendered with the corresponding controller may run handler functions in the
   commander. But there is a possibility to create a shared commander, which is allowed to run from any page.
-  For this, you must mark the specific handlers as public, using `public/1` macro. Please notice it is your
-  responsibility to make such functions safe.
 
       defmodule DrabExample.SharedCommander do
         use Drab.Commander
-        public [:click_button_handler]
 
-        def click_button_handler(socket, sender) do
+        defhandler click_button_handler(socket, sender) do
           ...
         end
       end
@@ -299,9 +296,33 @@ defmodule Drab.Commander do
   end
 
   @doc """
-  Make handler function public, so it can be called from any page.
+  Defines handler function.
 
-  This allow you to create a shared commanders
+  Handler is the Elixir function which is called from the browser, as a response for an event or using JS function
+  `Drab.exec_elixir()`.
+
+      defmodule MyApp.MyCommander
+        use Drab.Commander
+
+        defhandler handler1(socket, sender) do
+          ...
+        end
+      end
+
+
+  Trying to run non-handler function from the browser raises the exception on the Phoenix side.
+  """
+  defmacro defhandler(handler, do: block) do
+    {handler_name, _, _} = handler
+
+    quote do
+      public(unquote(handler_name))
+      def unquote(handler), do: unquote(block)
+    end
+  end
+
+  @doc """
+  Marks given function(s) as a handler(s). An alternative to `defhandler/2`.
 
       defmodule MyApp.MyCommander
         use Drab.Commander
@@ -311,17 +332,6 @@ defmodule Drab.Commander do
           ...
         end
       end
-
-  Without marking as `public`, function may only be called from the page rendered with the corresponding controller.
-  When whitelisted, functions may be called from any page using the dot syntax:
-
-      <button drab-click="MyApp.MyCommander.handler1">handler 1</button>
-
-  or from JS:
-
-      Drab.exec_elixir("MyApp.MyCommander.handler1", {click: "clickety-click"});
-
-  Running non-public functions with dot syntax raises the exception on Phoenix side.
   """
   defmacro public(handler) when is_atom(handler) do
     quote do
@@ -334,7 +344,7 @@ defmodule Drab.Commander do
       @options Map.put(
                  @options,
                  :public_handlers,
-                 Map.get(@options, :public_handlers) ++ unquote(handlers)
+                 Enum.uniq(Map.get(@options, :public_handlers) ++ unquote(handlers))
                )
     end
   end

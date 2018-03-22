@@ -11,19 +11,19 @@ defmodule DrabTestApp.LiveCommander do
     poke(socket, text: "set in the commander")
   end
 
-  def update_both(socket, _) do
+  defhandler update_both(socket, _) do
     poke(socket, users: ["Mieczysław", "Andżelika", "Brajanek"], count: 3, color: "#66FFFF")
   end
 
-  def update_count(socket, _) do
+  defhandler update_count(socket, _) do
     poke(socket, count: 3)
   end
 
-  def update_list(socket, _) do
+  defhandler update_list(socket, _) do
     poke(socket, users: ["Mieczysław", "Andżelika", "Brajanek"])
   end
 
-  def update_in_partial1(socket, _) do
+  defhandler update_in_partial1(socket, _) do
     poke(
       socket,
       "partial1.html",
@@ -33,7 +33,7 @@ defmodule DrabTestApp.LiveCommander do
     )
   end
 
-  def update_in_partial2(socket, _) do
+  defhandler update_in_partial2(socket, _) do
     poke(
       socket,
       DrabTestApp.Live2View,
@@ -44,7 +44,7 @@ defmodule DrabTestApp.LiveCommander do
     )
   end
 
-  def update_in_partial2_bad(socket, _) do
+  defhandler update_in_partial2_bad(socket, _) do
     poke(
       socket,
       "partial2.html",
@@ -54,23 +54,23 @@ defmodule DrabTestApp.LiveCommander do
     )
   end
 
-  def update_in_partial3(socket, _) do
+  defhandler update_in_partial3(socket, _) do
     poke(socket, "partial3.html", in_partial: "updated partial 3", link: "https://tg.pl/")
   end
 
-  def update_in_main_partial(socket, _) do
+  defhandler update_in_main_partial(socket, _) do
     poke(socket, color: "#aabbcc")
   end
 
-  def update_form(socket, sender) do
+  defhandler update_form(socket, sender) do
     poke(socket, out: sender.params)
   end
 
-  def update_link(socket, _) do
+  defhandler update_link(socket, _) do
     poke(socket, link: "https://elixirforum.com")
   end
 
-  def add_item(socket, sender) do
+  defhandler add_item(socket, sender) do
     items = socket |> peek(:list)
     # new_item = socket |> Drab.Query.select(:val, from: "#drab_new_item")
     new_item = sender["form"]["drab[new_item]"]
@@ -78,7 +78,7 @@ defmodule DrabTestApp.LiveCommander do
     Drab.Live.poke(socket, list: new_list)
   end
 
-  def update_mini(socket, _sender) do
+  defhandler update_mini(socket, _sender) do
     # IO.inspect(sender)
     # poke socket, class1: "btn", class2: "btn-warning",
     #   hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
@@ -97,15 +97,15 @@ defmodule DrabTestApp.LiveCommander do
     # peek(socket, :in_partial) |> IO.inspect()
   end
 
-  def update_users(socket, _sender) do
+  defhandler update_users(socket, _sender) do
     poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
   end
 
-  def update_excluded_and_users(socket, _sender) do
+  defhandler update_excluded_and_users(socket, _sender) do
     poke(socket, users: peek(socket, :users), excluded: "Hegemon")
   end
 
-  def update_excluded(socket, _sender) do
+  defhandler update_excluded(socket, _sender) do
     poke(socket, excluded: "Hegemon")
   end
 

@@ -10,7 +10,7 @@ defmodule DrabTestApp.NakedCommander do
     DrabTestApp.IntegrationCase.add_pid(socket)
   end
 
-  def run_handler_test(socket, payload) do
+  defhandler run_handler_test(socket, payload) do
     exec_js!(
       socket,
       "document.getElementById('run_handler_test').innerHTML = '#{inspect(payload)}';"
@@ -22,7 +22,7 @@ defmodule DrabTestApp.NakedCommander do
     )
   end
 
-  def run_handler_test(socket, payload, argument) do
+  defhandler run_handler_test(socket, payload, argument) do
     argument = argument || "empty"
     argument = if is_map(argument), do: "map", else: argument
 

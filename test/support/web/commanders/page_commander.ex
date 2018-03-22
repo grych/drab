@@ -83,7 +83,7 @@ defmodule DrabTestApp.PageCommander do
   # TODO: find a way to test page disconnect
 
   ### Drab.Core ###
-  def core1_click(socket, _sender) do
+  defhandler core1_click(socket, _sender) do
     # emulate some longer work, to test if tester waits for a button to be enabled
     Process.sleep(500)
 
@@ -93,13 +93,13 @@ defmodule DrabTestApp.PageCommander do
     42
   end
 
-  def core2_click(socket, _sender) do
+  defhandler core2_click(socket, _sender) do
     {:ok, _} = Drab.Core.broadcast_js(socket, "document.getElementById('core2_out').innerHTML = 'core2'")
 
     # Drab.Core.broadcast_js(socket, "$('#core2_out').html('core2')")
   end
 
-  def core3_click(socket, _sender) do
+  defhandler core3_click(socket, _sender) do
     ### this will not be executed, as before handler prevents it
     {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core3_out').innerHTML = 'core3'")
 
@@ -107,60 +107,60 @@ defmodule DrabTestApp.PageCommander do
     put_store(socket, :should_never_be_assigned, true)
   end
 
-  def core4_click(socket, _sender) do
+  defhandler core4_click(socket, _sender) do
     {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core4_out').innerHTML = 'core4'")
 
     42
   end
 
-  def core5_click(socket, _sender) do
+  defhandler core5_click(socket, _sender) do
     {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core5_out').innerHTML = 'core5'")
 
     42
   end
 
-  def core6_click(socket, _sender) do
+  defhandler core6_click(socket, _sender) do
     {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core6_out').innerHTML = 'core6'")
 
     42
   end
 
-  def core7_click(socket, _sender) do
+  defhandler core7_click(socket, _sender) do
     {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core7_out').innerHTML = 'core7'")
 
     42
   end
 
-  def input1_change(socket, _sender) do
+  defhandler input1_change(socket, _sender) do
     {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('input1_out').innerHTML = 'input1'")
 
     42
   end
 
-  def input2_change(socket, _sender) do
+  defhandler input2_change(socket, _sender) do
     {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('input2_out').innerHTML = 'input2'")
 
     42
   end
 
-  def input3_change(socket, _sender) do
+  defhandler input3_change(socket, _sender) do
     {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('input3_out').innerHTML = 'input3'")
 
     42
   end
 
-  def set_store_click(socket, _sender) do
+  defhandler set_store_click(socket, _sender) do
     Drab.Core.put_store(socket, :test_store_value, "test store value")
   end
 
-  def get_store_click(socket, _sender) do
+  defhandler get_store_click(socket, _sender) do
     s = get_store(socket, :test_store_value) |> Drab.Core.encode_js()
     exec_js!(socket, "var n = document.getElementById('store1_out'); if (n) n.innerText = #{s}")
 
     # socket |> Drab.Query.update(:text, set: get_store(socket, :test_store_value), on: "#store1_out")
   end
 
-  def start_waiter(socket, _sender) do
+  defhandler start_waiter(socket, _sender) do
     exec_js!(
       socket,
       "document.getElementById('waiter_wrapper').innerHTML = '<button>Wait for click</button>'"

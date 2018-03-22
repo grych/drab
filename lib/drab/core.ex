@@ -12,7 +12,7 @@ defmodule Drab.Core do
       defmodule DrabExample.PageCommander do
         use Drab.Commander, modules: []
 
-        def button_clicked(socket, payload) do
+        defhandler button_clicked(socket, payload) do
           socket |> console("You've sent me this: #{payload |> inspect}")
         end
       end
