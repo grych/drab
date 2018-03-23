@@ -280,7 +280,7 @@ defmodule Drab do
           handler #{commander_module}.#{event_handler} must be declared as public in the commander.
 
           Please use Drab.Commander.public or Drab.Commander.defhandler macro as following:
-              defhandler #{event_handler}(socket, payload) do
+              defhandler #{event_handler}(socket, sender) do
                 ...
               end
 
