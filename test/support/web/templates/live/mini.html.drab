@@ -10,9 +10,9 @@
   %>
 <% end %>
 
-<form drab="submit:update_mini">
+<form>
   <input>
-  <button type="submit" >update mini</button>
+  <button type="submit" drab="click:update_mini">update mini</button>
 </form>
 
 

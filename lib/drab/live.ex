@@ -265,6 +265,9 @@ defmodule Drab.Live do
   @doc """
   Updates the current page in the browser with the new assign value.
 
+  Works inside the main partial - the one rendered in the controller - only. Does not touch children
+  partials, even if they contain the given assign.
+
   Raises `ArgumentError` when assign is not found within the partial.
   Returns untouched socket or tuple {:error, description} or {:timeout, description}
 

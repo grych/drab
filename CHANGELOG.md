@@ -6,6 +6,19 @@
 #### `use Drab.Controller` is now optional
 When using default commander name, corresponding to the controller (PageCommander -> PageController), there is no need to mark controller as Drab anymore.
 
+#### Create Reusable Drab Components with Shared Commanders
+Accomplished this with the new `Drab.Core.this_commander/1` function, returning the unique selector of the sourrounding commander tag, so you may easly reduce the region where your update works:  
+
+      <div drab-commander="DrabTestApp.Shared1Commander">
+        <div class="spaceholder1">Nothing</div>
+        <button drab-click="button_clicked">Shared 1</button>
+      </div>
+
+      def button_clicked(socket, sender) do
+        set_prop socket, this_commander(sender) <> " .spaceholder1", innerText: "changed"
+      end
+
+
 ## v0.7.1
 This version is a step forward for creating component-like pieces of code with Drab, with enhanced Shared Commanders and possibility to pass additional argument to the handler function.
 

@@ -79,6 +79,7 @@ function default_payload(sender, event) {
     value: sender.value,
     dataset: sender.dataset,
     drab_id: sender.getAttribute("drab-id"),
+    drab_commander_id: sender.getAttribute("drab-commander-id"),
     event: {
       altKey: event.altKey,
       data: event.data,
@@ -146,7 +147,8 @@ function add_drab_attribute(node, event, handler, options) {
   } else {
     var events_and_handlers = node.getAttribute("drab") || "";
     var new_event_handler = event + (options ? "#" + options : "") + ":" + handler;
-    if (events_and_handlers.indexOf(new_event_handler) == -1) {
+    var re = new RegExp(event + ":\\S");
+    if (re.exec(events_and_handlers) === null) {
       var attr = events_and_handlers + " " + new_event_handler;
       node.setAttribute("drab", attr.trim());
     }
@@ -200,11 +202,18 @@ function do_find_drab_attr(where, attr_name, add_drab_function) {
   var attribute_nodes = where.querySelectorAll("[" + attr_name + "]");
   for (var i = 0; i < attribute_nodes.length; i++) {
     var attribute_node = attribute_nodes[i];
+    var attribute_node_id;
+    if (attr_name == "drab-commander") {
+      attribute_node_id= Drab.setid(attribute_node);
+    }
     var attribute = attribute_node.getAttribute(attr_name);
     var nodes = attribute_node.querySelectorAll("[drab]");
     for (var j = 0; j < nodes.length; j++) {
       var node = nodes[j];
       add_drab_function(node, attribute);
+      if (attr_name == "drab-commander") {
+        node.setAttribute("drab-commander-id", attribute_node_id);
+      }
     }
   }
 }
