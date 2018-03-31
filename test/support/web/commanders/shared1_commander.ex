@@ -6,9 +6,9 @@ defmodule DrabTestApp.Shared1Commander do
   public(:button_clicked)
 
   def button_clicked(socket, sender) do
-    IO.inspect socket
-    set_prop socket, this_commander(sender) <> " .spaceholder1", innerText: "changed"
-    poke socket, text: "changed in commander"
+    IO.inspect(socket)
+    set_prop(socket, this_commander(sender) <> " .spaceholder1", innerText: "changed")
+    poke(socket, text: "changed in commander")
   end
 
   # def page_loaded(socket) do

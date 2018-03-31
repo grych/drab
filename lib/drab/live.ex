@@ -246,7 +246,6 @@ defmodule Drab.Live do
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
     current_assigns = assign_data_for_partial(socket, hash, partial)
-    current_assigns_keys = current_assigns |> Map.keys() |> Enum.map(&String.to_existing_atom/1)
 
     case current_assigns |> Map.fetch(assign) do
       # |> Drab.Live.Crypto.decode64()
@@ -254,7 +253,7 @@ defmodule Drab.Live do
         val
 
       :error ->
-        raise_assign_not_found(assign, current_assigns_keys)
+        raise_assign_not_found(assign, current_assigns |> Map.keys() |> Enum.map(&String.to_existing_atom/1))
     end
   end
 
@@ -387,6 +386,7 @@ defmodule Drab.Live do
             {Atom.to_string(k), v}
           end
 
+        #TODO: store not encoded
         updated_assigns =
           for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
             {k, Drab.Live.Crypto.encode64(v)}
