@@ -119,7 +119,7 @@ defmodule Drab.Socket do
          |> Phoenix.Socket.assign(:__action, action)
          |> Phoenix.Socket.assign(:__priv, token["__priv"])}
 
-      {:ok, [__controller: _, __action: _, __assigns: _]} ->
+      {:ok, _} ->
         # previous version, user should reload
         :error
 
