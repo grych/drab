@@ -99,7 +99,8 @@ defmodule Drab do
   def start_link(socket) do
     GenServer.start_link(__MODULE__, %Drab{
       commander: Drab.get_commander(socket),
-      controller: Drab.get_controller(socket)
+      controller: Drab.get_controller(socket),
+      priv: socket.assigns.__priv
     })
   end
 

@@ -386,15 +386,15 @@ defmodule Drab.Live do
             {Atom.to_string(k), v}
           end
 
-        #TODO: store not encoded
+        # TODO: store not encoded
         updated_assigns =
           for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
             {k, Drab.Live.Crypto.encode64(v)}
           end
 
         priv = socket |> Drab.pid() |> Drab.get_priv()
-        partial_assigns_updated = %{priv.__ampere_assigns | partial => updated_assigns}
-        socket |> Drab.pid() |> Drab.set_priv(%{priv | __ampere_assigns: partial_assigns_updated})
+        partial_assigns_updated = %{priv["assigns"] | partial => updated_assigns}
+        socket |> Drab.pid() |> Drab.set_priv(%{priv | "assigns" => partial_assigns_updated})
         socket
 
       other ->
@@ -557,7 +557,7 @@ defmodule Drab.Live do
     socket
     |> Drab.pid()
     |> Drab.get_priv()
-    |> Map.get(:__ampere_assigns, %{})
+    |> Map.get("assigns", %{})
   end
 
   @spec index(Phoenix.Socket.t()) :: String.t()
@@ -565,7 +565,7 @@ defmodule Drab.Live do
     socket
     |> Drab.pid()
     |> Drab.get_priv()
-    |> Map.get(:__index)
+    |> Map.get("index")
   end
 
   @spec partial_hash(atom, String.t()) :: String.t() | no_return

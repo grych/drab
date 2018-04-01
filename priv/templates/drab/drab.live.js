@@ -1,11 +1,3 @@
-// Drab.add_payload(function (sender, event) {
-//   return {
-//     __assigns: __drab.assigns,
-//     __amperes: __drab.amperes,
-//     __index: __drab.index
-//   };
-// });
-
 Drab.on_load(function (resp, drab) {
   // extract information from all drabbed nodes and store it in global __drab
   if (typeof window.__drab == 'undefined') {
@@ -15,24 +7,26 @@ Drab.on_load(function (resp, drab) {
   set_properties(document);
 });
 
-Drab.on_connect(function(resp, drab) {
-  save_assigns();
-})
+// Drab.on_connect(function(resp, drab) {
+//   // save_assigns();
+// })
 
 Drab.on_change(function(node) {
-  // var node = document.querySelector(selector);
   if (node) {
-    // search_for_drab(node);
     run_drab_scripts_on(node);
     set_properties(node);
   }
 });
 
+Drab.add_to_priv(function(drab) {
+  return __drab;
+});
+
 function save_assigns() {
   var payload = {
-    __assigns: __drab.assigns,
-    __amperes: __drab.amperes,
-    __index: __drab.index
+    assigns: __drab.assigns,
+    amperes: __drab.amperes,
+    index: __drab.index
   };
   Drab.exec_elixir("Drab.Live.Commander.save_assigns", payload);
 }

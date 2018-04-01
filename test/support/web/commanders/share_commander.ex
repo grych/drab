@@ -12,6 +12,7 @@ defmodule DrabTestApp.ShareCommander do
   def not_defined_handler(_, _) do
   end
 
-  defhandler defined_handler(_socket, _) do
+  defhandler defined_handler(socket, _sender) do
+    IO.inspect socket
   end
 end

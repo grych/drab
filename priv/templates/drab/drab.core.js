@@ -2,7 +2,7 @@ Drab.on_connect(function (resp, drab) {
   // prevent reassigning messages
   if (!drab.already_connected) {
     drab.channel.on("onload", function (message) {
-      // reply from onload is not expected
+      // reply from onload is not expected yet
     });
 
     // exec is synchronous, returns the result
