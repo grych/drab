@@ -33,7 +33,7 @@ logic to the server-side, to eliminate Javascript and Ajax calls.
 * Server side:
 
 ```elixir
-def perform_long_process(socket, _sender) do
+defhandler perform_long_process(socket, _sender) do
   poke socket, progress_bar_class: "progress-bar-danger", long_process_button_text: "Processing..."
 
   steps = :rand.uniform(100)
@@ -163,36 +163,30 @@ Congratulations! You have installed Drab and you can proceed with your own comma
 ## Usage
 
 All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`.
-Think about it as a controller for the live pages. Commanders should be placed in `web/commanders` directory.
+Think about it as a controller for the live pages. Commanders should be placed in `web/commanders` directory. 
 
-To enable Drab on specific pages, you need to add the directive `use Drab.Controller` to your controller.
+To enable Drab on the pages generated with corresponding controller, you need to create a twin commander. For example, for `MyApp.PageController` the commander should be named `MyApp.PageCommander`.
 
 Remember the difference: `controller` renders the page, while `commander` works on the live page.
 
-  1. Generate the page Commander. The commander name should correspond to the controller, so PageController should have PageCommander:
+  1. Generate the page Commander. The commander name should correspond to the controller, so `PageController` should have `PageCommander`:
 
 ```bash
 $ mix drab.gen.commander Page
 * creating web/commanders/page_commander.ex
-
-Add the following line to your Example.PageController:
-    use Drab.Controller
 ```
 
-  2. As described in the previous task, add `Drab.Controller` to your page Controller (eg. `web/controllers/page_controller.ex` in the default app):
+  2. Add the `@welcome_text` assign to `render/3` in index action in the controller, to be used in the future:
 
 ```elixir
 defmodule MyApp.PageController do
   use Example.Web, :controller
-  use Drab.Controller
 
   def index(conn, _params) do
     render conn, "index.html", welcome_text: "Welcome to Phoenix!"
   end
 end
 ```
-
-  Also add the `@welcome_text` assign to `render/3` in index action, to be used in the future.
 
   3. Rename the template from `web/templates/page/index.html.eex` to `index.html.drab`
 
