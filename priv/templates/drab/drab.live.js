@@ -69,8 +69,6 @@ function set_property(node, ampere, property, new_value) {
   window.__drab.properties[ampere][property] = new_value;
 }
 
-
-
 function selector(ampere) {
   return "[drab-ampere='" + ampere + "']";
 }

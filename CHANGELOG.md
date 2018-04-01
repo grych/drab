@@ -4,20 +4,50 @@
 ## v0.7.2
 ### New Features
 #### `use Drab.Controller` is now optional
-When using default commander name, corresponding to the controller (PageCommander -> PageController), there is no need to mark controller as Drab anymore.
+When using default commander name, corresponding to the controller (like PageCommander -> PageController), there is no need to mark controller as `Drab.Controller` anymore.
+
+#### Shared Commanders should be declared in the page controller
+All shared commanders must be explicitly declared in the controller:
+
+    use Drab.Controller, commanders: [My.Shared.Commander]
+
+In this version, system generates warning message if commanders are not declared. **This warning will become error in v0.8.0**
+
+#### `defhandler` macro for creating event handlers in commanders
+Since this version, all event handlers, whenever they are in shared or "normal" commander, must be declared with `public` or `defhandler` macro. Use `defhandler` instead of the standard `def`.
+
+This:
+
+    public :button_clicked
+    def button_clicked(socket, sender), do: ...
+
+is an equivalent of:
+
+    defhandler button_clicked(socket, sender), do: ...
+
+In this version, system generates warning message if the function is not declared as handler. **This warning will become error in v0.8.0**
 
 #### Create Reusable Drab Components with Shared Commanders
-Accomplished this with the new `Drab.Core.this_commander/1` function, returning the unique selector of the sourrounding commander tag, so you may easly reduce the region where your update works:  
+Accomplished this with the new `Drab.Core.this_commander/1` function, returning the unique selector of the sourrounding commander tag, so you may easly reduce the region where your update works.
 
-      <div drab-commander="DrabTestApp.Shared1Commander">
-        <div class="spaceholder1">Nothing</div>
-        <button drab-click="button_clicked">Shared 1</button>
-      </div>
+Having the page as below, we want the button to update `.spaceholder1` only within the range of `drab-commander`.
 
-      def button_clicked(socket, sender) do
-        set_prop socket, this_commander(sender) <> " .spaceholder1", innerText: "changed"
-      end
+    <div drab-commander="DrabTestApp.Shared1Commander">
+      <div class="spaceholder1">Nothing</div>
+      <button drab-click="button_clicked">Shared 1</button>
+    </div>
+    <div drab-commander="DrabTestApp.Shared1Commander">
+      <div class="spaceholder1">Nothing</div>
+      <button drab-click="button_clicked">Shared 2</button>
+    </div>
 
+Just like we can use `Drab.Core.this/1` to select the exact sender of the event, we may have `Drab.Core.this_commander/1`, to build a selector which chooses the desired object:
+
+    defhandler button_clicked(socket, sender) do
+      set_prop socket, this_commander(sender) <> " .spaceholder1", innerText: "changed"
+    end
+
+Notice the space before “.spaceholder1”. `this_commander/1` returns the string like `[drab-id="f59d54e6-a924-4e72-90d1-5177efecac9b"]`, so you may build any selector based on it.
 
 ## v0.7.1
 This version is a step forward for creating component-like pieces of code with Drab, with enhanced Shared Commanders and possibility to pass additional argument to the handler function.
