@@ -1,6 +1,7 @@
 # The directory Mix will write compiled artifacts to.
 /_build
 .elixir_ls
+.vscode
 
 .DS_Store
 

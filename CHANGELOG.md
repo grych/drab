@@ -1,5 +1,6 @@
 # CHANGELOG
-
+## v0.7.3
+Fixed the connect issue.
 
 ## v0.7.2
 ### New Features
