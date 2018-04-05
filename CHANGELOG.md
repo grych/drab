@@ -1,4 +1,15 @@
 # CHANGELOG
+
+## v0.7.4
+
+### New Features
+
+#### Pass options for `Phoenix.Channel`
+
+Set the list of options to pass to `use Phoenix.Channel`. For example, to turn off logging of each `handle_in`:
+
+    config :drab, :phoenix_channel_options, [log_handle_in: false]
+
 ## v0.7.3
 Fixed the connect issue.
 

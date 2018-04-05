@@ -42,6 +42,9 @@ defmodule Drab.Config do
   #### :templates_path *(default: "priv/templates/drab")*
     Path to the user-defined Drab templates (not to be confused with Phoenix application templates, these are
     to be used internally, see `Drab.Modal` for the example usage).
+
+  #### :phoenix_channel_options *(default: [])*
+    An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.
   """
 
   @doc """
@@ -267,6 +270,8 @@ defmodule Drab.Config do
   def get(:main_phoenix_app), do: Application.get_env(:drab, :main_phoenix_app, nil)
 
   def get(:enable_live_scripts), do: Application.get_env(:drab, :enable_live_scripts, false)
+
+  def get(:phoenix_channel_options), do: Application.get_env(:drab, :phoenix_channel_options, [])
 
   def get(:live_helper_modules) do
     case Application.get_env(:drab, :live_helper_modules, [Router.Helpers, ErrorHelpers, Gettext]) do

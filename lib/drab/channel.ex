@@ -1,9 +1,7 @@
 defmodule Drab.Channel do
-  require Logger
   @moduledoc false
 
-  # , log_handle_in: false
-  use Phoenix.Channel
+  use Phoenix.Channel, Drab.Config.get(:phoenix_channel_options)
 
   @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}
   def join("__drab:" <> broadcast_topic, _, socket) do
@@ -133,11 +131,13 @@ defmodule Drab.Channel do
         },
         socket
       ) do
-    socket = if payload["drab_commander_id"] do
-      Phoenix.Socket.assign(socket, :__sender_drab_commander_id, payload["drab_commander_id"])
-    else
-      socket
-    end
+    socket =
+      if payload["drab_commander_id"] do
+        Phoenix.Socket.assign(socket, :__sender_drab_commander_id, payload["drab_commander_id"])
+      else
+        socket
+      end
+
     verify_and_cast(:event, [payload, event_handler_function, reply_to], socket)
   end
 

@@ -30,3 +30,5 @@ config :drab, templates_path: "test/support/priv/templates/drab"
 config :drab, enable_live_scripts: true
 
 config :drab, :events_shorthands, ["click", "keyup", "keydown", "change", "mousedown"]
+
+config :drab, :phoenix_channel_options, [log_handle_in: false]
