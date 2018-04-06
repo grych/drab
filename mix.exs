@@ -28,7 +28,7 @@ defmodule Drab.Mixfile do
   def application do
     [
       mod: {Drab.Supervisor, []},
-      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :deppie]
+      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :deppie, :floki, :gettext, :jason]
     ]
   end
 
