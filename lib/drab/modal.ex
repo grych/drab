@@ -4,7 +4,15 @@ defmodule Drab.Modal do
   import Drab.Template
 
   @moduledoc """
-  Drab Module which contains function to launch Bootstrap Modals in the browser.
+  Drab Module to launch Bootstrap Modals in the browser.
+
+  This module is optional and is not loaded by default. You need to explicitly declare it in the
+  commander:
+
+      use Drab.Commander, modules: [Drab.Modal]
+
+  This module requires jQuery installed as global, see
+  [README](https://hexdocs.pm/drab/readme.html#installation).
   """
 
   use DrabModule

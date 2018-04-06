@@ -4,7 +4,12 @@ defmodule Drab.Waiter do
   @moduledoc """
   Enables Drab Waiter functionality - synchronous wait for browser events in the Commander handler function.
 
-  Introduces DSL for register events. Syntax:
+  This module is optional and is not loaded by default. You need to explicitly declare it in the
+  commander:
+
+      use Drab.Commander, modules: [Drab.Waiter]
+
+  Introduces DSL for registering events. Syntax:
 
       waiter(socket) do
         on "selector1", "event_name", fn (sender) ->
@@ -13,8 +18,6 @@ defmodule Drab.Waiter do
         end
         on_timeout 5000, fn -> end
       end
-
-  Requires Drab.Query.
   """
 
   use DrabModule

@@ -16,6 +16,14 @@ defmodule Drab.Query do
   Drab Module which provides interface to jQuery on the server side. You may query (`select/2`) or manipulate
   (`update/2`, `insert/2`, `delete/2`, `execute/2`) the selected DOM object.
 
+  This module is optional and is not loaded by default. You need to explicitly declare it in the
+  commander:
+
+      use Drab.Commander, modules: [Drab.Query]
+
+  This module requires jQuery installed as global, see
+  [README](https://hexdocs.pm/drab/readme.html#installation).
+
   General syntax:
 
       return = socket |> select(what, from: selector)
