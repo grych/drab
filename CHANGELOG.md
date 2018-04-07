@@ -1,9 +1,12 @@
 # CHANGELOG
-
 ## v0.7.4
+This is a bugfix release.
+
+### Fixed Bugs
+#### #94 - 414: url too long when connect
+This bug was introduced in 0.7.2, after moving update of assigns cache to the connect token.
 
 ### New Features
-
 #### Pass options for `Phoenix.Channel`
 
 Set the list of options to pass to `use Phoenix.Channel`. For example, to turn off logging of each `handle_in`:
