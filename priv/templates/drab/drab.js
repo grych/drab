@@ -36,16 +36,16 @@
         fx(drab);
       }
 
-      var add_to_token = {__priv: {}};
-      for (var i = 0; i < drab.additional_priv.length; i++) {
-        var fx = drab.additional_priv[i];
-        add_to_token.__priv = Object.assign(add_to_token.__priv, fx(drab));
-      }
+      // var add_to_token = {__priv: {}};
+      // for (var i = 0; i < drab.additional_priv.length; i++) {
+      //   var fx = drab.additional_priv[i];
+      //   add_to_token.__priv = Object.assign(add_to_token.__priv, fx(drab));
+      // }
 
-      add_to_token = Object.assign(add_to_token, additional_token);
+      // add_to_token = Object.assign(add_to_token, additional_token);
 
       this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", {
-        params: Object.assign({ __drab_return: this.drab_return_token }, add_to_token)
+        params: Object.assign({ __drab_return: this.drab_return_token }, additional_token)
       });
       // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
@@ -108,7 +108,7 @@
     load: [],
     change: [],
     additional_payloads: [],
-    additional_priv: [],
+    // additional_priv: [],
     event_reply_table: {},
     on_connect: function (f) {
       this.connected.push(f);
@@ -125,9 +125,9 @@
     add_payload: function (f) {
       this.additional_payloads.push(f);
     },
-    add_to_priv: function (f) {
-      this.additional_priv.push(f);
-    },
+    // add_to_priv: function (f) {
+    //   this.additional_priv.push(f);
+    // },
     set_drab_store_token: function(token) {
       <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.set.js", []) %>
     },

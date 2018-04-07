@@ -7,9 +7,9 @@ Drab.on_load(function (resp, drab) {
   set_properties(document);
 });
 
-// Drab.on_connect(function(resp, drab) {
-//   // save_assigns();
-// })
+Drab.on_connect(function(resp, drab) {
+  save_assigns();
+})
 
 Drab.on_change(function(node) {
   if (node) {
@@ -18,9 +18,9 @@ Drab.on_change(function(node) {
   }
 });
 
-Drab.add_to_priv(function(drab) {
-  return __drab;
-});
+// Drab.add_to_priv(function(drab) {
+//   return __drab;
+// });
 
 function save_assigns() {
   var payload = {

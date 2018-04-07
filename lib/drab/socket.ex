@@ -96,7 +96,7 @@ defmodule Drab.Socket do
   To be used with custom `connect/2` callbacks.
   """
   @spec verify(Phoenix.Socket.t(), map) :: {:ok, term} | :error
-  def verify(socket, %{"__drab_return" => controller_and_action_token} = token) do
+  def verify(socket, %{"__drab_return" => controller_and_action_token}) do
     case Phoenix.Token.verify(
            socket,
            "controller_and_action",
@@ -111,13 +111,15 @@ defmodule Drab.Socket do
           | assigns: own_plus_external_assigns
         }
 
-        {:ok,
-         socket_plus_external_assings
-         |> Phoenix.Socket.assign(:__controller, controller)
-         |> Phoenix.Socket.assign(:__commander, commander)
-         |> Phoenix.Socket.assign(:__view, view)
-         |> Phoenix.Socket.assign(:__action, action)
-         |> Phoenix.Socket.assign(:__priv, token["__priv"])}
+        {
+          :ok,
+          socket_plus_external_assings
+          |> Phoenix.Socket.assign(:__controller, controller)
+          |> Phoenix.Socket.assign(:__commander, commander)
+          |> Phoenix.Socket.assign(:__view, view)
+          |> Phoenix.Socket.assign(:__action, action)
+          #  |> Phoenix.Socket.assign(:__priv, token["__priv"])
+        }
 
       {:ok, _} ->
         # previous version, user should reload

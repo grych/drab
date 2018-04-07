@@ -11,9 +11,9 @@ defmodule Drab.Channel do
     {:ok, pid} = Drab.start_link(socket)
 
     socket_with_pid = assign(socket_with_topic, :__drab_pid, pid)
-    socket_without_priv = update_in(socket_with_pid.assigns, &Map.drop(&1, [:__priv]))
+    # socket_without_priv = update_in(socket_with_pid.assigns, &Map.drop(&1, [:__priv]))
 
-    {:ok, socket_without_priv}
+    {:ok, socket_with_pid}
   end
 
   @spec handle_in(String.t(), map, Phoenix.Socket.t()) :: {:noreply, Phoenix.Socket.t()}
