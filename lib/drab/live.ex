@@ -387,13 +387,13 @@ defmodule Drab.Live do
           end
 
         # TODO: store not encoded
-        updated_assigns =
-          for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
-            {k, Drab.Live.Crypto.encode64(v)}
-          end
+        # updated_assigns =
+        #   for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
+        #     {k, Drab.Live.Crypto.encode64(v)}
+        #   end
 
         priv = socket |> Drab.pid() |> Drab.get_priv()
-        partial_assigns_updated = %{priv["assigns"] | partial => updated_assigns}
+        partial_assigns_updated = %{priv["assigns"] | partial => assigns_to_update}
         socket |> Drab.pid() |> Drab.set_priv(%{priv | "assigns" => partial_assigns_updated})
         socket
 
@@ -532,23 +532,18 @@ defmodule Drab.Live do
 
   @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) :: map | no_return
   defp assign_data_for_partial(socket, partial, partial_name) do
-    assigns =
-      case socket
-           |> ampere_assigns()
-           |> Map.fetch(partial) do
-        {:ok, val} ->
-          val
+    case socket
+         |> ampere_assigns()
+         |> Map.fetch(partial) do
+      {:ok, val} ->
+        val
 
-        :error ->
-          raise ArgumentError,
-            message: """
-            Drab is unable to find a partial #{partial_name || "main"}.
-            Please check the path or specify the View.
-            """
-      end
-
-    for {name, value} <- assigns, into: %{} do
-      {name, Drab.Live.Crypto.decode64(value)}
+      :error ->
+        raise ArgumentError,
+          message: """
+          Drab is unable to find a partial #{partial_name || "main"}.
+          Please check the path or specify the View.
+          """
     end
   end
 
@@ -570,6 +565,7 @@ defmodule Drab.Live do
     case priv do
       %{:assigns_cache_valid => true, "assigns" => _, "index" => _} = p ->
         p
+
       _ ->
         assigns_and_index = assigns_and_index_from_browser(socket)
         Drab.set_priv(drab, Map.merge(priv, assigns_and_index))
@@ -580,7 +576,22 @@ defmodule Drab.Live do
   @spec assigns_and_index_from_browser(Phoenix.Socket.t()) :: map
   defp assigns_and_index_from_browser(socket) do
     {:ok, ret} = exec_js(socket, "({assigns: __drab.assigns, index: __drab.index})")
-    Map.merge(ret, %{assigns_cache_valid: true})
+    # Map.put(ret, :assigns_cache_valid, true)
+    %{
+      :assigns_cache_valid => true,
+      "assigns" => decrypted_assigns(ret["assigns"]),
+      "index" => ret["index"]
+    }
+  end
+
+  @spec decrypted_assigns(%{}) :: %{}
+  defp decrypted_assigns(assigns) do
+    for {partial, partial_assigns} <- assigns, into: %{} do
+      {partial,
+       for {name, value} <- partial_assigns, into: %{} do
+         {name, Drab.Live.Crypto.decode64(value)}
+       end}
+    end
   end
 
   @spec partial_hash(atom, String.t()) :: String.t() | no_return
