@@ -241,7 +241,7 @@ defmodule Drab.Live do
       42
   """
   @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) :: term | no_return
-  def peek(socket, view, partial, assign) when is_binary(assign) do
+  def peek(socket, view, partial, assign) when is_atom(assign) do
     view = view || Drab.get_view(socket)
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
@@ -257,8 +257,8 @@ defmodule Drab.Live do
     end
   end
 
-  def peek(socket, view, partial, assign) when is_atom(assign) do
-    peek(socket, view, partial, Atom.to_string(assign))
+  def peek(socket, view, partial, assign) when is_binary(assign) do
+    peek(socket, view, partial, String.to_existing_atom(assign))
   end
 
   @doc """
@@ -314,7 +314,7 @@ defmodule Drab.Live do
 
     current_assigns = assign_data_for_partial(socket, partial, partial_name)
 
-    current_assigns_keys = current_assigns |> Map.keys() |> Enum.map(&String.to_existing_atom/1)
+    current_assigns_keys = current_assigns |> Map.keys()
     assigns_to_update = Enum.into(assigns, %{})
     assigns_to_update_keys = Map.keys(assigns_to_update)
 
@@ -326,7 +326,7 @@ defmodule Drab.Live do
 
     updated_assigns =
       current_assigns
-      |> Enum.map(fn {k, v} -> {String.to_existing_atom(k), v} end)
+      |> Enum.into([])
       |> Keyword.merge(assigns)
 
     modules = {
@@ -385,12 +385,6 @@ defmodule Drab.Live do
           for {k, v} <- assigns_to_update, into: %{} do
             {Atom.to_string(k), v}
           end
-
-        # TODO: store not encoded
-        # updated_assigns =
-        #   for {k, v} <- Map.merge(current_assigns, assigns_to_update), into: %{} do
-        #     {k, Drab.Live.Crypto.encode64(v)}
-        #   end
 
         priv = socket |> Drab.pid() |> Drab.get_priv()
         partial_assigns_updated = %{priv["assigns"] | partial => assigns_to_update}
@@ -532,7 +526,7 @@ defmodule Drab.Live do
 
   @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) :: map | no_return
   defp assign_data_for_partial(socket, partial, partial_name) do
-    case socket
+    assigns = case socket
          |> ampere_assigns()
          |> Map.fetch(partial) do
       {:ok, val} ->
@@ -545,6 +539,7 @@ defmodule Drab.Live do
           Please check the path or specify the View.
           """
     end
+    for {k, v} <- assigns, into: %{}, do: {String.to_existing_atom(k), v}
   end
 
   @spec ampere_assigns(Phoenix.Socket.t()) :: map
