@@ -3,8 +3,11 @@
 This is a bugfix release.
 
 ### Fixed Bugs
-#### #94 - 414: url too long when connect
+#### #97 - 414: url too long when connect
 This bug was introduced in 0.7.2, after moving update of assigns cache to the connect token.
+
+#### #94 Jason not found in production
+Updated the applications list in `mix.exs`
 
 ### New Features
 #### Pass options for `Phoenix.Channel`
