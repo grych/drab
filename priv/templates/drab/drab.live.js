@@ -7,10 +7,6 @@ Drab.on_load(function (resp, drab) {
   set_properties(document);
 });
 
-Drab.on_connect(function(resp, drab) {
-  save_assigns();
-})
-
 Drab.on_change(function(node) {
   if (node) {
     run_drab_scripts_on(node);
@@ -18,17 +14,8 @@ Drab.on_change(function(node) {
   }
 });
 
-// Drab.add_to_priv(function(drab) {
-//   return __drab;
-// });
-
-function save_assigns() {
-  var payload = {
-    assigns: __drab.assigns,
-    amperes: __drab.amperes,
-    index: __drab.index
-  };
-  Drab.exec_elixir("Drab.Live.Commander.save_assigns", payload);
+function invalidate_assigns_cache() {
+  Drab.exec_elixir("Drab.Live.Commander.invalidate_assigns_cache", {});
 }
 
 function run_drab_scripts_on(node) {
@@ -37,7 +24,7 @@ function run_drab_scripts_on(node) {
     var script = scripts[i];
     eval(script.innerText);
   }
-  save_assigns();
+  invalidate_assigns_cache();
 }
 
 function set_properties(where) {

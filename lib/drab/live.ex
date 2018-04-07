@@ -554,18 +554,33 @@ defmodule Drab.Live do
 
   @spec ampere_assigns(Phoenix.Socket.t()) :: map
   defp ampere_assigns(socket) do
-    socket
-    |> Drab.pid()
-    |> Drab.get_priv()
-    |> Map.get("assigns", %{})
+    assigns_and_index(socket)["assigns"]
   end
 
   @spec index(Phoenix.Socket.t()) :: String.t()
   defp index(socket) do
-    socket
-    |> Drab.pid()
-    |> Drab.get_priv()
-    |> Map.get("index")
+    assigns_and_index(socket)["index"]
+  end
+
+  @spec assigns_and_index(Phoenix.Socket.t()) :: map
+  defp assigns_and_index(socket) do
+    drab = Drab.pid(socket)
+    priv = Drab.get_priv(drab)
+
+    case priv do
+      %{:assigns_cache_valid => true, "assigns" => _, "index" => _} = p ->
+        p
+      _ ->
+        assigns_and_index = assigns_and_index_from_browser(socket)
+        Drab.set_priv(drab, Map.merge(priv, assigns_and_index))
+        assigns_and_index
+    end
+  end
+
+  @spec assigns_and_index_from_browser(Phoenix.Socket.t()) :: map
+  defp assigns_and_index_from_browser(socket) do
+    {:ok, ret} = exec_js(socket, "({assigns: __drab.assigns, index: __drab.index})")
+    Map.merge(ret, %{assigns_cache_valid: true})
   end
 
   @spec partial_hash(atom, String.t()) :: String.t() | no_return

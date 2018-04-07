@@ -80,14 +80,7 @@ defmodule Drab.Channel do
         end)
         |> Enum.join(", ")
 
-      live_example =
-        case Drab.Live.assigns(socket) do
-          [] ->
-            %{Drab.Live => "socket |> poke(text: \"This assign has been drabbed!\")"}
-
-          [example_assign | _] ->
-            %{Drab.Live => "socket |> poke(#{example_assign}: \"This assign has been drabbed!\")"}
-        end
+      live_example = %{Drab.Live => "socket |> poke(text: \"This assign has been drabbed!\")"}
 
       other_examples = %{
         Drab.Element => "socket |> set_style(\"body\", backgroundColor: \"red\")",

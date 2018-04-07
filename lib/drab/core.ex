@@ -264,7 +264,7 @@ defmodule Drab.Core do
   def exec_js!(socket, js, options \\ []) do
     case exec_js(socket, js, options) do
       {:ok, result} -> result
-      {:error, message} -> raise Drab.JSExecutionError, message: message
+      {_, message} -> raise Drab.JSExecutionError, message: message
     end
   end
 
