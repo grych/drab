@@ -10,14 +10,4 @@ defmodule Drab.Live.Commander do
     Drab.set_priv(drab, Map.put(priv, :assigns_cache_valid, false))
     socket
   end
-
-  # @spec decrypted_assigns(%{}) :: %{}
-  # defp decrypted_assigns(assigns) do
-  #   for {partial, partial_assigns} <- assigns, into: %{} do
-  #     {partial,
-  #      for {name, value} <- partial_assigns, into: %{} do
-  #        {name, Drab.Live.Crypto.decode64(value)}
-  #      end}
-  #   end
-  # end
 end
