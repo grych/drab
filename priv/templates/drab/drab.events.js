@@ -308,6 +308,7 @@ Drab.set_event_handlers = function (node) {
 
   for (var i = 0; i < drab_objects.length; i++) {
     var node = drab_objects[i];
+    Drab.setid(node);
     var events_and_handlers = split_drab_attribute(node.getAttribute("drab"));
     for (var j = 0; j < events_and_handlers.length; j++) {
       let drab_attr = parse_drab_attr(events_and_handlers[j]);
@@ -322,7 +323,6 @@ Drab.set_event_handlers = function (node) {
               n['disabled'] = true;
             }
           <% end %>
-          Drab.setid(n);
           var m, argument, parsed_handler_name;
           if ((m = /([\w\.]+)\((.*)\)$/.exec(handler_name)) !== null) {
             parsed_handler_name = m[1];
