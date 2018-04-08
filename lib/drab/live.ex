@@ -319,7 +319,7 @@ defmodule Drab.Live do
     assigns_to_update_keys = Map.keys(assigns_to_update)
 
     for as <- assigns_to_update_keys do
-      unless Enum.find(current_assigns_keys, fn key -> key === as end) do
+      unless Enum.find(current_assigns_keys, fn key -> key == as end) do
         raise_assign_not_found(as, current_assigns_keys)
       end
     end
@@ -381,13 +381,9 @@ defmodule Drab.Live do
     case function.(socket, all_javascripts |> Enum.join(";")) do
       {:ok, _} ->
         # Save updated assigns in the Drab Server
-        assigns_to_update =
-          for {k, v} <- assigns_to_update, into: %{} do
-            {Atom.to_string(k), v}
-          end
-
+        updated_assigns = Map.merge(current_assigns, assigns_to_update)
         priv = socket |> Drab.pid() |> Drab.get_priv()
-        partial_assigns_updated = %{priv["assigns"] | partial => assigns_to_update}
+        partial_assigns_updated = %{priv["assigns"] | partial => updated_assigns}
         socket |> Drab.pid() |> Drab.set_priv(%{priv | "assigns" => partial_assigns_updated})
         socket
 
@@ -442,14 +438,10 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     partial_hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
-    assigns =
-      socket
-      |> ampere_assigns()
-      |> Map.get(partial_hash, [])
-
-    for {assign, _} <- assigns do
-      assign |> String.to_existing_atom()
-    end
+    socket
+    |> ampere_assigns()
+    |> Map.get(partial_hash, [])
+    |> Map.keys()
   end
 
   @spec eval_expr(Macro.t(), {atom, list}, Keyword.t(), atom) :: term | no_return
@@ -526,7 +518,7 @@ defmodule Drab.Live do
 
   @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) :: map | no_return
   defp assign_data_for_partial(socket, partial, partial_name) do
-    assigns = case socket
+    case socket
          |> ampere_assigns()
          |> Map.fetch(partial) do
       {:ok, val} ->
@@ -539,7 +531,6 @@ defmodule Drab.Live do
           Please check the path or specify the View.
           """
     end
-    for {k, v} <- assigns, into: %{}, do: {String.to_existing_atom(k), v}
   end
 
   @spec ampere_assigns(Phoenix.Socket.t()) :: map
@@ -571,7 +562,6 @@ defmodule Drab.Live do
   @spec assigns_and_index_from_browser(Phoenix.Socket.t()) :: map
   defp assigns_and_index_from_browser(socket) do
     {:ok, ret} = exec_js(socket, "({assigns: __drab.assigns, index: __drab.index})")
-    # Map.put(ret, :assigns_cache_valid, true)
     %{
       :assigns_cache_valid => true,
       "assigns" => decrypted_assigns(ret["assigns"]),
@@ -584,14 +574,13 @@ defmodule Drab.Live do
     for {partial, partial_assigns} <- assigns, into: %{} do
       {partial,
        for {name, value} <- partial_assigns, into: %{} do
-         {name, Drab.Live.Crypto.decode64(value)}
+         {String.to_existing_atom(name), Drab.Live.Crypto.decode64(value)}
        end}
     end
   end
 
   @spec partial_hash(atom, String.t()) :: String.t() | no_return
   defp partial_hash(view, partial_name) do
-    # Drab.Live.Cache.get({:partial, partial_path(view, partial_name)})
     path = partial_path(view, partial_name)
 
     case Drab.Live.Cache.get(path) do
