@@ -16,10 +16,6 @@ Drab.on_change(function(node) {
   }
 });
 
-// function invalidate_assigns_cache() {
-//   Drab.exec_elixir("Drab.Live.Commander.invalidate_assigns_cache", {});
-// }
-
 function run_drab_scripts_on(node) {
   var scripts = node.querySelectorAll("script[drab-script]");
   for (var i = 0; i < scripts.length; i++) {

@@ -386,11 +386,6 @@ defmodule Drab.Live do
 
     case function.(socket, all_javascripts |> Enum.join(";")) do
       {:ok, _} ->
-        # Save updated assigns in the Drab Server
-        # updated_assigns = Map.merge(current_assigns, assigns_to_update)
-        # priv = socket |> Drab.pid() |> Drab.get_priv()
-        # partial_assigns_updated = %{priv["assigns"] | partial => updated_assigns}
-        # socket |> Drab.pid() |> Drab.set_priv(%{priv | "assigns" => partial_assigns_updated})
         socket
 
       other ->
@@ -581,23 +576,6 @@ defmodule Drab.Live do
 
   @spec assigns_and_index(Phoenix.Socket.t()) :: map
   defp assigns_and_index(socket) do
-    assigns_and_index_from_browser(socket)
-    # drab = Drab.pid(socket)
-    # priv = Drab.get_priv(drab)
-
-    # case priv do
-    #   %{:assigns_cache_valid => true, "assigns" => _, "index" => _} = p ->
-    #     p
-
-    #   _ ->
-    #     assigns_and_index = assigns_and_index_from_browser(socket)
-    #     Drab.set_priv(drab, Map.merge(priv, assigns_and_index))
-    #     assigns_and_index
-    # end
-  end
-
-  @spec assigns_and_index_from_browser(Phoenix.Socket.t()) :: map
-  defp assigns_and_index_from_browser(socket) do
     {:ok, ret} = exec_js(socket, "({assigns: __drab.assigns, index: __drab.index})")
 
     %{
