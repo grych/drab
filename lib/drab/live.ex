@@ -248,7 +248,6 @@ defmodule Drab.Live do
     current_assigns = assign_data_for_partial(socket, hash, partial)
 
     case current_assigns |> Map.fetch(assign) do
-      # |> Drab.Live.Crypto.decode64()
       {:ok, val} ->
         val
 
@@ -341,6 +340,8 @@ defmodule Drab.Live do
       |> List.flatten()
       |> Enum.uniq()
 
+    shared_commander_id = drab_commander_id(socket)
+
     # construct the javascripts for update of amperes
     # TODO: group updates on one node
     update_javascripts =
@@ -350,7 +351,6 @@ defmodule Drab.Live do
         case gender do
           :html ->
             safe = eval_expr(expr, modules, updated_assigns, gender)
-            # |> Drab.Live.HTML.remove_drab_marks()
             new_value = safe |> safe_to_string()
 
             case {tag, Drab.Config.get(:enable_live_scripts)} do
@@ -358,22 +358,28 @@ defmodule Drab.Live do
                 nil
 
               {_, _} ->
-                "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
+                "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(shared_commander_id)}, #{
+                  encode_js(new_value)
+                })"
             end
 
           :attr ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
-            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(new_value)})"
+            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(shared_commander_id)},#{
+              encode_js(new_value)
+            })"
 
           :prop ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
-            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
+            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(shared_commander_id)}, #{
+              new_value
+            })"
         end
       end
 
-    assign_updates = assign_updates_js(assigns_to_update, partial)
+    assign_updates = assign_updates_js(assigns_to_update, partial, shared_commander_id)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
 
     # IO.inspect(all_javascripts)
@@ -381,10 +387,10 @@ defmodule Drab.Live do
     case function.(socket, all_javascripts |> Enum.join(";")) do
       {:ok, _} ->
         # Save updated assigns in the Drab Server
-        updated_assigns = Map.merge(current_assigns, assigns_to_update)
-        priv = socket |> Drab.pid() |> Drab.get_priv()
-        partial_assigns_updated = %{priv["assigns"] | partial => updated_assigns}
-        socket |> Drab.pid() |> Drab.set_priv(%{priv | "assigns" => partial_assigns_updated})
+        # updated_assigns = Map.merge(current_assigns, assigns_to_update)
+        # priv = socket |> Drab.pid() |> Drab.get_priv()
+        # partial_assigns_updated = %{priv["assigns"] | partial => updated_assigns}
+        # socket |> Drab.pid() |> Drab.set_priv(%{priv | "assigns" => partial_assigns_updated})
         socket
 
       other ->
@@ -501,10 +507,20 @@ defmodule Drab.Live do
     end
   end
 
-  @spec assign_updates_js(map, String.t()) :: [String.t()]
-  defp assign_updates_js(assigns, partial) do
+  @spec assign_updates_js(map, String.t(), String.t()) :: [String.t()]
+  defp assign_updates_js(assigns, partial, "document") do
     Enum.map(assigns, fn {k, v} ->
-      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = '#{Drab.Live.Crypto.encode64(v)}'"
+      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = {document: '#{
+        Drab.Live.Crypto.encode64(v)
+      }'}"
+    end)
+  end
+
+  defp assign_updates_js(assigns, partial, shared_commander_id) do
+    Enum.map(assigns, fn {k, v} ->
+      "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}][#{
+        Drab.Core.encode_js(shared_commander_id)
+      }] = '#{Drab.Live.Crypto.encode64(v)}'"
     end)
   end
 
@@ -516,20 +532,40 @@ defmodule Drab.Live do
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
 
+  @spec drab_commander_id(Phoenix.Socket.t()) :: String.t()
+  defp drab_commander_id(socket) do
+    socket.assigns[:__sender_drab_commander_id] || "document"
+  end
+
   @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) :: map | no_return
   defp assign_data_for_partial(socket, partial, partial_name) do
-    case socket
-         |> ampere_assigns()
-         |> Map.fetch(partial) do
-      {:ok, val} ->
-        val
+    assigns =
+      case socket
+           |> ampere_assigns()
+           |> Map.fetch(partial) do
+        {:ok, val} ->
+          val
 
-      :error ->
-        raise ArgumentError,
-          message: """
-          Drab is unable to find a partial #{partial_name || "main"}.
-          Please check the path or specify the View.
-          """
+        :error ->
+          raise ArgumentError,
+            message: """
+            Drab is unable to find a partial #{partial_name || "main"}.
+            Please check the path or specify the View.
+            """
+      end
+
+    for {k, v} <- assigns, into: %{} do
+      {
+        k,
+        case v[drab_commander_id(socket)] do
+          # global value
+          nil ->
+            v["document"]
+
+          x ->
+            x
+        end
+      }
     end
   end
 
@@ -545,25 +581,27 @@ defmodule Drab.Live do
 
   @spec assigns_and_index(Phoenix.Socket.t()) :: map
   defp assigns_and_index(socket) do
-    drab = Drab.pid(socket)
-    priv = Drab.get_priv(drab)
+    assigns_and_index_from_browser(socket)
+    # drab = Drab.pid(socket)
+    # priv = Drab.get_priv(drab)
 
-    case priv do
-      %{:assigns_cache_valid => true, "assigns" => _, "index" => _} = p ->
-        p
+    # case priv do
+    #   %{:assigns_cache_valid => true, "assigns" => _, "index" => _} = p ->
+    #     p
 
-      _ ->
-        assigns_and_index = assigns_and_index_from_browser(socket)
-        Drab.set_priv(drab, Map.merge(priv, assigns_and_index))
-        assigns_and_index
-    end
+    #   _ ->
+    #     assigns_and_index = assigns_and_index_from_browser(socket)
+    #     Drab.set_priv(drab, Map.merge(priv, assigns_and_index))
+    #     assigns_and_index
+    # end
   end
 
   @spec assigns_and_index_from_browser(Phoenix.Socket.t()) :: map
   defp assigns_and_index_from_browser(socket) do
     {:ok, ret} = exec_js(socket, "({assigns: __drab.assigns, index: __drab.index})")
+
     %{
-      :assigns_cache_valid => true,
+      # :assigns_cache_valid => true,
       "assigns" => decrypted_assigns(ret["assigns"]),
       "index" => ret["index"]
     }
@@ -573,8 +611,13 @@ defmodule Drab.Live do
   defp decrypted_assigns(assigns) do
     for {partial, partial_assigns} <- assigns, into: %{} do
       {partial,
-       for {name, value} <- partial_assigns, into: %{} do
-         {String.to_existing_atom(name), Drab.Live.Crypto.decode64(value)}
+       for {assign_name, assign_values} <- partial_assigns, into: %{} do
+         {
+           String.to_existing_atom(assign_name),
+           for {shared_commander_id, assign_value} <- assign_values, into: %{} do
+             {shared_commander_id, Drab.Live.Crypto.decode64(assign_value)}
+           end
+         }
        end}
     end
   end

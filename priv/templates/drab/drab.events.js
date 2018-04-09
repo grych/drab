@@ -3,7 +3,7 @@ const EVENTS_TO_DISABLE = <%= Drab.Config.get(:events_to_disable_while_processin
 
 Drab.disable_drab_objects = function (disable) {
   <%= if Drab.Config.get(:disable_controls_when_disconnected) do %>
-    var found =  document.querySelectorAll("[drab-event]");
+    var found =  document.querySelectorAll("[drab]");
     for (var i = 0; i < found.length; i++) {
       var element = found[i];
       element['disabled'] = disable;

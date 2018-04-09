@@ -6,7 +6,6 @@
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/drab/)
 [![Inline docs](http://inch-ci.org/github/grych/drab.svg)](http://inch-ci.org/github/grych/drab)
 [![Ebert](https://ebertapp.io/github/grych/drab.svg)](https://ebertapp.io/github/grych/drab)
-[![Deps Status](https://beta.hexfaktor.org/badge/all/github/grych/drab.svg)](https://beta.hexfaktor.org/github/grych/drab)
 
 ### See [Demo Page](https://tg.pl/drab) for live demo and description.
 
@@ -340,7 +339,7 @@ Randomized with seed 934572
 
 ## Contact
 
-(c)2016-2017 Tomek "Grych" Gryszkiewicz,
+(c)2016-2018 Tomek "Grych" Gryszkiewicz,
 <grych@tg.pl>
 
 

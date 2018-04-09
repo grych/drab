@@ -1,15 +1,7 @@
 (function () {
   "use strict";
   function uuid() {
-    // // borrowed from http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-    // var d = new Date().getTime();
-    // var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    //   var r = (d + Math.random() * 16) % 16 | 0;
-    //   d = Math.floor(d / 16);
-    //   return (c == 'x' ? r : r & 0x3 | 0x8).toString(16);
-    // });
-    // return uuid;
-    return window.Drab.counter++;
+    return "d" + window.Drab.counter++;
   }
 
   function closest(el, fn) {
@@ -37,14 +29,6 @@
         var fx = drab.load[i];
         fx(drab);
       }
-
-      // var add_to_token = {__priv: {}};
-      // for (var i = 0; i < drab.additional_priv.length; i++) {
-      //   var fx = drab.additional_priv[i];
-      //   add_to_token.__priv = Object.assign(add_to_token.__priv, fx(drab));
-      // }
-
-      // add_to_token = Object.assign(add_to_token, additional_token);
 
       this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", {
         params: Object.assign({ __drab_return: this.drab_return_token }, additional_token)
@@ -110,7 +94,6 @@
     load: [],
     change: [],
     additional_payloads: [],
-    // additional_priv: [],
     event_reply_table: {},
     on_connect: function (f) {
       this.connected.push(f);
@@ -127,9 +110,6 @@
     add_payload: function (f) {
       this.additional_payloads.push(f);
     },
-    // add_to_priv: function (f) {
-    //   this.additional_priv.push(f);
-    // },
     set_drab_store_token: function(token) {
       <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.set.js", []) %>
     },

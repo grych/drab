@@ -568,7 +568,7 @@ defmodule Drab.Live.EExEngine do
 
   @spec assign_js(String.t(), atom) :: [String.t()]
   defp assign_js(partial, assign) do
-    ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = '", encoded_assign(assign), "';"]
+    ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = {document: '", encoded_assign(assign), "'};"]
   end
 
   @spec property_js(String.t(), atom, Macro.t()) :: [String.t()]

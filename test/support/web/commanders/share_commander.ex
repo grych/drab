@@ -13,6 +13,11 @@ defmodule DrabTestApp.ShareCommander do
   end
 
   defhandler defined_handler(socket, _sender) do
-    IO.inspect socket
+    # IO.inspect(socket)
+    poke(socket, text: "set globally")
+  end
+
+  defhandler peek_text(socket, sender) do
+    set_prop(socket, this(sender), innerText: peek(socket, :text) || "--- nil ---")
   end
 end

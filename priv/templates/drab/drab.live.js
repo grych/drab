@@ -9,14 +9,16 @@ Drab.on_load(function (resp, drab) {
 
 Drab.on_change(function(node) {
   if (node) {
+    // console.log("change");
+    // invalidate_assigns_cache();
     run_drab_scripts_on(node);
     set_properties(node);
   }
 });
 
-function invalidate_assigns_cache() {
-  Drab.exec_elixir("Drab.Live.Commander.invalidate_assigns_cache", {});
-}
+// function invalidate_assigns_cache() {
+//   Drab.exec_elixir("Drab.Live.Commander.invalidate_assigns_cache", {});
+// }
 
 function run_drab_scripts_on(node) {
   var scripts = node.querySelectorAll("script[drab-script]");
@@ -24,7 +26,6 @@ function run_drab_scripts_on(node) {
     var script = scripts[i];
     eval(script.innerText);
   }
-  invalidate_assigns_cache();
 }
 
 function set_properties(where) {
@@ -64,7 +65,15 @@ function ampere_nodes(ampere) {
   return document.querySelectorAll(selector(ampere));
 }
 
-Drab.update_attribute = function(ampere, attribute, new_value) {
+function where(shared_commander) {
+  if (shared_commander === "document") {
+    return document;
+  } else {
+    return document.querySelector("[drab-id='" + shared_commander + "']");
+  }
+}
+
+Drab.update_attribute = function (ampere, attribute, shared_commander, new_value) {
   var nodes = ampere_nodes(ampere);
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
@@ -76,7 +85,7 @@ Drab.update_attribute = function(ampere, attribute, new_value) {
   }
 }
 
-Drab.update_property = function(ampere, property, new_value) {
+Drab.update_property = function (ampere, property, shared_commander, new_value) {
   var nodes = ampere_nodes(ampere);
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
@@ -84,14 +93,15 @@ Drab.update_property = function(ampere, property, new_value) {
   }
 }
 
-Drab.update_tag = function(tag, ampere, new_value) {
+Drab.update_tag = function(tag, ampere, shared_commander, new_value) {
   switch(tag) {
+    // TODO: script should also work under the shared commander
     case "script":
       eval(new_value);
       break;
     default:
       var s = selector(ampere);
-      var nodes = document.querySelectorAll(s);
+      var nodes = where(shared_commander).querySelectorAll(s);
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         node.innerHTML = new_value;
