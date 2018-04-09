@@ -29,7 +29,7 @@ function set_properties(where) {
   for (var ampere in d.properties) {
     var properties = d.properties[ampere];
     for (var property in properties) {
-      var nodes = ampere_nodes(ampere);
+      var nodes = ampere_nodes(ampere, "document");
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         set_property(node, ampere, property, properties[property]);
@@ -57,10 +57,6 @@ function selector(ampere) {
   return "[drab-ampere='" + ampere + "']";
 }
 
-function ampere_nodes(ampere) {
-  return document.querySelectorAll(selector(ampere));
-}
-
 function where(shared_commander) {
   if (shared_commander === "document") {
     return document;
@@ -69,8 +65,12 @@ function where(shared_commander) {
   }
 }
 
+function ampere_nodes(ampere, shared_commander) {
+  return where(shared_commander).querySelectorAll(selector(ampere));
+}
+
 Drab.update_attribute = function (ampere, attribute, shared_commander, new_value) {
-  var nodes = ampere_nodes(ampere);
+  var nodes = ampere_nodes(ampere, shared_commander);
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
     // a corner case for <input value="">
@@ -82,7 +82,7 @@ Drab.update_attribute = function (ampere, attribute, shared_commander, new_value
 }
 
 Drab.update_property = function (ampere, property, shared_commander, new_value) {
-  var nodes = ampere_nodes(ampere);
+  var nodes = ampere_nodes(ampere, shared_commander);
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
     set_property(node, ampere, property, new_value);
@@ -98,6 +98,7 @@ Drab.update_tag = function(tag, ampere, shared_commander, new_value) {
     default:
       var s = selector(ampere);
       var nodes = where(shared_commander).querySelectorAll(s);
+      
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         node.innerHTML = new_value;

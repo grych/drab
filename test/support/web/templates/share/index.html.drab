@@ -3,7 +3,7 @@
 
 <div>
   <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2"><%= @text %></div>
+  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
   <button drab-click="defined_handler">Defined handler</button>
   <button drab-click="peek_text">peek :text</button>
   <br><br>
@@ -13,7 +13,7 @@
 
 <div drab-commander="DrabTestApp.Shared1Commander" drab-argument="'one'">
   <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2"><%= @text %></div>
+  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
   <button drab-click="button_clicked">Shared 1</button>
   <button drab-click="peek_text">peek :text</button>
 </div>
@@ -21,7 +21,7 @@
 
 <div drab-commander="DrabTestApp.Shared1Commander" drab-argument="'two'">
   <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2"><%= @text %></div>
+  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
   <button drab-click="button_clicked">Shared 1 Repeated</button>
   <button drab-click="peek_text">peek :text</button>
 </div>
@@ -29,14 +29,14 @@
 
 <div drab-commander="DrabTestApp.Shared2Commander">
   <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2"><%= @text %></div>
+  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
   <button drab-click="button_clicked">Shared 2</button>
 </div>
 <br>
 
 <div>
   <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2"><%= @text %></div>
+  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
   <button drab-click="DrabTestApp.Shared1Commander.button_clicked">Shared 1 not under the tag</button>
   <button drab-click="peek_text">peek :text</button>
 </div>
@@ -44,6 +44,6 @@
 
 <div drab-commander="DrabTestApp.Shared3Commander">
   <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2"><%= @text %></div>
+  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
   <button drab-click="button_clicked">Undeclared shared</button>
 </div>

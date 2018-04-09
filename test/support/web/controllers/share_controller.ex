@@ -5,6 +5,6 @@ defmodule DrabTestApp.ShareController do
   use Drab.Controller, commanders: [DrabTestApp.Shared1Commander, DrabTestApp.Shared2Commander]
 
   def index(conn, _params) do
-    render(conn, "index.html", text: "assigned in controller")
+    render(conn, "index.html", text: "assigned in controller", color: "#ff2222", bgcolor: "#dddddd")
   end
 end
