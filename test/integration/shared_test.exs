@@ -64,9 +64,6 @@ defmodule DrabTestApp.SharedTest do
   describe "clicking button in shared module" do
     test "should update the corresponding text only" do
       assert all_elements?("spaceholder1", &visible_text/1, "Nothing")
-      # spaceholders1 = find_all_elements(:class, "spaceholder2")
-      # IO.inspect(spaceholders1 |> Enum.map(&(visible_text(&1))) |> Enum.all?(&(&1 == "changed globally")))
-      # IO.inspect(spaceholders2 |> Enum.map(&(css_property(&1, "color"))))
       click_and_wait("shared1-button")
       refute all_elements?("spaceholder1", &visible_text/1, "changed globally")
       assert visible_text(find_element(:id, "spaceholder10")) == "Nothing"

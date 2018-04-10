@@ -630,7 +630,8 @@ defmodule Drab.Live.HTML do
   """
   @spec deep_reverse(list) :: list
   def deep_reverse(list) do
-    list |> Enum.reverse()
+    list
+    |> Enum.reverse()
     |> Enum.map(fn
       {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | buffer]} | rest]} ->
         {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | deep_reverse(buffer)]} | deep_reverse(rest)]}
