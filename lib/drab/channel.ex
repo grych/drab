@@ -124,9 +124,6 @@ defmodule Drab.Channel do
         },
         socket
       ) do
-    socket =
-      Phoenix.Socket.assign(socket, :__sender_drab_commander_id, payload["drab_commander_id"] || "document")
-
     verify_and_cast(:event, [payload, event_handler_function, reply_to], socket)
   end
 

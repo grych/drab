@@ -14,6 +14,7 @@ defmodule DrabTestApp.ShareCommander do
 
   defhandler defined_handler(socket, _sender) do
     # IO.inspect(socket)
+    set_prop(socket, ".spaceholder1", innerText: "changed globally")
     poke(socket, text: "set globally", bgcolor: "grey", color: "white")
   end
 

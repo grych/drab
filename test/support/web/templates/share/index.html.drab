@@ -2,35 +2,36 @@
 <div id="drab_pid"></div>
 
 <div>
-  <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
-  <button drab-click="defined_handler">Defined handler</button>
-  <button drab-click="peek_text">peek :text</button>
+  <div class="spaceholder1" id="spaceholder10">Nothing</div>
+  <div class="spaceholder2" id="spaceholder20" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
+  <button id="global-button" drab-click="defined_handler">Defined handler</button>
+  <button id="peek0" drab-click="peek_text">peek :text</button>
   <br><br>
-  <button drab-click="not_defined_handler">Not defined handler</button>
+  <button id="not-defined-handler-button" drab-click="not_defined_handler">Not defined handler</button>
 </div>
 <br>
 
 <div drab-commander="DrabTestApp.Shared1Commander" drab-argument="'one'">
-  <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
-  <button drab-click="button_clicked">Shared 1</button>
-  <button drab-click="peek_text">peek :text</button>
+  <div class="spaceholder1" id="spaceholder11">Nothing</div>
+  <div class="spaceholder2" id="spaceholder21" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
+  <button id="shared1-button" drab-click="button_clicked">Shared 1</button>
+  <button id="peek1" drab-click="peek_text">peek :text</button>
 </div>
 <br>
 
 <div drab-commander="DrabTestApp.Shared1Commander" drab-argument="'two'">
-  <div class="spaceholder1">Nothing</div>
-  <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
-  <button drab-click="button_clicked">Shared 1 Repeated</button>
-  <button drab-click="peek_text">peek :text</button>
+  <div class="spaceholder1" id="spaceholder12">Nothing</div>
+  <div class="spaceholder2" id="spaceholder22" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
+  <button id="shared2-button" drab-click="button_clicked">Shared 1 Repeated</button>
+  <button id="peek12" drab-click="peek_text">peek :text</button>
 </div>
 <br>
 
-<div drab-commander="DrabTestApp.Shared2Commander">
+<div drab-commander="DrabTestApp.Shared2Commander" drab-argument="'three'">
   <div class="spaceholder1">Nothing</div>
   <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
   <button drab-click="button_clicked">Shared 2</button>
+  <button id="peek2" drab-click="peek_text">peek :text</button>
 </div>
 <br>
 
@@ -38,12 +39,12 @@
   <div class="spaceholder1">Nothing</div>
   <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
   <button drab-click="DrabTestApp.Shared1Commander.button_clicked">Shared 1 not under the tag</button>
-  <button drab-click="peek_text">peek :text</button>
+  <button id="peek02" drab-click="peek_text">peek :text</button>
 </div>
 <br>
 
 <div drab-commander="DrabTestApp.Shared3Commander">
   <div class="spaceholder1">Nothing</div>
   <div class="spaceholder2" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
-  <button drab-click="button_clicked">Undeclared shared</button>
+  <button id="not-defined-controller-button" drab-click="button_clicked">Undeclared shared</button>
 </div>

@@ -1,4 +1,9 @@
 # CHANGELOG
+## v0.7.5
+### New Features
+#### drab-id now is generated with counter, instead of UUID
+This means you are now able to use `this/1` and `this_commander/1` with the broadcasting functions.
+
 ## v0.7.4
 This is a bugfix release.
 

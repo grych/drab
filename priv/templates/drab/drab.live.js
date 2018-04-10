@@ -9,11 +9,26 @@ Drab.on_load(function (resp, drab) {
 
 Drab.on_change(function(node) {
   if (node) {
-    // console.log("change");
-    // invalidate_assigns_cache();
     run_drab_scripts_on(node);
     set_properties(node);
   }
+});
+
+Drab.add_payload(function(sender) {
+  if (sender)
+    var shared_commander_id = sender.getAttribute("drab-commander-id");
+    if (shared_commander_id) {
+      var amperes = [];
+      var shared_commander = document.querySelector("[drab-id='" + shared_commander_id + "']");
+      var ampered_nodes = shared_commander.querySelectorAll("[drab-ampere]");
+      for (var i = 0; i < ampered_nodes.length; i++) {
+        amperes.push(ampered_nodes[i].getAttribute("drab-ampere"));
+      }
+      return {
+        drab_commander_id: shared_commander_id,
+        drab_commander_amperes: amperes
+      };
+    }
 });
 
 function run_drab_scripts_on(node) {
@@ -57,20 +72,12 @@ function selector(ampere) {
   return "[drab-ampere='" + ampere + "']";
 }
 
-function where(shared_commander) {
-  if (shared_commander === "document") {
-    return document;
-  } else {
-    return document.querySelector("[drab-id='" + shared_commander + "']");
-  }
+function ampere_nodes(ampere) {
+  return document.querySelectorAll(selector(ampere));
 }
 
-function ampere_nodes(ampere, shared_commander) {
-  return where(shared_commander).querySelectorAll(selector(ampere));
-}
-
-Drab.update_attribute = function (ampere, attribute, shared_commander, new_value) {
-  var nodes = ampere_nodes(ampere, shared_commander);
+Drab.update_attribute = function (ampere, attribute, new_value) {
+  var nodes = ampere_nodes(ampere);
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
     // a corner case for <input value="">
@@ -81,15 +88,15 @@ Drab.update_attribute = function (ampere, attribute, shared_commander, new_value
   }
 }
 
-Drab.update_property = function (ampere, property, shared_commander, new_value) {
-  var nodes = ampere_nodes(ampere, shared_commander);
+Drab.update_property = function (ampere, property, new_value) {
+  var nodes = ampere_nodes(ampere);
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
     set_property(node, ampere, property, new_value);
   }
 }
 
-Drab.update_tag = function(tag, ampere, shared_commander, new_value) {
+Drab.update_tag = function(tag, ampere, new_value) {
   switch(tag) {
     // TODO: script should also work under the shared commander
     case "script":
@@ -97,7 +104,7 @@ Drab.update_tag = function(tag, ampere, shared_commander, new_value) {
       break;
     default:
       var s = selector(ampere);
-      var nodes = where(shared_commander).querySelectorAll(s);
+      var nodes = document.querySelectorAll(s);
       
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];

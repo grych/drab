@@ -486,10 +486,6 @@ defmodule Drab.Core do
         set_prop socket, this(sender), innerText: "already clicked"
         set_prop socket, this(sender), disabled: true
       end
-
-  Do not use it with with broadcast functions (`Drab.Query.update!`, `Drab.Core.broadcast_js`, etc),
-  because it returns the *exact* DOM object in *exact* browser. In case if you want to broadcast, set the
-  id of the object and use `this!/1` instead.
   """
   @spec this(map) :: String.t()
   def this(sender) do
@@ -497,7 +493,7 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Like `this/1`, but returns selector of the object ID, so it may be used with broadcasting functions.
+  Like `this/1`, but returns selector of the object ID.
 
       def button_clicked(socket, sender) do
         socket |> update!(:text, set: "alread clicked", on: this!(sender))
@@ -523,6 +519,8 @@ defmodule Drab.Core do
   @doc """
   Returns the unique selector of the DOM object, which represents the shared commander of the event triggerer.
 
+  In case the even was triggered outside the Shared Commander, returns "" (empty string).
+
   To be used only in event handlers. Allows to create a kind of reusable Drab components.
 
       <div drab-commander="DrabTestApp.Shared1Commander">
@@ -533,13 +531,12 @@ defmodule Drab.Core do
       def button_clicked(socket, sender) do
         set_prop socket, this_commander(sender) <> " .spaceholder1", innerText: "changed"
       end
-
-  Do not use it with with broadcast functions (`Drab.Query.update!`, `Drab.Core.broadcast_js`, etc),
-  because it returns the *exact* DOM object in *exact* browser. In case if you want to broadcast, use the unique
-  ID or any unique CSS selector.
   """
   @spec this_commander(map) :: String.t()
   def this_commander(sender) do
-    "[drab-id=#{Drab.Core.encode_js(sender["drab_commander_id"])}]"
+    case sender["drab_commander_id"] do
+      nil -> ""
+      drab_commander_id -> "[drab-id=#{Drab.Core.encode_js(drab_commander_id)}]"
+    end
   end
 end

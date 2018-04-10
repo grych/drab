@@ -79,7 +79,6 @@ function default_payload(sender, event) {
     value: sender.value,
     dataset: sender.dataset,
     drab_id: sender.getAttribute("drab-id"),
-    drab_commander_id: sender.getAttribute("drab-commander-id"),
     event: {
       altKey: event.altKey,
       data: event.data,

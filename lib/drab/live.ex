@@ -206,6 +206,12 @@ defmodule Drab.Live do
   @impl true
   def js_templates(), do: ["drab.live.js"]
 
+  @impl true
+  def transform_socket(socket, payload, _state) do
+    socket = Phoenix.Socket.assign(socket, :__sender_drab_commander_id, payload["drab_commander_id"] || "document")
+    Phoenix.Socket.assign(socket, :__sender_drab_commader_amperes, payload["drab_commander_amperes"] || [])
+  end
+
   @doc """
   Returns the current value of the assign from the current (main) partial.
 
@@ -340,10 +346,16 @@ defmodule Drab.Live do
       |> List.flatten()
       |> Enum.uniq()
 
+    # update only those which are in shared commander
+    amperes_to_update =
+      case socket.assigns[:__sender_drab_commader_amperes] do
+        [] -> amperes_to_update
+        sender_drab_commader_amperes -> intersection(amperes_to_update, sender_drab_commader_amperes)
+      end
+
     shared_commander_id = drab_commander_id(socket)
 
     # construct the javascripts for update of amperes
-    # TODO: group updates on one node
     update_javascripts =
       for ampere <- amperes_to_update,
           {gender, tag, prop_or_attr, expr, _, parent_assigns} <- Drab.Live.Cache.get({partial, ampere}) || [],
@@ -358,24 +370,18 @@ defmodule Drab.Live do
                 nil
 
               {_, _} ->
-                "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(shared_commander_id)}, #{
-                  encode_js(new_value)
-                })"
+                "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
             end
 
           :attr ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
-            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(shared_commander_id)},#{
-              encode_js(new_value)
-            })"
+            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(new_value)})"
 
           :prop ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
-            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(shared_commander_id)}, #{
-              new_value
-            })"
+            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
         end
       end
 
@@ -395,11 +401,18 @@ defmodule Drab.Live do
 
   # the case when the expression is inside another expression
   # and we update assigns of the parent expression as well
+  @spec is_a_child?(list, list) :: boolean
   defp is_a_child?(list1, list2) do
     not Enum.empty?(list1) &&
       Enum.all?(list1, fn element ->
         element in list2
       end)
+  end
+
+  @spec intersection(list, list) :: list
+  defp intersection(list1, list2) do
+    MapSet.intersection(MapSet.new(list1), MapSet.new(list2))
+    |> MapSet.to_list()
   end
 
   @doc """
