@@ -2,7 +2,11 @@ defmodule DrabTestApp.Shared1Commander do
   @moduledoc false
 
   use Drab.Commander
-  # onload(:page_loaded)
+  onload(:page_loaded)
+  onconnect(:connected)
+  before_handler(:before_handler)
+  after_handler(:after_handler)
+
   public(:button_clicked)
 
   def button_clicked(socket, sender, arg \\ "outside") do
@@ -14,5 +18,22 @@ defmodule DrabTestApp.Shared1Commander do
 
   defhandler peek_text(socket, sender, _) do
     set_prop(socket, this(sender), innerText: peek(socket, :text) || "--- nil ---")
+  end
+
+  def page_loaded(socket) do
+    set_prop(socket, "#shared1_onload", innerText: "set in onload")
+  end
+
+  def connected(socket) do
+    set_prop(socket, "#shared1_onconnect", innerText: "set in onconnect")
+  end
+
+  def before_handler(socket, sender) do
+    set_prop(socket, this_commander(sender) <> " .shared1_before_handler", innerText: "set in before_handler")
+    true
+  end
+
+  def after_handler(socket, sender, _retval) do
+    set_prop(socket, this_commander(sender) <> " .shared1_after_handler", innerText: "set in after_handler")
   end
 end

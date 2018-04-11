@@ -18,6 +18,90 @@ defmodule Drab.Live do
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
 
+  ### Avoiding using Drab
+  If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function. Such expressions
+  will be treated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
+
+      <p>Chapter <%= nodrab(@chapter_no) %>.</p>
+
+  With Elixir 1.6, you may use the special marker "/", which does exactly the same as `nodrab`:
+
+      <p>Chapter <%/ @chapter_no %>.</p>
+
+  #### The `@conn` case
+  The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not update it
+  with `poke/2`. And, because it is often quite hudge, may significantly increase the number of data sent to
+  the browser. This is why Drab treats all expressions with only one assign, which happen to be `@conn`, as
+  a `nodrab` assign.
+
+  ### Shared Commanders
+  When the event is triggered inside the Shared Commander, defined with `drab-commander` attribute,
+  all the updates will be done only withing this region. For example:
+
+      <div drab-commander="DrabTestApp.Shared1Commander">
+        <div><%= @assign1 %></div>
+        <button drab-click="button_clicked">Shared 1</button>
+      </div>
+      <div drab-commander="DrabTestApp.Shared1Commander">
+        <div><%= @assign1 %></div>
+        <button drab-click="button_clicked">Shared 2</button>
+      </div>
+
+      defhandler button_clicked(socket, sender) do
+        poke socket, assign1: "changed"
+      end
+
+  This will update only the div with `@assign1` in the same `<div drab-commander>` as the button.
+
+  Please notice it works also for `peek` - it will return the proper value, depends where the event
+  is triggered.
+
+  ### Partials
+  Function `poke/2` and `peek/2` works on the default template - the one rendered with the Controller. In case there
+  are some child templates, rendered inside the main one, you need to specify the template name as a second argument
+  of `poke/3` and `peek/3` functions.
+
+  In case the template is not under the current (main) view, use `poke/4` and `peek/4` to specify the external
+  view name.
+
+  Assigns are archored within their partials. Manipulation of the assign outside the template it lives will raise
+  `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign in the main partial will not update
+  assigns in the child partials, even if they exist there.
+
+  #### Rendering partial templates in a runtime
+  There is a possibility add the partial to the DOM tree in a runtime, using `render_to_string/2` helper:
+
+      poke socket, live_partial1: render_to_string("partial1.html", color: "#aaaabb")
+
+  But remember that assigns are assigned to the partials, so after adding it to the page, manipulation
+  must be done within the added partial:
+
+      poke socket, "partial1.html", color: "red"
+
+  ### Evaluating expressions
+  When the assign change is poked back to the browser, Drab need to re-evaluate all the expressions from the template
+  which contain the given assign. This expressions are stored with the pattern in the cache DETS file.
+
+  Because the expression must be run in the Phoenix environments, Drab does some `import` and `use` before. For example,
+  it does `use Phoenix.HTML` and `import Phoenix.View`. It also imports the following modules from your application:
+
+      import YourApplication.Router.Helpers
+      import YourApplication.ErrorHelpers
+      import YourApplication.Gettext
+
+  If you renamed any of those modules in your application, you must tell Drab where to find it by adding the following
+  entry to the `config.exs` file:
+
+      config :drab, live_helper_modules: [Router.Helpers, ErrorHelpers, Gettext]
+
+  Notice that the application name is derived automatically. Please check `Drab.Config.get/1` for more information
+  on Drab setup.
+
+  ### Limitions
+  Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid.
+  There are also some limits for defining attributes, properties, local variables, etc. See `Drab.Live.EExEngine`
+  for a full description.
+
   ### Update Behaviours
   There are different behaviours of `Drab.Live`, depends on where the expression with the updated assign lives.
   For example, if the expression defines tag attribute, like `<span class="<%= @class %>">`, we don't want to
@@ -133,68 +217,6 @@ defmodule Drab.Live do
   `config.exs`:
 
       config :drab, enable_live_scripts: true
-
-  ### Avoiding using Drab
-  If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function. Such expressions
-  will be treated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
-
-      <p>Chapter <%= nodrab(@chapter_no) %>.</p>
-
-  With Elixir 1.6, you may use the special marker "/", which does exactly the same as `nodrab`:
-
-      <p>Chapter <%/ @chapter_no %>.</p>
-
-  #### The `@conn` case
-  The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not update it
-  with `poke/2`. And, because it is often quite hudge, may significantly increase the number of data sent to
-  the browser. This is why Drab treats all expressions with only one assign, which happen to be `@conn`, as
-  a `nodrab` assign.
-
-  ### Partials
-  Function `poke/2` and `peek/2` works on the default template - the one rendered with the Controller. In case there
-  are some child templates, rendered inside the main one, you need to specify the template name as a second argument
-  of `poke/3` and `peek/3` functions.
-
-  In case the template is not under the current (main) view, use `poke/4` and `peek/4` to specify the external
-  view name.
-
-  Assigns are archored within their partials. Manipulation of the assign outside the template it lives will raise
-  `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign in the main partial will not update
-  assigns in the child partials, even if they exist there.
-
-  #### Rendering partial templates in a runtime
-  There is a possibility add the partial to the DOM tree in a runtime, using `render_to_string/2` helper:
-
-      poke socket, live_partial1: render_to_string("partial1.html", color: "#aaaabb")
-
-  But remember that assigns are assigned to the partials, so after adding it to the page, manipulation
-  must be done within the added partial:
-
-      poke socket, "partial1.html", color: "red"
-
-  ### Evaluating expressions
-  When the assign change is poked back to the browser, Drab need to re-evaluate all the expressions from the template
-  which contain the given assign. This expressions are stored with the pattern in the cache DETS file.
-
-  Because the expression must be run in the Phoenix environments, Drab does some `import` and `use` before. For example,
-  it does `use Phoenix.HTML` and `import Phoenix.View`. It also imports the following modules from your application:
-
-      import YourApplication.Router.Helpers
-      import YourApplication.ErrorHelpers
-      import YourApplication.Gettext
-
-  If you renamed any of those modules in your application, you must tell Drab where to find it by adding the following
-  entry to the `config.exs` file:
-
-      config :drab, live_helper_modules: [Router.Helpers, ErrorHelpers, Gettext]
-
-  Notice that the application name is derived automatically. Please check `Drab.Config.get/1` for more information
-  on Drab setup.
-
-  ### Limitions
-  Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid.
-  There are also some limits for defining attributes, properties, local variables, etc. See `Drab.Live.EExEngine`
-  for a full description.
   """
 
   @type result :: Phoenix.Socket.t() | Drab.Core.result() | no_return

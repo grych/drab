@@ -87,18 +87,20 @@ defmodule Drab do
           store: map,
           session: map,
           commander: atom,
+          commanders: list,
           controller: atom,
           socket: Phoenix.Socket.t(),
           priv: map
         }
 
-  defstruct store: %{}, session: %{}, commander: nil, controller: nil, socket: nil, priv: %{}
+  defstruct store: %{}, session: %{}, commander: nil, commanders: [], controller: nil, socket: nil, priv: %{}
 
   @doc false
   @spec start_link(Phoenix.Socket.t()) :: GenServer.on_start()
   def start_link(socket) do
     GenServer.start_link(__MODULE__, %Drab{
       commander: Drab.get_commander(socket),
+      commanders: Drab.get_commanders(socket),
       controller: Drab.get_controller(socket)
     })
   end
@@ -150,18 +152,7 @@ defmodule Drab do
   @doc false
   @spec handle_cast(tuple, t) :: {:noreply, t}
   def handle_cast({:onconnect, socket, payload}, %Drab{commander: commander} = state) do
-    # TODO: there is an issue when the below failed and client tried to reconnect again and again
-    # tasks = [Task.async(fn -> Drab.Core.save_session(socket, Drab.Core.session(socket)) end),
-    #          Task.async(fn -> Drab.Core.save_store(socket, Drab.Core.store(socket)) end)]
-    # Enum.each(tasks, fn(task) -> Task.await(task) end)
-
-    # Logger.debug "******"
-    # Logger.debug inspect(Drab.Core.session(socket))
-
-    # IO.inspect payload
-
     socket = transform_socket(payload["payload"], socket, state)
-
     Drab.Core.save_session(
       socket,
       Drab.Core.detokenize_store(socket, payload["drab_session_token"])
@@ -173,19 +164,26 @@ defmodule Drab do
     onconnect = commander_config(commander).onconnect
     handle_callback(socket, commander, onconnect)
 
+    for shared_commander <- state.commanders do
+      onconnect = commander_config(shared_commander).onconnect
+      handle_callback(socket, shared_commander, onconnect)
+    end
+
     {:noreply, state}
   end
 
   @doc false
   def handle_cast({:onload, socket, payload}, %Drab{commander: commander} = state) do
-    # {_, socket} = transform_payload_and_socket(payload, socket, commander_module)
-    # IO.inspect payload
-
     socket = transform_socket(payload["payload"], socket, state)
 
     onload = commander_config(commander).onload
-    # returns socket
     handle_callback(socket, commander, onload)
+
+    for shared_commander <- state.commanders do
+      onload = commander_config(shared_commander).onload
+      handle_callback(socket, shared_commander, onload)
+    end
+
     {:noreply, state}
   end
 
@@ -592,6 +590,20 @@ defmodule Drab do
   @spec get_commander(Phoenix.Socket.t()) :: atom
   def get_commander(socket) do
     socket.assigns.__commander
+  end
+
+  # returns the list of shared commanders name for the given controller (assigned in socket)
+  @doc false
+  @spec get_commanders(Phoenix.Socket.t()) :: list
+  def get_commanders(socket) do
+    controller = get_controller(socket)
+    if controller && {:__drab__, 0} in apply(controller, :__info__, [:functions]) do
+      controller.__drab__().commanders
+    else
+      []
+    end
+
+    # socket.assigns.__commanders
   end
 
   # returns the controller name used with the socket

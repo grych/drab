@@ -521,7 +521,7 @@ defmodule Drab.Core do
 
   In case the even was triggered outside the Shared Commander, returns "" (empty string).
 
-  To be used only in event handlers. Allows to create a kind of reusable Drab components.
+  To be used only in event handlers. Allows to create reusable Drab components.
 
       <div drab-commander="DrabTestApp.Shared1Commander">
         <div class="spaceholder1">Nothing</div>

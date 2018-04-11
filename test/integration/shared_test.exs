@@ -70,7 +70,7 @@ defmodule DrabTestApp.SharedTest do
       assert visible_text(find_element(:id, "spaceholder11")) == "changed"
       assert visible_text(find_element(:id, "spaceholder12")) == "Nothing"
 
-      click_and_wait("shared2-button")
+      click_and_wait("shared12-button")
       assert visible_text(find_element(:id, "spaceholder10")) == "Nothing"
       assert visible_text(find_element(:id, "spaceholder11")) == "changed"
       assert visible_text(find_element(:id, "spaceholder12")) == "changed"
@@ -89,7 +89,7 @@ defmodule DrabTestApp.SharedTest do
       assert css_property(find_element(:id, "spaceholder22"), "background-color") == "rgba(221, 221, 221, 1)"
       assert css_property(find_element(:id, "spaceholder22"), "color") == "rgba(255, 34, 34, 1)"
 
-      click_and_wait("shared2-button")
+      click_and_wait("shared12-button")
       assert visible_text(find_element(:id, "spaceholder20")) == "assigned in controller"
       assert css_property(find_element(:id, "spaceholder20"), "background-color") == "rgba(221, 221, 221, 1)"
       assert css_property(find_element(:id, "spaceholder20"), "color") == "rgba(255, 34, 34, 1)"
@@ -115,7 +115,7 @@ defmodule DrabTestApp.SharedTest do
       assert visible_text(find_element(:id, "peek1")) == "changed in shared commander, one"
       assert visible_text(find_element(:id, "peek12")) == "assigned in controller"
 
-      click_and_wait("shared2-button")
+      click_and_wait("shared12-button")
       click_and_wait("peek0")
       click_and_wait("peek1")
       click_and_wait("peek12")
@@ -126,6 +126,27 @@ defmodule DrabTestApp.SharedTest do
       click_and_wait("global-button")
       click_all_peeks()
       assert all_elements?({:css, "[drab-click='peek_text']"}, &visible_text/1, "set globally")
+    end
+  end
+
+  describe "callbacks" do
+    test "onload and onconnect" do
+      assert visible_text(find_element(:id, "shared1_onload")) == "set in onload"
+      assert visible_text(find_element(:id, "shared1_onconnect")) == "set in onconnect"
+    end
+
+    test "before and after" do
+      click_and_wait("shared1-button")
+      assert visible_text(find_element(:id, "shared11_before_handler")) == "set in before_handler"
+      assert visible_text(find_element(:id, "shared11_after_handler")) == "set in after_handler"
+      refute visible_text(find_element(:id, "shared12_before_handler")) == "set in before_handler"
+      refute visible_text(find_element(:id, "shared12_after_handler")) == "set in after_handler"
+
+      click_and_wait("shared12-button")
+      assert visible_text(find_element(:id, "shared11_before_handler")) == "set in before_handler"
+      assert visible_text(find_element(:id, "shared11_after_handler")) == "set in after_handler"
+      assert visible_text(find_element(:id, "shared12_before_handler")) == "set in before_handler"
+      assert visible_text(find_element(:id, "shared12_after_handler")) == "set in after_handler"
     end
   end
 

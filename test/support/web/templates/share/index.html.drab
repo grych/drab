@@ -14,6 +14,10 @@
 <div drab-commander="DrabTestApp.Shared1Commander" drab-argument="'one'">
   <div class="spaceholder1" id="spaceholder11">Nothing</div>
   <div class="spaceholder2" id="spaceholder21" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
+  <div id="shared1_onload"></div>
+  <div id="shared1_onconnect"></div>
+  <div id="shared11_before_handler" class="shared1_before_handler"></div>
+  <div id="shared11_after_handler" class="shared1_after_handler"></div>
   <button id="shared1-button" drab-click="button_clicked">Shared 1</button>
   <button id="peek1" drab-click="peek_text">peek :text</button>
 </div>
@@ -22,7 +26,9 @@
 <div drab-commander="DrabTestApp.Shared1Commander" drab-argument="'two'">
   <div class="spaceholder1" id="spaceholder12">Nothing</div>
   <div class="spaceholder2" id="spaceholder22" style="color: <%= @color %>" @style.backgroundColor="<%= @bgcolor %>"><%= @text %></div>
-  <button id="shared2-button" drab-click="button_clicked">Shared 1 Repeated</button>
+  <div id="shared12_before_handler" class="shared1_before_handler"></div>
+  <div id="shared12_after_handler" class="shared1_after_handler"></div>
+  <button id="shared12-button" drab-click="button_clicked">Shared 1 Repeated</button>
   <button id="peek12" drab-click="peek_text">peek :text</button>
 </div>
 <br>

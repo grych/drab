@@ -113,6 +113,9 @@ defmodule Drab.Commander do
         <button drab-click="DrabExample.AnotherCommander.button3_clicked">1</button>
       </div>
 
+  See `Drab.Core.this_commander/1` to learn how to use this feature to create reusable Drab components.
+  See also `Drab.Live` to learn how shared commanders works with living assigns.
+
   ## Callbacks
 
   Callbacks are an automatic events which are launched by the system. They are defined by the macro in the
@@ -192,6 +195,9 @@ defmodule Drab.Commander do
           false
         end
       end
+
+  ### Callbacks in Shared Commanders
+  To be described.
 
   ## Broadcasting options
 
