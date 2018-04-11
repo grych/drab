@@ -100,12 +100,13 @@ defmodule Drab.Socket do
     case Drab.Client.api_version() do
       ^client_lib_version ->
         case Phoenix.Token.verify(
-              socket,
-              "controller_and_action",
-              controller_and_action_token,
-              max_age: 86_400
-            ) do
-          {:ok, [__controller: controller, __commander: commander, __view: view, __action: action, __assigns: assigns]} ->
+               socket,
+               "controller_and_action",
+               controller_and_action_token,
+               max_age: 86_400
+             ) do
+          {:ok,
+           [__controller: controller, __commander: commander, __view: view, __action: action, __assigns: assigns]} ->
             own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
 
             socket_plus_external_assings = %Phoenix.Socket{
@@ -128,7 +129,10 @@ defmodule Drab.Socket do
           {:error, _reason} ->
             :error
         end
-      _ -> :error # wrong API version, user needs to reload page
+
+      # wrong API version, user needs to reload page
+      _ ->
+        :error
     end
   end
 

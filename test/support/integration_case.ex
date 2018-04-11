@@ -33,6 +33,20 @@ defmodule DrabTestApp.IntegrationCase do
   #   {:ok, conn: Phoenix.ConnTest.build_conn()}
   # end
 
+  def change_to_secondary_session(session_name \\ "secondary") do
+    change_session_to(session_name,
+      driver: %{
+        chromeOptions: %{
+          "args" => [
+            "--user-agent=#{Hound.Browser.user_agent(:chrome)}",
+            "--headless",
+            "--disable-gpu"
+          ]
+        }
+      }
+    )
+  end
+
   def wait_for_enable(element) do
     if element |> element_enabled? do
       :ok

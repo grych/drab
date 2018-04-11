@@ -1,8 +1,29 @@
 # CHANGELOG
 ## v0.7.5
 ### New Features
-#### drab-id now is generated with counter, instead of UUID
+#### Living assigns inside the shared comamander
+If you are using `drab-commander` attribute, the requests coming from the shared commander  updates stuff only under this tag.
+
+    <div drab-commander="DrabTestApp.Shared1Commander">
+      <div><%= @assign1 %></div>
+      <button drab-click="button_clicked">Shared 1</button>
+    </div>
+    <div drab-commander="DrabTestApp.Shared1Commander">
+      <div><%= @assign1 %></div>
+      <button drab-click="button_clicked">Shared 2</button>
+    </div>
+
+    defhandler button_clicked(socket, sender) do
+      poke socket, assign1: "changed"
+    end
+
+This will update only the div with `@assign1` in the same <div drab-commander> as the button.
+
+#### drab-id now is generated with the counter, instead of UUID
 This means you are now able to use `this/1` and `this_commander/1` with the broadcasting functions.
+
+#### The browser will not reconnect when client library change
+Forces user to reload the page in case the Drab JS library is changed.
 
 ## v0.7.4
 This is a bugfix release.
