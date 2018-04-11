@@ -19,7 +19,10 @@ If you are using `drab-commander` attribute, the requests coming from the shared
 
 This will update only the div with `@assign1` in the same <div drab-commander> as the button.
 
-#### drab-id now is generated with the counter, instead of UUID
+#### The Great Unification
+Callbacks now works in the Shared Commanders.
+
+#### `drab-id` attribute now is generated with the counter, instead of UUID
 This means you are now able to use `this/1` and `this_commander/1` with the broadcasting functions.
 
 #### The browser will not reconnect when client library change

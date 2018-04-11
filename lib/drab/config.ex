@@ -233,7 +233,7 @@ defmodule Drab.Config do
   @doc false
   @spec drab_internal_commanders() :: list
   def drab_internal_commanders() do
-    [Drab.Live.Commander]
+    [Drab.Logger]
   end
 
   @doc """
