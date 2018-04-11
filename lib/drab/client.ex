@@ -1,4 +1,8 @@
 defmodule Drab.Client do
+  # changing the client API version will cause reload browsers with the different version
+  # must be a string
+  @client_lib_version "2"
+
   @moduledoc """
   Enable Drab on the browser side. Must be included in HTML template, for example
   in `web/templates/layout/app.html.eex`:
@@ -123,6 +127,10 @@ defmodule Drab.Client do
     generate_drab_js(conn, false, assigns)
   end
 
+  @doc false
+  @spec api_version() :: String.t()
+  def api_version(), do: @client_lib_version
+
   @spec generate_drab_js(Plug.Conn.t(), boolean, Keyword.t()) :: String.t()
   defp generate_drab_js(conn, connect?, assigns) do
     controller = Phoenix.Controller.controller_module(conn)
@@ -161,7 +169,8 @@ defmodule Drab.Client do
         templates: templates,
         drab_session_token: session_token,
         broadcast_topic: broadcast_topic,
-        connect: connect?
+        connect: connect?,
+        client_lib_version: @client_lib_version
       ]
 
       js = render_template("drab.js", bindings)

@@ -20,6 +20,7 @@
       this.onload_launched = false;
       this.already_connected = false;
       this.drab_topic = broadcast_topic;
+      this.client_lib_version = <%= client_lib_version %>;
     },
     connect: function (additional_token) {
 
@@ -30,8 +31,10 @@
         fx(drab);
       }
 
+      var params = Object.assign({ __drab_return: this.drab_return_token }, additional_token);
+      params = Object.assign(params, {__client_lib_version: Drab.client_lib_version});
       this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", {
-        params: Object.assign({ __drab_return: this.drab_return_token }, additional_token)
+        params: params
       });
       // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
@@ -50,7 +53,6 @@
         drab.already_connected = true;
         // event is sent after Drab finish processing the event
         drab.channel.on("event", function (message) {
-          // console.log("EVENT: ", message)
           if (message.finished && drab.event_reply_table[message.finished]) {
             drab.event_reply_table[message.finished]();
             delete drab.event_reply_table[message.finished];

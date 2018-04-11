@@ -96,38 +96,44 @@ defmodule Drab.Socket do
   To be used with custom `connect/2` callbacks.
   """
   @spec verify(Phoenix.Socket.t(), map) :: {:ok, term} | :error
-  def verify(socket, %{"__drab_return" => controller_and_action_token}) do
-    case Phoenix.Token.verify(
-           socket,
-           "controller_and_action",
-           controller_and_action_token,
-           max_age: 86_400
-         ) do
-      {:ok, [__controller: controller, __commander: commander, __view: view, __action: action, __assigns: assigns]} ->
-        own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
+  def verify(socket, %{"__drab_return" => controller_and_action_token, "__client_lib_version" => client_lib_version}) do
+    case Drab.Client.api_version() do
+      ^client_lib_version ->
+        case Phoenix.Token.verify(
+              socket,
+              "controller_and_action",
+              controller_and_action_token,
+              max_age: 86_400
+            ) do
+          {:ok, [__controller: controller, __commander: commander, __view: view, __action: action, __assigns: assigns]} ->
+            own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
 
-        socket_plus_external_assings = %Phoenix.Socket{
-          socket
-          | assigns: own_plus_external_assigns
-        }
+            socket_plus_external_assings = %Phoenix.Socket{
+              socket
+              | assigns: own_plus_external_assigns
+            }
 
-        {
-          :ok,
-          socket_plus_external_assings
-          |> Phoenix.Socket.assign(:__controller, controller)
-          |> Phoenix.Socket.assign(:__commander, commander)
-          |> Phoenix.Socket.assign(:__view, view)
-          |> Phoenix.Socket.assign(:__action, action)
-          #  |> Phoenix.Socket.assign(:__priv, token["__priv"])
-        }
+            {
+              :ok,
+              socket_plus_external_assings
+              |> Phoenix.Socket.assign(:__controller, controller)
+              |> Phoenix.Socket.assign(:__commander, commander)
+              |> Phoenix.Socket.assign(:__view, view)
+              |> Phoenix.Socket.assign(:__action, action)
+            }
 
-      {:ok, _} ->
-        # previous version, user should reload
-        :error
+          {:ok, _} ->
+            :error
 
-      {:error, _reason} ->
-        :error
+          {:error, _reason} ->
+            :error
+        end
+      _ -> :error # wrong API version, user needs to reload page
     end
+  end
+
+  def verify(socket, %{"__drab_return" => controller_and_action_token}) do
+    verify(socket, %{"__drab_return" => controller_and_action_token, "__client_lib_version" => "0"})
   end
 
   def verify(_, _) do
