@@ -30,10 +30,12 @@ defmodule DrabTestApp.Shared1Commander do
 
   def before_handler(socket, sender) do
     set_prop(socket, this_commander(sender) <> " .shared1_before_handler", innerText: "set in before_handler")
+    poke socket, before1: "poke - before"
     true
   end
 
   def after_handler(socket, sender, _retval) do
     set_prop(socket, this_commander(sender) <> " .shared1_after_handler", innerText: "set in after_handler")
+    poke socket, after1: "poke - after"
   end
 end

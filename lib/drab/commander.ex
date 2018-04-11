@@ -197,12 +197,17 @@ defmodule Drab.Commander do
       end
 
   ### Callbacks in Shared Commanders
-  To be described.
+  Handler-specific callbacks used in the Shared Commander works as expected - they are raised before
+  or after the event handler function, and might work regionally (if they are called from inside
+  the tag which has `drab-commander` attibute).
+
+  However, page-specific callbacks (eg. `onload`) do not work regionally, as there is no specific
+  object, which triggered the event. Thus, `Drab.Core.this_commander/1` can't be used there.
 
   ## Broadcasting options
 
-  All Drab function may be broadcaster. By default, broadcasts are sent to browsers sharing the same page
-  (the same url), but it could be override by `broadcasting/1` macro.
+  All Drab function may be broadcasted. By default, broadcasts are sent to browsers sharing the
+  same page (the same url), but it could be overrided by `broadcasting/1` macro.
 
   ## Modules
 
