@@ -56,6 +56,16 @@ defmodule Drab.Live do
   Please notice it works also for `peek` - it will return the proper value, depends where the event
   is triggered.
 
+  ### Caching
+  Browser communication is the time consuming operation and depends on the network latency. Because of this,
+  Drab caches the values of assigns in the current event handler process, so they don't have to be
+  re-read from the browser on every `poke` or `peek` operation. The cache is per process and lasts
+  only during the lifetime of the event handler.
+
+  This, event handler process keeps all the assigns value until it ends. Please notice that
+  the other process may update the assigns on the page in the same time, when your event handler
+  is still running. If you want to re-read the assigns cache, run `clean_cache/0`.
+
   ### Partials
   Function `poke/2` and `peek/2` works on the default template - the one rendered with the Controller. In case there
   are some child templates, rendered inside the main one, you need to specify the template name as a second argument
@@ -414,6 +424,7 @@ defmodule Drab.Live do
 
     case function.(socket, all_javascripts |> Enum.join(";")) do
       {:ok, _} ->
+        update_assigns_cache(socket, assigns_to_update, partial, shared_commander_id)
         socket
 
       other ->
@@ -478,6 +489,17 @@ defmodule Drab.Live do
     |> ampere_assigns()
     |> Map.get(partial_hash, [])
     |> Map.keys()
+  end
+
+  @doc """
+  Cleans up the assigns cache for the current event handler process.
+
+  Should be used when you want to re-read the assigns from the browser, for example when the other
+  process could update the living assigns in the same time as current event handler runs.
+  """
+  @spec clean_cache() :: term
+  def clean_cache() do
+    Process.put(:__assigns_and_index, nil)
   end
 
   @spec eval_expr(Macro.t(), {atom, list}, Keyword.t(), atom) :: term | no_return
@@ -601,26 +623,57 @@ defmodule Drab.Live do
 
   @spec ampere_assigns(Phoenix.Socket.t()) :: map
   defp ampere_assigns(socket) do
-    assigns_and_index(socket)["assigns"]
+    assigns_and_index(socket)[:assigns]
   end
 
   @spec index(Phoenix.Socket.t()) :: String.t()
   defp index(socket) do
-    assigns_and_index(socket)["index"]
+    assigns_and_index(socket)[:index]
   end
 
   @spec assigns_and_index(Phoenix.Socket.t()) :: map
   defp assigns_and_index(socket) do
+    case {Process.get(:__drab_event_handler_or_callback), Process.get(:__assigns_and_index)} do
+      {true, nil} ->
+        decrypted = decrypted_from_browser(socket)
+        Process.put(:__assigns_and_index, decrypted)
+        decrypted
+
+      {true, value} ->
+        value
+
+      # the other case (it is test or IEx session)
+      {_, _} ->
+        decrypted_from_browser(socket)
+    end
+  end
+
+  @spec update_assigns_cache(Phoenix.Socket.t(), map, String.t(), String.t()) :: term() | nil
+  defp update_assigns_cache(socket, assigns_to_update, partial_hash, shared_commander_id) do
+    cache = assigns_and_index(socket)
+
+    updated_assigns =
+      for {assign_name, assign_value} <- assigns_to_update, into: %{} do
+        {assign_name, %{shared_commander_id => assign_value}}
+      end
+
+    cached_assigns = cache[:assigns]
+    cache_for_partial = cached_assigns[partial_hash]
+    updated_assigns_for_partial = Map.merge(cache_for_partial, updated_assigns)
+    updated_assigns_cache = Map.put(cached_assigns, partial_hash, updated_assigns_for_partial)
+    Process.put(:__assigns_and_index, %{cache | assigns: updated_assigns_cache})
+  end
+
+  defp decrypted_from_browser(socket) do
     {:ok, ret} = exec_js(socket, "({assigns: __drab.assigns, index: __drab.index})")
 
     %{
-      # :assigns_cache_valid => true,
-      "assigns" => decrypted_assigns(ret["assigns"]),
-      "index" => ret["index"]
+      :assigns => decrypted_assigns(ret["assigns"]),
+      :index => ret["index"]
     }
   end
 
-  @spec decrypted_assigns(%{}) :: %{}
+  @spec decrypted_assigns(map) :: map
   defp decrypted_assigns(assigns) do
     for {partial, partial_assigns} <- assigns, into: %{} do
       {partial,

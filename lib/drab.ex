@@ -219,6 +219,7 @@ defmodule Drab do
       # TODO: rethink the subprocess strategies - now it is just spawn_link
       spawn_link(fn ->
         try do
+          Process.put(:__drab_event_handler_or_callback, true)
           apply(commander, callback, [socket])
         rescue
           e ->
@@ -261,6 +262,7 @@ defmodule Drab do
        ) do
     spawn_link(fn ->
       try do
+        Process.put(:__drab_event_handler_or_callback, true)
         argument = payload["__additional_argument"]
         payload = Map.delete(payload, "__additional_argument")
         arity = if argument, do: 3, else: 2
