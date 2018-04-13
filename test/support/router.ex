@@ -45,6 +45,7 @@ defmodule DrabTestApp.Router do
     get("/tests/live/query", LiveQueryController, :index, as: :live_query)
     get("/tests/live/table", LiveController, :table, as: :table)
     get("/tests/live/advanced", LiveController, :advanced, as: :advanced)
+    get("/tests/live/broadcasting", LiveController, :broadcasting, as: :broadcasting)
 
     get("/tests/element", ElementController, :index, as: :element)
   end

@@ -339,6 +339,15 @@ defmodule Drab.Core do
   def same_controller(controller), do: "controller:#{controller}"
 
   @doc """
+  Helper for broadcasting functions, returns topic for a given controller and action.
+
+      iex> same_action(DrabTestApp.LiveController, :index)
+      "controller:Elixir.DrabTestApp.LiveController#index"
+  """
+  @spec same_action(String.t() | atom, String.t() | atom) :: String.t()
+  def same_action(controller, action), do: "action:#{controller}##{action}"
+
+  @doc """
   Helper for broadcasting functions, returns topic for a given topic string.
       iex> same_topic("mytopic")
       "topic:mytopic"

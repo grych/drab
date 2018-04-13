@@ -312,7 +312,8 @@ defmodule Drab.Live do
   """
   @spec poke(Phoenix.Socket.t(), Keyword.t()) :: result
   def poke(socket, assigns) do
-    do_poke(socket, nil, nil, assigns, &Drab.Core.exec_js/2)
+    # do_poke(socket, nil, nil, assigns, &Drab.Core.exec_js/2)
+    poke(socket, nil, nil, assigns)
   end
 
   @doc """
@@ -323,7 +324,8 @@ defmodule Drab.Live do
   """
   @spec poke(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
   def poke(socket, partial, assigns) do
-    do_poke(socket, nil, partial, assigns, &Drab.Core.exec_js/2)
+    # do_poke(socket, nil, partial, assigns, &Drab.Core.exec_js/2)
+    poke(socket, nil, partial, assigns)
   end
 
   @doc """
@@ -332,9 +334,59 @@ defmodule Drab.Live do
       iex> poke(socket, MyApp.UserView, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
   """
-  @spec poke(Phoenix.Socket.t(), atom, String.t(), Keyword.t()) :: result
+  @spec poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
   def poke(socket, view, partial, assigns) do
     do_poke(socket, view, partial, assigns, &Drab.Core.exec_js/2)
+  end
+
+  @doc """
+  Broadcasting version of `poke/2`.
+
+  Please notice that broadcasting living assigns makes sense only for the pages, which was rendered
+  with the same templates.
+
+  Always returns socket.
+
+      iex> broadcast_poke(socket, count: 42)
+      %Phoenix.Socket{ ...
+  """
+  @spec broadcast_poke(Phoenix.Socket.t(), Keyword.t()) :: result
+  def broadcast_poke(socket, assigns) do
+    # do_poke(socket, nil, nil, assigns, &Drab.Core.broadcast_js/2)
+    broadcast_poke(socket, nil, nil, assigns)
+  end
+
+  @doc """
+  Like `broadcast_poke/2`, but limited only to the given partial name.
+
+      iex> broadcast_poke(socket, "user.html", name: "Bożywój")
+      %Phoenix.Socket{ ...
+  """
+  @spec broadcast_poke(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
+  def broadcast_poke(socket, partial, assigns) do
+    # do_poke(socket, nil, partial, assigns, &Drab.Core.broadcast_js/2)
+    broadcast_poke(socket, nil, partial, assigns)
+  end
+
+  @doc """
+  Like `broadcast_poke/3`, but searches for the partial within the given view.
+
+      iex> broadcast_poke(socket, MyApp.UserView, "user.html", name: "Bożywój")
+      %Phoenix.Socket{ ...
+  """
+  @spec broadcast_poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
+  def broadcast_poke(socket, view, partial, assigns) do
+    # if socket.assigns.__broadcast_topic =~ "same_path:" ||
+    #    socket.assigns.__broadcast_topic =~ "action:" do
+         do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
+      #  else
+      #   raise ArgumentError,
+      #     message: """
+      #     Broadcasting `poke` makes sense only with `:same_path` or `:same_action` options.
+
+      #     You tried: `#{socket.assigns.__broadcast_topic}`
+      #     """
+      #  end
   end
 
   @spec do_poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t(), function) :: result

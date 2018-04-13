@@ -1,0 +1,8 @@
+<div id="begin"></div>
+<div id="drab_pid"></div>
+
+<div>
+  <button id="broadcast_button" drab-click="broadcast">Broadcast</button>
+</div>
+<br>
+<div id="broadcast_out"><%= @text %></div>

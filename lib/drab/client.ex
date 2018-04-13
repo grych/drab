@@ -138,6 +138,7 @@ defmodule Drab.Client do
     if enables_drab?(controller) do
       commander = commander_for(controller)
       view = view_for(controller)
+      action = Phoenix.Controller.action_name(conn)
 
       controller_and_action =
         Phoenix.Token.sign(
@@ -146,11 +147,11 @@ defmodule Drab.Client do
           __controller: controller,
           __commander: commander,
           __view: view,
-          __action: Phoenix.Controller.action_name(conn),
+          __action: action,
           __assigns: assigns
         )
 
-      broadcast_topic = topic(commander.__drab__().broadcasting, controller, conn.request_path)
+      broadcast_topic = topic(commander.__drab__().broadcasting, controller, conn.request_path, action)
 
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
@@ -214,8 +215,9 @@ defmodule Drab.Client do
   end
 
   # defp topic(:all, _, _), do: "all"
-  @spec topic(atom | String.t(), atom | String.t(), String.t()) :: String.t()
-  defp topic(:same_path, _, path), do: Drab.Core.same_path(path)
-  defp topic(:same_controller, controller, _), do: Drab.Core.same_controller(controller)
-  defp topic(topic, _, _) when is_binary(topic), do: Drab.Core.same_topic(topic)
+  @spec topic(atom | String.t(), atom | String.t(), atom | String.t(), atom | String.t()) :: String.t()
+  defp topic(:same_path, _, path, _), do: Drab.Core.same_path(path)
+  defp topic(:same_controller, controller, _, _), do: Drab.Core.same_controller(controller)
+  defp topic(:same_action, controller, _, action), do: Drab.Core.same_action(controller, action)
+  defp topic(topic, _, _, _) when is_binary(topic), do: Drab.Core.same_topic(topic)
 end

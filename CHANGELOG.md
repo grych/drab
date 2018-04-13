@@ -5,6 +5,9 @@
 The performance of `poke` and `peek` operations increases significantly, as the event handler
 does not have to get the assigns from the browser each time.
 
+#### `broadcast_poke`
+You now may broadcast the assign, in exactly the same way you're doing `poke`.
+
 ## v0.7.5
 ### New Features
 #### Living assigns inside the shared comamander

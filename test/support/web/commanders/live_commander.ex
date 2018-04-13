@@ -4,6 +4,7 @@ defmodule DrabTestApp.LiveCommander do
 
   use Drab.Commander, modules: [Drab.Live, Drab.Element]
   onload(:page_loaded)
+  broadcasting(:same_action)
 
   def page_loaded(socket) do
     DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)
@@ -79,22 +80,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   defhandler update_mini(socket, _sender) do
-    # IO.inspect(sender)
-    # poke socket, class1: "btn", class2: "btn-warning",
-    #   hidden: !peek(socket, :hidden), list: [1,2,3], color: "red"
-    # poke socket, "users.html", color: "color"
-    # poke socket, color: "blue", count: 13
-    # poke socket, "user.html", user: "Bravo"
-    # poke socket, "partial1.html", in_partial: "updated partial 1", color: "#66FFFF", link: "https://tg.pl/drab"
-    # poke socket, users: ["a", "b"] #, link: "aaaa"
-    # poke socket, link: "a"
-    # partial4 = render_to_string(DrabTestApp.LiveView, "partial4.html", in_partial: "in partial4",
-    #   color: "#aaaabb", link: "http://tg.pl")
-    # set_prop(socket, "#partial4_placeholder", innerHTML: partial4)
-    # , user: "Hendryk")
     poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
-    # poke(socket, in_partial: "in_partial after") |> IO.inspect()
-    # peek(socket, :in_partial) |> IO.inspect()
   end
 
   defhandler update_users(socket, _sender) do
@@ -109,10 +95,7 @@ defmodule DrabTestApp.LiveCommander do
     poke(socket, excluded: "Hegemon")
   end
 
-  # defp loop(socket) do
-  #   IO.inspect self()
-  #   IO.inspect socket
-  #   Process.sleep 5000
-  #   loop(socket)
-  # end
+  defhandler broadcast(socket, _sender) do
+    broadcast_poke(socket, text: "broadcasted")
+  end
 end

@@ -86,4 +86,8 @@ defmodule DrabTestApp.LiveController do
       in_partial: "in partial before"
     )
   end
+
+  def broadcasting(conn, _param) do
+    render(conn, text: "set in the controller")
+  end
 end
