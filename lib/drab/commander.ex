@@ -90,7 +90,7 @@ defmodule Drab.Commander do
 
       <button drab-click="DrabExample.SharedCommander.click_button_handler">Clickety</button>
 
-  If you want to restrict shared controller for only specified controller, you must use `before_handler/1`
+  If you want to restrict shared commander for only specified controller, you must use `before_handler/1`
   callback with `controller/1` and `action/1` functions to check out where the function is calling from.
 
   #### Define Shared Commander with `drab-commander` attribute on all children nodes
