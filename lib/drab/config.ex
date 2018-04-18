@@ -247,7 +247,11 @@ defmodule Drab.Config do
       config :drab, disable_controls_while_processing: false
   """
   @spec get(atom) :: term
-  def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
+  def get(:templates_path) do
+    Application.get_env(:drab, :app) && 
+      Application.app_dir(Application.get_env(:drab, :app), Application.get_env(:drab, :templates_path, "priv/templates/drab")) || 
+      Application.get_env(:drab, :templates_path, "priv/templates/drab")
+  end
 
   def get(:disable_controls_while_processing),
     do: Application.get_env(:drab, :disable_controls_while_processing, true)
