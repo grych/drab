@@ -26,7 +26,7 @@
 </form>
 
 <br>
-<div id="out" @out=<%= @out %>><%= inspect @out %></div>
+<pre id="out" style="white-space: pre-wrap;" @out=<%= @out %>><%= inspect @out %></pre>
 <br>
 <br>
 <br><br>

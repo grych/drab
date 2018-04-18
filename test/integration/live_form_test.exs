@@ -34,7 +34,7 @@ defmodule DrabTestApp.LiveFormTest do
 
       poke(
         socket,
-        text1: "text1 updated value",
+        text1: "text1 <b>updated</b> value",
         textarea1: "textarea updated value",
         select1: 3
       )
@@ -47,7 +47,7 @@ defmodule DrabTestApp.LiveFormTest do
                "radio" => "3",
                "textarea" => "textarea updated value",
                "select_input" => "3",
-               "text_input" => "text1 updated value",
+               "text_input" => "text1 <b>updated</b> value",
                "checkbox1" => "1",
                "checkbox3" => "3"
              }

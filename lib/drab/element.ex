@@ -34,7 +34,7 @@ defmodule Drab.Element do
   def transform_payload(payload, _state) do
     payload
     |> Map.put_new("value", payload["val"])
-    |> Map.put_new(:params, payload["form"])
+    # |> Map.put_new(:params, payload["form"])
   end
 
   @doc """
