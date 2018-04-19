@@ -1,5 +1,10 @@
 # CHANGELOG
 ## v0.7.6
+
+### API Changes
+#### `:templates_path` config must be under `priv/`
+Sorry for that, but it was the only way to solve #105.
+
 ### New Features
 #### Living assigns per process cache
 The performance of `poke` and `peek` operations increases significantly, as the event handler
