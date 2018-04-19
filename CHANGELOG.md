@@ -1,10 +1,13 @@
 # CHANGELOG
-## v0.7.6
+## v0.7.7
+If you are using `:templates_path` config, and your templates are not under the `priv/` directory, 
+you'll have to move them.
 
 ### API Changes
 #### `:templates_path` config must be under `priv/`
-Sorry for that, but it was the only way to solve #105.
+Solved #105.
 
+## v0.7.6
 ### New Features
 #### Living assigns per process cache
 The performance of `poke` and `peek` operations increases significantly, as the event handler
