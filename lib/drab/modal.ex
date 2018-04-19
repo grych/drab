@@ -33,6 +33,7 @@ defmodule Drab.Modal do
   * buttons - list of name/text of the buttons (:ok, :cancel are only available names by default; you need to create a
     template if you want more buttons), eq. [ok: "Yes", cancel: "No"]
   * timeout - in milliseconds - after this time modal window will close and the function will return {:cancel, _}
+  * template - the file name of a custom template, see the Custom Templates section for details.
 
   Returns a tuple {clicked_button, params}, where:
   * clicked_button is an atom of `:ok` or `:cancel`. Notice that pressing `esc` or closing the modal window will
@@ -73,6 +74,20 @@ defmodule Drab.Modal do
         socket |> alert("3 buttons", "Choice?",
                   buttons: [ok: "Yes", cancel: "No", unspecified: "Don't know"])
 
+  ### Custom Templates
+
+  To render a custom templates, pass its file name as the `template` option. The template must reflect the Bootstrap structure for modal dialogs.
+
+  Examples:
+     socket |> alert("Title", "Shows this message with default OK button", template: "my_custom.modal.alert.html.eex")
+
+  To use custom template you have to specify the app name and the template path, in the config files of your application,
+  for example:
+
+  file `config/dev.exs`
+      config :drab, 
+      main_phoenix_app: :my_app_web,
+      templates_path: "priv/templates/drab"
   """
   @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) :: Drab.Core.return()
   @spec alert(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return()
@@ -80,13 +95,15 @@ defmodule Drab.Modal do
     buttons = options[:buttons] || [ok: "OK"]
 
     bindings = [
+      is_custom_template: options[:template] && true || false,
       title: title,
       body: body,
       class: options[:class],
       buttons: buttons_html(buttons)
     ]
-
-    html = render_template("modal.alert.html.eex", bindings)
+    
+    template = Keyword.get(options, :template, "modal.alert.html.eex")
+    html = render_template(template, bindings)
 
     socket
     |> delete("#_drab_modal")

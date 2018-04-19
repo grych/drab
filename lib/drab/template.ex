@@ -36,7 +36,7 @@ defmodule Drab.Template do
   @spec render_template(String.t(), Keyword.t()) :: String.t()
   def render_template(filename, bindings) do
     # TODO: this is not very efficient, as it searches for a template every single time
-    p = Path.join(user_templates(), filename)
+    p = Path.join(user_templates(bindings[:is_custom_template]), filename)
 
     if p |> File.exists?() do
       EEx.eval_file(p, bindings)
@@ -47,4 +47,5 @@ defmodule Drab.Template do
   end
 
   defp user_templates(), do: Drab.Config.get(:templates_path)
+  defp user_templates(is_custom_template), do: is_custom_template && Drab.Config.get(:custom_templates_path) || Drab.Config.get(:templates_path)
 end
