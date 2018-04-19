@@ -95,6 +95,7 @@ defmodule Drab.Modal do
     buttons = options[:buttons] || [ok: "OK"]
 
     bindings = [
+      is_custom_template: options[:template] && true || false,
       title: title,
       body: body,
       class: options[:class],
