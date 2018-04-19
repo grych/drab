@@ -41,7 +41,7 @@ defmodule Drab.Config do
 
   #### :templates_path *(default: "priv/templates/drab")*
     Path to the user-defined Drab templates (not to be confused with Phoenix application templates, these are
-    to be used internally, see `Drab.Modal` for the example usage).
+    to be used internally, see `Drab.Modal` for the example usage). Must start with "priv/".
 
   #### :phoenix_channel_options *(default: [])*
     An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.
@@ -240,15 +240,13 @@ defmodule Drab.Config do
   Returns Drab configuration for the given atom.
 
       iex> Drab.Config.get(:templates_path)
-      "test/support/priv/templates/drab"
+      "priv/custom_templates"
 
   All the config values may be override in `config.exs`, for example:
 
       config :drab, disable_controls_while_processing: false
   """
   @spec get(atom) :: term
-  def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
-
   def get(:disable_controls_while_processing),
     do: Application.get_env(:drab, :disable_controls_while_processing, true)
 
@@ -272,6 +270,8 @@ defmodule Drab.Config do
   def get(:enable_live_scripts), do: Application.get_env(:drab, :enable_live_scripts, false)
 
   def get(:phoenix_channel_options), do: Application.get_env(:drab, :phoenix_channel_options, [])
+
+  def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
 
   def get(:live_helper_modules) do
     case Application.get_env(:drab, :live_helper_modules, [Router.Helpers, ErrorHelpers, Gettext]) do

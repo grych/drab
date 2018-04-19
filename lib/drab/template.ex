@@ -46,5 +46,12 @@ defmodule Drab.Template do
     end
   end
 
-  defp user_templates(), do: Drab.Config.get(:templates_path)
+  defp user_templates() do
+    case Drab.Config.get(:templates_path) do
+      "priv" <> rest ->
+        priv = Drab.Config.app_name() |> :code.priv_dir() |> to_string()
+        Path.join(priv, rest)
+      path -> raise ":templates_path must start with `priv/`, given: #{path}"
+    end
+  end
 end

@@ -25,7 +25,7 @@ config :phoenix, :template_engines, drab: Drab.Live.Engine
 
 config :floki, :encode_raw_html, false
 
-config :drab, templates_path: "test/support/priv/templates/drab"
+config :drab, templates_path: "priv/custom_templates"
 
 config :drab, enable_live_scripts: true
 
