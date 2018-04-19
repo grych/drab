@@ -86,7 +86,7 @@ defmodule Drab.Modal do
 
   file `config/dev.exs`
       config :drab, 
-      app: :my_app_web,
+      main_phoenix_app: :my_app_web,
       templates_path: "priv/templates/drab"
   """
   @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) :: Drab.Core.return()
