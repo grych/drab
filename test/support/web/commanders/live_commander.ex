@@ -79,8 +79,9 @@ defmodule DrabTestApp.LiveCommander do
     Drab.Live.poke(socket, list: new_list)
   end
 
-  defhandler update_mini(socket, _sender) do
-    # IO.inspect sender.params
+  defhandler update_mini(socket, sender) do
+    # IO.inspect sender
+    IO.inspect sender.params
     poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
   end
 

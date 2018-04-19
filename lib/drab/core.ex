@@ -201,12 +201,7 @@ defmodule Drab.Core do
   @doc false
   @spec normalize_params(map) :: map
   def normalize_params(params) do
-    params
-    |> Enum.reduce("", fn {k, v}, acc ->
-      acc <> k <> "=" <> URI.encode_www_form(v) <> "&"
-    end)
-    |> String.trim_trailing("&")
-    |> Plug.Conn.Query.decode()
+    Plug.Conn.Query.encode(params) |> Plug.Conn.Query.decode()
   end
 
   @doc """

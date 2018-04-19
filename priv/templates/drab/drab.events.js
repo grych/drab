@@ -62,6 +62,13 @@ function default_payload(sender, event) {
           if (input.checked) {
             params[key] = input.value;
           }
+        } else if (input.type == "select-multiple") {
+          var values=[];
+          for (var j = 0; j < input.options.length; j++) {
+            var option = input.options[j];
+            if (option.selected) values.push(option.value);
+          }
+          params[key] = values;
         } else {
           params[key] = input.value;
         }
