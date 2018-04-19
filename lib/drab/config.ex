@@ -248,8 +248,8 @@ defmodule Drab.Config do
   """
   @spec get(atom) :: term
   def get(:templates_path) do
-    Application.get_env(:drab, :app) && 
-      Application.app_dir(Application.get_env(:drab, :app), Application.get_env(:drab, :templates_path, "priv/templates/drab")) || 
+    (app_name = Drab.Config.app_name()) && 
+      Application.app_dir(app_name, Application.get_env(:drab, :templates_path, "priv/templates/drab")) || 
       Application.get_env(:drab, :templates_path, "priv/templates/drab")
   end
 
