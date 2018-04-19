@@ -63,7 +63,6 @@ defmodule Drab.Mixfile do
   defp package() do
     [
       name: :drab,
-      # files: ["lib", "priv", "test", "mix.exs", "README*", "LICENSE*"],
       files: ["lib", "priv/templates/drab", "mix.exs", "README*", "LICENSE*", "CHANGELOG*"],
       maintainers: ["Tomek Gryszkiewicz"],
       licenses: ["MIT"],

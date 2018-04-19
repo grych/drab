@@ -11,7 +11,12 @@
 <% end %>
 
 <form>
-  <input>
+  <label for="user_name_first">First Name</label>
+  <input id="user_name_first" name="user[name][first]" type="text">
+
+  <label for="user_name_last">Last Name</label>
+  <input id="user_name_last" name="user[name][last]" type="text">
+  
   <button type="submit" drab="click:update_mini">update mini</button>
 </form>
 

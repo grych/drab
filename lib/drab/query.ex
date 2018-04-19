@@ -58,9 +58,6 @@ defmodule Drab.Query do
 
   @impl true
   def transform_payload(payload, _state) do
-    # TODO: change jQuery sender API to %{sender:, event:}
-    # payload = Map.merge(payload["sender"], %{"event" => payload["event"]})
-
     # decode data values, just like jquery does
     d = payload["dataset"] || %{}
 
