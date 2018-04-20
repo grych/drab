@@ -246,7 +246,6 @@ defmodule Drab.Commander do
     modules =
       Enum.map(opts.modules, fn x ->
         case x do
-          # TODO: don't like this hack
           {:__aliases__, _, m} ->
             Module.concat(m)
 
@@ -270,9 +269,7 @@ defmodule Drab.Commander do
       @options Map.merge(commander_config, o)
 
       unquote do
-        # opts = Map.merge(%Drab.Commander.Config{}, Enum.into(options, %{}))
-        modules_to_import
-        |> Enum.map(fn module ->
+        Enum.map(modules_to_import, fn module ->
           quote do
             import unquote(module)
           end
@@ -326,7 +323,6 @@ defmodule Drab.Commander do
           ...
         end
       end
-
 
   Trying to run non-handler function from the browser raises the exception on the Phoenix side.
   """

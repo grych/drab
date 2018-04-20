@@ -112,7 +112,6 @@ defmodule Drab.Live.EExEngine do
 
       <tag attribute="<%= if clause, do: expression %>">
 
-
   #### Scripts
   Tag name must be defined in the template as `<script>`, and can't be defined with the expression.
 
@@ -218,7 +217,7 @@ defmodule Drab.Live.EExEngine do
       Drab.Live.Cache.set({partial_hash, assign}, amperes)
     end
 
-    found_assigns = for({assign, _} <- amperes_to_assigns, do: assign) |> Enum.uniq()
+    found_assigns = Enum.uniq(for({assign, _} <- amperes_to_assigns, do: assign))
 
     assigns_js =
       found_assigns
@@ -420,7 +419,7 @@ defmodule Drab.Live.EExEngine do
     ampere_id = hash({buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
 
-    html = buffer |> to_flat_html()
+    html = to_flat_html(buffer)
 
     buffer =
       if !inject_span? && found_assigns? do
@@ -451,7 +450,7 @@ defmodule Drab.Live.EExEngine do
     )
 
     # TODO: REFACTOR
-    attr = html |> find_attr_in_html()
+    attr = find_attr_in_html(html)
     is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attr && String.starts_with?(attr, "@")
     expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
 

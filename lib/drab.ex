@@ -50,7 +50,6 @@ defmodule Drab do
   All you need to do is to copy/paste the line with `socket = ...` and now you can run Drab function directly
   from IEx, observing the results on the running browser in the realtime.
 
-
   ## Handling Exceptions
 
   Drab intercepts all exceptions from event handler function and let it die, but before it presents the error message
@@ -127,8 +126,6 @@ defmodule Drab do
   @spec handle_info(tuple, t) :: {:noreply, t}
   def handle_info({:EXIT, pid, :normal}, state) when pid != self() do
     # ignore exits of the subprocesses
-    # Logger.debug "************** #{inspect pid} process exit normal"
-
     {:noreply, state}
   end
 
@@ -153,6 +150,7 @@ defmodule Drab do
   @spec handle_cast(tuple, t) :: {:noreply, t}
   def handle_cast({:onconnect, socket, payload}, %Drab{commander: commander} = state) do
     socket = transform_socket(payload["payload"], socket, state)
+
     Drab.Core.save_session(
       socket,
       Drab.Core.detokenize_store(socket, payload["drab_session_token"])
@@ -189,7 +187,7 @@ defmodule Drab do
 
   # casts for update values from the state
   Enum.each([:store, :session, :socket, :priv], fn name ->
-    msg_name = "set_#{name}" |> String.to_atom()
+    msg_name = String.to_atom("set_#{name}")
     @doc false
     def handle_cast({unquote(msg_name), value}, state) do
       new_state = Map.put(state, unquote(name), value)
@@ -205,7 +203,7 @@ defmodule Drab do
 
   # calls for get values from the state
   Enum.each([:store, :session, :socket, :priv], fn name ->
-    msg_name = "get_#{name}" |> String.to_atom()
+    msg_name = String.to_atom("get_#{name}")
     @doc false
     def handle_call(unquote(msg_name), _from, state) do
       value = Map.get(state, unquote(name))
@@ -458,9 +456,7 @@ defmodule Drab do
 
   @doc false
   def callbacks_for(event_handler_function, handler_config) do
-    # :uppercase, [{:run_before_each, []}, {:run_before_uppercase, [only: [:uppercase]]}]
-    handler_config
-    |> Enum.map(fn {callback_name, callback_filter} ->
+    Enum.map(handler_config, fn {callback_name, callback_filter} ->
       case callback_filter do
         [] ->
           callback_name
@@ -480,8 +476,8 @@ defmodule Drab do
 
   # setter and getter functions
   Enum.each([:store, :session, :socket, :priv], fn name ->
-    get_name = "get_#{name}" |> String.to_atom()
-    update_name = "set_#{name}" |> String.to_atom()
+    get_name = String.to_atom("get_#{name}")
+    update_name = String.to_atom("set_#{name}")
 
     @doc false
     def unquote(get_name)(pid) do
@@ -599,6 +595,7 @@ defmodule Drab do
   @spec get_commanders(Phoenix.Socket.t()) :: list
   def get_commanders(socket) do
     controller = get_controller(socket)
+
     if controller && {:__drab__, 0} in apply(controller, :__info__, [:functions]) do
       controller.__drab__().commanders
     else
@@ -634,9 +631,4 @@ defmodule Drab do
   defp commander_config(module) do
     module.__drab__()
   end
-
-  # @doc false
-  # def config() do
-  #   Drab.Config.config()
-  # end
 end

@@ -6,7 +6,7 @@ defmodule Drab.Live.Crypto do
 
   @doc false
   @spec uuid :: String.t()
-  def uuid(), do: "u" <> ({now_ms(), make_ref()} |> hash())
+  def uuid(), do: "u" <> hash({now_ms(), make_ref()})
 
   # The most effective way for store assigns in the browser is basic encode
   @doc false
@@ -25,14 +25,14 @@ defmodule Drab.Live.Crypto do
   @spec encode64(term) :: String.t()
   def encode64(term) do
     # term |> :erlang.term_to_binary() |> Base.url_encode64()
-    term |> encrypt()
+    encrypt(term)
   end
 
   @doc false
   @spec decode64(String.t()) :: term()
   def decode64(string) do
     # string |> Base.url_decode64!() |> :erlang.binary_to_term()
-    string |> decrypt()
+     decrypt(string)
   end
 
   @doc false

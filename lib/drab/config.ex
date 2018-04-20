@@ -81,13 +81,10 @@ defmodule Drab.Config do
   """
   @spec endpoint :: atom
   def endpoint() do
-    # IO.inspect app_env()
-    # TODO: bad performance
     {endpoint, _} =
       app_env()
       |> Enum.filter(fn {x, _} -> first_uppercase?(x) end)
       |> Enum.find(fn {base, _} ->
-        # Code.ensure_compiled(base) # needs to be compiled before View
         is_endpoint?(base)
       end)
 
@@ -222,12 +219,6 @@ defmodule Drab.Config do
     new_last = path |> List.last() |> String.replace(from, to)
     new_path = List.replace_at(path, -1, new_last)
     Module.concat(new_path)
-    # TODO: don't like this way
-    # try do
-    #   Module.safe_concat(new_path)
-    # rescue
-    #   ArgumentError -> nil
-    # end
   end
 
   @doc false

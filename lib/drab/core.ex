@@ -194,14 +194,14 @@ defmodule Drab.Core do
   def transform_payload(payload, _state) do
     case payload["form"] do
       nil -> payload
-      form -> payload |> Map.put_new(:params, form |> normalize_params())
+      form -> Map.put_new(payload, :params, normalize_params(form))
     end
   end
 
   @doc false
   @spec normalize_params(map) :: map
   def normalize_params(params) do
-    Plug.Conn.Query.encode(params) |> Plug.Conn.Query.decode()
+    params |> Plug.Conn.Query.encode() |> Plug.Conn.Query.decode()
   end
 
   @doc """
@@ -448,7 +448,6 @@ defmodule Drab.Core do
   @doc false
   @spec store(Phoenix.Socket.t()) :: map
   def store(socket) do
-    # TODO: error {:error, "The operation is insecure."}
     {:ok, store_token} = exec_js(socket, "Drab.get_drab_store_token()")
     detokenize_store(socket, store_token)
   end

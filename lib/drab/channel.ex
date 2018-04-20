@@ -6,7 +6,7 @@ defmodule Drab.Channel do
   @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}
   def join("__drab:" <> broadcast_topic, _, socket) do
     # socket already contains controller and action
-    socket_with_topic = socket |> assign(:__broadcast_topic, broadcast_topic)
+    socket_with_topic = assign(socket, :__broadcast_topic, broadcast_topic)
 
     {:ok, pid} = Drab.start_link(socket)
 
@@ -42,8 +42,8 @@ defmodule Drab.Channel do
       :ok,
       ref,
       {
-        reply["button_clicked"] |> String.to_existing_atom(),
-        reply["params"] |> Map.delete("__drab_modal_hidden_input")
+        String.to_existing_atom(reply["button_clicked"]),
+        Map.delete(reply["params"], "__drab_modal_hidden_input")
       }
     })
 
@@ -107,7 +107,7 @@ defmodule Drab.Channel do
       socket = Drab.get_socket(pid("#{pid_string}"))
 
           Examples:
-      #{examples |> Enum.join("\n")}
+      #{Enum.join(examples, "\n")}
       """)
     end
 

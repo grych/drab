@@ -32,9 +32,7 @@ defmodule Drab.Element do
 
   @impl true
   def transform_payload(payload, _state) do
-    payload
-    |> Map.put_new("value", payload["val"])
-    # |> Map.put_new(:params, payload["form"])
+    Map.put_new(payload, "value", payload["val"])
   end
 
   @doc """
@@ -73,7 +71,6 @@ defmodule Drab.Element do
     `style` or `dataset`), the property_value is a map as well.
 
   * `{:error, message}` - the browser could not be queried
-
 
   Examples:
       iex> query socket, "button", :clientWidth
