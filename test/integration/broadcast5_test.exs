@@ -29,7 +29,6 @@ defmodule DrabTestApp.Broadcast5Test do
     find_element(:id, "page_loaded_indicator")
   end
 
-
   test "all browsers, except me" do
     change_to_secondary_session("1")
     broadcast1_index() |> navigate_to()

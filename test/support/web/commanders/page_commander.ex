@@ -87,64 +87,74 @@ defmodule DrabTestApp.PageCommander do
     # emulate some longer work, to test if tester waits for a button to be enabled
     Process.sleep(500)
 
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core1_out').innerHTML = 'core1'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core1_out').innerHTML = 'core1'")
 
     # the return value is passed to `after_handler`
     42
   end
 
   defhandler core2_click(socket, _sender) do
-    {:ok, _} = Drab.Core.broadcast_js(socket, "document.getElementById('core2_out').innerHTML = 'core2'")
+    {:ok, _} =
+      Drab.Core.broadcast_js(socket, "document.getElementById('core2_out').innerHTML = 'core2'")
 
     # Drab.Core.broadcast_js(socket, "$('#core2_out').html('core2')")
   end
 
   defhandler core3_click(socket, _sender) do
     ### this will not be executed, as before handler prevents it
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core3_out').innerHTML = 'core3'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core3_out').innerHTML = 'core3'")
 
     # {:ok, _} = Drab.Core.exec_js(socket, "$('#core3_out').html('core3')")
     put_store(socket, :should_never_be_assigned, true)
   end
 
   defhandler core4_click(socket, _sender) do
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core4_out').innerHTML = 'core4'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core4_out').innerHTML = 'core4'")
 
     42
   end
 
   defhandler core5_click(socket, _sender) do
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core5_out').innerHTML = 'core5'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core5_out').innerHTML = 'core5'")
 
     42
   end
 
   defhandler core6_click(socket, _sender) do
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core6_out').innerHTML = 'core6'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core6_out').innerHTML = 'core6'")
 
     42
   end
 
   defhandler core7_click(socket, _sender) do
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('core7_out').innerHTML = 'core7'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core7_out').innerHTML = 'core7'")
 
     42
   end
 
   defhandler input1_change(socket, _sender) do
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('input1_out').innerHTML = 'input1'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('input1_out').innerHTML = 'input1'")
 
     42
   end
 
   defhandler input2_change(socket, _sender) do
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('input2_out').innerHTML = 'input2'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('input2_out').innerHTML = 'input2'")
 
     42
   end
 
   defhandler input3_change(socket, _sender) do
-    {:ok, _} = Drab.Core.exec_js(socket, "document.getElementById('input3_out').innerHTML = 'input3'")
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('input3_out').innerHTML = 'input3'")
 
     42
   end

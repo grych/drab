@@ -151,7 +151,8 @@ defmodule Drab.Client do
           __assigns: assigns
         )
 
-      broadcast_topic = topic(commander.__drab__().broadcasting, controller, conn.request_path, action)
+      broadcast_topic =
+        topic(commander.__drab__().broadcasting, controller, conn.request_path, action)
 
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
@@ -210,12 +211,15 @@ defmodule Drab.Client do
 
       _ ->
         commander = Drab.Config.default_commander_for(controller)
-        Code.ensure_compiled?(commander) and Enum.member?(commander.module_info(:exports), {:__drab__, 0})
+
+        Code.ensure_compiled?(commander) and
+          Enum.member?(commander.module_info(:exports), {:__drab__, 0})
     end
   end
 
   # defp topic(:all, _, _), do: "all"
-  @spec topic(atom | String.t(), atom | String.t(), atom | String.t(), atom | String.t()) :: String.t()
+  @spec topic(atom | String.t(), atom | String.t(), atom | String.t(), atom | String.t()) ::
+          String.t()
   defp topic(:same_path, _, path, _), do: Drab.Core.same_path(path)
   defp topic(:same_controller, controller, _, _), do: Drab.Core.same_controller(controller)
   defp topic(:same_action, controller, _, action), do: Drab.Core.same_action(controller, action)

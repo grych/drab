@@ -240,8 +240,18 @@ defmodule Drab.Live do
 
   @impl true
   def transform_socket(socket, payload, _state) do
-    socket = Phoenix.Socket.assign(socket, :__sender_drab_commander_id, payload["drab_commander_id"] || "document")
-    Phoenix.Socket.assign(socket, :__sender_drab_commader_amperes, payload["drab_commander_amperes"] || [])
+    socket =
+      Phoenix.Socket.assign(
+        socket,
+        :__sender_drab_commander_id,
+        payload["drab_commander_id"] || "document"
+      )
+
+    Phoenix.Socket.assign(
+      socket,
+      :__sender_drab_commader_amperes,
+      payload["drab_commander_amperes"] || []
+    )
   end
 
   @doc """
@@ -278,7 +288,8 @@ defmodule Drab.Live do
       iex> peek(socket, MyApp.UserView, "users.html", :count)
       42
   """
-  @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) :: term | no_return
+  @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
+          term | no_return
   def peek(socket, view, partial, assign) when is_atom(assign) do
     view = view || Drab.get_view(socket)
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
@@ -290,7 +301,10 @@ defmodule Drab.Live do
         val
 
       :error ->
-        raise_assign_not_found(assign, current_assigns |> Map.keys() |> Enum.map(&String.to_existing_atom/1))
+        raise_assign_not_found(
+          assign,
+          current_assigns |> Map.keys() |> Enum.map(&String.to_existing_atom/1)
+        )
     end
   end
 
@@ -378,15 +392,15 @@ defmodule Drab.Live do
   def broadcast_poke(socket, view, partial, assigns) do
     # if socket.assigns.__broadcast_topic =~ "same_path:" ||
     #    socket.assigns.__broadcast_topic =~ "action:" do
-         do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
-      #  else
-      #   raise ArgumentError,
-      #     message: """
-      #     Broadcasting `poke` makes sense only with `:same_path` or `:same_action` options.
+    do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
+    #  else
+    #   raise ArgumentError,
+    #     message: """
+    #     Broadcasting `poke` makes sense only with `:same_path` or `:same_action` options.
 
-      #     You tried: `#{socket.assigns.__broadcast_topic}`
-      #     """
-      #  end
+    #     You tried: `#{socket.assigns.__broadcast_topic}`
+    #     """
+    #  end
   end
 
   @spec do_poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t(), function) :: result
@@ -433,8 +447,11 @@ defmodule Drab.Live do
     # update only those which are in shared commander
     amperes_to_update =
       case socket.assigns[:__sender_drab_commader_amperes] do
-        [] -> amperes_to_update
-        sender_drab_commader_amperes -> intersection(amperes_to_update, sender_drab_commader_amperes)
+        [] ->
+          amperes_to_update
+
+        sender_drab_commader_amperes ->
+          intersection(amperes_to_update, sender_drab_commader_amperes)
       end
 
     shared_commander_id = drab_commander_id(socket)
@@ -442,7 +459,8 @@ defmodule Drab.Live do
     # construct the javascripts for update of amperes
     update_javascripts =
       for ampere <- amperes_to_update,
-          {gender, tag, prop_or_attr, expr, _, parent_assigns} <- Drab.Live.Cache.get({partial, ampere}) || [],
+          {gender, tag, prop_or_attr, expr, _, parent_assigns} <-
+            Drab.Live.Cache.get({partial, ampere}) || [],
           !is_a_child?(parent_assigns, assigns_to_update_keys) do
         case gender do
           :html ->
@@ -460,7 +478,9 @@ defmodule Drab.Live do
           :attr ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
-            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{encode_js(new_value)})"
+            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
+              encode_js(new_value)
+            })"
 
           :prop ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
@@ -631,7 +651,8 @@ defmodule Drab.Live do
   # defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
 
   @spec safe_to_string(Phoenix.HTML.safe() | [Phoenix.HTML.safe()]) :: String.t()
-  defp safe_to_string(list) when is_list(list), do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
+  defp safe_to_string(list) when is_list(list),
+    do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
 
   defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
   defp safe_to_string(safe), do: to_string(safe)
@@ -641,7 +662,8 @@ defmodule Drab.Live do
     socket.assigns[:__sender_drab_commander_id] || "document"
   end
 
-  @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) :: map | no_return
+  @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) ::
+          map | no_return
   defp assign_data_for_partial(socket, partial, partial_name) do
     assigns =
       case socket

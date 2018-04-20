@@ -73,7 +73,9 @@ defmodule DrabTestApp.ElementTest do
       assert query!(
                socket,
                "button",
-               [:p1, :p2, :p3] == %{"#button1" => %{"p1" => 1, "p2" => [1, 2], "p3" => %{"jeden" => 1}}}
+               [:p1, :p2, :p3] == %{
+                 "#button1" => %{"p1" => 1, "p2" => [1, 2], "p3" => %{"jeden" => 1}}
+               }
              )
     end
 
@@ -91,7 +93,8 @@ defmodule DrabTestApp.ElementTest do
       {:ok, ret} = query_one(socket, "button", :style)
       assert ret["style"]["cssText"] == "background-color: red; width: 200px;"
 
-      assert {:ok, :broadcasted} == broadcast_prop(socket, "a", attributes: %{"href" => "https://tg.pl/drab"})
+      assert {:ok, :broadcasted} ==
+               broadcast_prop(socket, "a", attributes: %{"href" => "https://tg.pl/drab"})
 
       {:ok, ret} = query_one(socket, "a", :attributes)
       assert ret["attributes"]["href"] == "https://tg.pl/drab"
@@ -100,7 +103,8 @@ defmodule DrabTestApp.ElementTest do
     test "set_style" do
       socket = drab_socket()
 
-      assert {:ok, 1} == set_style(socket, "button", %{"backgroundColor" => "red", "width" => "200px"})
+      assert {:ok, 1} ==
+               set_style(socket, "button", %{"backgroundColor" => "red", "width" => "200px"})
 
       {:ok, ret} = query_one(socket, "button", :style)
       assert ret["style"]["cssText"] == "background-color: red; width: 200px;"
@@ -141,9 +145,11 @@ defmodule DrabTestApp.ElementTest do
                :innerText == %{"innerText" => "afterbegin Button beforeend"}
              )
 
-      assert {:ok, :broadcasted} == broadcast_insert(socket, "button", :beforebegin, "<p id='p1'></p>")
+      assert {:ok, :broadcasted} ==
+               broadcast_insert(socket, "button", :beforebegin, "<p id='p1'></p>")
 
-      assert {:ok, :broadcasted} == broadcast_insert(socket, "button", :afterend, "<p id='p2'></p>")
+      assert {:ok, :broadcasted} ==
+               broadcast_insert(socket, "button", :afterend, "<p id='p2'></p>")
 
       assert query_one!(
                socket,

@@ -54,7 +54,8 @@ defmodule DrabTestApp.LiveFormTest do
     end
 
     test "should return proper options map from select", fixture do
-      %{"#select_input" => %{"options" => options}} = query!(fixture.socket, "#select_input", :options)
+      %{"#select_input" => %{"options" => options}} =
+        query!(fixture.socket, "#select_input", :options)
 
       assert options == %{"1" => "One", "2" => "Two", "3" => "Three"}
     end
@@ -62,7 +63,8 @@ defmodule DrabTestApp.LiveFormTest do
     test "options for select should be setable as a plain map", fixture do
       set_prop(fixture.socket, "#select_input", options: %{"One" => "Jeden", "Two" => "Dwa"})
 
-      %{"#select_input" => %{"options" => options}} = query!(fixture.socket, "#select_input", :options)
+      %{"#select_input" => %{"options" => options}} =
+        query!(fixture.socket, "#select_input", :options)
 
       assert options == %{"One" => "Jeden", "Two" => "Dwa"}
     end

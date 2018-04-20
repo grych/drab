@@ -41,20 +41,38 @@ defmodule DrabTestApp.SharedTest do
 
     test "should update all the amperes" do
       assert all_elements?("spaceolder2", &visible_text/1, "assigned in controller")
-      assert all_elements?("spaceholder2", &css_property(&1, "background-color"), "rgba(221, 221, 221, 1)")
+
+      assert all_elements?(
+               "spaceholder2",
+               &css_property(&1, "background-color"),
+               "rgba(221, 221, 221, 1)"
+             )
+
       assert all_elements?("spaceholder2", &css_property(&1, "color"), "rgba(255, 34, 34, 1)")
 
       click_and_wait("global-button")
 
       assert all_elements?("spaceholder2", &visible_text/1, "set globally")
-      assert all_elements?("spaceholder2", &css_property(&1, "background-color"), "rgba(128, 128, 128, 1)")
+
+      assert all_elements?(
+               "spaceholder2",
+               &css_property(&1, "background-color"),
+               "rgba(128, 128, 128, 1)"
+             )
+
       assert all_elements?("spaceholder2", &css_property(&1, "color"), "rgba(255, 255, 255, 1)")
     end
 
     test "peek should return changed value" do
       assert all_elements?({:css, "[drab-click='peek_text']"}, &visible_text/1, "peek :text")
       click_all_peeks()
-      assert all_elements?({:css, "[drab-click='peek_text']"}, &visible_text/1, "assigned in controller")
+
+      assert all_elements?(
+               {:css, "[drab-click='peek_text']"},
+               &visible_text/1,
+               "assigned in controller"
+             )
+
       click_and_wait("global-button")
       click_all_peeks()
       assert all_elements?({:css, "[drab-click='peek_text']"}, &visible_text/1, "set globally")
@@ -80,29 +98,59 @@ defmodule DrabTestApp.SharedTest do
       click_and_wait("shared1-button")
       refute all_elements?("spaceholder2", &visible_text/1, "assigned in controller")
       assert visible_text(find_element(:id, "spaceholder20")) == "assigned in controller"
-      assert css_property(find_element(:id, "spaceholder20"), "background-color") == "rgba(221, 221, 221, 1)"
+
+      assert css_property(find_element(:id, "spaceholder20"), "background-color") ==
+               "rgba(221, 221, 221, 1)"
+
       assert css_property(find_element(:id, "spaceholder20"), "color") == "rgba(255, 34, 34, 1)"
-      assert visible_text(find_element(:id, "spaceholder21")) == "changed in shared commander, one"
-      assert css_property(find_element(:id, "spaceholder21"), "background-color") == "rgba(119, 221, 221, 1)"
+
+      assert visible_text(find_element(:id, "spaceholder21")) ==
+               "changed in shared commander, one"
+
+      assert css_property(find_element(:id, "spaceholder21"), "background-color") ==
+               "rgba(119, 221, 221, 1)"
+
       assert css_property(find_element(:id, "spaceholder21"), "color") == "rgba(153, 0, 0, 1)"
       assert visible_text(find_element(:id, "spaceholder22")) == "assigned in controller"
-      assert css_property(find_element(:id, "spaceholder22"), "background-color") == "rgba(221, 221, 221, 1)"
+
+      assert css_property(find_element(:id, "spaceholder22"), "background-color") ==
+               "rgba(221, 221, 221, 1)"
+
       assert css_property(find_element(:id, "spaceholder22"), "color") == "rgba(255, 34, 34, 1)"
 
       click_and_wait("shared12-button")
       assert visible_text(find_element(:id, "spaceholder20")) == "assigned in controller"
-      assert css_property(find_element(:id, "spaceholder20"), "background-color") == "rgba(221, 221, 221, 1)"
+
+      assert css_property(find_element(:id, "spaceholder20"), "background-color") ==
+               "rgba(221, 221, 221, 1)"
+
       assert css_property(find_element(:id, "spaceholder20"), "color") == "rgba(255, 34, 34, 1)"
-      assert visible_text(find_element(:id, "spaceholder21")) == "changed in shared commander, one"
-      assert css_property(find_element(:id, "spaceholder21"), "background-color") == "rgba(119, 221, 221, 1)"
+
+      assert visible_text(find_element(:id, "spaceholder21")) ==
+               "changed in shared commander, one"
+
+      assert css_property(find_element(:id, "spaceholder21"), "background-color") ==
+               "rgba(119, 221, 221, 1)"
+
       assert css_property(find_element(:id, "spaceholder21"), "color") == "rgba(153, 0, 0, 1)"
-      assert visible_text(find_element(:id, "spaceholder22")) == "changed in shared commander, two"
-      assert css_property(find_element(:id, "spaceholder22"), "background-color") == "rgba(119, 221, 221, 1)"
+
+      assert visible_text(find_element(:id, "spaceholder22")) ==
+               "changed in shared commander, two"
+
+      assert css_property(find_element(:id, "spaceholder22"), "background-color") ==
+               "rgba(119, 221, 221, 1)"
+
       assert css_property(find_element(:id, "spaceholder22"), "color") == "rgba(153, 0, 0, 1)"
 
       click_and_wait("global-button")
       assert all_elements?("spaceholder2", &visible_text/1, "set globally")
-      assert all_elements?("spaceholder2", &css_property(&1, "background-color"), "rgba(128, 128, 128, 1)")
+
+      assert all_elements?(
+               "spaceholder2",
+               &css_property(&1, "background-color"),
+               "rgba(128, 128, 128, 1)"
+             )
+
       assert all_elements?("spaceholder2", &css_property(&1, "color"), "rgba(255, 255, 255, 1)")
     end
 

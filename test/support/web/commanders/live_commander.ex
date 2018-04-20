@@ -81,7 +81,7 @@ defmodule DrabTestApp.LiveCommander do
 
   defhandler update_mini(socket, sender) do
     # IO.inspect sender
-    IO.inspect sender.params
+    IO.inspect(sender.params)
     poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
   end
 

@@ -13,7 +13,6 @@ defmodule DrabTestApp.Broadcast4Test do
     find_element(:id, "page_loaded_indicator")
   end
 
-
   test "different controller, same topic" do
     change_to_secondary_session()
     broadcast4_index() |> navigate_to()

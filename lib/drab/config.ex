@@ -121,7 +121,8 @@ defmodule Drab.Config do
   defp is_endpoint?(module) when is_atom(module) do
     {loaded, _} = Code.ensure_loaded(module)
 
-    loaded == :module && function_exported?(module, :struct_url, 0) && function_exported?(module, :url, 0)
+    loaded == :module && function_exported?(module, :struct_url, 0) &&
+      function_exported?(module, :url, 0)
   end
 
   @doc """
@@ -252,9 +253,11 @@ defmodule Drab.Config do
 
   def get(:socket), do: Application.get_env(:drab, :socket, "/socket")
 
-  def get(:drab_store_storage), do: Application.get_env(:drab, :drab_store_storage, :session_storage)
+  def get(:drab_store_storage),
+    do: Application.get_env(:drab, :drab_store_storage, :session_storage)
 
-  def get(:browser_response_timeout), do: Application.get_env(:drab, :browser_response_timeout, 5000)
+  def get(:browser_response_timeout),
+    do: Application.get_env(:drab, :browser_response_timeout, 5000)
 
   def get(:main_phoenix_app), do: Application.get_env(:drab, :main_phoenix_app, nil)
 

@@ -63,7 +63,8 @@ defmodule DrabTestApp.LiveTest do
       refute peek(fixture.socket, :color) == 42
     end
 
-    test "updating color in main should change style.backgroundColor in main, but not in partials", fixture do
+    test "updating color in main should change style.backgroundColor in main, but not in partials",
+         fixture do
       main_color = find_element(:id, "color_main")
       partial1_color = find_element(:id, "partial1_color")
       partial2_color = find_element(:id, "partial2_color")
@@ -76,7 +77,8 @@ defmodule DrabTestApp.LiveTest do
       assert css_property(partial2_color, "backgroundColor") == "rgba(255, 204, 102, 1)"
     end
 
-    test "updating color in partial should change style.backgroundColor in the partial only", fixture do
+    test "updating color in partial should change style.backgroundColor in the partial only",
+         fixture do
       main_color = find_element(:id, "color_main")
       partial1_color = find_element(:id, "partial1_color")
       partial2_color = find_element(:id, "partial2_color")
@@ -89,7 +91,8 @@ defmodule DrabTestApp.LiveTest do
       assert css_property(partial2_color, "backgroundColor") == "rgba(255, 204, 102, 1)"
     end
 
-    test "updating color in external partial should change style.backgroundColor in the partial only", fixture do
+    test "updating color in external partial should change style.backgroundColor in the partial only",
+         fixture do
       main_color = find_element(:id, "color_main")
       partial1_color = find_element(:id, "partial1_color")
       partial2_color = find_element(:id, "partial2_color")

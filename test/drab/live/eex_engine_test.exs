@@ -41,7 +41,8 @@ defmodule Drab.Live.EExEngineTest do
                             [
                               {{:., [line: 7],
                                 [
-                                  {:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]},
+                                  {:__aliases__, [line: 7, alias: false],
+                                   [:Phoenix, :HTML, :Engine]},
                                   :fetch_assign
                                 ]}, [line: 7],
                                [
@@ -72,16 +73,19 @@ defmodule Drab.Live.EExEngineTest do
                                      ],
                                      {{:., [generated: true],
                                        [
-                                         {:__aliases__, [generated: true, alias: false], [:Plug, :HTML]},
+                                         {:__aliases__, [generated: true, alias: false],
+                                          [:Plug, :HTML]},
                                          :html_escape
-                                       ]}, [generated: true], [{:bin, [generated: true], Drab.Live.EExEngine}]}
+                                       ]}, [generated: true],
+                                      [{:bin, [generated: true], Drab.Live.EExEngine}]}
                                    ]},
                                   {:->, [generated: true],
                                    [
                                      [{:other, [generated: true], Drab.Live.EExEngine}],
                                      {{:., [line: 7],
                                        [
-                                         {:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Safe]},
+                                         {:__aliases__, [line: 7, alias: false],
+                                          [:Phoenix, :HTML, :Safe]},
                                          :to_iodata
                                        ]}, [line: 7], [{:other, [line: 7], Drab.Live.EExEngine}]}
                                    ]}

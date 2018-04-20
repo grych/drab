@@ -13,7 +13,6 @@ defmodule DrabTestApp.Broadcast21Test do
     find_element(:id, "page_loaded_indicator")
   end
 
-
   test "same controller, different url" do
     change_to_secondary_session()
     broadcast2_different_url() |> navigate_to()
@@ -23,9 +22,13 @@ defmodule DrabTestApp.Broadcast21Test do
     broadcast2_index() |> navigate_to()
     wait_for_drab()
     click_and_wait("broadcast2_button")
-    assert visible_text(find_element(:id, "broadcast_out")) == "Broadcasted Text to same controller"
+
+    assert visible_text(find_element(:id, "broadcast_out")) ==
+             "Broadcasted Text to same controller"
 
     change_to_secondary_session()
-    assert visible_text(find_element(:id, "broadcast_out")) == "Broadcasted Text to same controller"
+
+    assert visible_text(find_element(:id, "broadcast_out")) ==
+             "Broadcasted Text to same controller"
   end
 end

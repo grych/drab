@@ -59,13 +59,10 @@ defmodule Drab.Channel do
   end
 
   def handle_in("onload", payload, socket) do
-    # IO.inspect(payload)
     verify_and_cast(:onload, [payload], socket)
   end
 
   def handle_in("onconnect", payload, socket) do
-    # IO.inspect payload
-
     Drab.set_socket(socket.assigns.__drab_pid, socket)
     # for debugging
     if IEx.started?() do
@@ -85,7 +82,8 @@ defmodule Drab.Channel do
       other_examples = %{
         Drab.Element => "socket |> set_style(\"body\", backgroundColor: \"red\")",
         Drab.Query => "socket |> select(:htmls, from: \"h4\")",
-        Drab.Modal => "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
+        Drab.Modal =>
+          "socket |> alert(\"Title\", \"Sure?\", buttons: [ok: \"Azaliż\", cancel: \"Poniechaj\"])",
         Drab.Core => "socket |> exec_js(\"alert('hello from IEx!')\")"
       }
 
@@ -101,7 +99,9 @@ defmodule Drab.Channel do
 
       IO.puts("""
 
-          Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{inspect(commander)}
+          Started Drab for #{socket.assigns.__broadcast_topic}, handling events in #{
+        inspect(commander)
+      }
           You may debug Drab functions in IEx by copy/paste the following:
       import Drab.{#{grouped}}
       socket = Drab.get_socket(pid("#{pid_string}"))

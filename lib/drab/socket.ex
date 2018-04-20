@@ -96,7 +96,10 @@ defmodule Drab.Socket do
   To be used with custom `connect/2` callbacks.
   """
   @spec verify(Phoenix.Socket.t(), map) :: {:ok, term} | :error
-  def verify(socket, %{"__drab_return" => controller_and_action_token, "__client_lib_version" => client_lib_version}) do
+  def verify(socket, %{
+        "__drab_return" => controller_and_action_token,
+        "__client_lib_version" => client_lib_version
+      }) do
     case Drab.Client.api_version() do
       ^client_lib_version ->
         case Phoenix.Token.verify(
@@ -106,7 +109,13 @@ defmodule Drab.Socket do
                max_age: 86_400
              ) do
           {:ok,
-           [__controller: controller, __commander: commander, __view: view, __action: action, __assigns: assigns]} ->
+           [
+             __controller: controller,
+             __commander: commander,
+             __view: view,
+             __action: action,
+             __assigns: assigns
+           ]} ->
             own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
 
             socket_plus_external_assings = %Phoenix.Socket{
@@ -137,7 +146,10 @@ defmodule Drab.Socket do
   end
 
   def verify(socket, %{"__drab_return" => controller_and_action_token}) do
-    verify(socket, %{"__drab_return" => controller_and_action_token, "__client_lib_version" => "0"})
+    verify(socket, %{
+      "__drab_return" => controller_and_action_token,
+      "__client_lib_version" => "0"
+    })
   end
 
   def verify(_, _) do

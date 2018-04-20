@@ -32,7 +32,7 @@ defmodule Drab.Live.Crypto do
   @spec decode64(String.t()) :: term()
   def decode64(string) do
     # string |> Base.url_decode64!() |> :erlang.binary_to_term()
-     decrypt(string)
+    decrypt(string)
   end
 
   @doc false

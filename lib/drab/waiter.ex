@@ -112,7 +112,8 @@ defmodule Drab.Waiter do
   def stop_buffer(buff), do: Agent.stop(buff)
 
   @doc false
-  def put_buffer(buff, key, value), do: Agent.update(buff, fn state -> Map.put(state, key, value) end)
+  def put_buffer(buff, key, value),
+    do: Agent.update(buff, fn state -> Map.put(state, key, value) end)
 
   @doc false
   def get_buffer(buff), do: Agent.get(buff, & &1)

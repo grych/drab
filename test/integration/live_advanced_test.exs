@@ -17,13 +17,17 @@ defmodule DrabTestApp.LiveAdvancedTest do
     test "update the list only should work", fixture do
       poke(fixture.socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
 
-      assert query_one!(fixture.socket, "#users_list", :innerText) == %{"innerText" => "Mirmił Hegemon Kajko"}
+      assert query_one!(fixture.socket, "#users_list", :innerText) == %{
+               "innerText" => "Mirmił Hegemon Kajko"
+             }
     end
 
     test "update both list and child should work", fixture do
       poke(fixture.socket, users: peek(fixture.socket, :users), excluded: "Hegemon")
 
-      assert query_one!(fixture.socket, "#users_list", :innerText) == %{"innerText" => "Mirmił Kokosz"}
+      assert query_one!(fixture.socket, "#users_list", :innerText) == %{
+               "innerText" => "Mirmił Kokosz"
+             }
 
       assert query_one!(fixture.socket, "#excluded", :innerText) == %{"innerText" => "Hegemon"}
     end

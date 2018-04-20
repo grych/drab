@@ -13,7 +13,13 @@ defmodule DrabTestApp.Shared1Commander do
     # IO.inspect(socket)
     # IO.inspect this_commander(sender)
     set_prop(socket, this_commander(sender) <> " .spaceholder1", innerText: "changed")
-    poke(socket, text: "changed in shared commander, " <> arg, bgcolor: "#77dddd", color: "#990000")
+
+    poke(
+      socket,
+      text: "changed in shared commander, " <> arg,
+      bgcolor: "#77dddd",
+      color: "#990000"
+    )
   end
 
   defhandler peek_text(socket, sender, _) do
@@ -29,13 +35,23 @@ defmodule DrabTestApp.Shared1Commander do
   end
 
   def before_handler(socket, sender) do
-    set_prop(socket, this_commander(sender) <> " .shared1_before_handler", innerText: "set in before_handler")
-    poke socket, before1: "poke - before"
+    set_prop(
+      socket,
+      this_commander(sender) <> " .shared1_before_handler",
+      innerText: "set in before_handler"
+    )
+
+    poke(socket, before1: "poke - before")
     true
   end
 
   def after_handler(socket, sender, _retval) do
-    set_prop(socket, this_commander(sender) <> " .shared1_after_handler", innerText: "set in after_handler")
-    poke socket, after1: "poke - after"
+    set_prop(
+      socket,
+      this_commander(sender) <> " .shared1_after_handler",
+      innerText: "set in after_handler"
+    )
+
+    poke(socket, after1: "poke - after")
   end
 end

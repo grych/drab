@@ -12,7 +12,9 @@ defmodule Drab.Controller do
 
   defmacro __using__(options) do
     if options == [] do
-      Deppie.warn("`use Drab.Controller` without options is not needed anymore (#{__CALLER__.module})")
+      Deppie.warn(
+        "`use Drab.Controller` without options is not needed anymore (#{__CALLER__.module})"
+      )
     end
 
     quote bind_quoted: [options: options] do
@@ -23,7 +25,12 @@ defmodule Drab.Controller do
           commander = Drab.Config.default_commander_for(__MODULE__)
           view = Drab.Config.default_view_for(commander)
 
-          Enum.into(@__drab_opts__, %{commanders: [], commander: commander, view: view, controller: __MODULE__})
+          Enum.into(@__drab_opts__, %{
+            commanders: [],
+            commander: commander,
+            view: view,
+            controller: __MODULE__
+          })
         end
       end
     end

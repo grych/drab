@@ -8,7 +8,8 @@ defmodule DrabModule do
   @callback prerequisites() :: list
   @callback js_templates() :: list
   @callback transform_payload(payload :: map, state :: Drab.t()) :: map
-  @callback transform_socket(socket :: Phoenix.Socket.t(), payload :: map, state :: Drab.t()) :: map
+  @callback transform_socket(socket :: Phoenix.Socket.t(), payload :: map, state :: Drab.t()) ::
+              map
 
   defmacro __using__(_opts) do
     quote do

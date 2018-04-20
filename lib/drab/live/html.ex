@@ -155,7 +155,8 @@ defmodule Drab.Live.HTML do
   def tokenized_to_html(text) when is_binary(text), do: text
   def tokenized_to_html(atom) when is_atom(atom), do: atom
 
-  def tokenized_to_html({atom, list}) when is_atom(atom) and is_list(list), do: {atom, tokenized_to_html(list)}
+  def tokenized_to_html({atom, list}) when is_atom(atom) and is_list(list),
+    do: {atom, tokenized_to_html(list)}
 
   def tokenized_to_html([list]) when is_list(list), do: [tokenized_to_html(list)]
 
@@ -251,7 +252,8 @@ defmodule Drab.Live.HTML do
     iex> inject_attribute_to_last_opened "<img attr=2 src", "attr=1"
     {:already_there, "<img attr=2 src", "attr=2"}
   """
-  @spec inject_attribute_to_last_opened(String.t() | list | Macro.t(), String.t()) :: String.t() | list | Macro.t()
+  @spec inject_attribute_to_last_opened(String.t() | list | Macro.t(), String.t()) ::
+          String.t() | list | Macro.t()
   def inject_attribute_to_last_opened(buffer, attribute) when is_tuple(buffer) do
     # in case when there is no text between expressions
     {result, [acc], attribute} = inject_attribute_to_last_opened([buffer], attribute)
@@ -294,7 +296,8 @@ defmodule Drab.Live.HTML do
         if Enum.find(opened, fn x -> tag_name(tag) == x end) do
           do_inject(tail, attribute, opened -- [tag_name(tag)], found, acc ++ [head])
         else
-          if found != :not_found || (tag_type != :naked && Enum.member?(@non_closing_tags, tag_name(tag))) do
+          if found != :not_found ||
+               (tag_type != :naked && Enum.member?(@non_closing_tags, tag_name(tag))) do
             do_inject(tail, attribute, opened, found, acc ++ [head])
           else
             {result, injected} =
@@ -311,7 +314,8 @@ defmodule Drab.Live.HTML do
         # IO.puts "BUFFER"
         {op, fd, ac} = do_inject(buffer, attribute, opened, found, [])
         # IO.inspect ac
-        modified_buffer = {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | ac]} | rest]}
+        modified_buffer =
+          {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | ac]} | rest]}
 
         do_inject(tail, attribute, op, fd, acc ++ [modified_buffer])
 
@@ -388,12 +392,16 @@ defmodule Drab.Live.HTML do
   defp do_to_flat_html([]), do: []
   defp do_to_flat_html(body) when is_binary(body), do: [body]
   # tmp1 is in generating output expression <%= %>
-  defp do_to_flat_html({:__block__, [], [{:=, [], [{:tmp1, [], Drab.Live.EExEngine} | buffer]} | rest]}) do
+  defp do_to_flat_html(
+         {:__block__, [], [{:=, [], [{:tmp1, [], Drab.Live.EExEngine} | buffer]} | rest]}
+       ) do
     do_to_flat_html(buffer) ++ do_to_flat_html(rest)
   end
 
   # while tmp2 inidcates the expression inside <% %>
-  defp do_to_flat_html({:__block__, [], [{:=, [], [{:tmp2, [], Drab.Live.EExEngine} | buffer]} | _]}) do
+  defp do_to_flat_html(
+         {:__block__, [], [{:=, [], [{:tmp2, [], Drab.Live.EExEngine} | buffer]} | _]}
+       ) do
     do_to_flat_html(buffer)
   end
 
@@ -634,7 +642,8 @@ defmodule Drab.Live.HTML do
     |> Enum.reverse()
     |> Enum.map(fn
       {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | buffer]} | rest]} ->
-        {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | deep_reverse(buffer)]} | deep_reverse(rest)]}
+        {:__block__, [],
+         [{:=, [], [{tmp, [], Drab.Live.EExEngine} | deep_reverse(buffer)]} | deep_reverse(rest)]}
 
       x when is_list(x) ->
         deep_reverse(x)

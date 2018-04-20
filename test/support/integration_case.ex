@@ -34,7 +34,8 @@ defmodule DrabTestApp.IntegrationCase do
   # end
 
   def change_to_secondary_session(session_name \\ "secondary") do
-    change_session_to(session_name,
+    change_session_to(
+      session_name,
       driver: %{
         chromeOptions: %{
           "args" => [

@@ -260,7 +260,8 @@ defmodule Drab.Live.EExEngine do
   end
 
   @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/Us
-  @spec compiled_from_pattern(atom, String.t(), String.t(), String.t()) :: Macro.t() | [Macro.t()] | no_return
+  @spec compiled_from_pattern(atom, String.t(), String.t(), String.t()) ::
+          Macro.t() | [Macro.t()] | no_return
   defp compiled_from_pattern(:prop, pattern, tag, property) do
     case compiled_from_pattern(:other, pattern, tag, property) do
       [expr | []] when is_tuple(expr) ->
@@ -608,7 +609,8 @@ defmodule Drab.Live.EExEngine do
   # defp to_safe(literal), do: to_safe(literal, @anno)
 
   @spec to_safe(Macro.t(), integer | nil) :: iodata
-  defp to_safe(literal, _line) when is_binary(literal) or is_atom(literal) or is_number(literal) do
+  defp to_safe(literal, _line)
+       when is_binary(literal) or is_atom(literal) or is_number(literal) do
     Phoenix.HTML.Safe.to_iodata(literal)
   end
 
@@ -705,7 +707,9 @@ defmodule Drab.Live.EExEngine do
   end
 
   @spec find_assign(Macro.t()) :: atom | false
-  defp find_assign({{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]})
+  defp find_assign(
+         {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]}
+       )
        when is_atom(name),
        do: name
 

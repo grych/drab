@@ -26,14 +26,16 @@ defmodule DrabTestApp.CoreTest do
     test "multiple events on object", fixture do
       standard_click_and_get_test("core4")
 
-      assert Drab.Core.exec_js(fixture.socket, "document.getElementById('core5_out').innerHTML") == {:ok, "core5"}
+      assert Drab.Core.exec_js(fixture.socket, "document.getElementById('core5_out').innerHTML") ==
+               {:ok, "core5"}
     end
 
     @tag capture_log: true
     test "multiple events on object defined with shorthand form", fixture do
       standard_click_and_get_test("core6")
 
-      assert Drab.Core.exec_js(fixture.socket, "document.getElementById('core7_out').innerHTML") == {:ok, "core7"}
+      assert Drab.Core.exec_js(fixture.socket, "document.getElementById('core7_out').innerHTML") ==
+               {:ok, "core7"}
     end
 
     @tag capture_log: true

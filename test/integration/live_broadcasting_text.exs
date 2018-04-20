@@ -25,7 +25,5 @@ defmodule DrabTestApp.LiveBroadcastingTest do
 
     change_to_secondary_session()
     assert visible_text(find_element(:id, "broadcast_out")) == "broadcasted"
-
   end
-
 end

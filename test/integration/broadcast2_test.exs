@@ -21,9 +21,13 @@ defmodule DrabTestApp.Broadcast2Test do
 
     change_to_default_session()
     click_and_wait("broadcast2_button")
-    assert visible_text(find_element(:id, "broadcast_out")) == "Broadcasted Text to same controller"
+
+    assert visible_text(find_element(:id, "broadcast_out")) ==
+             "Broadcasted Text to same controller"
 
     change_to_secondary_session()
-    assert visible_text(find_element(:id, "broadcast_out")) == "Broadcasted Text to same controller"
+
+    assert visible_text(find_element(:id, "broadcast_out")) ==
+             "Broadcasted Text to same controller"
   end
 end

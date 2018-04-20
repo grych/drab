@@ -24,7 +24,8 @@ defmodule Drab.Live.HtmlTest do
          "{{{{@drab-expr-hash:gi3tgmjvgy2tonjx}}}}",
          {:case, [generated: true],
           [
-            {{:., [line: 7], [{:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]}, :fetch_assign]},
+            {{:., [line: 7],
+              [{:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]}, :fetch_assign]},
              [line: 7],
              [
                {:var!, [line: 7, context: Drab.Live.EExEngine, import: Kernel],
@@ -44,7 +45,8 @@ defmodule Drab.Live.HtmlTest do
                      {:when, [generated: true],
                       [
                         {:bin, [generated: true], Drab.Live.EExEngine},
-                        {:is_binary, [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+                        {:is_binary,
+                         [generated: true, context: Drab.Live.EExEngine, import: Kernel],
                          [{:bin, [generated: true], Drab.Live.EExEngine}]}
                       ]}
                    ],
@@ -89,7 +91,8 @@ defmodule Drab.Live.HtmlTest do
          "{{{{@drab-expr-hash:gi3tgmjvgy2tonjx}}}}",
          {:case, [generated: true],
           [
-            {{:., [line: 7], [{:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]}, :fetch_assign]},
+            {{:., [line: 7],
+              [{:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]}, :fetch_assign]},
              [line: 7],
              [
                {:var!, [line: 7, context: Drab.Live.EExEngine, import: Kernel],
@@ -109,7 +112,8 @@ defmodule Drab.Live.HtmlTest do
                      {:when, [generated: true],
                       [
                         {:bin, [generated: true], Drab.Live.EExEngine},
-                        {:is_binary, [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+                        {:is_binary,
+                         [generated: true, context: Drab.Live.EExEngine, import: Kernel],
                          [{:bin, [generated: true], Drab.Live.EExEngine}]}
                       ]}
                    ],
@@ -148,7 +152,8 @@ defmodule Drab.Live.HtmlTest do
   test "tokenize and detokenize simple buffer" do
     assert tokenized_to_html(tokenize(@simple_buffer)) == @simple_buffer
 
-    assert tokenized_to_html(tokenize(@simple_buffer_with_attribute)) == @simple_buffer_with_attribute
+    assert tokenized_to_html(tokenize(@simple_buffer_with_attribute)) ==
+             @simple_buffer_with_attribute
   end
 
   test "inject attribute to simple buffer" do
@@ -231,7 +236,8 @@ defmodule Drab.Live.HtmlTest do
                             [
                               {{:., [line: 8],
                                 [
-                                  {:__aliases__, [line: 8, alias: false], [:Phoenix, :HTML, :Engine]},
+                                  {:__aliases__, [line: 8, alias: false],
+                                   [:Phoenix, :HTML, :Engine]},
                                   :fetch_assign
                                 ]}, [line: 8],
                                [
@@ -262,16 +268,19 @@ defmodule Drab.Live.HtmlTest do
                                      ],
                                      {{:., [generated: true],
                                        [
-                                         {:__aliases__, [generated: true, alias: false], [:Plug, :HTML]},
+                                         {:__aliases__, [generated: true, alias: false],
+                                          [:Plug, :HTML]},
                                          :html_escape
-                                       ]}, [generated: true], [{:bin, [generated: true], Drab.Live.EExEngine}]}
+                                       ]}, [generated: true],
+                                      [{:bin, [generated: true], Drab.Live.EExEngine}]}
                                    ]},
                                   {:->, [generated: true],
                                    [
                                      [{:other, [generated: true], Drab.Live.EExEngine}],
                                      {{:., [line: 8],
                                        [
-                                         {:__aliases__, [line: 8, alias: false], [:Phoenix, :HTML, :Safe]},
+                                         {:__aliases__, [line: 8, alias: false],
+                                          [:Phoenix, :HTML, :Safe]},
                                          :to_iodata
                                        ]}, [line: 8], [{:other, [line: 8], Drab.Live.EExEngine}]}
                                    ]}
@@ -298,7 +307,8 @@ defmodule Drab.Live.HtmlTest do
                      {:when, [generated: true],
                       [
                         {:bin, [generated: true], Drab.Live.EExEngine},
-                        {:is_binary, [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+                        {:is_binary,
+                         [generated: true, context: Drab.Live.EExEngine, import: Kernel],
                          [{:bin, [generated: true], Drab.Live.EExEngine}]}
                       ]}
                    ],
@@ -371,7 +381,8 @@ defmodule Drab.Live.HtmlTest do
          "{{{{@drab-expr-hash:gu3tgmzrgq4deoa}}}}",
          {:case, [generated: true],
           [
-            {{:., [line: 7], [{:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]}, :fetch_assign]},
+            {{:., [line: 7],
+              [{:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]}, :fetch_assign]},
              [line: 7],
              [
                {:var!, [line: 7, context: Drab.Live.EExEngine, import: Kernel],
@@ -391,7 +402,8 @@ defmodule Drab.Live.HtmlTest do
                      {:when, [generated: true],
                       [
                         {:bin, [generated: true], Drab.Live.EExEngine},
-                        {:is_binary, [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+                        {:is_binary,
+                         [generated: true, context: Drab.Live.EExEngine, import: Kernel],
                          [{:bin, [generated: true], Drab.Live.EExEngine}]}
                       ]}
                    ],
@@ -456,7 +468,8 @@ defmodule Drab.Live.HtmlTest do
                      {:when, [generated: true],
                       [
                         {:bin, [generated: true], Drab.Live.EExEngine},
-                        {:is_binary, [generated: true, context: Drab.Live.EExEngine, import: Kernel],
+                        {:is_binary,
+                         [generated: true, context: Drab.Live.EExEngine, import: Kernel],
                          [{:bin, [generated: true], Drab.Live.EExEngine}]}
                       ]}
                    ],

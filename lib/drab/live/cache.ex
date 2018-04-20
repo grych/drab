@@ -9,6 +9,7 @@ defmodule Drab.Live.Cache do
   @cache_file "drab.live.cache"
 
   require Logger
+
   # This module is the DETS cache for Drab Live expressions, amperes, partials, and shadow buffers.
   # DETS table is created and filled up during the compile-time.
 
