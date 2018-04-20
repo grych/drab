@@ -1,15 +1,15 @@
 defmodule Drab.Socket do
   @moduledoc """
-  Drab operates on websockets. To enable it, you need to tell your application's socket module to use Drab.
-  For this, you will need to modify the socket module (by default it is `UserSocket` in `web/channels/user_socket.ex`).
+  Drab operates on websockets. To enable it, you need to tell your application's socket module to
+  use Drab. For this, you will need to modify the socket module (by default it is `UserSocket` in `web/channels/user_socket.ex`).
 
-  There are two ways to archive this: let the Drab do the stuff, or provide your own `connect/2` callback. First
-  method is good for the application without socket level authentication. Second one is more elaborate, but
-  you could provide check or socket modification while connect.
+  There are two ways to archive this: let the Drab do the stuff, or provide your own `connect/2`
+  callback. First method is good for the application without socket level authentication. Second
+  one is more elaborate, but you could provide check or socket modification while connect.
 
   ## Method 1: Inject the code with `use Drab.Socket`
-  The straightforward one, you only need to inject the `Drab.Socket` module into your Socket (by default it is
-  `UserSocket` in `web/channels/user_socket.ex`):
+  The straightforward one, you only need to inject the `Drab.Socket` module into your Socket
+  (by default it is `UserSocket` in `web/channels/user_socket.ex`):
 
       defmodule MyApp.UserSocket do
         use Phoenix.Socket
@@ -19,16 +19,17 @@ defmodule Drab.Socket do
 
   This creates a channel "__drab:*" used by all Drab operations.
 
-  You may create your own channels inside a Drab Socket, but you *can't provide your own `connect` callback*.
-  Drab Client (on JS side) always connects when the page loads and Drab's built-in `connect` callback intercepts
-  this call. If you want to pass the parameters to the Channel, you may do it in `Drab.Client.run/2`, they
-  will appear in Socket's assigns. Please visit `Drab.Client` to learn more.
+  You may create your own channels inside a Drab Socket, but you *can't provide your own `connect`
+  callback*. Drab Client (on JS side) always connects when the page loads and Drab's built-in
+  `connect` callback intercepts this call. If you want to pass the parameters to the Channel, you
+  may do it in `Drab.Client.run/2`, they will appear in Socket's assigns. Please visit
+  `Drab.Client` to learn more.
 
   This method is supposed to be used with `Drab.Client.run/2` JS code generator.
 
   ## Method 2: Use your own `connect/2` callback
-  In this case, you **must not** add `use Drab.Socket` into your `UserSocket`. Instead, use the following code
-  snippet:
+  In this case, you **must not** add `use Drab.Socket` into your `UserSocket`. Instead, use
+  the following code snippet:
 
       defmodule MyApp.UserSocket do
         use Phoenix.Socket
@@ -40,13 +41,15 @@ defmodule Drab.Socket do
         end
       end
 
-  `Drab.Socket.verify/2` returns tuple `{:ok, socket}` or `:error`, where `socket` is modified with Drab internal
-  assigns, as well as with the additional assigns you may pass to `Drab.Client.generate/2`.
+  `Drab.Socket.verify/2` returns tuple `{:ok, socket}` or `:error`, where `socket` is modified
+  with Drab internal assigns, as well as with the additional assigns you may pass to
+  `Drab.Client.generate/2`.
 
-  This method is supposed to be used with `Drab.Client.generate/2` JS code generator, followed by the
-  javascript `Drab.connect({token: ...})`, or with `Drab.Client.run/2` with additional assigns.
+  This method is supposed to be used with `Drab.Client.generate/2` JS code generator, followed by
+  the javascript `Drab.connect({token: ...})`, or with `Drab.Client.run/2` with additional assigns.
 
-  The following example adds `"auth_token" => "forty-two"` key-value pair to `params` in the `connect/2` callback:
+  The following example adds `"auth_token" => "forty-two"` key-value pair to `params` in the
+  `connect/2` callback:
 
       ### app.html.eex
       <%= Drab.Client.generate(@conn) %>
@@ -90,7 +93,7 @@ defmodule Drab.Socket do
 
   Returns:
   * `{:ok, socket}` on success, where the socket is modified with internal Drab assigns, as well as
-  with additinal user's assigns passed by `Drab.Client.generate/2` or `Drab.Client.run/2`
+     with additinal user's assigns passed by `Drab.Client.generate/2` or `Drab.Client.run/2`
   * `:error`, when token is invalid
 
   To be used with custom `connect/2` callbacks.

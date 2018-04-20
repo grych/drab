@@ -11,7 +11,6 @@ defmodule Drab.Channel do
     {:ok, pid} = Drab.start_link(socket)
 
     socket_with_pid = assign(socket_with_topic, :__drab_pid, pid)
-    # socket_without_priv = update_in(socket_with_pid.assigns, &Map.drop(&1, [:__priv]))
 
     {:ok, socket_with_pid}
   end
@@ -34,7 +33,6 @@ defmodule Drab.Channel do
   end
 
   def handle_in("modal", %{"ok" => [sender_encrypted, reply]}, socket) do
-    # sends { "button_name", %{"Param" => "value"}}
     {sender, ref} = sender(socket, sender_encrypted)
 
     send(sender, {

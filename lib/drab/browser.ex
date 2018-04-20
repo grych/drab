@@ -94,7 +94,8 @@ defmodule Drab.Browser do
   end
 
   @doc """
-  Returns utc offset (the difference between local browser time and UTC time), in seconds. Raises exception on error.
+  Returns utc offset (the difference between local browser time and UTC time), in seconds.
+  Raises exception on error.
 
   Examples:
 
@@ -127,7 +128,7 @@ defmodule Drab.Browser do
   Examples:
 
       iex> Drab.Browser.user_agent(socket)
-      {:ok, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) ..."}
+      {:ok, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 ..."}
   """
   @spec user_agent(Phoenix.Socket.t()) :: Drab.Core.result()
   def user_agent(socket) do
@@ -192,7 +193,7 @@ defmodule Drab.Browser do
   @spec redirect_to!(Phoenix.Socket.t(), String.t()) :: any
   def redirect_to!(socket, url) do
     Deppie.warn("""
-    Drab.Live.redirect_to! (broadcasting version of redirect_to/1) has been renamed to broadcast_redirect_to!/1
+    Drab.Live.redirect_to! has been renamed to broadcast_redirect_to!/1
     """)
 
     broadcast_redirect_to(socket, url)
@@ -201,8 +202,8 @@ defmodule Drab.Browser do
   @doc """
   Redirects to the given url.
 
-  WARNING: redirection will disconnect the current websocket, so it should be the last function launched in the
-  handler.
+  WARNING: redirection will disconnect the current websocket, so it should be the last function
+  launched in the handler.
   """
   @spec redirect_to(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
   def redirect_to(socket, url) do
@@ -212,8 +213,8 @@ defmodule Drab.Browser do
   @doc """
   Broadcast version of `redirect_to/2`.
 
-  WARNING: redirection will disconnect the current websocket, so it should be the last function launched in the
-  handler.
+  WARNING: redirection will disconnect the current websocket, so it should be the last function
+  launched in the handler.
   """
   @spec broadcast_redirect_to(Phoenix.Socket.t(), String.t()) :: any
   def broadcast_redirect_to(socket, url) do
@@ -250,15 +251,16 @@ defmodule Drab.Browser do
   @doc """
   Replaces the URL in the browser navigation bar for the given URL.
 
-  The new URL can be absolute or relative to the current path. It must have the same origin as the current one.
+  The new URL can be absolute or relative to the current path. It must have the same origin as
+  the current one.
 
       iex> Drab.Browser.set_url socket, "/servers/1"
       {:ok, nil}
 
       iex> Drab.Browser.set_url socket, "http://google.com/"
       {:error,
-       "Failed to execute 'pushState' on 'History': A history state object with URL 'http://google.com/'
-        cannot be created in a document with origin 'http://localhost:4000' and URL 'http://localhost:4000/'."}
+       "Failed to execute 'pushState' on 'History': A history state object ...'
+        cannot be created in a document with origin 'http://localhost:4000' ..."}
 
   """
   @spec set_url(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()

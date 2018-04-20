@@ -2,12 +2,13 @@ defmodule Drab.Core do
   @moduledoc ~S"""
   Drab module providing the base of communication between the browser and the server.
 
-  `Drab.Core` defines the method to declare client-side events, which are handled server-side in the commander
-  module. Also provides basic function for running JS code directly from Phoenix on the browser.
+  `Drab.Core` defines the method to declare client-side events, which are handled server-side in
+  the commander module. Also provides basic function for running JS code directly from Phoenix
+  on the browser.
 
   ## Commander
-  Commander is the module to keep your Drab functions (event handlers) in. See `Drab.Commander` for more info,
-  and just for this part of docs let's assume you have the following one defined:
+  Commander is the module to keep your Drab functions (event handlers) in. See `Drab.Commander`
+  for more info, and just for this part of docs let's assume you have the following one defined:
 
       defmodule DrabExample.PageCommander do
         use Drab.Commander, modules: []
@@ -23,9 +24,12 @@ defmodule Drab.Core do
       <button drab='event_name#options:event_handler_function_name(argument)'>clickme</button>
 
   * `event_name` is the DOM event name, eg. "click", "blur"
-  * `event_handler_function_name` - the name of the event handler function in the commander on the server side
-  * `options` - optional, so far the only available option is "debounce(milliseconds)" for "keyup" event
-  * `argument` - optional, additional argument to be passed to the event handler function as a third argument
+  * `event_handler_function_name` - the name of the event handler function in the commander on
+     the server side
+  * `options` - optional, so far the only available option is "debounce(milliseconds)" for
+     "keyup" event
+  * `argument` - optional, additional argument to be passed to the event handler function as
+     a third argument
 
   Example:
 
@@ -35,25 +39,28 @@ defmodule Drab.Core do
 
       <button drab='click:button_clicked(42)'>clickme</button>
 
-  Clicking the button above launches `DrabExample.PageCommander.button_clicked/3` on the server side, with third
-  argument of value 42. This is evaluated on the client side, so it could be any valid JS expression:
+  Clicking the button above launches `DrabExample.PageCommander.button_clicked/3` on the server
+  side, with third argument of value 42. This is evaluated on the client side, so it could be
+  any valid JS  expression:
 
       <button drab='click:button_clicked({the_answer: 42})'>
       <button drab='click:button_clicked(window.location)'>
 
-  You may have multiple events defined for a DOM object, but the specific event may appear there only once
-  (can't define two handlers for one event). Separate `event:handler` pairs with whitespaces:
+  You may have multiple events defined for a DOM object, but the specific event may appear there
+  only once (can't define two handlers for one event). Separate `event:handler` pairs with
+  whitespaces:
 
       <button drab='click:button_clicked mouseover:prepare_button'>clickme</button>
 
   ### Shortcut form
-  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`. For those events
-  an attribute `drab-EVENTNAME` must be set. The following is an equivalent for the previous one:
+  There are few shortcuts for the most popular events: `click`, `keyup`, `keydown`, `change`.
+  For those events an attribute `drab-EVENTNAME` must be set. The following is an equivalent
+  for the previous one:
 
       <button drab-click='button_clicked'>clickme</button>
 
-  As above, there is a possibility to define multiple event handlers for one DOM object, but the only one
-  handler for the event. The following form is valid:
+  As above, there is a possibility to define multiple event handlers for one DOM object, but
+  the only one handler for the event. The following form is valid:
 
       <button drab-click='button_clicked' drab-mouseover='prepare_button(42)'>clickme</button>
 
@@ -61,8 +68,8 @@ defmodule Drab.Core do
 
       <button drab-click='handler1' drab-click='handler2'>INCORRECT</button>
 
-  In this case you may provide options with `drab-options` attribute, but only when you have the only one
-  event defined.
+  In this case you may provide options with `drab-options` attribute, but only when you have
+  the only one event defined.
 
   There is a possibility to configure the shortcut list:
 
@@ -71,12 +78,13 @@ defmodule Drab.Core do
   Please keep this list short, as it affects client script performance.
 
   ### Long form [depreciated]
-  You may also configure drab handler with `drab-event` and `drab-handler` combination, but please don't.
-  This is coming from the ancient version of the software and will be removed in the stable release.
+  You may also configure drab handler with `drab-event` and `drab-handler` combination, but
+  please don't. This is coming from the ancient version of the software and will be removed
+  in the stable release.
 
   #### Defining optional argument in multiple nodes with `drab-argument` attribute
-  If you add `drab-argument` attribute to any tag, all children of this tag will use this as an optional
-  attribute. Notice that the existing arguments are not overwritten, so this:
+  If you add `drab-argument` attribute to any tag, all children of this tag will use this as
+  an optional attribute. Notice that the existing arguments are not overwritten, so this:
 
       <div drab-argument='42'>
         <button drab-click='button_clicked'>
@@ -89,44 +97,51 @@ defmodule Drab.Core do
       <button drab-click='button_clicked(43)'>
 
   ### Handling event in any commander (Shared Commander)
-  By default Drab runs the event handler in the commander module corresponding to the controller, which rendered
-  the current page. But it is possible to choose the module by simply provide the full path to the commander:
+  By default Drab runs the event handler in the commander module corresponding to the controller,
+  which rendered the current page. But it is possible to choose the module by simply provide
+  the full path to the commander:
 
       <button drab-click='MyAppWeb.MyCommander.button_clicked'>clickme</button>
 
-  Notice that the module must be a commander module, ie. it must be marked with `use Drab.Commander`, and the function
-  must be marked as public with `Drab.Commander.public/1` macro.
+  Notice that the module must be a commander module, ie. it must be marked with
+  `use Drab.Commander`, and the function must be marked as public with `Drab.Commander.public/1`
+  macro.
 
   ### Form values
 
-  If the sender object is inside a `<form>` tag, it sends the "form" map, which contains values of all the inputs
-  found withing the form. Keys of that map are "name" attribute of the input or, if not found, an "id"
-  attribute. If neither "name" or "id" is given, the value of the form is not included.
+  If the sender object is inside a `<form>` tag, it sends the "form" map, which contains values
+  of all the inputs found withing the form. Keys of that map are "name" attribute of the input or,
+  if not found, an "id" attribute. If neither "name" or "id" is given, the value of the form is
+  not included.
 
   ## Running Elixir code from the Browser
 
   There is the Javascript method
-  [`Drab.exec_elixir()`](Drab.Client.html#module-drab-exec_elixir-elixir_function_name-argument) in the global
-  `Drab` object, which allows you to run the Elixir function defined in the Commander.
+  [`Drab.exec_elixir()`](Drab.Client.html#module-drab-exec_elixir-elixir_function_name-argument)
+  in the global `Drab` object, which allows you to run the Elixir function defined in the Commander.
 
   ## Store
 
-  Analogically to Plug, Drab can store the values in its own session. To avoid confusion with the Plug Session session,
-  it is called a Store. You can use functions: `put_store/3` and `get_store/2` to read and write the values
-  in the Store. It works exactly the same way as a "normal", Phoenix session.
+  Analogically to Plug, Drab can store the values in its own session. To avoid confusion with
+  the Plug Session session, it is called a Store. You can use functions: `put_store/3` and
+  `get_store/2` to read and write the values in the Store. It works exactly the same way as
+  a "normal", Phoenix session.
 
-  * By default, Drab Store is kept in browser Local Storage. This means it is gone when you close the browser
-    or the tab. You may set up where to keep the data with `drab_store_storage` config entry, see Drab.Config
+  * By default, Drab Store is kept in browser Local Storage. This means it is gone when you close
+    the browser or the tab. You may set up where to keep the data with `drab_store_storage`
+    config entry, see Drab.Config
   * Drab Store is not the Plug Session! This is a different entity. Anyway, you have an access
     to the Plug Session (details below).
-  * Drab Store is stored on the client side and it is signed, but - as the Plug Session cookie - not ciphered.
+  * Drab Store is stored on the client side and it is signed, but - as the Plug Session cookie -
+    not ciphered.
 
   ## Session
 
   Although Drab Store is a different entity than Plug Session (used in Controllers), there is a way
-  to access the Session. First, you need to whitelist the keys you want to access in `access_session/1` macro
-  in the Commander (you may give it a list of atoms or a single atom). Whitelisting is due to security:
-  it is kept in Token, on the client side, and it is signed but not encrypted.
+  to access the Session. First, you need to whitelist the keys you want to access in
+  `access_session/1` macro in the Commander (you may give it a list of atoms or a single atom).
+  Whitelisting is due to security: it is kept in Token, on the client side, and it is signed
+  but not encrypted.
 
       defmodule DrabPoc.PageCommander do
         use Drab.Commander
@@ -144,16 +159,16 @@ defmodule Drab.Core do
 
   ## Broadcasting
   Normally Drab operates on the user interface of the browser which generared the event, but
-  you may use it for broadcasting changes to all connected browsers. Drab uses a *subject* for distinguishing
-  browsers, which are allowed to receive the change.
+  you may use it for broadcasting changes to all connected browsers. Drab uses a *subject*
+  for distinguishing browsers, which are allowed to receive the change.
 
-  Broadcasting function receives `socket` or `subject` as the first argument. If `socket` is used, function
-  derives the `subject` from the commander configuration. See `Drab.Commander.broadcasting/1` to learn how to
-  configure the broadcasting options.
+  Broadcasting function receives `socket` or `subject` as the first argument. If `socket` is used,
+  function derives the `subject` from the commander configuration. See
+  `Drab.Commander.broadcasting/1` to learn how to configure the broadcasting options.
 
-  Broadcasting functions may be launched without the `socket` given. In this case, you need to define it manually,
-  using helper functions: `Drab.Core.same_path/1`, `Drab.Core.same_topic/1` and `Drab.Core.same_controller/1`.
-  See `broadcast_js/3` for more.
+  Broadcasting functions may be launched without the `socket` given. In this case, you need
+  to define it manually, using helper functions: `Drab.Core.same_path/1`, `Drab.Core.same_topic/1`
+  and `Drab.Core.same_controller/1`. See `broadcast_js/3` for more.
 
   List of broadcasting functions:
     * `Drab.Core`:
@@ -207,8 +222,8 @@ defmodule Drab.Core do
   @doc """
   Synchronously executes the given javascript on the client side.
 
-  Returns tuple `{status, return_value}`, where status could be `:ok`, `:error` or `:timeout`, and return value
-  contains the output computed by the Javascript or the error message.
+  Returns tuple `{status, return_value}`, where status could be `:ok`, `:error` or `:timeout`,
+  and return value contains the output computed by the Javascript or the error message.
 
   ### Options
 
@@ -293,7 +308,8 @@ defmodule Drab.Core do
       {:ok, :broadcasted}
       iex> Drab.Core.broadcast_js(same_topic("my_topic"), "alert('Broadcasted!')")
       {:ok, :broadcasted}
-      iex> Drab.Core.broadcast_js([same_topic("my_topic"), same_path("/drab/live")], "alert('Broadcasted!')")
+      iex> Drab.Core.broadcast_js([same_topic("my_topic"), same_path("/drab/live")],
+      "alert('Broadcasted!')")
       {:ok, :broadcasted}
 
   Returns `{:ok, :broadcasted}`
@@ -419,7 +435,8 @@ defmodule Drab.Core do
 
       counter = get_session(socket, :userid)
 
-  You must explicit which session keys you want to access in `:access_session` option in `use Drab.Commander`.
+  You must explicit which session keys you want to access in `:access_session` option in
+  `use Drab.Commander`.
   """
   @spec get_session(Phoenix.Socket.t(), atom) :: term
   def get_session(socket, key) do
@@ -428,11 +445,13 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Returns the value of the Plug Session represented by the given key or `default` when key not found
+  Returns the value of the Plug Session represented by the given key or `default`,
+   when key not found.
 
       counter = get_session(socket, :userid, 0)
 
-  You must explicit which session keys you want to access in `:access_session` option in `use Drab.Commander`.
+  You must explicit which session keys you want to access in `:access_session` option in
+  `use Drab.Commander`.
   """
   @spec get_session(Phoenix.Socket.t(), atom, term) :: term
   def get_session(socket, key, default) do
@@ -520,7 +539,8 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Returns the unique selector of the DOM object, which represents the shared commander of the event triggerer.
+  Returns the unique selector of the DOM object, which represents the shared commander of
+  the event triggerer.
 
   In case the even was triggered outside the Shared Commander, returns "" (empty string).
 

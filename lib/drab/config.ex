@@ -30,7 +30,8 @@ defmodule Drab.Config do
     or `:infinity`.
 
   #### :main_phoenix_app
-    A name of your Phoenix application (atom). If it is not set, Drab tries to guess it from from the `mix.exs`.
+    A name of your Phoenix application (atom). If it is not set, Drab tries to guess it from from
+    the `mix.exs`.
     Must be set when not using `Mix`.
 
   #### :enable_live_scripts *(default: `false`)*

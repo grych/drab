@@ -3,7 +3,8 @@ defmodule DrabModule do
   @moduledoc false
 
   # Drab behaviour
-  # All Drab Modules must provide a list of prerequisite modules (except Drab.Core, which is loaded by defaut),
+  # All Drab Modules must provide a list of prerequisite modules (except Drab.Core, which is loaded
+  # by defaut),
   # as well as the list of the Javascripts to render
   @callback prerequisites() :: list
   @callback js_templates() :: list

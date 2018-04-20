@@ -3,7 +3,8 @@ defmodule Drab.Query do
 
   @methods ~w(html text val width height innerWidth innerHeight outerWidth outerHeight position
                             offset scrollLeft scrollTop)a
-  @methods_plural ~w(htmls texts vals widths heights innerWidths innerHeights outerWidths outerHeights positions
+  @methods_plural ~w(htmls texts vals widths heights innerWidths innerHeights
+                            outerWidths outerHeights positions
                             offsets scrollLefts scrollTops)a
   @methods_with_argument ~w(attr prop css data)a
   @methods_with_argument_plural ~w(attrs props csses datas)a
@@ -13,8 +14,8 @@ defmodule Drab.Query do
   @html_modifiers ~r/html|append|before|after|insertAfter|insertBefore|htmlPrefilter|prepend|replaceWidth|wrap/i
 
   @moduledoc """
-  Drab Module which provides interface to jQuery on the server side. You may query (`select/2`) or manipulate
-  (`update/2`, `insert/2`, `delete/2`, `execute/2`) the selected DOM object.
+  Drab Module which provides interface to jQuery on the server side. You may query (`select/2`)
+  or manipulate (`update/2`, `insert/2`, `delete/2`, `execute/2`) the selected DOM object.
 
   This module is optional and is not loaded by default. You need to explicitly declare it in the
   commander:
@@ -35,19 +36,20 @@ defmodule Drab.Query do
   where:
   * socket - websocket used in connection
   * selector - string with a DOM selector
-  * what - a representation of jQuery method; an atom (eg. :html, :val) or key/value pair (like attr: name).
-    An atom will launch the corresponding jQuey function without any arguments (eg. `.html()`). Key/value
-    pair will launch the method named as the key with arguments taken from its value, so `text: "some"` becomes
-    `.text("some")`.
+  * what - a representation of jQuery method; an atom (eg. :html, :val) or key/value pair (like
+    attr: name).  An atom will launch the corresponding jQuey function without any arguments
+    (eg. `.html()`). Key/value  pair will launch the method named as the key with arguments taken
+    from its value, so `text: "some"` becomes `.text("some")`.
 
   Object manipulation (`update/2`, `insert/2`, `delete/2`, `execute/2`) functions return socket.
-  Query `select/2` returns either a found value (when using singular version of jQuery method, eg `:html`), or
-  a Map of %{name|id|__undefined_XX => value}, when using plural - like `:htmls`.
+  Query `select/2` returns either a found value (when using singular version of jQuery method,
+  eg `:html`), or a Map of %{name|id|__undefined_XX => value}, when using plural - like `:htmls`.
 
-  Select queries always refers to the page on which the event were launched. Data manipulation queries (`update/2`,
-  `insert/2`, `delete/2`, `execute/2`) changes DOM objects on this page as well, but they have a broadcast versions:
-  `update!/2`, `insert!/2`, `delete!/2` and `execute!/2`, which works the same, but changes DOM on every currently
-  connected browsers, which has opened the same URL, same controller, or having the same channel topic (see
+  Select queries always refers to the page on which the event were launched. Data manipulation
+  queries (`update/2`, `insert/2`, `delete/2`, `execute/2`) changes DOM objects on this page
+  as well, but they have a broadcast versions: `update!/2`, `insert!/2`, `delete!/2` and
+  `execute!/2`, which works the same, but changes DOM on every currently connected browsers,
+  which has opened the same URL, same controller, or having the same channel topic (see
   `Drab.Commander.broadcasting/1` to find out more).
   """
 
@@ -117,10 +119,11 @@ defmodule Drab.Query do
 
   ## :all
   In case when method is `:all`, executes all known methods on the given selector. Returns
-  Map `%{name|id => medthod_return_value}`. The Map key are generated in the same way as those with plural methods.
+  Map `%{name|id => medthod_return_value}`. The Map key are generated in the same way as those with
+  plural methods.
 
       socket |> select(:all, from: "span")
-      %{"first_span" => %{"height" => 16, "html" => "First span with class qs_2", "innerHeight" => 20, ...
+      %{"first_span" => %{"height" => 16, "html" => "Some text", "innerHeight" => 20, ...
 
   Additionally, `id` and `name` attributes are included into a Map.
   """
@@ -152,8 +155,10 @@ defmodule Drab.Query do
   @doc """
   Updates the DOM object corresponding to the jQuery `method`.
 
-  In case when the method requires an argument (like `attr()`), it should be given as key/value pair:
-  method_name: "argument".
+  In case when the method requires an argument (like `attr()`), it should be given as key/value
+  pair:
+
+      method_name: "argument".
 
   Waits for the browser to finish the changes, returns socket so it can be stacked.
 
@@ -164,7 +169,8 @@ defmodule Drab.Query do
   * prop: property - DOM property
   * class: class - class name to be replaced by another class
   * css: updates a given css
-  * data: sets the jQuery data storage by calling `data("key", value`); it *does not* update the `data-*` attribute
+  * data: sets the jQuery data storage by calling `data("key", value`); it *does not* update
+    the `data-*` attribute
 
   Examples:
       socket |> update(:text, set: "saved...", on: "#save_button")
@@ -221,7 +227,8 @@ defmodule Drab.Query do
   @doc """
   Like `Drab.Query.update/2`, but broadcasts instead of pushing the change.
 
-  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return socket.
+  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return
+  socket.
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
@@ -280,7 +287,6 @@ defmodule Drab.Query do
   end
 
   defp do_update(socket, broadcast, :class, set: values, on: selector) when is_list(values) do
-    # switch classes: updates the attr: "class" string with replacement of class, if it is on the list
     c = socket |> select(attrs: "class", from: selector)
     one_element_selector_only!(c, selector)
 
@@ -389,7 +395,8 @@ defmodule Drab.Query do
   @doc """
   Like `Drab.Query.insert/2`, but broadcasts instead of pushing the change.
 
-  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return socket.
+  Broadcast functions are asynchronous, do not wait for the reply from browsers, immediately return
+  socket.
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
@@ -426,10 +433,10 @@ defmodule Drab.Query do
   @doc """
   Removes nodes, classes or attributes from selected node.
 
-  With selector and no options, removes it and all its children. With given `from: selector` option, removes only
-  the content, but element remains in the DOM tree. With options `class: class, from: selector` removes
-  class from given node(s). Given option `prop: property` or `attr: attribute` it is able to remove
-  property or attribute from the DOM node.
+  With selector and no options, removes it and all its children. With given `from: selector` option,
+  removes only the content, but element remains in the DOM tree. With options `class: class,
+  from: selector` removes class from given node(s). Given option `prop: property` or
+  `attr: attribute` it is able to remove property or attribute from the DOM node.
 
   Waits for the browser to finish the changes and returns socket so it can be stacked.
 

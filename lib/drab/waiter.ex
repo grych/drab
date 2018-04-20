@@ -2,7 +2,8 @@ defmodule Drab.Waiter do
   require Logger
 
   @moduledoc """
-  Enables Drab Waiter functionality - synchronous wait for browser events in the Commander handler function.
+  Enables Drab Waiter functionality - synchronous wait for browser events in the Commander handler
+  function.
 
   This module is optional and is not loaded by default. You need to explicitly declare it in the
   commander:
@@ -27,9 +28,11 @@ defmodule Drab.Waiter do
   @doc """
   Main Waiter loop.
 
-  Takes socket as an argument, returns the return value of the function which matched the selector and event.
+  Takes socket as an argument, returns the return value of the function which matched the selector
+  and event.
 
-  Inside the `do` block you may register Browser Events which Waiter will react to. See `Drab.Waiter.on`.
+  Inside the `do` block you may register Browser Events which Waiter will react to. See
+  `Drab.Waiter.on`.
   """
   defmacro waiter(socket, do: block) do
     quote do
@@ -69,9 +72,9 @@ defmodule Drab.Waiter do
   end
 
   @doc """
-  Registers Javascript `event_name` on `selector` in the Drab Waiter loop. When the main loop is launched, Drab
-  freezes the current function process and starts waiting for the events. When event occurs, it matches it and
-  runs the corresponding lambda.
+  Registers Javascript `event_name` on `selector` in the Drab Waiter loop. When the main loop is
+  launched, Drab freezes the current function process and starts waiting for the events. When event
+  occurs, it matches it and runs the corresponding lambda.
 
   Example:
 
@@ -89,8 +92,8 @@ defmodule Drab.Waiter do
   end
 
   @doc """
-  Register timeout event in Drab Waiter loop. Launches anonymous function after given time (in milliseconds).
-  When no timeout is given, Waiter will wait forever.
+  Register timeout event in Drab Waiter loop. Launches anonymous function after given time (in
+  milliseconds). When no timeout is given, Waiter will wait forever.
 
   Example:
 

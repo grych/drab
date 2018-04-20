@@ -7,7 +7,7 @@ defmodule Drab.Template do
   @moduledoc false
 
   # compiling internal templates only
-  # TODO: find a way to compile also user additional templates
+  # TODO: compile also user additional templates
   Logger.info("Compiling Drab Templates")
 
   drab_templates =

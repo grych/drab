@@ -1,26 +1,27 @@
 defmodule Drab.Live do
   @moduledoc """
-  Drab Module to provide a live access and update of assigns of the template, which is currently rendered and displayed
-  in the browser.
+  Drab Module to provide a live access and update of assigns of the template, which is currently
+  rendered and displayed in the browser.
 
-  The idea is to reuse your Phoenix templates and let them live, to make a possibility to update assigns
-  on the living page, from the Elixir, without re-rendering the whole html. But because Drab tries to update the
-  smallest amount of the html, there are some limitations, for example, it when updating the nested block
-  it does not know the local variables used before. Please check out `Drab.Live.EExEngine` for more detailed
-  description.
+  The idea is to reuse your Phoenix templates and let them live, to make a possibility to update
+  assigns on the living page, from the Elixir, without re-rendering the whole html. But because
+  Drab tries to update the smallest amount of the html, there are some limitations, for example,
+  it when updating the nested block it does not know the local variables used before. Please check
+  out `Drab.Live.EExEngine` for more detailed description.
 
   Use `peek/2` to get the assign value, and `poke/2` to modify it directly in the DOM tree.
 
-  Drab.Live uses the modified EEx Engine (`Drab.Live.EExEngine`) to compile the template and indicate where assigns
-  were rendered. To enable it, rename the template you want to go live from extension `.eex` to `.drab`. Then,
-  add Drab Engine to the template engines in `config.exs`:
+  Drab.Live uses the modified EEx Engine (`Drab.Live.EExEngine`) to compile the template and
+  indicate where assigns were rendered. To enable it, rename the template you want to go live
+  from extension `.eex` to `.drab`. Then, add Drab Engine to the template engines in `config.exs`:
 
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
 
   ### Avoiding using Drab
-  If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function. Such expressions
-  will be treated as a "normal" Phoenix expressions and will not be updatable by `poke/2`.
+  If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function.
+  Such expressions will be treated as a "normal" Phoenix expressions and will not be updatable
+  by `poke/2`.
 
       <p>Chapter <%= nodrab(@chapter_no) %>.</p>
 
@@ -29,10 +30,10 @@ defmodule Drab.Live do
       <p>Chapter <%/ @chapter_no %>.</p>
 
   #### The `@conn` case
-  The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not update it
-  with `poke/2`. And, because it is often quite hudge, may significantly increase the number of data sent to
-  the browser. This is why Drab treats all expressions with only one assign, which happen to be `@conn`, as
-  a `nodrab` assign.
+  The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not
+  update it with `poke/2`. And, because it is often quite hudge, may significantly increase
+  the number of data sent to the browser. This is why Drab treats all expressions with only
+  one assign, which happen to be `@conn`, as a `nodrab` assign.
 
   ### Shared Commanders
   When the event is triggered inside the Shared Commander, defined with `drab-commander` attribute,
@@ -57,74 +58,78 @@ defmodule Drab.Live do
   is triggered.
 
   ### Caching
-  Browser communication is the time consuming operation and depends on the network latency. Because of this,
-  Drab caches the values of assigns in the current event handler process, so they don't have to be
-  re-read from the browser on every `poke` or `peek` operation. The cache is per process and lasts
-  only during the lifetime of the event handler.
+  Browser communication is the time consuming operation and depends on the network latency. Because
+  of this, Drab caches the values of assigns in the current event handler process, so they don't
+  have to be re-read from the browser on every `poke` or `peek` operation. The cache is per
+  process and lasts only during the lifetime of the event handler.
 
   This, event handler process keeps all the assigns value until it ends. Please notice that
   the other process may update the assigns on the page in the same time, when your event handler
   is still running. If you want to re-read the assigns cache, run `clean_cache/0`.
 
   ### Partials
-  Function `poke/2` and `peek/2` works on the default template - the one rendered with the Controller. In case there
-  are some child templates, rendered inside the main one, you need to specify the template name as a second argument
-  of `poke/3` and `peek/3` functions.
+  Function `poke/2` and `peek/2` works on the default template - the one rendered with
+  the Controller. In case there are some child templates, rendered inside the main one, you need
+  to specify the template name as a second argument of `poke/3` and `peek/3` functions.
 
-  In case the template is not under the current (main) view, use `poke/4` and `peek/4` to specify the external
-  view name.
+  In case the template is not under the current (main) view, use `poke/4` and `peek/4` to specify
+  the external view name.
 
-  Assigns are archored within their partials. Manipulation of the assign outside the template it lives will raise
-  `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign in the main partial will not update
-  assigns in the child partials, even if they exist there.
+  Assigns are archored within their partials. Manipulation of the assign outside the template it
+  lives will raise `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign
+  in the main partial will not update assigns in the child partials, even if they exist there.
 
   #### Rendering partial templates in a runtime
-  There is a possibility add the partial to the DOM tree in a runtime, using `render_to_string/2` helper:
+  There is a possibility add the partial to the DOM tree in a runtime, using `render_to_string/2`
+  helper:
 
       poke socket, live_partial1: render_to_string("partial1.html", color: "#aaaabb")
 
-  But remember that assigns are assigned to the partials, so after adding it to the page, manipulation
-  must be done within the added partial:
+  But remember that assigns are assigned to the partials, so after adding it to the page,
+  manipulation must be done within the added partial:
 
       poke socket, "partial1.html", color: "red"
 
   ### Evaluating expressions
-  When the assign change is poked back to the browser, Drab need to re-evaluate all the expressions from the template
-  which contain the given assign. This expressions are stored with the pattern in the cache DETS file.
+  When the assign change is poked back to the browser, Drab need to re-evaluate all the expressions
+  from the template which contain the given assign. This expressions are stored with the pattern
+  in the cache DETS file.
 
-  Because the expression must be run in the Phoenix environments, Drab does some `import` and `use` before. For example,
-  it does `use Phoenix.HTML` and `import Phoenix.View`. It also imports the following modules from your application:
+  Because the expression must be run in the Phoenix environments, Drab does some `import` and `use`
+  before. For example, it does `use Phoenix.HTML` and `import Phoenix.View`. It also imports
+  the following modules from your application:
 
       import YourApplication.Router.Helpers
       import YourApplication.ErrorHelpers
       import YourApplication.Gettext
 
-  If you renamed any of those modules in your application, you must tell Drab where to find it by adding the following
-  entry to the `config.exs` file:
+  If you renamed any of those modules in your application, you must tell Drab where to find it
+  by adding the following entry to the `config.exs` file:
 
       config :drab, live_helper_modules: [Router.Helpers, ErrorHelpers, Gettext]
 
-  Notice that the application name is derived automatically. Please check `Drab.Config.get/1` for more information
-  on Drab setup.
+  Notice that the application name is derived automatically. Please check `Drab.Config.get/1`
+  for more information on Drab setup.
 
   ### Limitions
-  Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML is valid.
-  There are also some limits for defining attributes, properties, local variables, etc. See `Drab.Live.EExEngine`
-  for a full description.
+  Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML
+  is valid. There are also some limits for defining attributes, properties, local variables, etc.
+  See `Drab.Live.EExEngine` for a full description.
 
   ### Update Behaviours
-  There are different behaviours of `Drab.Live`, depends on where the expression with the updated assign lives.
-  For example, if the expression defines tag attribute, like `<span class="<%= @class %>">`, we don't want to
-  re-render the whole tag, as it might override changes you made with other Drab module, or even with Javascript.
-  Because of this, Drab finds the tag and updates only the required attributes.
+  There are different behaviours of `Drab.Live`, depends on where the expression with the updated
+  assign lives. For example, if the expression defines tag attribute, like
+  `<span class="<%= @class %>">`, we don't want to re-render the whole tag, as it might override
+  changes you made with other Drab module, or even with Javascript. Because of this, Drab finds
+  the tag and updates only the required attributes.
 
   #### Plain Text
   If the expression in the template is given in any tag body, Drab will try to find the sourrounding tag and mark
   it with the attribute called `drab-ampere`. The attribute value is a hash of the previous buffer and the expression
   itself.
 
-  Consider the template, with assign `@chapter_no` with initial value of `1` (given in render function in the
-  controller, as usual):
+  Consider the template, with assign `@chapter_no` with initial value of `1` (given in render
+  function in the controller, as usual):
 
       <p>Chapter <%= @chapter_no %>.</p>
 
@@ -132,23 +137,23 @@ defmodule Drab.Live do
 
       <p drab-ampere="someid">Chapter 1.</p>
 
-  This `drab-ampere` attribute is injected automatically by `Drab.Live.EExEngine`. Updating the `@chapter_no`
-  assign in the Drab Commander, by using `poke/2`:
+  This `drab-ampere` attribute is injected automatically by `Drab.Live.EExEngine`. Updating the
+  `@chapter_no` assign in the Drab Commander, by using `poke/2`:
 
       chapter = peek(socket, :chapter_no)     # get the current value of `@chapter_no`
       poke(socket, chapter_no: chapter + 1)   # push the new value to the browser
 
-  will change the `innerHTML` of the `<p drab-ampere="someid">` to "Chapter 2." by executing the following JS
-  on the browser:
+  will change the `innerHTML` of the `<p drab-ampere="someid">` to "Chapter 2." by executing
+  the following JS on the browser:
 
       document.querySelector('[drab-ampere=someid]').innerHTML = "Chapter 2."
 
-  This is possible because during the compile phase, Drab stores the `drab-ampere` and the corresponding pattern in
-  the cache DETS file (located in `priv/`).
+  This is possible because during the compile phase, Drab stores the `drab-ampere` and
+  the corresponding pattern in the cache DETS file (located in `priv/`).
 
   #### Injecting `<span>`
-  In case, when Drab can't find the parent tag, it injects `<span>` in the generated html. For example, template
-  like:
+  In case, when Drab can't find the parent tag, it injects `<span>` in the generated html. For
+  example, template like:
 
       Chapter <%= @chapter_no %>.
 
@@ -157,8 +162,9 @@ defmodule Drab.Live do
       Chapter <span drab-ampere="someid">1</span>.
 
   #### Attributes
-  When the expression is defining the attribute of the tag, the behaviour if different. Let's assume there is
-  a template with following html, rendered in the Controller with value of `@button` set to string `"btn-danger"`.
+  When the expression is defining the attribute of the tag, the behaviour if different. Let's
+  assume there is a template with following html, rendered in the Controller with value of
+  `@button` set to string `"btn-danger"`.
 
       <button class="btn <%= @button %>">
 
@@ -166,65 +172,69 @@ defmodule Drab.Live do
 
       <button drab-ampere="someid" class="btn btn-danger">
 
-  Again, you can see injected `drab-ampere` attribute. This allows Drab to indicate where to update the attribute.
-  Pushing the changes to the browser with:
+  Again, you can see injected `drab-ampere` attribute. This allows Drab to indicate where
+  to update the attribute. Pushing the changes to the browser with:
 
       poke socket, button: "btn btn-info"
 
   will result with updated `class` attribute on the given tag. It is acomplished by running
   `node.setAttribute("class", "btn btn-info")` on the browser.
 
-  Notice that the pattern where your expression lives is preserved: you may update only the partials of the
-  attribute value string.
+  Notice that the pattern where your expression lives is preserved: you may update only the partials
+  of the attribute value string.
 
   ##### Updating `value` attribute for `<input>` and `<textarea>`
-  There is a special case for `<input>` and `<textarea>`: when poking attribute of `value`, Drab updates
-  the corresponding `value` property as well.
+  There is a special case for `<input>` and `<textarea>`: when poking attribute of `value`, Drab
+  updates the corresponding `value` property as well.
 
   #### Properties
-  Nowadays we deal more with node properties than attributes. This is why `Drab.Live` introduces the special syntax.
-  When using the `@` sign at the beginning of the attribute name, it will be treated as a property.
+  Nowadays we deal more with node properties than attributes. This is why `Drab.Live` introduces
+  the special syntax. When using the `@` sign at the beginning of the attribute name, it will
+  be treated as a property.
 
       <button @hidden=<%= @hidden %>>
 
-  Updating `@hidden` in the Drab Commander with `poke/2` will change the value of the `hidden` property
-  (without dollar sign!), by sending the update javascript: `node['hidden'] = false`.
+  Updating `@hidden` in the Drab Commander with `poke/2` will change the value of the `hidden`
+  property (without dollar sign!), by sending the update javascript: `node['hidden'] = false`.
 
-  You may also dig deeper into the Node properties, using dot - like in JavaScript - to bind the expression
-  with the specific property. The good example is to set up `.style`:
+  You may also dig deeper into the Node properties, using dot - like in JavaScript - to bind
+  the expression with the specific property. The good example is to set up `.style`:
 
       <button @style.backgroundColor=<%= @color %>>
 
-  Additionally, Drab sets up all the properties defined that way when the page loads. Thanks to this, you
-  don't have to worry about the initial value.
+  Additionally, Drab sets up all the properties defined that way when the page loads. Thanks to
+  this, you don't have to worry about the initial value.
 
-  Notice that `@property=<%= expression %>` *is the only available syntax*, you can not use string pattern or
-  give more than one expression. Property must be solid bind to the expression.
+  Notice that `@property=<%= expression %>` *is the only available syntax*, you can not use
+  string pattern or give more than one expression. Property must be solid bind to the expression.
 
-  The expression binded with the property *must be encodable to JSON*, so, for example, tuples are not allowed here.
-  Please refer to `Jason` for more information about encoding JS.
+  The expression binded with the property *must be encodable to JSON*, so, for example, tuples
+  are not allowed here. Please refer to `Jason` for more information about encoding JS.
 
   #### Scripts
-  When the assign we want to change is inside the `<script></script>` tag, Drab will re-evaluate the whole
-  script after assigment change. Let's say you don't want to use `$property=<%=expression%>` syntax to define
-  the object property. You may want to render the javascript:
+  When the assign we want to change is inside the `<script></script>` tag, Drab will re-evaluate
+  the whole script after assigment change. Let's say you don't want to use
+  `$property=<%=expression%>` syntax to define the object property. You may want to render
+  the javascript:
 
       <script>
         document.querySelectorAll("button").hidden = <%= @buttons_state %>
       </script>
 
-  If you render the template in the Controller with `@button_state` set to `false`, the initial html will look like:
+  If you render the template in the Controller with `@button_state` set to `false`, the initial html
+  will look like:
 
       <script drab-ampere="someid">
         document.querySelectorAll("button").hidden = false
       </script>
 
-  Again, Drab injects some ID to know where to find its victim. After you `poke/2` the new value of `@button_state`,
-  Drab will re-render the whole script with a new value and will send a request to re-evaluate the script.
-  Browser will run something like: `eval("document.querySelectorAll(\"button\").hidden = true")`.
+  Again, Drab injects some ID to know where to find its victim. After you `poke/2` the new value
+  of `@button_state`, Drab will re-render the whole script with a new value and will send
+  a request to re-evaluate the script. Browser will run something like:
+  `eval("document.querySelectorAll(\"button\").hidden = true")`.
 
-  Please notice this behaviour is disabled by default for safety. To enable it, use the following in your
-  `config.exs`:
+  Please notice this behaviour is disabled by default for safety. To enable it, use the following
+  in your `config.exs`:
 
       config :drab, enable_live_scripts: true
   """
@@ -262,9 +272,9 @@ defmodule Drab.Live do
       iex> peek(socket, :nonexistent)
       ** (ArgumentError) Assign @nonexistent not found in Drab EEx template
 
-  Notice that this is a value of the assign, and not the value of any node property or attribute. Assign
-  gets its value only while rendering the page or via `poke`. After changing the value of node attribute
-  or property on the client side, the assign value will remain the same.
+  Notice that this is a value of the assign, and not the value of any node property or attribute.
+  Assign gets its value only while rendering the page or via `poke`. After changing the value
+  of node attribute or property on the client side, the assign value will remain the same.
   """
   # TODO: think if it is needed to sign/encrypt
   @spec peek(Phoenix.Socket.t(), atom) :: term | no_return
@@ -283,7 +293,8 @@ defmodule Drab.Live do
   def peek(socket, partial, assign), do: peek(socket, nil, partial, assign)
 
   @doc """
-  Like `peek/2`, but takes a view and a partial name and returns assign from that specified view/partial.
+  Like `peek/2`, but takes a view and a partial name and returns assign from that specified
+  view/partial.
 
       iex> peek(socket, MyApp.UserView, "users.html", :count)
       42

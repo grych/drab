@@ -2,15 +2,16 @@ defmodule Drab.Element do
   @moduledoc """
   HTML element query and manipulation library.
 
-  All functions are based on the CSS selectors. `query/3` runs `document.querySelector` and returns selected
-  properties of found HTML elements.
+  All functions are based on the CSS selectors. `query/3` runs `document.querySelector` and returns
+  selected properties of found HTML elements.
 
-  `set_prop/3` is a general function for update elements properties. There are also a bunch of helpers
-  (`set_style/3` or `set_attr/3`), for updating a style of attributes of an element.
+  `set_prop/3` is a general function for update elements properties. There are also a bunch of
+  helpers (`set_style/3` or `set_attr/3`), for updating a style of attributes of an element.
 
   ### Automatic Conversion of Collections
-  Some of the properties, both whem using getters and setters, are converted automatically from JS collections
-  (eg. `HTMLOptionsCollection`) to plain objects, so they can be get and set as an Elixir map:
+  Some of the properties, both whem using getters and setters, are converted automatically from
+  JS collections (eg. `HTMLOptionsCollection`) to plain objects, so they can be get and set as
+  an Elixir map:
   * `attributes` (used `getAttribute()` and `setAttribute()`)
   * `style`
   * `dataset`
@@ -57,18 +58,19 @@ defmodule Drab.Element do
   @doc """
   Queries for the selector in the browser and collects found element properties.
 
-  `property_or_properties_list` specifies what properties will be returned. It may either be a string,
-  an atom or a list of strings or atoms.
+  `property_or_properties_list` specifies what properties will be returned. It may either be
+  a string, an atom or a list of strings or atoms.
 
   Returns:
 
   * `{:ok, map}` - where the `map` contains queried elements.
 
-    The keys are selectors which clearly identify the element: if the object has an `id` declared - a string
-    of `"#id"`, otherwise Drab declares the `drab-id` attribute and the key became `"[drab-id='...']"`.
+    The keys are selectors which clearly identify the element: if the object has an `id`
+    declared - a string of `"#id"`, otherwise Drab declares the `drab-id` attribute and the
+    key became `"[drab-id='...']"`.
 
-    Values of the map are maps of `%{property => property_value}`. Notice that for some properties (like
-    `style` or `dataset`), the property_value is a map as well.
+    Values of the map are maps of `%{property => property_value}`. Notice that for some properties
+    (like `style` or `dataset`), the property_value is a map as well.
 
   * `{:error, message}` - the browser could not be queried
 
@@ -137,7 +139,8 @@ defmodule Drab.Element do
   @doc """
   Queries the browser for elements with selector. Expects at most one element to be found.
 
-  Similar to `query/3`, but always returns a map of properties of one element (or `{:ok, nil}` if not found).
+  Similar to `query/3`, but always returns a map of properties of one element (or `{:ok, nil}`
+  if not found).
   Returns `{:too_many, message}` if found more than one element.
 
   Examples:
@@ -195,9 +198,9 @@ defmodule Drab.Element do
   @doc """
   Finds all html elements using `selector` and sets their properties.
 
-  Takes a map or keyword list of properties to be set, where the key is a property name and the value
-  is the new value to be set. If the property is a Javascript object (like `style` or `attributes`), it expects
-  a map.
+  Takes a map or keyword list of properties to be set, where the key is a property name and
+  the value is the new value to be set. If the property is a Javascript object (like `style`
+  or `attributes`), it expects a map.
 
   Returns tuple `{:ok, number}` with number of updated elements or `{:error, description}`.
 
@@ -243,8 +246,8 @@ defmodule Drab.Element do
   @doc """
   Broadcasting version of `set_prop/3`.
 
-  It does exactly the same as `set_prop/3`, but instead of pushing the message to the current browser,
-  it broadcasts it to all connected users.
+  It does exactly the same as `set_prop/3`, but instead of pushing the message to the current
+  browser, it broadcasts it to all connected users.
 
   Always returns `{:ok, :broadcasted}`.
 
@@ -334,17 +337,19 @@ defmodule Drab.Element do
   end
 
   @doc """
-  Parses the specified text as HTML and inserts the resulting nodes into the DOM tree at a specified position.
+  Parses the specified text as HTML and inserts the resulting nodes into the DOM tree at
+  a specified position.
 
-  Position is the position relative to the element found by the selector, and must be one of the following strings
-  or atoms:
+  Position is the position relative to the element found by the selector, and must be one of
+  the following strings or atoms:
 
   * `:beforebegin` - before the found element
   * `:afterbegin` - inside the element, before its first child
   * `:beforeend` - inside the element, after its last child
   * `:afterend` - after the element itself
 
-  Visit https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML for more information.
+  Visit https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML for more
+  information.
 
   Returns tuple `{:ok, number}` with number of updated elements or `{:error, description}`.
 
@@ -370,8 +375,8 @@ defmodule Drab.Element do
   @doc """
   Broadcasting version of `insert_html/4`.
 
-  It does exactly the same as `insert_html/4`, but instead of pushing the message to the current browser,
-  it broadcasts it to all connected users.
+  It does exactly the same as `insert_html/4`, but instead of pushing the message to the current
+  browser, it broadcasts it to all connected users.
 
   Always returns `{:ok, :broadcasted}`.
 
