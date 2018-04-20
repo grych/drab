@@ -2,13 +2,13 @@ defmodule Drab.Live.EExEngine do
   @moduledoc """
   This is an implementation of EEx.Engine that injects `Drab.Live` behaviour.
 
-  It parses the template during compile-time and inject Drab markers into it. Because of this, template must be
-  a proper HTML. Also, there are some rules to obey, see limitations below.
+  It parses the template during compile-time and inject Drab markers into it. Because of this,
+  template must be a proper HTML. Also, there are some rules to obey, see limitations below.
 
   ### Limitations
-  Because `Drab.Live` always tries to update the smallest portion of the html, it has some limits described below.
-  It is very important to understand how Drab re-evaluates the expressions with the new assign values. Consider the
-  comprehension with the condition as below:
+  Because `Drab.Live` always tries to update the smallest portion of the html, it has some limits
+  described below. It is very important to understand how Drab re-evaluates the expressions with
+  the new assign values. Consider the comprehension with the condition as below:
 
       <%= for u <- @users do %>
         <%= if u != @user do %>
@@ -16,11 +16,11 @@ defmodule Drab.Live.EExEngine do
         <% end %>
       <% end %>
 
-  The template above contains two Drabbable expression: `for` comprehension and `if` condition. When the new
-  value of `@users` is poked, all works as expected: the list is refreshed. But when you poke the `@user` assign,
-  system will return an error that the `u()` function is not defined. This is because Drab tries to re-evaluate
-  the expression with the `@user` assign - the `if` statement, and the `u` variable is defined elsewhere.
-  Updating `@user` will raise `CompileError`:
+  The template above contains two Drabbable expression: `for` comprehension and `if` condition.
+  When the new value of `@users` is poked, all works as expected: the list is refreshed. But when
+  you poke the `@user` assign, system will return an error that the `u()` function is not defined.
+  This is because Drab tries to re-evaluate the expression with the `@user` assign - the `if`
+  statement, and the `u` variable is defined elsewhere. Updating `@user` will raise `CompileError`:
 
       iex> poke socket, user: "Changed"
       ** (CompileError)  undefined function u/0
@@ -29,9 +29,10 @@ defmodule Drab.Live.EExEngine do
       Please check the following documentation page for more details:
       https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
 
-  But what was your goal when poking the `@user` assign? You wanted to update the whole `for` expression, because
-  the displayed users list should be refreshed. The best way to accomplish the goal - reload the whole for
-  comprehension - is to move `@user` assign to the parent expression. In this case it would be a filter:
+  But what was your goal when poking the `@user` assign? You wanted to update the whole `for`
+  expression, because the displayed users list should be refreshed. The best way to accomplish
+  the goal - reload the whole for comprehension - is to move `@user` assign to the parent
+  expression. In this case it would be a filter:
 
       <%= for u <- @users, u != @user do %>
         <%= u %> <br>
@@ -42,10 +43,11 @@ defmodule Drab.Live.EExEngine do
   There is also the other way to solve this issue, described in the next paragraph.
 
   #### Parent/child Expression Detection
-  Drab is able to detect when updating both parent and child expression (child is the one inside the block).
-  In the case above, the parent expression is the `for` comprehension with `@users` assign, and the child
-  is the `if` containing only `@user`. When you update both assigns with the same `poke`, Drab would
-  be able to detect that the `if` is inside `for`, and should not be refreshed.
+  Drab is able to detect when updating both parent and child expression (child is the one inside
+  the block). In the case above, the parent expression is the `for` comprehension with `@users`
+  assign, and the child is the `if` containing only `@user`. When you update both assigns with
+  the same `poke`, Drab would be able to detect that the `if` is inside `for`, and should not
+  be refreshed.
 
   This means that you may solve the case above with:
 
@@ -56,11 +58,11 @@ defmodule Drab.Live.EExEngine do
 
 
   #### Avalibility of Assigns
-  To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format. Passing it
-  to `render` in the controller is not enough.
+  To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format.
+  Passing it to `render` in the controller is not enough.
 
-  Also, the living assign must be inside the `<%= %>` mark. If it lives in `<% %>`, it will not be updated by
-  `Drab.Live.poke/2`. This means that in the following template:
+  Also, the living assign must be inside the `<%= %>` mark. If it lives in `<% %>`, it will not be
+  updated by `Drab.Live.poke/2`. This means that in the following template:
 
       <% local = @assign %>
       <%= local %>
@@ -68,8 +70,8 @@ defmodule Drab.Live.EExEngine do
   poking `@assign` will not update anything.
 
   #### Local Variables
-  Local variables are only visible in its `do...end` block. You can't use a local variable from outside the block.
-  So, the following is allowed:
+  Local variables are only visible in its `do...end` block. You can't use a local variable from
+  outside the block. So, the following is allowed:
 
       <%= for user <- @users do %>
         <li><%= user %></li>
@@ -77,8 +79,8 @@ defmodule Drab.Live.EExEngine do
 
   and after poking a new value of `@users`, the list will be updated.
 
-  But the next example is not valid and will raise `undefined function` exception while trying to update an `@anything`
-  assign:
+  But the next example is not valid and will raise `undefined function` exception while trying
+  to update an `@anything` assign:
 
       <% local = @assign1 %>
       <%= if @anything do %>
@@ -98,7 +100,8 @@ defmodule Drab.Live.EExEngine do
       <tag <%="attr='" <> @value <> "'"%>>
       <tag <%=build_attr(@name, @value)%>>
 
-  The above will compile (with warnings), but it will not be correctly updated with `Drab.Live.poke`.
+  The above will compile (with warnings), but it will not be correctly updated with
+  `Drab.Live.poke`.
 
   The tag name can not be build with the expression.
 
@@ -130,8 +133,8 @@ defmodule Drab.Live.EExEngine do
       </script>
 
   #### Properties
-  Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>` syntax.
-  One property may be bound only to the one assign.
+  Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>`
+  syntax. One property may be bound only to the one assign.
   """
 
   import Drab.Live.Crypto

@@ -160,13 +160,7 @@ defmodule Drab.Live.HTML do
 
   def tokenized_to_html([list]) when is_list(list), do: [tokenized_to_html(list)]
 
-  # def tokenized_to_html([head | tail]) when is_list(head) and is_list(tail), do: [tokenized_to_html(head) | tokenized_to_html(tail)]
   def tokenized_to_html([head | tail]) do
-    # t = tokenized_to_html(tail)
-    # case tokenized_to_html(head) do
-    #   h when is_binary(h) and is_binary(t) -> h <> t
-    #   h -> if t == "", do: [h], else: [h | t]
-    # end
     case {tokenized_to_html(head), tokenized_to_html(tail)} do
       {h, t} when is_binary(h) and is_binary(t) -> h <> t
       {h, ""} -> [h]
@@ -277,7 +271,8 @@ defmodule Drab.Live.HTML do
 
   @non_closing_tags ~w{
     area base br col command embed hr img input keygen link meta param source track wbr
-    area/ base/ br/ col/ command/ embed/ hr/ img/ input/ keygen/ link/ meta/ param/ source/ track/ wbr/
+    area/ base/ br/ col/ command/ embed/ hr/ img/ input/ keygen/ link/ meta/ param/ source/ track/
+    wbr/
   }
 
   # TODO: refactor, must be a simpler way to do it
