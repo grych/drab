@@ -124,9 +124,9 @@ defmodule Drab.Live do
   the tag and updates only the required attributes.
 
   #### Plain Text
-  If the expression in the template is given in any tag body, Drab will try to find the sourrounding tag and mark
-  it with the attribute called `drab-ampere`. The attribute value is a hash of the previous buffer and the expression
-  itself.
+  If the expression in the template is given in any tag body, Drab will try to find the sourrounding
+  tag and mark it with the attribute called `drab-ampere`. The attribute value is a hash of the
+  previous buffer and the expression itself.
 
   Consider the template, with assign `@chapter_no` with initial value of `1` (given in render
   function in the controller, as usual):
