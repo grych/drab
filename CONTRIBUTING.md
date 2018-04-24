@@ -1,5 +1,5 @@
 ## Contributing
-Drab team welcomes everyone to be a part of the team!
+Drab welcomes everyone to be a part of the team!
 
 ## How to contribute to Drab
 
@@ -14,7 +14,7 @@ If you think you've found a bug, please report it! It really helps to build a be
 ** If you don't want to create an issue on Github, please report it directly to <grych@tg.pl> **
 
 ### Correct docs: fix typos, syntax etc
-Drab needs help with the documentation: it must be more clear to readers and checked for typos, sytax.
+Drab needs help with the documentation: it must be more clear to readers and checked for typos, syntax.
 
 * Create a new [Pull Request](https://github.com/grych/drab/pulls) on Github without reporting it as a bug. Label it as `docs`
 

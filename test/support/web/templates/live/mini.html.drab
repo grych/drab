@@ -34,7 +34,8 @@
   <button type="submit" drab="click:update_mini">update mini</button>
 </form>
 
-
+    
+    
 <br><br>
-<div><%= @user %></div>
+<div><%= @url %></div>
 <div><%= @text %></div>

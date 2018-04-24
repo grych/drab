@@ -259,7 +259,7 @@ defmodule Drab.Live do
 
     Phoenix.Socket.assign(
       socket,
-      :__sender_drab_commader_amperes,
+      :__sender_drab_commander_amperes,
       payload["drab_commander_amperes"] || []
     )
   end
@@ -457,7 +457,7 @@ defmodule Drab.Live do
 
     # update only those which are in shared commander
     amperes_to_update =
-      case socket.assigns[:__sender_drab_commader_amperes] do
+      case socket.assigns[:__sender_drab_commander_amperes] do
         [] ->
           amperes_to_update
 
