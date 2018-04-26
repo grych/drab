@@ -487,10 +487,7 @@ defmodule Drab.Live.EExEngine do
         {_, true} ->
           # do not drab expressions with @conn only, as it is readonly
           # and when marked with nodrab()
-          quote do
-            tmp1 = unquote(buffer)
-            [tmp1, unquote(expr)]
-          end
+          nodrab(buffer, expr)
 
         {true, _} ->
           quote do
@@ -525,9 +522,16 @@ defmodule Drab.Live.EExEngine do
      quote do
        tmp1 = unquote(buffer)
        [tmp1, unquote(to_safe(expr, line))]
-     end}
+     end
+    }
   end
 
+  defp nodrab(buffer, expr) do
+    quote do
+      tmp1 = unquote(buffer)
+      [tmp1, unquote(expr)]
+    end
+  end
   @spec partial(list) :: String.t() | nil
   defp partial(body) do
     html = to_flat_html(body)

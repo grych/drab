@@ -2,18 +2,18 @@
 <div id="drab_pid" style="display: none;"></div>
 <br><br>
 
-
-
 <form>
-  <label for="user_name_first">First Name</label>
-  <input id="user_name_first" name="user[name][first]" type="text">
 
-  <label for="user_name_last">Last Name</label>
-  <input id="user_name_last" name="user[name][last]" type="text">
-  
-  <button type="submit" drab="click:update_mini">update mini</button>
+  <button class="btn <%= @class2 %>" type="submit" drab="click:update_mini">update mini</button>
 </form>
-    
+
+<%= if @url do %>
+  <button class="btn <%= @class2 %>" type="submit" drab="click:update_mini">update mini</button>
+<% end %>
+
 <br><br>
 <div><%= nodrab @url %></div>
-<div><%= @text %></div>
+<div id=a @style.backgroundColor=<%= @color %>>color</div>
+<%= if @url do %>
+  <div id=b @style.backgroundColor=<%= @color %>><%= @text %></div>
+<% end %>

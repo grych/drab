@@ -40,11 +40,12 @@ function run_drab_scripts_on(node) {
 }
 
 function set_properties(where) {
+  // console.log(where);
   var d = window.__drab;
   for (var ampere in d.properties) {
     var properties = d.properties[ampere];
     for (var property in properties) {
-      var nodes = ampere_nodes(ampere, "document");
+      var nodes = ampere_nodes(ampere, where);
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         set_property(node, ampere, property, properties[property]);
@@ -72,8 +73,9 @@ function selector(ampere) {
   return "[drab-ampere='" + ampere + "']";
 }
 
-function ampere_nodes(ampere) {
-  return document.querySelectorAll(selector(ampere));
+function ampere_nodes(ampere, where) {
+  var node = where ? where : document;
+  return node.querySelectorAll(selector(ampere));
 }
 
 Drab.update_attribute = function (ampere, attribute, new_value) {

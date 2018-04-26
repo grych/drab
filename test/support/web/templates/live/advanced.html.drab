@@ -8,7 +8,7 @@
 </div>
 
 <br>
-<button drab-click="update_excluded">update excluded (should raise)</button><br>
+<button drab-click="update_excluded">update excluded (should not raise)</button><br>
 <button drab-click="update_users">update users</button><br>
 <button drab-click="update_excluded_and_users">update excluded and users</button><br>
 

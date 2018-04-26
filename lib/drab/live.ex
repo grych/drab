@@ -480,8 +480,8 @@ defmodule Drab.Live do
       for ampere <- amperes_to_update,
           {gender, tag, prop_or_attr, expr, _, parent_assigns} <-
             Drab.Live.Cache.get({partial, ampere}) || [],
-            parent_assigns == []  do
-          # !is_a_child?(parent_assigns, assigns_to_update_keys) do
+          # parent_assigns == [] do
+          !is_a_child?(parent_assigns, assigns_to_update_keys) do
         case gender do
           :html ->
             {_, _, value} = Floki.find(html, "[drab-ampere='#{ampere}']") |> List.first()
@@ -495,22 +495,31 @@ defmodule Drab.Live do
                 nil
 
               {_, _} ->
-                "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
+                 "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
             end
 
           :attr ->
-            new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
+            attr =
+              Floki.attribute(html, "[drab-ampere='#{ampere}']", prop_or_attr)
+              |> List.first()
 
-            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
-              encode_js(new_value)
-            })"
+            # IO.inspect attr
+            new_value = attr
+            # new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
+
+             "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
+               encode_js(new_value)
+             })"
 
           :prop ->
             new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
-            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
+             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
         end
       end
+
+    #TODO: this is a very naive way of sorting JS. Small goes first.
+    update_javascripts = Enum.sort_by(update_javascripts, &has_amperes/1)
 
     assign_updates = assign_updates_js(assigns_to_update, partial, shared_commander_id)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
@@ -535,6 +544,11 @@ defmodule Drab.Live do
       Enum.all?(list1, fn element ->
         element in list2
       end)
+  end
+
+  @spec has_amperes(String.t()) :: integer
+  defp has_amperes(string) do
+    length(String.split(string, "drab-ampere")) - 1
   end
 
   @spec intersection(list, list) :: list
