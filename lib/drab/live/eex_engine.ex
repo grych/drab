@@ -173,6 +173,7 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.start()
     Drab.Live.Cache.set(partial, partial_hash)
     Drab.Live.Cache.set(partial_hash, partial)
+    Process.put(:partial, partial_hash)
 
     buffer = "{{{{@drab-partial:#{partial_hash}}}}}"
     {:safe, buffer}
@@ -436,7 +437,7 @@ defmodule Drab.Live.EExEngine do
       end
     end
 
-    ampere_id = hash({buffer, expr})
+    ampere_id = hash({Process.get(:partial), buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
 
     html = to_flat_html(buffer)

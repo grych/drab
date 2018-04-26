@@ -443,10 +443,10 @@ defmodule Drab.Live do
       |> Enum.into([])
       |> Keyword.merge(assigns)
 
-    modules = {
-      Drab.get_view(socket),
-      Drab.Config.get(:live_helper_modules)
-    }
+    # modules = {
+    #   Drab.get_view(socket),
+    #   Drab.Config.get(:live_helper_modules)
+    # }
 
     amperes_to_update =
       for {assign, _} <- assigns do
@@ -611,62 +611,62 @@ defmodule Drab.Live do
     Process.put(:__assigns_and_index, nil)
   end
 
-  @spec eval_expr(Macro.t(), {atom, list}, Keyword.t(), atom) :: term | no_return
-  defp eval_expr(expr, modules, updated_assigns, :prop) do
-    eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
-  end
+  # @spec eval_expr(Macro.t(), {atom, list}, Keyword.t(), atom) :: term | no_return
+  # defp eval_expr(expr, modules, updated_assigns, :prop) do
+  #   eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
+  # end
 
-  defp eval_expr(expr, modules, updated_assigns, _) do
-    eval_expr(expr, modules, updated_assigns)
-  end
+  # defp eval_expr(expr, modules, updated_assigns, _) do
+  #   eval_expr(expr, modules, updated_assigns)
+  # end
 
-  @spec eval_expr(Macro.t(), {atom, list}, Keyword.t()) :: term | no_return
-  defp eval_expr(expr, modules, updated_assigns) do
-    e = expr_with_imports(expr, modules)
+  # @spec eval_expr(Macro.t(), {atom, list}, Keyword.t()) :: term | no_return
+  # defp eval_expr(expr, modules, updated_assigns) do
+  #   e = expr_with_imports(expr, modules)
 
-    try do
-      {safe, _assigns} = Code.eval_quoted(e, assigns: updated_assigns)
-      safe
-    rescue
-      # TODO: to be removed after solving #71
-      e in CompileError ->
-        msg =
-          if String.contains?(e.description, "undefined function") do
-            """
-            #{e.description}
+  #   try do
+  #     {safe, _assigns} = Code.eval_quoted(e, assigns: updated_assigns)
+  #     safe
+  #   rescue
+  #     # TODO: to be removed after solving #71
+  #     e in CompileError ->
+  #       msg =
+  #         if String.contains?(e.description, "undefined function") do
+  #           """
+  #           #{e.description}
 
-            Using local variables defined in external blocks is prohibited in Drab.
-            Please check the following documentation page for more details:
-            https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
-            """
-          else
-            e.description
-          end
+  #           Using local variables defined in external blocks is prohibited in Drab.
+  #           Please check the following documentation page for more details:
+  #           https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
+  #           """
+  #         else
+  #           e.description
+  #         end
 
-        stacktrace = System.stacktrace()
-        reraise CompileError, [description: msg], stacktrace
-    end
-  end
+  #       stacktrace = System.stacktrace()
+  #       reraise CompileError, [description: msg], stacktrace
+  #   end
+  # end
 
-  @spec expr_with_imports(Macro.t(), {atom, list}) :: Macro.t()
-  defp expr_with_imports(expr, {view, modules}) do
-    quote do
-      import Phoenix.View
-      import unquote(view)
-      import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
-      use Phoenix.HTML
+  # @spec expr_with_imports(Macro.t(), {atom, list}) :: Macro.t()
+  # defp expr_with_imports(expr, {view, modules}) do
+  #   quote do
+  #     import Phoenix.View
+  #     import unquote(view)
+  #     import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
+  #     use Phoenix.HTML
 
-      unquote do
-        for module <- modules do
-          quote do
-            import unquote(module)
-          end
-        end
-      end
+  #     unquote do
+  #       for module <- modules do
+  #         quote do
+  #           import unquote(module)
+  #         end
+  #       end
+  #     end
 
-      unquote(expr)
-    end
-  end
+  #     unquote(expr)
+  #   end
+  # end
 
   @spec assign_updates_js(map, String.t(), String.t()) :: [String.t()]
   defp assign_updates_js(assigns, partial, "document") do
@@ -687,12 +687,12 @@ defmodule Drab.Live do
 
   # defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
 
-  @spec safe_to_string(Phoenix.HTML.safe() | [Phoenix.HTML.safe()]) :: String.t()
-  defp safe_to_string(list) when is_list(list),
-    do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
+  # @spec safe_to_string(Phoenix.HTML.safe() | [Phoenix.HTML.safe()]) :: String.t()
+  # defp safe_to_string(list) when is_list(list),
+  #   do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
 
-  defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
-  defp safe_to_string(safe), do: to_string(safe)
+  # defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
+  # defp safe_to_string(safe), do: to_string(safe)
 
   @spec drab_commander_id(Phoenix.Socket.t()) :: String.t()
   defp drab_commander_id(socket) do
@@ -741,10 +741,10 @@ defmodule Drab.Live do
     assigns_and_index(socket)[assigns_type]
   end
 
-  @spec nodrab_assigns(Phoenix.Socket.t()) :: map
-  defp nodrab_assigns(socket) do
-    assigns_and_index(socket)[:nodrab]
-  end
+  # @spec nodrab_assigns(Phoenix.Socket.t()) :: map
+  # defp nodrab_assigns(socket) do
+  #   assigns_and_index(socket)[:nodrab]
+  # end
 
   @spec index(Phoenix.Socket.t()) :: String.t()
   defp index(socket) do
