@@ -478,7 +478,7 @@ defmodule Drab.Live do
     # construct the javascripts for update of amperes
     update_javascripts =
       for ampere <- amperes_to_update,
-          {gender, tag, prop_or_attr, expr, _, parent_assigns} <-
+          {gender, tag, prop_or_attr, _expr, _, parent_assigns} <-
             Drab.Live.Cache.get({partial, ampere}) || [],
           # parent_assigns == [] do
           !is_a_child?(parent_assigns, assigns_to_update_keys) do
@@ -486,39 +486,39 @@ defmodule Drab.Live do
           :html ->
             {_, _, value} = Floki.find(html, "[drab-ampere='#{ampere}']") |> List.first()
             new_value = Floki.raw_html(value)
-            # IO.inspect new_value
-            # safe = eval_expr(expr, modules, updated_assigns, gender)
-            # new_value = safe |> safe_to_string()
 
             case {tag, Drab.Config.get(:enable_live_scripts)} do
               {"script", false} ->
                 nil
 
               {_, _} ->
-                 "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
+                "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
             end
 
           :attr ->
-            attr =
-              Floki.attribute(html, "[drab-ampere='#{ampere}']", prop_or_attr)
-              |> List.first()
-
-            # IO.inspect attr
-            new_value = attr
+            new_value =
+              Floki.attribute(html, "[drab-ampere='#{ampere}']", prop_or_attr) |> List.first()
             # new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
-             "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
-               encode_js(new_value)
-             })"
+            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
+              encode_js(new_value)
+            })"
 
           :prop ->
-            new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
+            new_value =
+              Floki.attribute(
+                html,
+                "[drab-ampere='#{ampere}']",
+                "@#{String.downcase(prop_or_attr)}")
+              |> List.first()
+              |> encode_js()
 
-             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
+            # new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
+            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
         end
       end
 
-    #TODO: this is a very naive way of sorting JS. Small goes first.
+    # TODO: this is a very naive way of sorting JS. Small goes first.
     update_javascripts = Enum.sort_by(update_javascripts, &has_amperes/1)
 
     assign_updates = assign_updates_js(assigns_to_update, partial, shared_commander_id)

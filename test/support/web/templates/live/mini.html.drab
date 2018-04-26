@@ -13,7 +13,7 @@
 
 <br><br>
 <div><%= nodrab @url %></div>
-<div id=a @style.backgroundColor=<%= @color %>>color</div>
+<div id=a @users=<%=@users%> @style.backgroundColor=<%= @color %>>color</div>
 <%= if @url do %>
   <div id=b @style.backgroundColor=<%= @color %>><%= @text %></div>
 <% end %>
