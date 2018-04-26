@@ -546,7 +546,8 @@ defmodule Drab.Live do
       end)
   end
 
-  @spec has_amperes(String.t()) :: integer
+  @spec has_amperes(String.t() | nil) :: integer
+  defp has_amperes(nil), do: 0
   defp has_amperes(string) do
     length(String.split(string, "drab-ampere")) - 1
   end
