@@ -184,9 +184,10 @@ defmodule Drab.Live.EExEngine do
     partial_hash = partial(body)
 
     init_js = """
-    if (typeof window.#{@jsvar} == 'undefined') {#{@jsvar} = {assigns: {}, properties: {}}};
+    if (typeof window.#{@jsvar} == 'undefined') {#{@jsvar}={assigns: {},nodrab: {},properties: {}}};
     if (typeof #{@jsvar}.index == 'undefined') {#{@jsvar}.index = '#{partial_hash}'};
     #{@jsvar}.assigns['#{partial_hash}'] = {};
+    #{@jsvar}.nodrab['#{partial_hash}'] = {};
     """
 
     found_amperes = amperes_from_buffer({:safe, body})
@@ -221,14 +222,21 @@ defmodule Drab.Live.EExEngine do
     end
 
     found_assigns = Enum.uniq(for({assign, _} <- amperes_to_assigns, do: assign))
+    all_assigns = find_assigns(body)
+    nodrab_assigns = all_assigns -- found_assigns
 
     assigns_js =
       found_assigns
       |> Enum.map(fn assign ->
-        assign_js(partial_hash, assign)
+        assign_js("assigns", partial_hash, assign)
       end)
       |> script_tag()
-
+    nodrab_assigns_js =
+      nodrab_assigns
+      |> Enum.map(fn assign ->
+        assign_js("nodrab", partial_hash, assign)
+      end)
+      |> script_tag()
     partial_path = Drab.Live.Cache.get(partial_hash)
     Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
     Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
@@ -255,6 +263,7 @@ defmodule Drab.Live.EExEngine do
         script_tag(init_js),
         remove_drab_marks(body),
         assigns_js,
+        nodrab_assigns_js,
         properies_js
       ]
       |> List.flatten()
@@ -413,11 +422,18 @@ defmodule Drab.Live.EExEngine do
     shallow_assigns = shallow_find_assigns(expr)
     found_assigns? = found_assigns != []
 
+    # if the expression contains only :conn, it is always nodrab
+    nodrab = if shallow_find_assigns(expr) == [:conn], do: true, else: nodrab
+    # if there is no assigns, expression is nodrab by its nature
+    nodrab = if found_assigns?, do: nodrab, else: true
+
     # set up parent assigns for all found children
-    for child_expr_hash <- find_expr_hashes(expr) do
-      {:expr, expression, assigns, parent_assigns} = Drab.Live.Cache.get(child_expr_hash)
-      parent_assigns = Enum.uniq(parent_assigns ++ shallow_assigns) -- assigns
-      Drab.Live.Cache.set(child_expr_hash, {:expr, expression, assigns, parent_assigns})
+    unless nodrab do
+      for child_expr_hash <- find_expr_hashes(expr) do
+        {:expr, expression, assigns, parent_assigns} = Drab.Live.Cache.get(child_expr_hash)
+        parent_assigns = Enum.uniq(parent_assigns ++ shallow_assigns) -- assigns
+        Drab.Live.Cache.set(child_expr_hash, {:expr, expression, assigns, parent_assigns})
+      end
     end
 
     ampere_id = hash({buffer, expr})
@@ -426,7 +442,7 @@ defmodule Drab.Live.EExEngine do
     html = to_flat_html(buffer)
 
     buffer =
-      if !inject_span? && found_assigns? do
+      if !inject_span? && found_assigns? && !nodrab do
         case inject_attribute_to_last_opened(buffer, attribute) do
           # injected!
           {:ok, buf, _} ->
@@ -448,10 +464,12 @@ defmodule Drab.Live.EExEngine do
 
     hash = hash(expr)
 
-    Drab.Live.Cache.set(
-      hash,
-      {:expr, remove_drab_marks(expr), found_assigns, []}
-    )
+    unless nodrab do
+      Drab.Live.Cache.set(
+        hash,
+        {:expr, remove_drab_marks(expr), found_assigns, []}
+      )
+    end
 
     # TODO: REFACTOR
     attr = find_attr_in_html(html)
@@ -463,9 +481,6 @@ defmodule Drab.Live.EExEngine do
 
     expr_begin = "{{{{@drab-expr-hash:#{hash}}}}}"
     expr_end = "{{{{/@drab-expr-hash:#{hash}}}}}"
-
-    nodrab = if shallow_find_assigns(expr) == [:conn], do: true, else: nodrab
-    nodrab = if found_assigns?, do: nodrab, else: true
 
     buf =
       case {inject_span?, nodrab} do
@@ -569,9 +584,9 @@ defmodule Drab.Live.EExEngine do
     ["<script drab-script>", js, "</script>\n"]
   end
 
-  @spec assign_js(String.t(), atom) :: [String.t()]
-  defp assign_js(partial, assign) do
-    ["#{@jsvar}.assigns['#{partial}']['#{assign}'] = {document: '", encoded_assign(assign), "'};"]
+  @spec assign_js(String.t(), String.t(), atom) :: [String.t()]
+  defp assign_js(name, partial, assign) do
+    ["#{@jsvar}.#{name}['#{partial}']['#{assign}'] = {document: '", encoded_assign(assign), "'};"]
   end
 
   @spec property_js(String.t(), atom, Macro.t()) :: [String.t()]

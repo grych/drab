@@ -305,7 +305,7 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
-    current_assigns = assign_data_for_partial(socket, hash, partial)
+    current_assigns = assign_data_for_partial(socket, hash, partial, :assigns)
 
     case current_assigns |> Map.fetch(assign) do
       {:ok, val} ->
@@ -426,7 +426,7 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
 
-    current_assigns = assign_data_for_partial(socket, partial, partial_name)
+    current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
 
     current_assigns_keys = current_assigns |> Map.keys()
     assigns_to_update = Enum.into(assigns, %{})
@@ -467,16 +467,28 @@ defmodule Drab.Live do
 
     shared_commander_id = drab_commander_id(socket)
 
+    nodrab_assigns =
+      socket |> assign_data_for_partial(partial, partial_name, :nodrab) |> Enum.into([])
+
+    all_assigns = Keyword.merge(nodrab_assigns, updated_assigns)
+
+    html =
+      view |> Phoenix.View.render_to_string(template_name(partial), all_assigns) |> Floki.parse()
+
     # construct the javascripts for update of amperes
     update_javascripts =
       for ampere <- amperes_to_update,
           {gender, tag, prop_or_attr, expr, _, parent_assigns} <-
             Drab.Live.Cache.get({partial, ampere}) || [],
-          !is_a_child?(parent_assigns, assigns_to_update_keys) do
+            parent_assigns == []  do
+          # !is_a_child?(parent_assigns, assigns_to_update_keys) do
         case gender do
           :html ->
-            safe = eval_expr(expr, modules, updated_assigns, gender)
-            new_value = safe |> safe_to_string()
+            {_, _, value} = Floki.find(html, "[drab-ampere='#{ampere}']") |> List.first()
+            new_value = Floki.raw_html(value)
+            # IO.inspect new_value
+            # safe = eval_expr(expr, modules, updated_assigns, gender)
+            # new_value = safe |> safe_to_string()
 
             case {tag, Drab.Config.get(:enable_live_scripts)} do
               {"script", false} ->
@@ -569,7 +581,7 @@ defmodule Drab.Live do
     partial_hash = if partial, do: partial_hash(view, partial), else: index(socket)
 
     socket
-    |> ampere_assigns()
+    |> ampere_assigns(:assigns)
     |> Map.get(partial_hash, [])
     |> Map.keys()
   end
@@ -673,12 +685,16 @@ defmodule Drab.Live do
     socket.assigns[:__sender_drab_commander_id] || "document"
   end
 
-  @spec assign_data_for_partial(Phoenix.Socket.t(), String.t() | atom, String.t() | atom) ::
-          map | no_return
-  defp assign_data_for_partial(socket, partial, partial_name) do
+  @spec assign_data_for_partial(
+          Phoenix.Socket.t(),
+          String.t() | atom,
+          String.t() | atom,
+          atom
+        ) :: map | no_return
+  defp assign_data_for_partial(socket, partial, partial_name, assigns_type) do
     assigns =
       case socket
-           |> ampere_assigns()
+           |> ampere_assigns(assigns_type)
            |> Map.fetch(partial) do
         {:ok, val} ->
           val
@@ -706,9 +722,14 @@ defmodule Drab.Live do
     end
   end
 
-  @spec ampere_assigns(Phoenix.Socket.t()) :: map
-  defp ampere_assigns(socket) do
-    assigns_and_index(socket)[:assigns]
+  @spec ampere_assigns(Phoenix.Socket.t(), atom) :: map
+  defp ampere_assigns(socket, assigns_type) do
+    assigns_and_index(socket)[assigns_type]
+  end
+
+  @spec nodrab_assigns(Phoenix.Socket.t()) :: map
+  defp nodrab_assigns(socket) do
+    assigns_and_index(socket)[:nodrab]
   end
 
   @spec index(Phoenix.Socket.t()) :: String.t()
@@ -750,10 +771,12 @@ defmodule Drab.Live do
   end
 
   defp decrypted_from_browser(socket) do
-    {:ok, ret} = exec_js(socket, "({assigns: __drab.assigns, index: __drab.index})")
+    {:ok, ret} =
+      exec_js(socket, "({assigns: __drab.assigns, nodrab: __drab.nodrab, index: __drab.index})")
 
     %{
       :assigns => decrypted_assigns(ret["assigns"]),
+      :nodrab => decrypted_assigns(ret["nodrab"]),
       :index => ret["index"]
     }
   end
@@ -792,6 +815,12 @@ defmodule Drab.Live do
   defp templates_path(view) do
     {path, _, _} = view.__templates__()
     path <> "/"
+  end
+
+  @spec template_name(String.t()) :: String.t()
+  defp template_name(partial) do
+    {path, _} = Drab.Live.Cache.get(partial)
+    path |> Path.basename() |> Path.rootname(Drab.Config.drab_extension())
   end
 
   @spec raise_assign_not_found(atom, list) :: no_return

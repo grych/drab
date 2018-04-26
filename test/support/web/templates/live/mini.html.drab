@@ -2,13 +2,7 @@
 <div id="drab_pid" style="display: none;"></div>
 <br><br>
 
-<%= if @user && Enum.count(@users) > 0 do %>
-  <%=
-    Enum.map(@users, fn u ->
-      render("user.html", user: u, conn: @conn)
-    end)
-  %>
-<% end %>
+
 
 <form>
   <label for="user_name_first">First Name</label>
@@ -16,26 +10,10 @@
 
   <label for="user_name_last">Last Name</label>
   <input id="user_name_last" name="user[name][last]" type="text">
-
-<div class="form-group">
-      <select class="form-control" id="post_mortem_incident_causes" multiple="" name="post_mortem[incident_causes]" placeholder="Incident Causes">
-<option value="1">Process Gap</option>
-<option value="2">Design Gap</option>
-<option value="3">Configuration</option>
-<option value="4">Result of Change</option>
-<option value="5">Software Bug</option>
-<option value="6">Infrastructure</option>
-<option value="7">Human Error</option>
-<option value="8">FCC Reportable</option>
-<option value="9">3rd Party</option></select>
-</div>
-
   
   <button type="submit" drab="click:update_mini">update mini</button>
 </form>
-
-    
     
 <br><br>
-<div><%= @url %></div>
+<div><%= nodrab @url %></div>
 <div><%= @text %></div>
