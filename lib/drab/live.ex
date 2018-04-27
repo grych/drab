@@ -472,6 +472,9 @@ defmodule Drab.Live do
 
     all_assigns = Keyword.merge(nodrab_assigns, updated_assigns)
 
+    # t1 = :os.system_time(:millisecond)
+    # Phoenix.View.render_to_string(view, template_name(partial), all_assigns)
+    # IO.inspect :os.system_time(:millisecond) - t1
     html =
       view |> Phoenix.View.render_to_string(template_name(partial), all_assigns) |> Floki.parse()
 
@@ -498,6 +501,7 @@ defmodule Drab.Live do
           :attr ->
             new_value =
               Floki.attribute(html, "[drab-ampere='#{ampere}']", prop_or_attr) |> List.first()
+
             # new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
 
             "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
@@ -509,7 +513,8 @@ defmodule Drab.Live do
               Floki.attribute(
                 html,
                 "[drab-ampere='#{ampere}']",
-                "@#{String.downcase(prop_or_attr)}")
+                "@#{String.downcase(prop_or_attr)}"
+              )
               |> List.first()
               |> encode_js()
 
@@ -548,6 +553,7 @@ defmodule Drab.Live do
 
   @spec has_amperes(String.t() | nil) :: integer
   defp has_amperes(nil), do: 0
+
   defp has_amperes(string) do
     length(String.split(string, "drab-ampere")) - 1
   end
