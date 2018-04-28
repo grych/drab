@@ -1,11 +1,30 @@
 # CHANGELOG
 ## v0.7.7
-If you are using `:templates_path` config, and your templates are not under the `priv/` directory, 
-you'll have to move them.
+### Potentially breaking release!
+As a preparation to 0.8.0, this release contains fundamental change in `Drab.Live` behaviour. It
+removes all the engine limitations, and makes a big change on how it treats `@conn` assign.
+
+Please report any found issues with this release.
 
 ### API Changes
+#### The `@conn` case
+Because sometimes it is huge, `@conn` is treated in the special way - it is trimmed to contain only 
+essential fields. By default it is `:private => :phoenix_endpoint`, but you may configure it.
+
+    config :drab, :live_conn_pass_through, %{
+      assigns: %{
+        users: true
+      },
+      private: %{
+        phoenix_endpoint: true
+      }
+    }
+
+See `Drab.Live` documentation for more details on this case.
+
 #### `:templates_path` config must be under `priv/`
-Solved #105.
+If you are using `:templates_path` config, and your templates are not under the `priv/` directory, 
+you'll have to move them. Solved #105.
 
 ## v0.7.6
 ### New Features
