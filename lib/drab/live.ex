@@ -314,7 +314,7 @@ defmodule Drab.Live do
       :error ->
         raise_assign_not_found(
           assign,
-          current_assigns |> Map.keys() |> Enum.map(&String.to_existing_atom/1)
+          Map.keys(current_assigns)
         )
     end
   end
@@ -428,7 +428,7 @@ defmodule Drab.Live do
 
     current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
 
-    current_assigns_keys = current_assigns |> Map.keys()
+    current_assigns_keys = Map.keys(current_assigns)
     assigns_to_update = Enum.into(assigns, %{})
     assigns_to_update_keys = Map.keys(assigns_to_update)
 

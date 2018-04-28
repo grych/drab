@@ -17,3 +17,10 @@
 <%= if @url do %>
   <div id=b @style.backgroundColor=<%= @color %>><%= @text %></div>
 <% end %>
+
+<div>
+  <%= live_url(@conn, :index) %>
+  <br>
+</div>
+
+

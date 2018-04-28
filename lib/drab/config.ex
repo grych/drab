@@ -279,6 +279,14 @@ defmodule Drab.Config do
     end
   end
 
+  def get(:live_conn_pass_through) do
+    Application.get_env(:drab, :live_conn_pass_through, %{
+      private: %{
+        phoenix_endpoint: true
+      }
+    })
+  end
+
   def get(_), do: nil
 
   @spec with_app_module(list) :: list

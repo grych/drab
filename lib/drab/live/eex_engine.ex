@@ -232,12 +232,14 @@ defmodule Drab.Live.EExEngine do
         assign_js("assigns", partial_hash, assign)
       end)
       |> script_tag()
+
     nodrab_assigns_js =
       nodrab_assigns
       |> Enum.map(fn assign ->
         assign_js("nodrab", partial_hash, assign)
       end)
       |> script_tag()
+
     partial_path = Drab.Live.Cache.get(partial_hash)
     Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
     Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
@@ -523,8 +525,7 @@ defmodule Drab.Live.EExEngine do
      quote do
        tmp1 = unquote(buffer)
        [tmp1, unquote(to_safe(expr, line))]
-     end
-    }
+     end}
   end
 
   defp nodrab(buffer, expr) do
@@ -533,6 +534,7 @@ defmodule Drab.Live.EExEngine do
       [tmp1, unquote(expr)]
     end
   end
+
   @spec partial(list) :: String.t() | nil
   defp partial(body) do
     html = to_flat_html(body)
@@ -601,12 +603,12 @@ defmodule Drab.Live.EExEngine do
 
   @spec encoded_assign(atom) :: Macro.t()
   defp encoded_assign(assign) do
-    assign_expr =
+    filter_expr =
       quote @anno do
-        Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(assign))
+        Drab.Live.Assign.trim(Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(assign)))
       end
 
-    base64_encoded_expr(assign_expr)
+    base64_encoded_expr(filter_expr)
   end
 
   @spec base64_encoded_expr(Macro.t()) :: Macro.t()
