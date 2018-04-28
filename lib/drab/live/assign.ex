@@ -14,16 +14,29 @@ defmodule Drab.Live.Assign do
   def trim(other), do: other
 
   def trim(struct, filter) do
-    filter_and_merge(struct, filter)
+    filtered = filter(struct, filter)
+    merge(%Plug.Conn{}, filtered)
   end
+
+  def filter(%Plug.Conn{} = conn) do
+    filter = Drab.Config.get(:live_conn_pass_through)
+    filter(conn, filter)
+  end
+
+  def filter(other), do: other
+
+  def filter(struct, filter) do
+    deep_filter_map(struct, filter)
+  end
+
+  def merge(%Plug.Conn{} = conn, map) do
+    merged = deep_merge_map(conn, map)
+    struct(%Plug.Conn{}, merged)
+  end
+
+  def merge(other), do: other
 
   # all hails to @OvermindDL1 for this idea and the following functions
-  defp filter_and_merge(%{__struct__: _} = struct, filter) do
-    filtered = deep_filter_map(struct, filter)
-    merged = deep_merge_map(%Plug.Conn{}, filtered)
-    struct(struct.__struct__, merged)
-  end
-
   defp deep_filter_map(%{__struct__: _} = struct, map_filter) do
     deep_filter_map(Map.from_struct(struct), map_filter)
   end

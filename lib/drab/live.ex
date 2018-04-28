@@ -475,6 +475,7 @@ defmodule Drab.Live do
     # t1 = :os.system_time(:millisecond)
     # Phoenix.View.render_to_string(view, template_name(partial), all_assigns)
     # IO.inspect :os.system_time(:millisecond) - t1
+
     html =
       view |> Phoenix.View.render_to_string(template_name(partial), all_assigns) |> Floki.parse()
 
@@ -728,7 +729,7 @@ defmodule Drab.Live do
             """
       end
 
-    for {k, v} <- assigns, into: %{} do
+    assigns = for {k, v} <- assigns, into: %{} do
       {
         k,
         case v[drab_commander_id(socket)] do
@@ -740,6 +741,14 @@ defmodule Drab.Live do
             x
         end
       }
+    end
+
+    for {k, v} <- assigns, into: %{} do
+      if k == :conn do
+        {k, Drab.Live.Assign.merge(%Plug.Conn{}, v)}
+      else
+        {k, v}
+      end
     end
   end
 

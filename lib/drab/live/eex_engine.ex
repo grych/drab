@@ -605,7 +605,7 @@ defmodule Drab.Live.EExEngine do
   defp encoded_assign(assign) do
     filter_expr =
       quote @anno do
-        Drab.Live.Assign.trim(Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(assign)))
+        Drab.Live.Assign.filter(Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(assign)))
       end
 
     base64_encoded_expr(filter_expr)

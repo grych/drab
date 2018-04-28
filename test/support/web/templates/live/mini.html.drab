@@ -21,6 +21,8 @@
 <div>
   <%= live_url(@conn, :index) %>
   <br>
+  <br>
+  <%= if @conn == @url, do: "aa" %>
 </div>
 
 
