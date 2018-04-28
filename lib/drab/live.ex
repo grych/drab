@@ -729,28 +729,28 @@ defmodule Drab.Live do
             """
       end
 
-    assigns = for {k, v} <- assigns, into: %{} do
-      {
-        k,
-        case v[drab_commander_id(socket)] do
-          # global value
-          nil ->
-            v["document"]
+    assigns =
+      for {k, v} <- assigns, into: %{} do
+        {
+          k,
+          case v[drab_commander_id(socket)] do
+            # global value
+            nil ->
+              v["document"]
 
-          x ->
-            x
-        end
-      }
-    end
-
-    for {k, v} <- assigns, into: %{} do
-      if k == :conn do
-        {k, Drab.Live.Assign.merge(%Plug.Conn{}, v)}
-      else
-        {k, v}
+            x ->
+              x
+          end
+        }
       end
-    end
+
+    assigns
+    |> Enum.map(&apply_conn_merge/1)
+    |> Enum.into(%{})
   end
+
+  defp apply_conn_merge({:conn, v}), do: {:conn, Drab.Live.Assign.merge(%Plug.Conn{}, v)}
+  defp apply_conn_merge(other), do: other
 
   @spec ampere_assigns(Phoenix.Socket.t(), atom) :: map
   defp ampere_assigns(socket, assigns_type) do
