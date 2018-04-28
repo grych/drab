@@ -32,8 +32,21 @@ defmodule Drab.Live do
   #### The `@conn` case
   The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not
   update it with `poke/2`. And, because it is often quite hudge, may significantly increase
-  the number of data sent to the browser. This is why Drab treats all expressions with only
-  one assign, which happen to be `@conn`, as a `nodrab` assign.
+  the number of data sent to and back from the browser. This is why by default Drab trims `@conn`,
+  leaving only the essential fields, by default `:private => :phoenix_endpoint`.
+
+  This behaviour is configuable with `:live_conn_pass_through`. For example, if you want to preseve
+  the specific assigns in the conn struct, mark them as true in the config:
+
+      config :drab, :live_conn_pass_through, %{
+        assigns: %{
+          users: true
+        },
+        private: %{
+          phoenix_endpoint: true
+        }
+      }
+
 
   ### Shared Commanders
   When the event is triggered inside the Shared Commander, defined with `drab-commander` attribute,

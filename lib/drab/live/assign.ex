@@ -15,7 +15,7 @@ defmodule Drab.Live.Assign do
 
   def trim(struct, filter) do
     filtered = filter(struct, filter)
-    merge(%Plug.Conn{}, filtered)
+    merge(struct(struct.__struct__), filtered)
   end
 
   def filter(%Plug.Conn{} = conn) do

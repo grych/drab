@@ -6,7 +6,8 @@ defmodule Drab.Config do
 
   #### :disable_controls_while_processing *(default: `true`)*
     After sending request to the server, sender object will be disabled until it gets the answer.
-    Warning: this behaviour is not broadcasted, so only the control in the current browser is going to be disabled.
+    Warning: this behaviour is not broadcasted, so only the control in the current browser is going
+    to be disabled.
 
   #### :disable_controls_when_disconnected *(default: `true`)*
     Shall controls be disabled when there is no connectivity between the browser and the server?
@@ -15,19 +16,20 @@ defmodule Drab.Config do
     The list of events which will be disabled when waiting for server response.
 
   #### :events_shorthands *(default: `["click", "change", "keyup", "keydown"]`)*
-    The list of the shorthand attributes to be used in drab-controlled DOM object, ie: `<drab-click="handler">`.
-    Please keep the list small, as it affects the client JS performance.
+    The list of the shorthand attributes to be used in drab-controlled DOM object, ie:
+    `<drab-click="handler">`. Please keep the list small, as it affects the client JS performance.
 
   #### :socket *(default: `"/socket"`)*
     Path to the socket on which Drab operates.
 
   #### :drab_store_storage *(default: :session_storage)*
-    Where to keep the Drab Store - `:memory`, `:local_storage` or `:session_storage`. Data in the memory is kept to
-    the next page load, session storage persist until browser (or a tab) is closed, local storage is kept forever
+    Where to keep the Drab Store - `:memory`, `:local_storage` or `:session_storage`. Data in
+    the memory is kept to the next page load, session storage persist until browser (or a tab)
+    is closed, local storage is kept forever.
 
   #### :browser_response_timeout *(default: 5000)*
-    Timeout, after which all functions querying/updating browser UI will give up; integer in milliseconds
-    or `:infinity`.
+    Timeout, after which all functions querying/updating browser UI will give up; integer in
+    milliseconds, or `:infinity`.
 
   #### :main_phoenix_app
     A name of your Phoenix application (atom). If it is not set, Drab tries to guess it from from
@@ -35,14 +37,19 @@ defmodule Drab.Config do
     Must be set when not using `Mix`.
 
   #### :enable_live_scripts *(default: `false`)*
-    Re-evaluation of JavaScripts containing living assigns is disabled by default
+    Re-evaluation of JavaScripts containing living assigns is disabled by default.
 
   #### :live_helper_modules *(default: `[Router.Helpers, ErrorHelpers, Gettext]`)*
     A list of modules to be imported when Drab.Live evaluates expression with living assigns.
 
+  #### :live_conn_pass_through, *(default: `%{private: %{phoenix_endpoint: true}}`)*
+    A deep map marking fields which should be preserved in the fake `@conn` assign. See `Drab.Live`
+    for more detailed explanation on conn case.
+
   #### :templates_path *(default: "priv/templates/drab")*
-    Path to the user-defined Drab templates (not to be confused with Phoenix application templates, these are
-    to be used internally, see `Drab.Modal` for the example usage). Must start with "priv/".
+    Path to the user-defined Drab templates (not to be confused with Phoenix application templates,
+    these are to be used internally, see `Drab.Modal` for the example usage). Must start with
+    "priv/".
 
   #### :phoenix_channel_options *(default: [])*
     An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.

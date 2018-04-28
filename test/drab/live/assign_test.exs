@@ -127,5 +127,31 @@ defmodule Drab.Live.AssignTest do
       assert conn.assigns == %{}
       assert conn.secret_key_base == "noone should know"
     end
+
+    test "with custom filter for all assigns", fixture do
+      conn =
+        trim(fixture.conn_example, %{
+          assigns: true
+        })
+
+      assert conn.private == %{}
+      refute conn.assigns == %{}
+      assert Enum.count(conn.assigns) > 10
+    end
+
+    test "with custom filter for specific assigns", fixture do
+      conn =
+        trim(fixture.conn_example, %{
+          assigns: %{
+            color: true,
+            text: true
+          }
+        })
+
+      assert conn.private == %{}
+      refute conn.assigns == %{}
+      assert Enum.count(conn.assigns) == 2
+      assert conn.assigns.text == "set in the controller"
+    end
   end
 end
