@@ -64,7 +64,43 @@
 <div>
   <%= nodrab(@nodrab1) %>
 </div>
+
 <%# TODO: uncomment when moved to >=1.6.0 %>
 <div>
   <%#/ @nodrab2 %>
 </div>
+
+<br><br><hr>
+<%# comments tests, all should compile %>
+<!-- comment --><%= @color %>
+<!--comment--><%= @color %>
+<!-- comment --><span><%= @color %></span>
+<span><!-- comment --><%= @color %></span>
+
+<%= if @color do %>
+  <!-- comment --><%= @color %>
+  <!--comment--><%= @color %>
+  <!-- comment --><span><%= @color %></span>
+  <span><!-- comment --><%= @color %></span>
+<% end %>
+<%= if @color do %>
+  <!-- comment -->
+<% end %>
+
+<%# comments tests, all should compile %>
+<!-- comment <%= @color %>--><%= @color %>
+<!--comment<%= @color %>--><%= @color %>
+<!-- comment <%= @color %>--><span><%= @color %></span>
+<span><!-- comment <%= @color %>--><%= @color %></span>
+
+<%= if @color do %>
+  <!-- comment <%= @color %>--><%= @color %>
+  <!--comment<%= @color %>--><%= @color %>
+  <!-- comment <%= @color %>--><span><%= @color %></span>
+  <span><!-- comment<%= @color %> --><%= @color %></span>
+<% end %>
+<%= if @color do %>
+  <!-- comment <%= @color %>-->
+<% end %>
+
+<!-- comment -->

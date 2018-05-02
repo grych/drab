@@ -6,23 +6,8 @@
 
   <button class="btn <%= @class2 %>" type="submit" drab="click:update_mini">update mini</button>
 </form>
-
-<%= if @url do %>
-  <button class="btn <%= @class2 %>" type="submit" drab="click:update_mini">update mini</button>
+<%= if @text do %>
+  <!--FOO <%= @text %> --><%= @text %>
 <% end %>
-
-<br><br>
-<div><%= nodrab @url %></div>
-<div id=a @users=<%=@users%> @style.backgroundColor=<%= @color %>><%= @text %></div>
-<%= if @url do %>
-  <div id=b @style.backgroundColor=<%= @color %>><%= @text %></div>
-<% end %>
-
-<div>
-  <%= live_url(@conn, :index) %>
-  <br>
-  <br>
-  <%= if @conn == @url, do: "aa" %>
-</div>
-
+<div id=b @style.backgroundColor=<%= @color %>><%= @text %></div>
 

@@ -22,6 +22,12 @@ defmodule Drab.Live.HTML do
       iex> tokenize([""])
       [[{:text, ""}], {:other, []}]
 
+      iex> tokenize("<!-- comment -->")
+      [tag: "!-- comment --", text: ""]
+
+      iex> tokenize("<!--comment--> text")
+      [tag: "!--comment--", text: " text"]
+
       iex> tokenize("<tag> and more")
       [{:tag, "tag"}, {:text, " and more"}]
 
@@ -47,10 +53,10 @@ defmodule Drab.Live.HTML do
 
   def tokenize("<" <> rest) do
     case String.split(rest, ">", parts: 2) do
-      # naked tag can be only at the end
       [tag] ->
         [{:naked, String.trim_leading(tag)}]
 
+      # naked tag can be only at the end
       [tag | tail] ->
         [{:tag, String.trim_leading(tag)} | tokenize(Enum.join(tail))]
     end
@@ -281,13 +287,24 @@ defmodule Drab.Live.HTML do
   end
 
   defp do_inject([head | tail], attribute, opened, found, acc) do
+    # if attribute == "drab-ampere=\"geytoojqg4ydgobx\"" do
+    #   IO.inspect head
+    #   IO.inspect tail
+    # end
     case head do
       {:tag, "/" <> tag} ->
-        # IO.puts "closing"
         do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
 
+      # comment and doctype
+      {:tag, "!" <> _} ->
+        # do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
+        do_inject(tail, attribute, opened, found, acc ++ [head])
+
+      {:naked, "!" <> _} ->
+        # do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
+        do_inject(tail, attribute, opened, found, acc ++ [head])
+
       {tag_type, tag} when tag_type in [:naked, :tag] ->
-        # IO.puts "TAG"
         if Enum.find(opened, fn x -> tag_name(tag) == x end) do
           do_inject(tail, attribute, opened -- [tag_name(tag)], found, acc ++ [head])
         else
@@ -306,21 +323,18 @@ defmodule Drab.Live.HTML do
         end
 
       {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | buffer]} | rest]} ->
-        # IO.puts "BUFFER"
         {op, fd, ac} = do_inject(buffer, attribute, opened, found, [])
-        # IO.inspect ac
+
         modified_buffer =
           {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | ac]} | rest]}
 
         do_inject(tail, attribute, op, fd, acc ++ [modified_buffer])
 
       list when is_list(list) ->
-        # IO.puts "LIST"
         {op, fd, modified_buffer} = do_inject(list, attribute, opened, found, [])
         do_inject(tail, attribute, op, fd, acc ++ [modified_buffer])
 
       _ ->
-        # IO.puts "OTHER"
         do_inject(tail, attribute, opened, found, acc ++ [head])
     end
   end
@@ -433,6 +447,10 @@ defmodule Drab.Live.HTML do
       true
       iex> in_opened_tag? "<input type='text' value='"
       true
+      iex> in_opened_tag? "<!--comment-->"
+      false
+      iex> in_opened_tag? "<!--comment"
+      false
   """
   @spec in_opened_tag?(Phoenix.HTML.safe() | list) :: boolean
   def in_opened_tag?({:safe, body}), do: in_opened_tag?(body)
@@ -444,8 +462,35 @@ defmodule Drab.Live.HTML do
       |> tokenize()
 
     case last_tag(tokenized) do
-      {_, tag} -> not String.starts_with?(tag, "/")
+      {_, tag} -> not (String.starts_with?(tag, "/") or String.starts_with?(tag, "!"))
       nil -> false
+    end
+  end
+
+  @doc """
+  True if the expression is inside <!-- comment --> or <!doctype> tag
+
+      iex> in_comment_or_doctype? "<!--comment"
+      true
+      iex> in_comment_or_doctype? "<!--comment-->"
+      false
+      iex> in_comment_or_doctype? "<!--comment--><a>"
+      false
+      iex> in_comment_or_doctype? "<!--comment--><a></a>"
+      false
+  """
+  @spec in_comment_or_doctype?(Phoenix.HTML.safe() | list) :: boolean
+  def in_comment_or_doctype?({:safe, body}), do: in_comment_or_doctype?(body)
+
+  def in_comment_or_doctype?(body) do
+    tokenized =
+      body
+      |> to_flat_html()
+      |> tokenize()
+
+    case last_tag(tokenized) do
+      {:naked, "!" <> _} -> true
+      _ -> false
     end
   end
 

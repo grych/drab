@@ -363,9 +363,9 @@ defmodule Drab.Live.EExEngine do
     Enum.find(attributes, fn {attribute, _} -> attribute == @drab_id end)
   end
 
-  defp ampered_tag?(string) when is_binary(string) do
-    false
-  end
+  defp ampered_tag?({:comment, _}), do: false
+
+  defp ampered_tag?(string) when is_binary(string), do: false
 
   @impl true
   def handle_text({:safe, buffer}, text) do
@@ -429,6 +429,8 @@ defmodule Drab.Live.EExEngine do
     nodrab = if shallow_find_assigns(expr) == [:conn], do: true, else: nodrab
     # if there is no assigns, expression is nodrab by its nature
     nodrab = if found_assigns?, do: nodrab, else: true
+    # also, we are not drabbing in the expression is in the comment or !DOCTYPE tag
+    nodrab = if in_comment_or_doctype?(buffer), do: true, else: nodrab
 
     # set up parent assigns for all found children
     unless nodrab do
