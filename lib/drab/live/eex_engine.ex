@@ -222,9 +222,13 @@ defmodule Drab.Live.EExEngine do
       Drab.Live.Cache.set({partial_hash, assign}, amperes)
     end
 
+
     found_assigns = Enum.uniq(for({assign, _} <- amperes_to_assigns, do: assign))
+    # if Process.get(:partial) == "gi3tgnrzg44tmnbs", do: IO.inspect body
     all_assigns = find_assigns(body)
+    # if Process.get(:partial) == "gi3tgnrzg44tmnbs", do: IO.puts "AFTER PREWALK"
     nodrab_assigns = all_assigns -- found_assigns
+
 
     assigns_js =
       found_assigns

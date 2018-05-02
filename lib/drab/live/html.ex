@@ -291,17 +291,13 @@ defmodule Drab.Live.HTML do
     #   IO.inspect head
     #   IO.inspect tail
     # end
+    # if Process.get(:partial) == "gi3tgnrzg44tmnbs"
     case head do
       {:tag, "/" <> tag} ->
         do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
 
       # comment and doctype
-      {:tag, "!" <> _} ->
-        # do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
-        do_inject(tail, attribute, opened, found, acc ++ [head])
-
-      {:naked, "!" <> _} ->
-        # do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
+      {tag_type, "!" <> _} when tag_type in [:naked, :tag] ->
         do_inject(tail, attribute, opened, found, acc ++ [head])
 
       {tag_type, tag} when tag_type in [:naked, :tag] ->
@@ -456,12 +452,7 @@ defmodule Drab.Live.HTML do
   def in_opened_tag?({:safe, body}), do: in_opened_tag?(body)
 
   def in_opened_tag?(body) do
-    tokenized =
-      body
-      |> to_flat_html()
-      |> tokenize()
-
-    case last_tag(tokenized) do
+    case last_tag(tokenized(body)) do
       {_, tag} -> not (String.starts_with?(tag, "/") or String.starts_with?(tag, "!"))
       nil -> false
     end
@@ -483,15 +474,16 @@ defmodule Drab.Live.HTML do
   def in_comment_or_doctype?({:safe, body}), do: in_comment_or_doctype?(body)
 
   def in_comment_or_doctype?(body) do
-    tokenized =
-      body
-      |> to_flat_html()
-      |> tokenize()
-
-    case last_tag(tokenized) do
+    case last_tag(tokenized(body)) do
       {:naked, "!" <> _} -> true
       _ -> false
     end
+  end
+
+  defp tokenized(body) do
+    body
+    |> to_flat_html()
+    |> tokenize()
   end
 
   defp last_tag(tokenized) do

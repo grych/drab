@@ -3,11 +3,16 @@
 <br><br>
 
 <form>
-
   <button class="btn <%= @class2 %>" type="submit" drab="click:update_mini">update mini</button>
 </form>
-<%= if @text do %>
-  <!--FOO <%= @text %> --><%= @text %>
-<% end %>
-<div id=b @style.backgroundColor=<%= @color %>><%= @text %></div>
 
+
+<%=  
+  case @text do
+    "set in the commander" -> "commander"
+    "set in the controller" -> "controller"
+    _ -> "42"
+  end
+%>	
+
+=div><%= @text %></div>

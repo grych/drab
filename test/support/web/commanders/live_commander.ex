@@ -84,7 +84,7 @@ defmodule DrabTestApp.LiveCommander do
     # IO.inspect(sender.params)
     # poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
     # poke socket, text: "changed", color: "red", class2: "btn-danger"
-    poke socket, color: "red"
+    poke socket, text: "422"
   end
 
   defhandler update_users(socket, _sender) do
