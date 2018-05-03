@@ -21,14 +21,14 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
 
     # Drab requires Phoenix, so I can use its brilliant helpers
     Mix.Phoenix.check_module_name_availability!(module <> "Commander")
-    check_controller_existence!(path, module)
+    raise_if_controller_does_not_exist(path, module)
 
     copy_from(paths(), "priv/templates/drab/", [module: module], [
       {:eex, "drab.gen.commander.ex.eex", "#{web_path()}/commanders/#{path}_commander.ex"}
     ])
   end
 
-  defp check_controller_existence!(path, module) do
+  defp raise_if_controller_does_not_exist(path, module) do
     controller_file = "#{web_path()}/controllers/#{path}_controller.ex"
 
     unless File.exists?(controller_file) do
@@ -55,6 +55,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     [".", :drab]
   end
 
+  @spec web_module(Keyword.t()) :: String.t()
   defp web_module(inflected) do
     if phoenix12?() do
       inflected[:module]
@@ -63,12 +64,14 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     end
   end
 
+  @spec web_path() :: String.t()
   defp web_path() do
     if phoenix12?() do
       "web"
     else
       # TODO: read web path from Phoenix View :root
-      "lib/#{Drab.Config.app_name()}_web"
+      app_name = Atom.to_string(Drab.Config.app_name())
+      if app_name =~ ~r/.*_web$/i, do: "lib/#{app_name}", else: "lib/#{app_name}_web"
     end
   end
 
