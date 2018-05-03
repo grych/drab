@@ -45,6 +45,17 @@ defmodule Drab.Live.HTML do
 
       iex> tokenize(["<tag", :atom, ">"])
       [[naked: "tag"], :atom, [{:text, ">"}], {:other, []}]
+
+      iex> tokenize [do: {:->, [line: 3], [["set in the commander"], "commander"]}]
+      [
+        do: {:->, [line: 3],
+        [
+          [[text: "set in the commander"], {:other, []}],
+          [text: "commander"],
+          {:other, []}
+        ]},
+        other: []
+      ]
   """
   @spec tokenize(String.t() | list) :: [token]
   def tokenize("") do
@@ -71,6 +82,11 @@ defmodule Drab.Live.HTML do
 
   def tokenize({code, meta, args}) do
     {code, meta, tokenize(args)}
+  end
+
+  @block ~w(do end catch rescue after else)a
+  def tokenize({atom, args}) when atom in @block do
+    {:do, tokenize(args)}
   end
 
   def tokenize([]) do
@@ -267,8 +283,10 @@ defmodule Drab.Live.HTML do
       |> deep_reverse()
       |> do_inject(attribute, [], :not_found, [])
 
+    # if Process.get(:partial) == "gi3tgnrzg44tmnbs" do
+    #   IO.inspect acc |> deep_reverse()
+    # end
     acc = acc |> deep_reverse() |> tokenized_to_html()
-
     case found do
       result when is_atom(result) -> {result, acc, attribute}
       result when is_binary(result) -> {:already_there, acc, result}
@@ -287,11 +305,6 @@ defmodule Drab.Live.HTML do
   end
 
   defp do_inject([head | tail], attribute, opened, found, acc) do
-    # if attribute == "drab-ampere=\"geytoojqg4ydgobx\"" do
-    #   IO.inspect head
-    #   IO.inspect tail
-    # end
-    # if Process.get(:partial) == "gi3tgnrzg44tmnbs"
     case head do
       {:tag, "/" <> tag} ->
         do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])

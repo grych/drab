@@ -7,12 +7,12 @@
 </form>
 
 
-<%=  
+<%=
   case @text do
     "set in the commander" -> "commander"
     "set in the controller" -> "controller"
     _ -> "42"
   end
-%>	
+%>
 
-=div><%= @text %></div>
+<div><%= @text %></div>

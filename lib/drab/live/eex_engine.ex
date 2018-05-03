@@ -224,11 +224,8 @@ defmodule Drab.Live.EExEngine do
 
 
     found_assigns = Enum.uniq(for({assign, _} <- amperes_to_assigns, do: assign))
-    # if Process.get(:partial) == "gi3tgnrzg44tmnbs", do: IO.inspect body
     all_assigns = find_assigns(body)
-    # if Process.get(:partial) == "gi3tgnrzg44tmnbs", do: IO.puts "AFTER PREWALK"
     nodrab_assigns = all_assigns -- found_assigns
-
 
     assigns_js =
       found_assigns
@@ -330,7 +327,6 @@ defmodule Drab.Live.EExEngine do
   @spec assigns_and_parents_from_pattern(String.t()) :: {[atom], [atom]}
   def assigns_and_parents_from_pattern(pattern) do
     # do not search under nested ampered tags
-    # IO.inspect pattern
     pattern =
       case Floki.parse(pattern) do
         {_, _, _} ->
