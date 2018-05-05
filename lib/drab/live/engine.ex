@@ -21,8 +21,13 @@ defmodule Drab.Live.Engine do
 
     quoted =
       quote do
+        @spec path() :: String.t()
         def path(), do: unquote(partial.name)
+
+        @spect name() :: String.t()
         def name(), do: path()
+
+        @spect path() :: String.t()
         def hash(), do: unquote(partial.hash)
       end
 
