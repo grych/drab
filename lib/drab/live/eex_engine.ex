@@ -142,6 +142,7 @@ defmodule Drab.Live.EExEngine do
   use EEx.Engine
   require IEx
   require Logger
+  alias Drab.Live.Safe
 
   @jsvar "__drab"
   @drab_id "drab-ampere"
@@ -176,11 +177,12 @@ defmodule Drab.Live.EExEngine do
     Process.put(:partial, partial_hash)
 
     buffer = "{{{{@drab-partial:#{partial_hash}}}}}"
-    {:safe, buffer}
+    # {:safe, buffer}
+    %Safe{safe: buffer}
   end
 
   @impl true
-  def handle_body({:safe, body}) do
+  def handle_body(%Safe{safe: body}) do
     body = List.flatten(body)
     partial_hash = partial(body)
 
@@ -272,7 +274,9 @@ defmodule Drab.Live.EExEngine do
       ]
       |> List.flatten()
 
-    {:safe, final}
+    # {:safe, final}
+    # can't just return %Safe{}, dialyzer would complain
+    {:drab, %Safe{safe: final}}
   end
 
   @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/Us
@@ -368,47 +372,46 @@ defmodule Drab.Live.EExEngine do
   defp ampered_tag?(string) when is_binary(string), do: false
 
   @impl true
-  def handle_text({:safe, buffer}, text) do
-    {:safe,
-     quote do
-       [unquote(buffer), unquote(text)]
-     end}
+  def handle_text(%Safe{safe: buffer}, text) do
+    q = quote do
+      [unquote(buffer), unquote(text)]
+    end
+    %Drab.Live.Safe{safe: q}
   end
 
   @impl true
   def handle_text("", text) do
-    handle_text({:safe, ""}, text)
+    handle_text(%Safe{safe: ""}, text)
   end
 
   @impl true
   def handle_begin(_previous) do
-    {:safe, ""}
+    %Safe{safe: ""}
   end
 
   @impl true
-  def handle_end(quoted) do
-    quoted
+  def handle_end(%Safe{safe: safe}) do
+    {:safe, safe}
   end
 
   @impl true
   def handle_expr("", marker, expr) do
-    handle_expr({:safe, ""}, marker, expr)
+    handle_expr(%Safe{safe: ""}, marker, expr)
   end
 
   @impl true
-  def handle_expr({:safe, buffer}, "", expr) do
+  def handle_expr(%Safe{safe: buffer}, "", expr) do
     expr = Macro.prewalk(expr, &handle_assign/1)
 
-    {:safe,
-     quote do
+    q = quote do
        tmp2 = unquote(buffer)
        unquote(expr)
-       tmp2
-     end}
+     end
+    %Safe{safe: q}
   end
 
   @impl true
-  def handle_expr({:safe, buffer}, "=", expr) do
+  def handle_expr(%Safe{safe: buffer}, "=", expr) do
     # check if the expression is in the nodrab/1
     {expr, nodrab} =
       case expr do
@@ -515,19 +518,20 @@ defmodule Drab.Live.EExEngine do
           end
       end
 
-    {:safe, buf}
+    # {:safe, buf}
+    %Drab.Live.Safe{safe: buf}
   end
 
   @impl true
-  def handle_expr({:safe, buffer}, "/", expr) do
+  def handle_expr(%Safe{safe: buffer}, "/", expr) do
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
 
-    {:safe,
-     quote do
+     q = quote do
        tmp1 = unquote(buffer)
        [tmp1, unquote(to_safe(expr, line))]
-     end}
+     end
+    %Safe{safe: q}
   end
 
   defp nodrab(buffer, expr) do

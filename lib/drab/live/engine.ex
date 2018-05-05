@@ -8,6 +8,7 @@ defmodule Drab.Live.Engine do
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
   """
+  alias Drab.Live.Safe
   @behaviour Phoenix.Template.Engine
 
   @impl true
@@ -21,6 +22,9 @@ defmodule Drab.Live.Engine do
       # end
       # File.write(path <> "Elixir.A.beam", code, [:write])
     end
-    path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
+
+    {:drab, %Safe{safe: safe}} =
+      path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
+    {:safe, safe}
   end
 end
