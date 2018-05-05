@@ -70,6 +70,11 @@ defmodule Drab.Config do
       end
   end
 
+  @spec ebin_dir :: String.t()
+  def ebin_dir() do
+    app_name() |> Application.app_dir() |> Path.join("ebin")
+  end
+
   @spec raise_app_not_found :: no_return
   defp raise_app_not_found() do
     raise """

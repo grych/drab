@@ -13,19 +13,42 @@ defmodule Drab.Live.Engine do
 
   @impl true
   def compile(path, _name) do
-    if Process.get(:partial) == "gi3tgnrzg44tmnbs" do
-      # path = "./_build/dev/lib/drab/ebin/"
-      # {_, _, code, _} = defmodule Elixir.A do
-      #   def a() do
-      #     "aaaaxxx"
-      #   end
-      # end
-      # File.write(path <> "Elixir.A.beam", code, [:write])
-    end
-
-    {:drab, %Safe{safe: safe, partial: _partial}} =
+    {:drab, %Safe{safe: safe, partial: partial}} =
       path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
+
+    module = module_name(partial.hash)
+    IO.inspect(module)
+
+    quoted =
+      quote do
+        def path(), do: unquote(partial.name)
+        def name(), do: path()
+        def hash(), do: unquote(partial.hash)
+      end
+
+    Module.create(module, quoted, Macro.Env.location(__ENV__))
+    # filename = Path.join(Drab.Config.ebin_dir(), Atom.to_string(module) <> ".beam")
+    # File.write(filename, code, [:write])
+
     # IO.inspect partial
     {:safe, safe}
   end
+
+  @spec module_name(String.t()) :: atom
+  @doc false
+  def module_name(hash) do
+    Module.concat([Drab, Live, Template] ++ [String.capitalize(hash)])
+  end
+
+  # def module_name(path) do
+  #   dir = Path.dirname(path) |> Path.split() |> Enum.map(&String.capitalize/1)
+
+  #   file =
+  #     path
+  #     |> Path.basename(Drab.Config.drab_extension())
+  #     |> Path.basename(".html")
+  #     |> String.capitalize()
+
+  #   Module.concat([Drab, Live, Template] ++ dir ++ [file])
+  # end
 end

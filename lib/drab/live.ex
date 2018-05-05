@@ -490,7 +490,9 @@ defmodule Drab.Live do
     # IO.inspect :os.system_time(:millisecond) - t1
 
     html =
-      view |> Phoenix.View.render_to_string(template_name(partial), all_assigns) |> Floki.parse()
+      view
+      |> Phoenix.View.render_to_string(template_name(partial_name, partial), all_assigns)
+      |> Floki.parse()
 
     # construct the javascripts for update of amperes
     update_javascripts =
@@ -586,6 +588,7 @@ defmodule Drab.Live do
       iex> Drab.Live.assigns(socket)
       [:welcome_text]
   """
+  #TODO: read assigns from compiled cache
   @spec assigns(Phoenix.Socket.t()) :: list
   def assigns(socket) do
     assigns(socket, nil, nil)
@@ -735,11 +738,7 @@ defmodule Drab.Live do
           val
 
         :error ->
-          raise ArgumentError,
-            message: """
-            Drab is unable to find a partial #{partial_name || "main"}.
-            Please check the path or specify the View.
-            """
+          raise_partial_not_found(partial_name)
       end
 
     assigns =
@@ -839,14 +838,16 @@ defmodule Drab.Live do
     end
   end
 
+  @spec partial_cache_module(String.t()) :: atom
+  defp partial_cache_module(hash), do: Drab.Live.Engine.module_name(hash)
+
   @spec partial_hash(atom, String.t()) :: String.t() | no_return
   defp partial_hash(view, partial_name) do
     path = partial_path(view, partial_name)
-
-    case Drab.Live.Cache.get(path) do
-      {hash, _assigns} -> hash
-      _ -> raise_partial_not_found(path)
-    end
+    Drab.Live.Crypto.hash(path)
+    # module = partial_cache_module(path)
+    # unless Code.ensure_loaded?(module), do: raise_partial_not_found(path)
+    # module.hash()
   end
 
   @spec partial_path(atom, String.t()) :: String.t()
@@ -860,10 +861,12 @@ defmodule Drab.Live do
     path <> "/"
   end
 
-  @spec template_name(String.t()) :: String.t()
-  defp template_name(partial) do
-    {path, _} = Drab.Live.Cache.get(partial)
-    path |> Path.basename() |> Path.rootname(Drab.Config.drab_extension())
+  @spec template_name(atom, String.t()) :: String.t()
+  defp template_name(partial_name, partial_hash) do
+    module = partial_cache_module(partial_hash)
+    unless Code.ensure_loaded?(module), do: raise_partial_not_found(partial_name)
+    # {path, _} = Drab.Live.Cache.get(partial)
+    module.path() |> Path.basename() |> Path.rootname(Drab.Config.drab_extension())
   end
 
   @spec raise_assign_not_found(atom, list) :: no_return
@@ -872,7 +875,7 @@ defmodule Drab.Live do
       message: """
       assign @#{assign} not found in Drab EEx template.
 
-      Please make sure all proper assigns have been set. If this
+      Please make sure all proper assigns have been set. If thisD
       is a child template, ensure assigns are given explicitly by
       the parent template as they are not automatically forwarded.
 
@@ -881,11 +884,11 @@ defmodule Drab.Live do
       """
   end
 
-  @spec raise_partial_not_found(String.t()) :: no_return
+  @spec raise_partial_not_found(String.t() | nil) :: no_return
   defp raise_partial_not_found(path) do
     raise ArgumentError,
       message: """
-      template `#{path}` not found.
+      template `#{path || "main"}` not found.
 
       Please make sure this partial exists and has been compiled
       by Drab (has *.drab extension).
