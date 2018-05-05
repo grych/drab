@@ -21,6 +21,38 @@ defmodule Drab.Live.Cache do
   # {"partial_hash", :assign} => ["ampere_ids"]
   # "partial_hash" => {"partial_path", [:assigns]}
 
+  @spec partial_hash(atom, String.t()) :: String.t() | no_return
+  def partial_hash(view, partial_name) do
+    path = partial_path(view, partial_name)
+    Drab.Live.Crypto.hash(path)
+  end
+
+  @spec template_name(atom, String.t()) :: String.t()
+  def template_name(partial_name, partial_hash) do
+    module = partial_cache_module(partial_hash)
+    unless Code.ensure_loaded?(module), do: Drab.Live.raise_partial_not_found(partial_name)
+    module.path() |> Path.basename() |> Path.rootname(Drab.Config.drab_extension())
+  end
+
+  @spec partial_path(atom, String.t()) :: String.t()
+  defp partial_path(view, partial_name) do
+    templates_path(view) <> partial_name <> Drab.Config.drab_extension()
+  end
+
+  @spec partial_cache_module(String.t()) :: atom
+  defp partial_cache_module(hash), do: Drab.Live.Engine.module_name(hash)
+
+  @spec templates_path(atom) :: String.t()
+  defp templates_path(view) do
+    {path, _, _} = view.__templates__()
+    path <> "/"
+  end
+
+
+
+
+  ### OLD:
+
   @doc false
   @spec start :: :ok
   def start() do

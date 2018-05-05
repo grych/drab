@@ -252,10 +252,11 @@ defmodule Drab.Live do
       config :drab, enable_live_scripts: true
   """
 
-  @type result :: Phoenix.Socket.t() | Drab.Core.result() | no_return
+  @type result :: Phoenix.Socket.t() | Drab.Core.result()
 
   import Drab.Core
   require IEx
+  alias Drab.Live.Cache
 
   use DrabModule
   @impl true
@@ -316,7 +317,7 @@ defmodule Drab.Live do
           term | no_return
   def peek(socket, view, partial, assign) when is_atom(assign) do
     view = view || Drab.get_view(socket)
-    hash = if partial, do: partial_hash(view, partial), else: index(socket)
+    hash = if partial, do: Cache.partial_hash(view, partial), else: index(socket)
 
     current_assigns = assign_data_for_partial(socket, hash, partial, :assigns)
 
@@ -360,7 +361,7 @@ defmodule Drab.Live do
       iex> poke(socket, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
   """
-  @spec poke(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
+  @spec poke(Phoenix.Socket.t(), String.t() | nil, Keyword.t()) :: result
   def poke(socket, partial, assigns) do
     # do_poke(socket, nil, partial, assigns, &Drab.Core.exec_js/2)
     poke(socket, nil, partial, assigns)
@@ -388,7 +389,7 @@ defmodule Drab.Live do
       iex> broadcast_poke(socket, count: 42)
       %Phoenix.Socket{ ...
   """
-  @spec broadcast_poke(Phoenix.Socket.t(), Keyword.t()) :: result
+  @spec broadcast_poke(Drab.Core.subject(), Keyword.t()) :: result
   def broadcast_poke(socket, assigns) do
     # do_poke(socket, nil, nil, assigns, &Drab.Core.broadcast_js/2)
     broadcast_poke(socket, nil, nil, assigns)
@@ -400,7 +401,7 @@ defmodule Drab.Live do
       iex> broadcast_poke(socket, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
   """
-  @spec broadcast_poke(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
+  @spec broadcast_poke(Drab.Core.subject(), String.t() | nil, Keyword.t()) :: result
   def broadcast_poke(socket, partial, assigns) do
     # do_poke(socket, nil, partial, assigns, &Drab.Core.broadcast_js/2)
     broadcast_poke(socket, nil, partial, assigns)
@@ -412,7 +413,7 @@ defmodule Drab.Live do
       iex> broadcast_poke(socket, MyApp.UserView, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
   """
-  @spec broadcast_poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
+  @spec broadcast_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t()) :: result
   def broadcast_poke(socket, view, partial, assigns) do
     # if socket.assigns.__broadcast_topic =~ "same_path:" ||
     #    socket.assigns.__broadcast_topic =~ "action:" do
@@ -427,7 +428,7 @@ defmodule Drab.Live do
     #  end
   end
 
-  @spec do_poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t(), function) :: result
+  @spec do_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t(), function) :: result
   defp do_poke(socket, view, partial_name, assigns, function) do
     if Enum.member?(Keyword.keys(assigns), :conn) do
       raise ArgumentError,
@@ -437,7 +438,7 @@ defmodule Drab.Live do
     end
 
     view = view || Drab.get_view(socket)
-    partial = if partial_name, do: partial_hash(view, partial_name), else: index(socket)
+    partial = if partial_name, do: Cache.partial_hash(view, partial_name), else: index(socket)
 
     current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
 
@@ -491,7 +492,7 @@ defmodule Drab.Live do
 
     html =
       view
-      |> Phoenix.View.render_to_string(template_name(partial_name, partial), all_assigns)
+      |> Phoenix.View.render_to_string(Cache.template_name(partial_name, partial), all_assigns)
       |> Floki.parse()
 
     # construct the javascripts for update of amperes
@@ -616,7 +617,7 @@ defmodule Drab.Live do
   @spec assigns(Phoenix.Socket.t(), atom | nil, String.t() | nil) :: list
   def assigns(socket, view, partial) do
     view = view || Drab.get_view(socket)
-    partial_hash = if partial, do: partial_hash(view, partial), else: index(socket)
+    partial_hash = if partial, do: Cache.partial_hash(view, partial), else: index(socket)
 
     socket
     |> ampere_assigns(:assigns)
@@ -838,37 +839,6 @@ defmodule Drab.Live do
     end
   end
 
-  @spec partial_cache_module(String.t()) :: atom
-  defp partial_cache_module(hash), do: Drab.Live.Engine.module_name(hash)
-
-  @spec partial_hash(atom, String.t()) :: String.t() | no_return
-  defp partial_hash(view, partial_name) do
-    path = partial_path(view, partial_name)
-    Drab.Live.Crypto.hash(path)
-    # module = partial_cache_module(path)
-    # unless Code.ensure_loaded?(module), do: raise_partial_not_found(path)
-    # module.hash()
-  end
-
-  @spec partial_path(atom, String.t()) :: String.t()
-  defp partial_path(view, partial_name) do
-    templates_path(view) <> partial_name <> Drab.Config.drab_extension()
-  end
-
-  @spec templates_path(atom) :: String.t()
-  defp templates_path(view) do
-    {path, _, _} = view.__templates__()
-    path <> "/"
-  end
-
-  @spec template_name(atom, String.t()) :: String.t()
-  defp template_name(partial_name, partial_hash) do
-    module = partial_cache_module(partial_hash)
-    unless Code.ensure_loaded?(module), do: raise_partial_not_found(partial_name)
-    # {path, _} = Drab.Live.Cache.get(partial)
-    module.path() |> Path.basename() |> Path.rootname(Drab.Config.drab_extension())
-  end
-
   @spec raise_assign_not_found(atom, list) :: no_return
   defp raise_assign_not_found(assign, current_keys) do
     raise ArgumentError,
@@ -885,7 +855,7 @@ defmodule Drab.Live do
   end
 
   @spec raise_partial_not_found(String.t() | nil) :: no_return
-  defp raise_partial_not_found(path) do
+  def raise_partial_not_found(path) do
     raise ArgumentError,
       message: """
       template `#{path || "main"}` not found.
