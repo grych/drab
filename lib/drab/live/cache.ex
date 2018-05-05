@@ -27,7 +27,7 @@ defmodule Drab.Live.Cache do
     Drab.Live.Crypto.hash(path)
   end
 
-  @spec template_name(atom, String.t()) :: String.t()
+  # no spec, sorry
   def template_name(partial_name, partial_hash) do
     module = partial_cache_module(partial_hash)
     unless Code.ensure_loaded?(module), do: Drab.Live.raise_partial_not_found(partial_name)
