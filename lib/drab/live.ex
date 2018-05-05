@@ -252,7 +252,7 @@ defmodule Drab.Live do
       config :drab, enable_live_scripts: true
   """
 
-  @type result :: Phoenix.Socket.t() | Drab.Core.result()
+  @type result :: Phoenix.Socket.t() | Drab.Core.result() | no_return
 
   import Drab.Core
   require IEx
