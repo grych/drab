@@ -4,5 +4,5 @@ defmodule DrabTestApp.LiveView do
   use DrabTestApp.Web, :view
   @doc false
   # for testing purposes only
-  def nodrab(term), do: term
+  # def nodrab(term), do: term
 end

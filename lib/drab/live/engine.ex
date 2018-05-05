@@ -12,6 +12,15 @@ defmodule Drab.Live.Engine do
 
   @impl true
   def compile(path, _name) do
+    if Process.get(:partial) == "gi3tgnrzg44tmnbs" do
+      # path = "./_build/dev/lib/drab/ebin/"
+      # {_, _, code, _} = defmodule Elixir.A do
+      #   def a() do
+      #     "aaaaxxx"
+      #   end
+      # end
+      # File.write(path <> "Elixir.A.beam", code, [:write])
+    end
     path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
   end
 end

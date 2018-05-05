@@ -134,7 +134,7 @@ defmodule Drab.Commander do
 
         onload :page_loaded
         onconnect :connected
-        ondisconnect :dosconnected
+        ondisconnect :disconnected
 
         before_handler :check_status
         after_handler  :clean_up, only: [:perform_long_process]
