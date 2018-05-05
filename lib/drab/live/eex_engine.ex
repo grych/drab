@@ -142,7 +142,7 @@ defmodule Drab.Live.EExEngine do
   use EEx.Engine
   require IEx
   require Logger
-  alias Drab.Live.Safe
+  alias Drab.Live.{Safe, Partial}
 
   @jsvar "__drab"
   @drab_id "drab-ampere"
@@ -161,7 +161,7 @@ defmodule Drab.Live.EExEngine do
            |> String.downcase() == ".html" do
       raise EEx.SyntaxError,
         message: """
-        Drab.Live may work only with html partials.
+        Drab.Live works only with html partials.
 
         Invalid extention of file: #{opts[:file]}.
         """
@@ -174,15 +174,14 @@ defmodule Drab.Live.EExEngine do
     Drab.Live.Cache.start()
     Drab.Live.Cache.set(partial, partial_hash)
     Drab.Live.Cache.set(partial_hash, partial)
-    Process.put(:partial, partial_hash)
 
-    buffer = "{{{{@drab-partial:#{partial_hash}}}}}"
+    buffer = ["{{{{@drab-partial:#{partial_hash}}}}}"]
     # {:safe, buffer}
-    %Safe{safe: buffer}
+    %Safe{safe: buffer, partial: %Partial{name: partial, hash: partial_hash}}
   end
 
   @impl true
-  def handle_body(%Safe{safe: body}) do
+  def handle_body(%Safe{safe: body, partial: partial}) do
     body = List.flatten(body)
     partial_hash = partial(body)
 
@@ -276,7 +275,7 @@ defmodule Drab.Live.EExEngine do
 
     # {:safe, final}
     # can't just return %Safe{}, dialyzer would complain
-    {:drab, %Safe{safe: final}}
+    {:drab, %Safe{safe: final, partial: partial}}
   end
 
   @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/Us
@@ -372,11 +371,11 @@ defmodule Drab.Live.EExEngine do
   defp ampered_tag?(string) when is_binary(string), do: false
 
   @impl true
-  def handle_text(%Safe{safe: buffer}, text) do
+  def handle_text(%Safe{safe: buffer, partial: partial}, text) do
     q = quote do
       [unquote(buffer), unquote(text)]
     end
-    %Drab.Live.Safe{safe: q}
+    %Drab.Live.Safe{safe: q, partial: partial}
   end
 
   @impl true
@@ -400,18 +399,18 @@ defmodule Drab.Live.EExEngine do
   end
 
   @impl true
-  def handle_expr(%Safe{safe: buffer}, "", expr) do
+  def handle_expr(%Safe{safe: buffer, partial: partial}, "", expr) do
     expr = Macro.prewalk(expr, &handle_assign/1)
 
     q = quote do
        tmp2 = unquote(buffer)
        unquote(expr)
      end
-    %Safe{safe: q}
+    %Safe{safe: q, partial: partial}
   end
 
   @impl true
-  def handle_expr(%Safe{safe: buffer}, "=", expr) do
+  def handle_expr(%Safe{safe: buffer, partial: partial}, "=", expr) do
     # check if the expression is in the nodrab/1
     {expr, nodrab} =
       case expr do
@@ -444,7 +443,7 @@ defmodule Drab.Live.EExEngine do
       end
     end
 
-    ampere_id = hash({Process.get(:partial), buffer, expr})
+    ampere_id = hash({partial.hash, buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
 
     html = to_flat_html(buffer)
@@ -519,11 +518,11 @@ defmodule Drab.Live.EExEngine do
       end
 
     # {:safe, buf}
-    %Drab.Live.Safe{safe: buf}
+    %Drab.Live.Safe{safe: buf, partial: partial}
   end
 
   @impl true
-  def handle_expr(%Safe{safe: buffer}, "/", expr) do
+  def handle_expr(%Safe{safe: buffer, partial: partial}, "/", expr) do
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
 
@@ -531,7 +530,7 @@ defmodule Drab.Live.EExEngine do
        tmp1 = unquote(buffer)
        [tmp1, unquote(to_safe(expr, line))]
      end
-    %Safe{safe: q}
+    %Safe{safe: q, partial: partial}
   end
 
   defp nodrab(buffer, expr) do

@@ -23,8 +23,9 @@ defmodule Drab.Live.Engine do
       # File.write(path <> "Elixir.A.beam", code, [:write])
     end
 
-    {:drab, %Safe{safe: safe}} =
+    {:drab, %Safe{safe: safe, partial: _partial}} =
       path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
+    # IO.inspect partial
     {:safe, safe}
   end
 end
