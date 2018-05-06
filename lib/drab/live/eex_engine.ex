@@ -366,6 +366,7 @@ defmodule Drab.Live.EExEngine do
       quote do
         tmp2 = unquote(buffer)
         unquote(expr)
+        tmp2
       end
 
     %Safe{safe: q, partial: partial}

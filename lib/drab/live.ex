@@ -77,8 +77,9 @@ defmodule Drab.Live do
   process and lasts only during the lifetime of the event handler.
 
   This, event handler process keeps all the assigns value until it ends. Please notice that
-  the other process may update the assigns on the page in the same time, when your event handler
-  is still running. If you want to re-read the assigns cache, run `clean_cache/0`.
+  the other process may update the assigns on the page in the same time, by using broadcasting
+  functions, when your event handler is still running. If you want to re-read the assigns cache,
+  run `clean_cache/0`.
 
   ### Partials
   Function `poke/2` and `peek/2` works on the default template - the one rendered with
@@ -126,8 +127,8 @@ defmodule Drab.Live do
 
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML
-  is valid. There are also some limits for defining attributes, properties, local variables, etc.
-  See `Drab.Live.EExEngine` for a full description.
+  is valid. There are also some limits for defining properties. See `Drab.Live.EExEngine` for
+  a full description.
 
   ### Update Behaviours
   There are different behaviours of `Drab.Live`, depends on where the expression with the updated
