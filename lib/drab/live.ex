@@ -25,7 +25,7 @@ defmodule Drab.Live do
 
       <p>Chapter <%= nodrab(@chapter_no) %>.</p>
 
-  With Elixir 1.6, you may use the special marker "/", which does exactly the same as `nodrab`:
+  Since Elixir 1.6, you may use the special marker "/", which does exactly the same as `nodrab`:
 
       <p>Chapter <%/ @chapter_no %>.</p>
 
@@ -220,7 +220,7 @@ defmodule Drab.Live do
   this, you don't have to worry about the initial value.
 
   Notice that `@property=<%= expression %>` *is the only available syntax*, you can not use
-  string pattern or give more than one expression. Property must be solid bind to the expression.
+  string pattern or give more than one expression. Property must be stronly bind to the expression.
 
   The expression binded with the property *must be encodable to JSON*, so, for example, tuples
   are not allowed here. Please refer to `Jason` for more information about encoding JS.
@@ -228,7 +228,7 @@ defmodule Drab.Live do
   #### Scripts
   When the assign we want to change is inside the `<script></script>` tag, Drab will re-evaluate
   the whole script after assigment change. Let's say you don't want to use
-  `$property=<%=expression%>` syntax to define the object property. You may want to render
+  `@property=<%=expression%>` syntax to define the object property. You may want to render
   the javascript:
 
       <script>
