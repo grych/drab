@@ -71,35 +71,6 @@ defmodule Drab.Live.Partial do
     path <> "/"
   end
 
-  # %Drab.Live.Partial{
-  #   amperes: %{
-  #     "gi2dcmbrgqztmobz" => [
-  #       %Drab.Live.Ampere{
-  #         assigns: [:text],
-  #         attribute: nil,
-  #         gender: :what,
-  #         tag: ""
-  #       }
-  #     ],
-  #     "gi4dcmbygq3tmnrt" => [
-  #       %Drab.Live.Ampere{
-  #         assigns: [:color],
-  #         attribute: nil,
-  #         gender: :what,
-  #         tag: ""
-  #       },
-  #       %Drab.Live.Ampere{
-  #         assigns: [:text],
-  #         attribute: nil,
-  #         gender: :what,
-  #         tag: ""
-  #       }
-  #     ]
-  #   },
-  #   hash: "gm2dgnjygm2dgnjt",
-  #   name: "test/support/web/templates/live/live_engine_test.html.drab"
-  # }
-
   @doc """
   Returns list of amperes for the given assign.
 
@@ -110,12 +81,14 @@ defmodule Drab.Live.Partial do
       iex> amperes_for_assign("gm2dgnjygm2dgnjt", :nonexistent)
       []
   """
+  @spec amperes_for_assign(String.t(), atom) :: [String.t()]
   def amperes_for_assign(hash, assign) do
     for {ampere_id, amperes} <- partial(hash).amperes,
         ampere <- amperes,
         assign in ampere.assigns do
       ampere_id
-    end |> Enum.uniq()
+    end
+    |> Enum.uniq()
   end
 
   @doc """
@@ -130,9 +103,12 @@ defmodule Drab.Live.Partial do
       iex> amperes_for_assigns("gm2dgnjygm2dgnjt", [:nonexistent])
       []
   """
+  @spec amperes_for_assigns(String.t(), [atom]) :: [String.t()]
   def amperes_for_assigns(hash, assigns) do
     for assign <- assigns do
       amperes_for_assign(hash, assign)
-    end |> List.flatten() |> Enum.uniq()
+    end
+    |> List.flatten()
+    |> Enum.uniq()
   end
 end
