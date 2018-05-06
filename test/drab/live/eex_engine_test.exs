@@ -107,22 +107,22 @@ defmodule Drab.Live.EExEngineTest do
     assert shallow_find_assigns(@nested_expr) == [:count]
   end
 
-  @simple_pattern """
-    AAA{{{{@drab-expr-hash:ge2tonjvhe3dqnjv}}}}{{{{/@drab-expr-hash:ge2tonjvhe3dqnjv}}}} X
-  """
+  # @simple_pattern """
+  #   AAA{{{{@drab-expr-hash:ge2tonjvhe3dqnjv}}}}{{{{/@drab-expr-hash:ge2tonjvhe3dqnjv}}}} X
+  # """
 
-  @nested_pattern """
-  {{{{@drab-expr-hash:gmydcmjshe3dama}}}}{{{{/@drab-expr-hash:gmydcmjshe3dama}}}}
-  <b drab-ampere=\"gi2tamrrgy2tcny\">AAA
-    {{{{@drab-expr-hash:ge2tonjvhe3dqnjv}}}}{{{{/@drab-expr-hash:ge2tonjvhe3dqnjv}}}}
-  </b><b>somethign</b>
-  """
+  # @nested_pattern """
+  # {{{{@drab-expr-hash:gmydcmjshe3dama}}}}{{{{/@drab-expr-hash:gmydcmjshe3dama}}}}
+  # <b drab-ampere=\"gi2tamrrgy2tcny\">AAA
+  #   {{{{@drab-expr-hash:ge2tonjvhe3dqnjv}}}}{{{{/@drab-expr-hash:ge2tonjvhe3dqnjv}}}}
+  # </b><b>somethign</b>
+  # """
 
-  test "assigns from simple pattern" do
-    assert assigns_and_parents_from_pattern(@simple_pattern) == {[:color], [:users]}
-  end
+  # test "assigns from simple pattern" do
+  #   assert assigns_and_parents_from_pattern(@simple_pattern) == {[:color], [:users]}
+  # end
 
-  test "assigns from netsted pattern" do
-    assert assigns_and_parents_from_pattern(@nested_pattern) == {[:link], []}
-  end
+  # test "assigns from netsted pattern" do
+  #   assert assigns_and_parents_from_pattern(@nested_pattern) == {[:link], []}
+  # end
 end

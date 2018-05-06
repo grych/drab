@@ -1,4 +1,14 @@
 # CHANGELOG
+## v0.7.8 - `rm priv/drab.live.cache`
+### Potentially breaking release!
+`Drab.Live` engine has been redesigned again. No more stupid DETS cache anymore. Drab engine now
+creates modules for each template, and stores metadata compiled there.
+
+### Migration from 0.7.7
+
+    rm priv/drab.live.cache
+    mix clean
+
 ## v0.7.7
 ### Potentially breaking release!
 As a preparation to 0.8.0, this release contains fundamental change in `Drab.Live` behaviour. It
@@ -8,7 +18,7 @@ Please report any found issues with this release.
 
 ### API Changes
 #### The `@conn` case
-Because sometimes it is huge, `@conn` is treated in the special way - it is trimmed to contain only 
+Because sometimes it is huge, `@conn` is treated in the special way - it is trimmed to contain only
 essential fields. By default it is `:private => :phoenix_endpoint`, but you may configure it.
 
     config :drab, :live_conn_pass_through, %{
@@ -23,7 +33,7 @@ essential fields. By default it is `:private => :phoenix_endpoint`, but you may 
 See `Drab.Live` documentation for more details on this case.
 
 #### `:templates_path` config must be under `priv/`
-If you are using `:templates_path` config, and your templates are not under the `priv/` directory, 
+If you are using `:templates_path` config, and your templates are not under the `priv/` directory,
 you'll have to move them. Solved #105.
 
 ## v0.7.6

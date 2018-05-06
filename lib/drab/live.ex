@@ -256,7 +256,7 @@ defmodule Drab.Live do
 
   import Drab.Core
   require IEx
-  alias Drab.Live.{Partial}
+  alias Drab.Live.{Partial, Ampere}
 
   use DrabModule
   @impl true
@@ -502,8 +502,7 @@ defmodule Drab.Live do
     # construct the javascripts for update of amperes
     update_javascripts =
       for ampere <- amperes_to_update,
-          {gender, tag, prop_or_attr, _expr, _, _parent_assigns} <-
-            Drab.Live.Cache.get({partial, ampere}) || [] do
+          %Ampere{gender: gender, tag: tag, attribute: prop_or_attr} <- Partial.partial(partial).amperes[ampere] do
           # !is_a_child?(parent_assigns, assigns_to_update_keys) do
         case gender do
           :html ->

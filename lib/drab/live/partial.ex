@@ -1,6 +1,6 @@
 defmodule Drab.Live.Partial do
   @moduledoc false
-  alias Drab.Live.{Ampere}
+  alias Drab.Live.{Ampere, Partial}
 
   @type t :: %Drab.Live.Partial{
           path: String.t(),
@@ -110,5 +110,24 @@ defmodule Drab.Live.Partial do
     end
     |> List.flatten()
     |> Enum.uniq()
+  end
+
+  @doc """
+  Returns list of all assigns for a given partial hash or %Partial{}
+
+      iex> all_assigns("gm2dgnjygm2dgnjt") |> Enum.sort()
+      [:color, :text]
+  """
+  def all_assigns(%Partial{} = partial) do
+    for {_ampere_id, amperes} <- partial.amperes,
+        ampere <- amperes do
+      ampere.assigns
+    end
+    |> List.flatten()
+    |> Enum.uniq()
+  end
+
+  def all_assigns(hash) when is_binary(hash) do
+    all_assigns(partial(hash))
   end
 end

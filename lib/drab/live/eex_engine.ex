@@ -171,9 +171,9 @@ defmodule Drab.Live.EExEngine do
     partial_hash = hash(partial)
     Logger.info("Compiling Drab partial: #{partial} (#{partial_hash})")
 
-    Drab.Live.Cache.start()
-    Drab.Live.Cache.set(partial, partial_hash)
-    Drab.Live.Cache.set(partial_hash, partial)
+    # Drab.Live.Cache.start()
+    # Drab.Live.Cache.set(partial, partial_hash)
+    # Drab.Live.Cache.set(partial_hash, partial)
 
     buffer = ["{{{{@drab-partial:#{partial_hash}}}}}"]
     # {:safe, buffer}
@@ -213,36 +213,37 @@ defmodule Drab.Live.EExEngine do
     #    "{{{{@drab-expr-hash:gqzdgobrha2denbz}}}}{{{{/@drab-expr-hash:gqzdgobrha2denbz}}}}"}
     # ],
 
-    amperes_to_assigns =
-      for {ampere_id, vals} <- found_amperes do
-        ampere_values =
-          for {gender, tag, prop_or_attr, pattern} <- vals do
-            compiled =
-              gender
-              |> compiled_from_pattern(pattern, tag, prop_or_attr)
-              |> remove_drab_marks()
+    # amperes_to_assigns =
+    #   for {ampere_id, vals} <- found_amperes do
+    #     ampere_values =
+    #       for {gender, tag, prop_or_attr, pattern} <- vals do
+    #         compiled =
+    #           gender
+    #           |> compiled_from_pattern(pattern, tag, prop_or_attr)
+    #           |> remove_drab_marks()
 
-            {assigns, parents} = assigns_and_parents_from_pattern(pattern)
-            {gender, tag, prop_or_attr, compiled, assigns, parents}
-          end
+    #         {assigns, parents} = assigns_and_parents_from_pattern(pattern)
+    #         {gender, tag, prop_or_attr, compiled, assigns, parents}
+    #       end
 
-        Drab.Live.Cache.set({partial_hash, ampere_id}, ampere_values)
+    #     # Drab.Live.Cache.set({partial_hash, ampere_id}, ampere_values)
 
-        for {_, _, _, _, assigns, _} <- ampere_values,
-            assign <- assigns do
-          {assign, ampere_id}
-        end
-      end
-      |> List.flatten()
-      |> Enum.uniq()
-      |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
+    #     for {_, _, _, _, assigns, _} <- ampere_values,
+    #         assign <- assigns do
+    #       {assign, ampere_id}
+    #     end
+    #   end
+    #   |> List.flatten()
+    #   |> Enum.uniq()
+    #   |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
 
     # ampere-to_assign list
-    for {assign, amperes} <- amperes_to_assigns do
-      Drab.Live.Cache.set({partial_hash, assign}, amperes)
-    end
+    # for {assign, amperes} <- amperes_to_assigns do
+      # Drab.Live.Cache.set({partial_hash, assign}, amperes)
+    # end
 
-    found_assigns = Enum.uniq(for({assign, _} <- amperes_to_assigns, do: assign))
+    # found_assigns = Enum.uniq(for({assign, _} <- amperes_to_assigns, do: assign))
+    found_assigns = Partial.all_assigns(partial)
     all_assigns = find_assigns(body)
     nodrab_assigns = all_assigns -- found_assigns
 
@@ -260,9 +261,9 @@ defmodule Drab.Live.EExEngine do
       end)
       |> script_tag()
 
-    partial_path = Drab.Live.Cache.get(partial_hash)
-    Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
-    Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
+    # partial_path = Drab.Live.Cache.get(partial_hash)
+    # Drab.Live.Cache.set(partial_hash, {partial_path, found_assigns})
+    # Drab.Live.Cache.set(partial_path, {partial_hash, found_assigns})
 
     properies_js =
       for {ampere_id, vals} <- found_amperes do
@@ -307,16 +308,17 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-  @spec assigns_from_expr(Drab.Live.Partial.t(), String.t()) :: list
-  # returns list of assign for a given expr_hash
-  defp assigns_from_expr(partial, expr_hash) do
-    partial.expressions[expr_hash]
-  end
+  # @spec assigns_from_expr(Drab.Live.Partial.t(), String.t()) :: list
+  # # returns list of assign for a given expr_hash
+  # defp assigns_from_expr(partial, expr_hash) do
+  #   partial.expressions[expr_hash]
+  # end
 
   defp assigns_from_pattern(pattern) do
     for hash <- expr_hashes_from_pattern(pattern) do
       # assigns_from_expr(partial, hash)
-      Process.get(hash)
+      {_, assigns} = Process.get(hash)
+      assigns
     end
     |> List.flatten()
     |> Enum.uniq()
@@ -358,7 +360,8 @@ defmodule Drab.Live.EExEngine do
     # TODO: not sure
     case Regex.run(@expr, text) do
       [_, expr_hash] ->
-        {:expr, expr, _, _} = Drab.Live.Cache.get(expr_hash)
+        # {:expr, expr, _, _} = Drab.Live.Cache.get(expr_hash)
+        {expr, _} = Process.get(expr_hash)
 
         quote do
           unquote(expr)
@@ -369,49 +372,49 @@ defmodule Drab.Live.EExEngine do
     end
   end
 
-  @doc false
-  @spec assigns_and_parents_from_pattern(String.t()) :: {[atom], [atom]}
-  def assigns_and_parents_from_pattern(pattern) do
-    # do not search under nested ampered tags
-    pattern =
-      case Floki.parse(pattern) do
-        {_, _, _} ->
-          pattern
+  # @doc false
+  # @spec assigns_and_parents_from_pattern(String.t()) :: {[atom], [atom]}
+  # def assigns_and_parents_from_pattern(pattern) do
+  #   # do not search under nested ampered tags
+  #   pattern =
+  #     case Floki.parse(pattern) do
+  #       {_, _, _} ->
+  #         pattern
 
-        list when is_list(list) ->
-          list
-          |> Enum.reject(&ampered_tag?/1)
-          |> Floki.raw_html()
+  #       list when is_list(list) ->
+  #         list
+  #         |> Enum.reject(&ampered_tag?/1)
+  #         |> Floki.raw_html()
 
-        string when is_binary(string) ->
-          pattern
-      end
+  #       string when is_binary(string) ->
+  #         pattern
+  #     end
 
-    expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
+  #   expressions = for [_, expr_hash] <- Regex.scan(@expr, pattern), do: expr_hash
 
-    {assigns, parents} =
-      for expr_hash <- expressions do
-        {:expr, _, assigns, parents} = Drab.Live.Cache.get(expr_hash)
-        {assigns, parents}
-      end
-      |> Enum.unzip()
+  #   {assigns, parents} =
+  #     for expr_hash <- expressions do
+  #       {:expr, _, assigns, parents} = Drab.Live.Cache.get(expr_hash)
+  #       {assigns, parents}
+  #     end
+  #     |> Enum.unzip()
 
-    {assigns
-     |> List.flatten()
-     |> Enum.uniq(),
-     parents
-     |> List.flatten()
-     |> Enum.uniq()}
-  end
+  #   {assigns
+  #    |> List.flatten()
+  #    |> Enum.uniq(),
+  #    parents
+  #    |> List.flatten()
+  #    |> Enum.uniq()}
+  # end
 
-  @spec ampered_tag?({any, [String.t()], any} | String.t()) :: boolean
-  defp ampered_tag?({_, attributes, _}) do
-    Enum.find(attributes, fn {attribute, _} -> attribute == @drab_id end)
-  end
+  # @spec ampered_tag?({any, [String.t()], any} | String.t()) :: boolean
+  # defp ampered_tag?({_, attributes, _}) do
+  #   Enum.find(attributes, fn {attribute, _} -> attribute == @drab_id end)
+  # end
 
-  defp ampered_tag?({:comment, _}), do: false
+  # defp ampered_tag?({:comment, _}), do: false
 
-  defp ampered_tag?(string) when is_binary(string), do: false
+  # defp ampered_tag?(string) when is_binary(string), do: false
 
   @impl true
   def handle_text(%Safe{safe: buffer, partial: partial}, text) do
@@ -471,7 +474,7 @@ defmodule Drab.Live.EExEngine do
     expr = Macro.prewalk(expr, &handle_assign/1)
 
     found_assigns = find_assigns(expr)
-    shallow_assigns = shallow_find_assigns(expr)
+    # shallow_assigns = shallow_find_assigns(expr)
     found_assigns? = found_assigns != []
 
     # if the expression contains only :conn, it is always nodrab
@@ -482,13 +485,13 @@ defmodule Drab.Live.EExEngine do
     nodrab = if in_comment_or_doctype?(buffer), do: true, else: nodrab
 
     # set up parent assigns for all found children
-    unless nodrab do
-      for child_expr_hash <- find_expr_hashes(expr) do
-        {:expr, expression, assigns, parent_assigns} = Drab.Live.Cache.get(child_expr_hash)
-        parent_assigns = Enum.uniq(parent_assigns ++ shallow_assigns) -- assigns
-        Drab.Live.Cache.set(child_expr_hash, {:expr, expression, assigns, parent_assigns})
-      end
-    end
+    # unless nodrab do
+    #   for child_expr_hash <- find_expr_hashes(expr) do
+    #     {:expr, expression, assigns, parent_assigns} = Drab.Live.Cache.get(child_expr_hash)
+    #     parent_assigns = Enum.uniq(parent_assigns ++ shallow_assigns) -- assigns
+    #     Drab.Live.Cache.set(child_expr_hash, {:expr, expression, assigns, parent_assigns})
+    #   end
+    # end
 
     ampere_id = hash({partial.hash, buffer, expr})
     attribute = "#{@drab_id}=\"#{ampere_id}\""
@@ -519,12 +522,12 @@ defmodule Drab.Live.EExEngine do
     hash = hash(expr)
 
     unless nodrab do
-      Drab.Live.Cache.set(
-        hash,
-        {:expr, remove_drab_marks(expr), found_assigns, []}
-      )
+      # Drab.Live.Cache.set(
+      #   hash,
+      #   {:expr, remove_drab_marks(expr), found_assigns, []}
+      # )
 
-      Process.put(hash, found_assigns)
+      Process.put(hash, {remove_drab_marks(expr), found_assigns})
     end
 
     # TODO: REFACTOR
@@ -676,7 +679,7 @@ defmodule Drab.Live.EExEngine do
 
   @doc false
   @spec encoded_expr(Macro.t()) :: Macro.t()
-  def encoded_expr(expr) do
+  defp encoded_expr(expr) do
     quote @anno do
       Drab.Core.encode_js(unquote(expr))
     end
