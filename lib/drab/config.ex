@@ -39,9 +39,6 @@ defmodule Drab.Config do
   #### :enable_live_scripts *(default: `false`)*
     Re-evaluation of JavaScripts containing living assigns is disabled by default.
 
-  #### :live_helper_modules *(default: `[Router.Helpers, ErrorHelpers, Gettext]`)*
-    A list of modules to be imported when Drab.Live evaluates expression with living assigns.
-
   #### :live_conn_pass_through, *(default: `%{private: %{phoenix_endpoint: true}}`)*
     A deep map marking fields which should be preserved in the fake `@conn` assign. See `Drab.Live`
     for more detailed explanation on conn case.
@@ -68,6 +65,11 @@ defmodule Drab.Config do
         {:module, Mix.Project} -> Mix.Project.config()[:app] || raise_app_not_found()
         {:error, _} -> raise_app_not_found()
       end
+  end
+
+  @spec ebin_dir :: String.t()
+  def ebin_dir() do
+    app_name() |> Application.app_dir() |> Path.join("ebin")
   end
 
   @spec raise_app_not_found :: no_return
@@ -275,17 +277,6 @@ defmodule Drab.Config do
 
   def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
 
-  def get(:live_helper_modules) do
-    case Application.get_env(:drab, :live_helper_modules, [Router.Helpers, ErrorHelpers, Gettext]) do
-      list when is_list(list) ->
-        with_app_module(list)
-
-      # for backwards compatibility
-      tuple when is_tuple(tuple) ->
-        with_app_module(Tuple.to_list(tuple))
-    end
-  end
-
   def get(:live_conn_pass_through) do
     Application.get_env(:drab, :live_conn_pass_through, %{
       private: %{
@@ -295,7 +286,4 @@ defmodule Drab.Config do
   end
 
   def get(_), do: nil
-
-  @spec with_app_module(list) :: list
-  defp with_app_module(list), do: Enum.map(list, fn x -> Module.concat(app_module(), x) end)
 end

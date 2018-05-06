@@ -1,0 +1,5 @@
+<div>1: <%= @text %> 2: <%= @color %></div>
+
+3: <%= @text %>
+
+4: <a href="<%= @text %>" @style.backgroundColor=<%= @color %>><%= @text %></a>

@@ -13,9 +13,6 @@ defmodule Drab.Supervisor do
         {:module, DrabTestApp} -> [supervisor(DrabTestApp.Endpoint, [])]
       end
 
-    # Start DETS cache
-    Drab.Live.Cache.start()
-
     opts = [strategy: :one_for_one, name: Drab.Supervisor]
     Supervisor.start_link(children, opts)
   end

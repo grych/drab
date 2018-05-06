@@ -8,19 +8,34 @@ defmodule Drab.Live.Engine do
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
   """
+  alias Drab.Live.Safe
   @behaviour Phoenix.Template.Engine
 
   @impl true
   def compile(path, _name) do
-    if Process.get(:partial) == "gi3tgnrzg44tmnbs" do
-      # path = "./_build/dev/lib/drab/ebin/"
-      # {_, _, code, _} = defmodule Elixir.A do
-      #   def a() do
-      #     "aaaaxxx"
-      #   end
-      # end
-      # File.write(path <> "Elixir.A.beam", code, [:write])
-    end
-    path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
+    {:drab, %Safe{safe: safe, partial: partial}} =
+      path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
+
+    module = module_name(partial.hash)
+
+    quoted =
+      quote do
+        def partial(), do: unquote(Macro.escape(partial))
+        def path(), do: partial().path
+        def hash(), do: partial().hash
+        def amperes(), do: partial().amperes
+      end
+
+    Module.create(module, quoted, Macro.Env.location(__ENV__))
+    # if String.contains?(path, "live_engine_test.html") do
+    #   IO.inspect partial
+    # end
+    {:safe, safe}
+  end
+
+  @spec module_name(String.t()) :: atom
+  @doc false
+  def module_name(hash) do
+    Module.concat([Drab, Live, Template] ++ [String.capitalize(hash)])
   end
 end
