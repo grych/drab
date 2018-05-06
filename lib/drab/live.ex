@@ -462,12 +462,16 @@ defmodule Drab.Live do
     #   Drab.Config.get(:live_helper_modules)
     # }
 
-    amperes_to_update = #Partial.amperes_for_assigns(partial, assigns)
-      for {assign, _} <- assigns do
-        Drab.Live.Cache.get({partial, assign})
-      end
-      |> List.flatten()
-      |> Enum.uniq()
+    amperes_to_update = Partial.amperes_for_assigns(partial, assigns_to_update_keys)
+      # for {assign, _} <- assigns do
+      #   Drab.Live.Cache.get({partial, assign})
+      # end
+      # |> List.flatten()
+      # |> Enum.uniq()
+
+    # IO.inspect amperes_to_update
+    # # IO.inspect {partial, assigns}
+    # IO.inspect Partial.amperes_for_assigns(partial, assigns_to_update_keys)
 
     # update only those which are in shared commander
     amperes_to_update =

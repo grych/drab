@@ -194,6 +194,25 @@ defmodule Drab.Live.EExEngine do
 
     found_amperes = amperes_from_buffer({:safe, body})
 
+    partial_amperes =
+      for {ampere_id, values} <- found_amperes, into: %{} do
+        {ampere_id,
+         for {gender, tag, prop_or_attr, pattern} <- values do
+           %Ampere{gender: gender, tag: tag, attribute: prop_or_attr, assigns: assigns_from_pattern(pattern)}
+          #  {gender, tag, prop_or_attr, assigns_from_pattern(pattern)}
+         end}
+      end
+    partial = %Partial{partial | amperes: partial_amperes}
+    if partial_hash == "gi3dcnzwgm2dcmrv" do
+      IO.inspect(partial)
+      # IO.inspect partial
+    end
+
+    #     "gi2dcmbrgqztmobz" => [
+    #   {:html, "span", "innerHTML",
+    #    "{{{{@drab-expr-hash:gqzdgobrha2denbz}}}}{{{{/@drab-expr-hash:gqzdgobrha2denbz}}}}"}
+    # ],
+
     amperes_to_assigns =
       for {ampere_id, vals} <- found_amperes do
         ampere_values =
@@ -222,7 +241,6 @@ defmodule Drab.Live.EExEngine do
     for {assign, amperes} <- amperes_to_assigns do
       Drab.Live.Cache.set({partial_hash, assign}, amperes)
     end
-
 
     found_assigns = Enum.uniq(for({assign, _} <- amperes_to_assigns, do: assign))
     all_assigns = find_assigns(body)
@@ -279,6 +297,31 @@ defmodule Drab.Live.EExEngine do
   end
 
   @expr ~r/{{{{@drab-expr-hash:(\S+)}}}}.*{{{{\/@drab-expr-hash:\S+}}}}/Us
+
+  @spec expr_hashes_from_pattern(String.t()) :: list
+  defp expr_hashes_from_pattern(pattern) do
+    for string <- String.split(pattern, @expr, include_captures: true, trim: true),
+        expr = Regex.run(@expr, string),
+        expr do
+      List.last(expr)
+    end
+  end
+
+  @spec assigns_from_expr(Drab.Live.Partial.t(), String.t()) :: list
+  # returns list of assign for a given expr_hash
+  defp assigns_from_expr(partial, expr_hash) do
+    partial.expressions[expr_hash]
+  end
+
+  defp assigns_from_pattern(pattern) do
+    for hash <- expr_hashes_from_pattern(pattern) do
+      # assigns_from_expr(partial, hash)
+      Process.get(hash)
+    end
+    |> List.flatten()
+    |> Enum.uniq()
+  end
+
   @spec compiled_from_pattern(atom, String.t(), String.t(), String.t()) ::
           Macro.t() | [Macro.t()] | no_return
   defp compiled_from_pattern(:prop, pattern, tag, property) do
@@ -372,9 +415,11 @@ defmodule Drab.Live.EExEngine do
 
   @impl true
   def handle_text(%Safe{safe: buffer, partial: partial}, text) do
-    q = quote do
-      [unquote(buffer), unquote(text)]
-    end
+    q =
+      quote do
+        [unquote(buffer), unquote(text)]
+      end
+
     %Drab.Live.Safe{safe: q, partial: partial}
   end
 
@@ -402,10 +447,12 @@ defmodule Drab.Live.EExEngine do
   def handle_expr(%Safe{safe: buffer, partial: partial}, "", expr) do
     expr = Macro.prewalk(expr, &handle_assign/1)
 
-    q = quote do
-       tmp2 = unquote(buffer)
-       unquote(expr)
-     end
+    q =
+      quote do
+        tmp2 = unquote(buffer)
+        unquote(expr)
+      end
+
     %Safe{safe: q, partial: partial}
   end
 
@@ -448,7 +495,7 @@ defmodule Drab.Live.EExEngine do
 
     html = to_flat_html(buffer)
 
-    {buffer, ampere_id} =
+    {buffer, _ampere_id} =
       if !inject_span? && found_assigns? && !nodrab do
         case inject_attribute_to_last_opened(buffer, attribute) do
           # injected!
@@ -476,6 +523,8 @@ defmodule Drab.Live.EExEngine do
         hash,
         {:expr, remove_drab_marks(expr), found_assigns, []}
       )
+
+      Process.put(hash, found_assigns)
     end
 
     # TODO: REFACTOR
@@ -517,12 +566,6 @@ defmodule Drab.Live.EExEngine do
           end
       end
 
-    current_ampere = %Ampere{gender: :what, tag: "", attribute: attr, assigns: found_assigns}
-    amperes = partial.amperes[ampere_id] || []
-    amperes = [current_ampere | amperes]
-    # IO.inspect amperes
-    partial = %Partial{path: partial.path, hash: partial.hash, amperes: Map.put(partial.amperes, ampere_id, amperes)}
-
     # {:safe, buf}
     %Drab.Live.Safe{safe: buf, partial: partial}
   end
@@ -532,10 +575,12 @@ defmodule Drab.Live.EExEngine do
     line = line_from_expr(expr)
     expr = Macro.prewalk(expr, &handle_assign/1)
 
-     q = quote do
-       tmp1 = unquote(buffer)
-       [tmp1, unquote(to_safe(expr, line))]
-     end
+    q =
+      quote do
+        tmp1 = unquote(buffer)
+        [tmp1, unquote(to_safe(expr, line))]
+      end
+
     %Safe{safe: q, partial: partial}
   end
 

@@ -28,9 +28,9 @@ defmodule Drab.Live.Engine do
       end
 
     Module.create(module, quoted, Macro.Env.location(__ENV__))
-    if String.contains?(path, "live_engine_test.html") do
-      IO.inspect partial
-    end
+    # if String.contains?(path, "live_engine_test.html") do
+    #   IO.inspect partial
+    # end
     {:safe, safe}
   end
 

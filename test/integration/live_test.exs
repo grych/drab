@@ -106,12 +106,10 @@ defmodule DrabTestApp.LiveTest do
     end
 
     test "updating the attribute in one partial should not affect the other", fixture do
-      partial1_href = find_element(:id, "partial1_href")
-      partial2_href = find_element(:id, "partial2_href")
-      assert attribute_value(partial1_href, "href") == "https://tg.pl/"
+      assert attribute_value(find_element(:id, "partial1_href"), "href") == "https://tg.pl/"
       poke(fixture.socket, "partial1.html", link: "https://tg.pl/drab")
-      assert attribute_value(partial1_href, "href") == "https://tg.pl/drab"
-      assert attribute_value(partial2_href, "href") == "https://tg.pl/"
+      assert attribute_value(find_element(:id, "partial1_href"), "href") == "https://tg.pl/drab"
+      assert attribute_value(find_element(:id, "partial2_href"), "href") == "https://tg.pl/"
     end
 
     test "script test", fixture do
