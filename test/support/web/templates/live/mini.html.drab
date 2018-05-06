@@ -6,4 +6,4 @@
   <button class="btn <%= @class2 %>" type="submit" drab="click:update_mini">update mini</button>
 </form>
 
-<div><%= @text %> <%= @class2 %></div>
+<div @style.backgroundColor=<%= @color %>><%= @text %> <%= @class2 %></div>
