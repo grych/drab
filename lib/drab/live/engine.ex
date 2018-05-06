@@ -17,7 +17,6 @@ defmodule Drab.Live.Engine do
       path |> File.read!() |> EEx.compile_string(engine: Drab.Live.EExEngine, file: path, line: 1)
 
     module = module_name(partial.hash)
-    IO.inspect(module)
 
     quoted =
       quote do
@@ -39,16 +38,4 @@ defmodule Drab.Live.Engine do
   def module_name(hash) do
     Module.concat([Drab, Live, Template] ++ [String.capitalize(hash)])
   end
-
-  # def module_name(path) do
-  #   dir = Path.dirname(path) |> Path.split() |> Enum.map(&String.capitalize/1)
-
-  #   file =
-  #     path
-  #     |> Path.basename(Drab.Config.drab_extension())
-  #     |> Path.basename(".html")
-  #     |> String.capitalize()
-
-  #   Module.concat([Drab, Live, Template] ++ dir ++ [file])
-  # end
 end

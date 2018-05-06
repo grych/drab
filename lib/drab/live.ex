@@ -428,7 +428,8 @@ defmodule Drab.Live do
     #  end
   end
 
-  @spec do_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t(), function) :: result
+  @spec do_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t(), function) ::
+          result
   defp do_poke(socket, view, partial_name, assigns, function) do
     if Enum.member?(Keyword.keys(assigns), :conn) do
       raise ArgumentError,
@@ -438,7 +439,9 @@ defmodule Drab.Live do
     end
 
     view = view || Drab.get_view(socket)
-    partial = if partial_name, do: Partial.hash_for_view_and_name(view, partial_name), else: index(socket)
+
+    partial =
+      if partial_name, do: Partial.hash_for_view_and_name(view, partial_name), else: index(socket)
 
     current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
 
@@ -457,21 +460,7 @@ defmodule Drab.Live do
       |> Enum.into([])
       |> Keyword.merge(assigns)
 
-    # modules = {
-    #   Drab.get_view(socket),
-    #   Drab.Config.get(:live_helper_modules)
-    # }
-
     amperes_to_update = Partial.amperes_for_assigns(partial, assigns_to_update_keys)
-      # for {assign, _} <- assigns do
-      #   Drab.Live.Cache.get({partial, assign})
-      # end
-      # |> List.flatten()
-      # |> Enum.uniq()
-
-    # IO.inspect amperes_to_update
-    # # IO.inspect {partial, assigns}
-    # IO.inspect Partial.amperes_for_assigns(partial, assigns_to_update_keys)
 
     # update only those which are in shared commander
     amperes_to_update =
@@ -490,10 +479,6 @@ defmodule Drab.Live do
 
     all_assigns = Keyword.merge(nodrab_assigns, updated_assigns)
 
-    # t1 = :os.system_time(:millisecond)
-    # Phoenix.View.render_to_string(view, template_name(partial), all_assigns)
-    # IO.inspect :os.system_time(:millisecond) - t1
-
     html =
       view
       |> Phoenix.View.render_to_string(Partial.template_filename(partial), all_assigns)
@@ -502,8 +487,8 @@ defmodule Drab.Live do
     # construct the javascripts for update of amperes
     update_javascripts =
       for ampere <- amperes_to_update,
-          %Ampere{gender: gender, tag: tag, attribute: prop_or_attr} <- Partial.partial(partial).amperes[ampere] do
-          # !is_a_child?(parent_assigns, assigns_to_update_keys) do
+          %Ampere{gender: gender, tag: tag, attribute: prop_or_attr} <-
+            Partial.partial(partial).amperes[ampere] do
         case gender do
           :html ->
             {_, _, value} = Floki.find(html, "[drab-ampere='#{ampere}']") |> List.first()
@@ -521,8 +506,6 @@ defmodule Drab.Live do
             new_value =
               Floki.attribute(html, "[drab-ampere='#{ampere}']", prop_or_attr) |> List.first()
 
-            # new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
-
             "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
               encode_js(new_value)
             })"
@@ -537,7 +520,6 @@ defmodule Drab.Live do
               |> List.first()
               |> encode_js()
 
-            # new_value = eval_expr(expr, modules, updated_assigns, gender) |> safe_to_string()
             "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
         end
       end
@@ -560,16 +542,6 @@ defmodule Drab.Live do
     end
   end
 
-  # the case when the expression is inside another expression
-  # and we update assigns of the parent expression as well
-  # @spec is_a_child?(list, list) :: boolean
-  # defp is_a_child?(list1, list2) do
-  #   not Enum.empty?(list1) &&
-  #     Enum.all?(list1, fn element ->
-  #       element in list2
-  #     end)
-  # end
-
   @spec has_amperes(String.t() | nil) :: integer
   defp has_amperes(nil), do: 0
 
@@ -591,7 +563,7 @@ defmodule Drab.Live do
       iex> Drab.Live.assigns(socket)
       [:welcome_text]
   """
-  #TODO: read assigns from compiled cache
+  # TODO: read assigns from compiled cache
   @spec assigns(Phoenix.Socket.t()) :: list
   def assigns(socket) do
     assigns(socket, nil, nil)
@@ -619,7 +591,9 @@ defmodule Drab.Live do
   @spec assigns(Phoenix.Socket.t(), atom | nil, String.t() | nil) :: list
   def assigns(socket, view, partial) do
     view = view || Drab.get_view(socket)
-    partial_hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
+
+    partial_hash =
+      if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
 
     socket
     |> ampere_assigns(:assigns)
@@ -638,63 +612,6 @@ defmodule Drab.Live do
     Process.put(:__assigns_and_index, nil)
   end
 
-  # @spec eval_expr(Macro.t(), {atom, list}, Keyword.t(), atom) :: term | no_return
-  # defp eval_expr(expr, modules, updated_assigns, :prop) do
-  #   eval_expr(Drab.Live.EExEngine.encoded_expr(expr), modules, updated_assigns)
-  # end
-
-  # defp eval_expr(expr, modules, updated_assigns, _) do
-  #   eval_expr(expr, modules, updated_assigns)
-  # end
-
-  # @spec eval_expr(Macro.t(), {atom, list}, Keyword.t()) :: term | no_return
-  # defp eval_expr(expr, modules, updated_assigns) do
-  #   e = expr_with_imports(expr, modules)
-
-  #   try do
-  #     {safe, _assigns} = Code.eval_quoted(e, assigns: updated_assigns)
-  #     safe
-  #   rescue
-  #     # TODO: to be removed after solving #71
-  #     e in CompileError ->
-  #       msg =
-  #         if String.contains?(e.description, "undefined function") do
-  #           """
-  #           #{e.description}
-
-  #           Using local variables defined in external blocks is prohibited in Drab.
-  #           Please check the following documentation page for more details:
-  #           https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
-  #           """
-  #         else
-  #           e.description
-  #         end
-
-  #       stacktrace = System.stacktrace()
-  #       reraise CompileError, [description: msg], stacktrace
-  #   end
-  # end
-
-  # @spec expr_with_imports(Macro.t(), {atom, list}) :: Macro.t()
-  # defp expr_with_imports(expr, {view, modules}) do
-  #   quote do
-  #     import Phoenix.View
-  #     import unquote(view)
-  #     import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
-  #     use Phoenix.HTML
-
-  #     unquote do
-  #       for module <- modules do
-  #         quote do
-  #           import unquote(module)
-  #         end
-  #       end
-  #     end
-
-  #     unquote(expr)
-  #   end
-  # end
-
   @spec assign_updates_js(map, String.t(), String.t()) :: [String.t()]
   defp assign_updates_js(assigns, partial, "document") do
     Enum.map(assigns, fn {k, v} ->
@@ -711,15 +628,6 @@ defmodule Drab.Live do
       }] = '#{Drab.Live.Crypto.encode64(v)}'"
     end)
   end
-
-  # defp safe_to_encoded_js(safe), do: safe |> safe_to_string() |> encode_js()
-
-  # @spec safe_to_string(Phoenix.HTML.safe() | [Phoenix.HTML.safe()]) :: String.t()
-  # defp safe_to_string(list) when is_list(list),
-  #   do: list |> Enum.map(&safe_to_string/1) |> Enum.join("")
-
-  # defp safe_to_string({:safe, _} = safe), do: Phoenix.HTML.safe_to_string(safe)
-  # defp safe_to_string(safe), do: to_string(safe)
 
   @spec drab_commander_id(Phoenix.Socket.t()) :: String.t()
   defp drab_commander_id(socket) do
@@ -771,11 +679,6 @@ defmodule Drab.Live do
   defp ampere_assigns(socket, assigns_type) do
     assigns_and_index(socket)[assigns_type]
   end
-
-  # @spec nodrab_assigns(Phoenix.Socket.t()) :: map
-  # defp nodrab_assigns(socket) do
-  #   assigns_and_index(socket)[:nodrab]
-  # end
 
   @spec index(Phoenix.Socket.t()) :: String.t()
   defp index(socket) do
