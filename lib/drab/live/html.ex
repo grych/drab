@@ -287,6 +287,7 @@ defmodule Drab.Live.HTML do
     #   IO.inspect acc |> deep_reverse()
     # end
     acc = acc |> deep_reverse() |> tokenized_to_html()
+
     case found do
       result when is_atom(result) -> {result, acc, attribute}
       result when is_binary(result) -> {:already_there, acc, result}
@@ -350,6 +351,19 @@ defmodule Drab.Live.HTML do
 
   defp tag_name(tag) do
     tag |> String.split(~r/\s/) |> List.first()
+  end
+
+  @doc """
+  Gets the attribute hash from "drab-ampere="ampere_hash" string.
+
+      iex> extract_ampere_hash(~s/drab-ampere="giydcmrsgy4tsnbx"/)
+      "giydcmrsgy4tsnbx"
+      iex> extract_ampere_hash("anything else")
+      nil
+  """
+  def extract_ampere_hash(attribute) do
+    captures = Regex.named_captures(~r/drab-ampere="(?<ampere>\S+)"/, attribute)
+    captures["ampere"]
   end
 
   @doc """

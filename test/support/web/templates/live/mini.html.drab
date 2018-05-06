@@ -6,13 +6,4 @@
   <button class="btn <%= @class2 %>" type="submit" drab="click:update_mini">update mini</button>
 </form>
 
-
-<%=
-  case @text do
-    "set in the commander" -> "commander"
-    "set in the controller" -> "controller"
-    _ -> "42"
-  end
-%>
-
-<div><%= @text %></div>
+<div><%= @text %> <%= @class2 %></div>

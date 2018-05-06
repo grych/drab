@@ -21,18 +21,16 @@ defmodule Drab.Live.Engine do
 
     quoted =
       quote do
-        def path(), do: unquote(partial.name)
-
-        def name(), do: path()
-
-        def hash(), do: unquote(partial.hash)
+        def partial(), do: unquote(Macro.escape(partial))
+        def path(), do: partial().path
+        def hash(), do: partial().hash
+        def amperes(), do: partial().amperes
       end
 
     Module.create(module, quoted, Macro.Env.location(__ENV__))
-    # filename = Path.join(Drab.Config.ebin_dir(), Atom.to_string(module) <> ".beam")
-    # File.write(filename, code, [:write])
-
-    # IO.inspect partial
+    if String.contains?(path, "live_engine_test.html") do
+      IO.inspect partial
+    end
     {:safe, safe}
   end
 

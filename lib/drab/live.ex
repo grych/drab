@@ -256,7 +256,7 @@ defmodule Drab.Live do
 
   import Drab.Core
   require IEx
-  alias Drab.Live.Cache
+  alias Drab.Live.{Partial}
 
   use DrabModule
   @impl true
@@ -317,7 +317,7 @@ defmodule Drab.Live do
           term | no_return
   def peek(socket, view, partial, assign) when is_atom(assign) do
     view = view || Drab.get_view(socket)
-    hash = if partial, do: Cache.partial_hash(view, partial), else: index(socket)
+    hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
 
     current_assigns = assign_data_for_partial(socket, hash, partial, :assigns)
 
@@ -438,7 +438,7 @@ defmodule Drab.Live do
     end
 
     view = view || Drab.get_view(socket)
-    partial = if partial_name, do: Cache.partial_hash(view, partial_name), else: index(socket)
+    partial = if partial_name, do: Partial.hash_for_view_and_name(view, partial_name), else: index(socket)
 
     current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
 
@@ -462,7 +462,7 @@ defmodule Drab.Live do
     #   Drab.Config.get(:live_helper_modules)
     # }
 
-    amperes_to_update =
+    amperes_to_update = #Partial.amperes_for_assigns(partial, assigns)
       for {assign, _} <- assigns do
         Drab.Live.Cache.get({partial, assign})
       end
@@ -492,16 +492,15 @@ defmodule Drab.Live do
 
     html =
       view
-      |> Phoenix.View.render_to_string(Cache.template_name(partial_name, partial), all_assigns)
+      |> Phoenix.View.render_to_string(Partial.template_filename(partial), all_assigns)
       |> Floki.parse()
 
     # construct the javascripts for update of amperes
     update_javascripts =
       for ampere <- amperes_to_update,
-          {gender, tag, prop_or_attr, _expr, _, parent_assigns} <-
-            Drab.Live.Cache.get({partial, ampere}) || [],
-          # parent_assigns == [] do
-          !is_a_child?(parent_assigns, assigns_to_update_keys) do
+          {gender, tag, prop_or_attr, _expr, _, _parent_assigns} <-
+            Drab.Live.Cache.get({partial, ampere}) || [] do
+          # !is_a_child?(parent_assigns, assigns_to_update_keys) do
         case gender do
           :html ->
             {_, _, value} = Floki.find(html, "[drab-ampere='#{ampere}']") |> List.first()
@@ -560,13 +559,13 @@ defmodule Drab.Live do
 
   # the case when the expression is inside another expression
   # and we update assigns of the parent expression as well
-  @spec is_a_child?(list, list) :: boolean
-  defp is_a_child?(list1, list2) do
-    not Enum.empty?(list1) &&
-      Enum.all?(list1, fn element ->
-        element in list2
-      end)
-  end
+  # @spec is_a_child?(list, list) :: boolean
+  # defp is_a_child?(list1, list2) do
+  #   not Enum.empty?(list1) &&
+  #     Enum.all?(list1, fn element ->
+  #       element in list2
+  #     end)
+  # end
 
   @spec has_amperes(String.t() | nil) :: integer
   defp has_amperes(nil), do: 0
@@ -617,7 +616,7 @@ defmodule Drab.Live do
   @spec assigns(Phoenix.Socket.t(), atom | nil, String.t() | nil) :: list
   def assigns(socket, view, partial) do
     view = view || Drab.get_view(socket)
-    partial_hash = if partial, do: Cache.partial_hash(view, partial), else: index(socket)
+    partial_hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
 
     socket
     |> ampere_assigns(:assigns)

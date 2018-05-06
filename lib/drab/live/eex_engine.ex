@@ -142,7 +142,7 @@ defmodule Drab.Live.EExEngine do
   use EEx.Engine
   require IEx
   require Logger
-  alias Drab.Live.{Safe, Partial}
+  alias Drab.Live.{Safe, Partial, Ampere}
 
   @jsvar "__drab"
   @drab_id "drab-ampere"
@@ -177,7 +177,7 @@ defmodule Drab.Live.EExEngine do
 
     buffer = ["{{{{@drab-partial:#{partial_hash}}}}}"]
     # {:safe, buffer}
-    %Safe{safe: buffer, partial: %Partial{name: partial, hash: partial_hash}}
+    %Safe{safe: buffer, partial: %Partial{path: partial, hash: partial_hash}}
   end
 
   @impl true
@@ -448,16 +448,16 @@ defmodule Drab.Live.EExEngine do
 
     html = to_flat_html(buffer)
 
-    buffer =
+    {buffer, ampere_id} =
       if !inject_span? && found_assigns? && !nodrab do
         case inject_attribute_to_last_opened(buffer, attribute) do
           # injected!
-          {:ok, buf, _} ->
-            buf
+          {:ok, buf, amp} ->
+            {buf, extract_ampere_hash(amp)}
 
           # it was already there
-          {:already_there, _, _} ->
-            buffer
+          {:already_there, _, amp} ->
+            {buffer, extract_ampere_hash(amp)}
 
           {:not_found, _, _} ->
             raise EEx.SyntaxError,
@@ -466,7 +466,7 @@ defmodule Drab.Live.EExEngine do
               """
         end
       else
-        buffer
+        {buffer, ampere_id}
       end
 
     hash = hash(expr)
@@ -516,6 +516,12 @@ defmodule Drab.Live.EExEngine do
             [tmp1, unquote(expr_begin), unquote(expr), unquote(expr_end)]
           end
       end
+
+    current_ampere = %Ampere{gender: :what, tag: "", attribute: attr, assigns: found_assigns}
+    amperes = partial.amperes[ampere_id] || []
+    amperes = [current_ampere | amperes]
+    # IO.inspect amperes
+    partial = %Partial{path: partial.path, hash: partial.hash, amperes: Map.put(partial.amperes, ampere_id, amperes)}
 
     # {:safe, buf}
     %Drab.Live.Safe{safe: buf, partial: partial}
