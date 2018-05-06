@@ -1,8 +1,8 @@
 defmodule Drab.Logger do
   @moduledoc false
   require Logger
-
   use Drab.Commander
+
   public(:error)
 
   @spec error(Phoenix.Socket.t(), map) :: Phoenix.Socket.t()

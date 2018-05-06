@@ -137,8 +137,7 @@ defmodule Drab.Live.EExEngine do
   syntax. One property may be bound only to the one assign.
   """
 
-  import Drab.Live.Crypto
-  import Drab.Live.HTML
+  import Drab.Live.{Crypto, HTML}
   use EEx.Engine
   require IEx
   require Logger

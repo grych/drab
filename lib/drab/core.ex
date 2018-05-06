@@ -184,7 +184,6 @@ defmodule Drab.Core do
       * `Drab.Query.update!/2`, `Drab.Query.update!/3`
   """
   require Logger
-
   use DrabModule
 
   @typedoc "Returned status of all Core operations"

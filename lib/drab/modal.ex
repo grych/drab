@@ -1,7 +1,6 @@
 defmodule Drab.Modal do
   require Logger
-  import Drab.Query
-  import Drab.Template
+  import Drab.{Query, Template}
 
   @moduledoc """
   Drab Module to launch Bootstrap Modals in the browser.

@@ -257,8 +257,8 @@ defmodule Drab.Live do
   import Drab.Core
   require IEx
   alias Drab.Live.{Partial, Ampere}
-
   use DrabModule
+
   @impl true
   def js_templates(), do: ["drab.live.js"]
 

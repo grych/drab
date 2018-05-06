@@ -86,12 +86,13 @@ defmodule Drab.Live.Partial do
   def amperes_for_assign(%Partial{} = partial, assign) do
     # this branch is calculating list of amperes
     # should be used in compile-time only
-    for {ampere_id, amperes} <- partial.amperes,
-        ampere <- amperes,
-        assign in ampere.assigns do
-      ampere_id
-    end
-    |> Enum.uniq()
+    Enum.uniq(
+      for {ampere_id, amperes} <- partial.amperes,
+          ampere <- amperes,
+          assign in ampere.assigns do
+        ampere_id
+      end
+    )
   end
 
   def amperes_for_assign(hash, assign) when is_binary(hash) do
