@@ -5,9 +5,10 @@ defmodule Drab.Live.Partial do
   @type t :: %Drab.Live.Partial{
           path: String.t(),
           hash: String.t(),
-          amperes: %{String.t() => [Ampere.t()]}
+          amperes: %{String.t() => [Ampere.t()]},
+          assigns: %{atom => [String.t()]}
         }
-  defstruct path: "", hash: "", amperes: %{}
+  defstruct path: "", hash: "", amperes: %{}, assigns: %{}
 
   @doc """
   Returns %Drab.Live.Partial{} for the given hash.
@@ -81,14 +82,21 @@ defmodule Drab.Live.Partial do
       iex> amperes_for_assign("gm2dgnjygm2dgnjt", :nonexistent)
       []
   """
-  @spec amperes_for_assign(String.t(), atom) :: [String.t()]
-  def amperes_for_assign(hash, assign) do
-    for {ampere_id, amperes} <- partial(hash).amperes,
+  @spec amperes_for_assign(t | String.t(), atom) :: [String.t()]
+  def amperes_for_assign(%Partial{} = partial, assign) do
+    # this branch is calculating list of amperes
+    # should be used in compile-time only
+    for {ampere_id, amperes} <- partial.amperes,
         ampere <- amperes,
         assign in ampere.assigns do
       ampere_id
     end
     |> Enum.uniq()
+  end
+
+  def amperes_for_assign(hash, assign) when is_binary(hash) do
+    # this branch is to be used in the runtime
+    Map.get(partial(hash).assigns, assign, [])
   end
 
   @doc """
@@ -118,6 +126,7 @@ defmodule Drab.Live.Partial do
       iex> all_assigns("gm2dgnjygm2dgnjt") |> Enum.sort()
       [:color, :text]
   """
+  @spec all_assigns(t | String.t()) :: [atom]
   def all_assigns(%Partial{} = partial) do
     for {_ampere_id, amperes} <- partial.amperes,
         ampere <- amperes do

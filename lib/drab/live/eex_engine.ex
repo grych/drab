@@ -203,13 +203,20 @@ defmodule Drab.Live.EExEngine do
       end
 
     partial = %Partial{partial | amperes: partial_amperes}
-    # if partial_hash == "gi3dcnzwgm2dcmrv" do
-    #   IO.inspect(partial)
-    # end
 
     found_assigns = Partial.all_assigns(partial)
     all_assigns = find_assigns(body)
     nodrab_assigns = all_assigns -- found_assigns
+
+    updated_assigns =
+      for assign <- found_assigns, into: %{} do
+        {assign, Partial.amperes_for_assign(partial, assign)}
+      end
+
+    partial = %Partial{partial | assigns: updated_assigns}
+    # if partial_hash == "gi3dcnzwgm2dcmrv" do
+    #   IO.inspect(partial)
+    # end
 
     assigns_js =
       found_assigns
