@@ -6,57 +6,6 @@ defmodule Drab.Live.EExEngine do
   template must be a proper HTML. Also, there are some rules to obey, see limitations below.
 
   ### Limitations
-  Because `Drab.Live` always tries to update the smallest portion of the html, it has some limits
-  described below. It is very important to understand how Drab re-evaluates the expressions with
-  the new assign values. Consider the comprehension with the condition as below:
-
-      <%= for u <- @users do %>
-        <%= if u != @user do %>
-          <%= u %> <br>
-        <% end %>
-      <% end %>
-
-  The template above contains two Drabbable expression: `for` comprehension and `if` condition.
-  When the new value of `@users` is poked, all works as expected: the list is refreshed. But when
-  you poke the `@user` assign, system will return an error that the `u()` function is not defined.
-  This is because Drab tries to re-evaluate the expression with the `@user` assign - the `if`
-  statement, and the `u` variable is defined elsewhere. Updating `@user` will raise `CompileError`:
-
-      iex> poke socket, user: "Changed"
-      ** (CompileError)  undefined function u/0
-
-      Using local variables defined in external blocks is prohibited in Drab.
-      Please check the following documentation page for more details:
-      https://hexdocs.pm/drab/Drab.Live.EExEngine.html#module-limitations
-
-  But what was your goal when poking the `@user` assign? You wanted to update the whole `for`
-  expression, because the displayed users list should be refreshed. The best way to accomplish
-  the goal - reload the whole for comprehension - is to move `@user` assign to the parent
-  expression. In this case it would be a filter:
-
-      <%= for u <- @users, u != @user do %>
-        <%= u %> <br>
-      <% end %>
-
-  In this case the whole `for` expression is evaluated when the `@user` assign is changed.
-
-  There is also the other way to solve this issue, described in the next paragraph.
-
-  #### Parent/child Expression Detection
-  Drab is able to detect when updating both parent and child expression (child is the one inside
-  the block). In the case above, the parent expression is the `for` comprehension with `@users`
-  assign, and the child is the `if` containing only `@user`. When you update both assigns with
-  the same `poke`, Drab would be able to detect that the `if` is inside `for`, and should not
-  be refreshed.
-
-  This means that you may solve the case above with:
-
-      poke socket, users: peek(socket, :users), user: "Changed"
-
-  This statement will update the whole `for` loop, without any changes to `@users`, but with changed
-  `@user` assign.
-
-
   #### Avalibility of Assigns
   To make the assign avaliable within Drab, it must show up in the template with "`@assign`" format.
   Passing it to `render` in the controller is not enough.
@@ -67,25 +16,19 @@ defmodule Drab.Live.EExEngine do
       <% local = @assign %>
       <%= local %>
 
-  poking `@assign` will not update anything.
+  poking `@assign` will not update anything or, if `@assign` was not declared somewhere else,
+  it will raise the *assign not found* exception*.
 
-  #### Local Variables
-  Local variables are only visible in its `do...end` block. You can't use a local variable from
-  outside the block. So, the following is allowed:
+  #### Properties
+  Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>`
+  syntax. One property may be bound only to the one expression, no apostrophe or double quote
+  allowed.
 
-      <%= for user <- @users do %>
-        <li><%= user %></li>
-      <% end %>
+      <button @hidden=<%= @hidden %> ...>
+      <button @style.backgroundColor=<%= my_color_function(@button1) %> ...>
 
-  and after poking a new value of `@users`, the list will be updated.
-
-  But the next example is not valid and will raise `undefined function` exception while trying
-  to update an `@anything` assign:
-
-      <% local = @assign1 %>
-      <%= if @anything do %>
-        <%= local %>
-      <% end %>
+  Please notice that the full path to the property is allowed here, in this case the function
+  is bound to `node.style.backgroundColor`.
 
   #### Attributes
   The attribute must be well defined, and you can't use the expression as an attribute name.
@@ -132,9 +75,19 @@ defmodule Drab.Live.EExEngine do
         <%= if clause, do: expression %>
       </script>
 
-  #### Properties
-  Property must be defined inside the tag, using strict `@property.path.from.node=<%= expression %>`
-  syntax. One property may be bound only to the one assign.
+  #### Parent/child Expression Detection
+  Drab is able to detect when updating both parent and child expression (child is the one inside
+  the block). In the case above, the parent expression is the `for` comprehension with `@users`
+  assign, and the child is the `if` containing only `@user`. When you update both assigns with
+  the same `poke`, Drab would be able to detect that the `if` is inside `for`, and should not
+  be refreshed.
+
+  This means that you may solve the case above with:
+
+      poke socket, users: peek(socket, :users), user: "Changed"
+
+  This statement will update the whole `for` loop, without any changes to `@users`, but with changed
+  `@user` assign.
   """
 
   import Drab.Live.{Crypto, HTML}
