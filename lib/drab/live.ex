@@ -494,6 +494,7 @@ defmodule Drab.Live do
     assign_updates = assign_updates_js(assigns_to_update, partial, shared_commander_id)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
 
+    # IO.inspect update_javascripts
     # IO.inspect(all_javascripts)
 
     case function.(socket, all_javascripts |> Enum.join(";")) do
@@ -537,7 +538,6 @@ defmodule Drab.Live do
   end
 
   defp update_attr_js(html, ampere, attr) do
-    # new_value = html |> Floki.attribute("[drab-ampere='#{ampere}']", attr) |> List.first()
     case Floki.attribute(html, "[drab-ampere='#{ampere}']", attr) do
       [new_value] ->
         "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(attr)}, #{encode_js(new_value)})"

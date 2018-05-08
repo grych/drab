@@ -86,7 +86,7 @@ defmodule Drab.Live.HTML do
 
   @block ~w(do end catch rescue after else)a
   def tokenize({atom, args}) when atom in @block do
-    {:do, tokenize(args)}
+    {atom, tokenize(args)}
   end
 
   def tokenize([]) do
