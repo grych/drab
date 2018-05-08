@@ -83,7 +83,8 @@ defmodule DrabTestApp.LiveController do
       users: ~w(Zdzisław Zofia Hendryk Stefan),
       text: "set in the controller",
       user: "Zofia",
-      in_partial: "in partial before"
+      in_partial: "in partial before",
+      my_list: []
     )
   end
 

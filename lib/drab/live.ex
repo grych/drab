@@ -485,48 +485,11 @@ defmodule Drab.Live do
       |> Phoenix.View.render_to_string(Partial.template_filename(partial), all_assigns)
       |> Floki.parse()
 
-    # construct the javascripts for update of amperes
-    update_javascripts =
-      for ampere <- amperes_to_update,
-          %Ampere{gender: gender, tag: tag, attribute: prop_or_attr} <-
-            Partial.partial(partial).amperes[ampere] do
-        case gender do
-          :html ->
-            {_, _, value} = Floki.find(html, "[drab-ampere='#{ampere}']") |> List.first()
-            new_value = Floki.raw_html(value)
-
-            case {tag, Drab.Config.get(:enable_live_scripts)} do
-              {"script", false} ->
-                nil
-
-              {_, _} ->
-                "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
-            end
-
-          :attr ->
-            new_value =
-              Floki.attribute(html, "[drab-ampere='#{ampere}']", prop_or_attr) |> List.first()
-
-            "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{
-              encode_js(new_value)
-            })"
-
-          :prop ->
-            new_value =
-              Floki.attribute(
-                html,
-                "[drab-ampere='#{ampere}']",
-                "@#{String.downcase(prop_or_attr)}"
-              )
-              |> List.first()
-              |> encode_js()
-
-            "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop_or_attr)}, #{new_value})"
-        end
-      end
-
     # TODO: this is a very naive way of sorting JS. Small goes first.
-    update_javascripts = Enum.sort_by(update_javascripts, &has_amperes/1)
+    update_javascripts =
+      html
+      |> update_javascripts(partial, amperes_to_update)
+      |> Enum.sort_by(&has_amperes/1)
 
     assign_updates = assign_updates_js(assigns_to_update, partial, shared_commander_id)
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
@@ -540,6 +503,57 @@ defmodule Drab.Live do
 
       other ->
         other
+    end
+  end
+
+  defp update_javascripts(html, partial, amperes_to_update) do
+    for ampere <- amperes_to_update,
+        %Ampere{gender: gender, tag: tag, attribute: prop_or_attr} <-
+          Partial.partial(partial).amperes[ampere] do
+      case gender do
+        :html -> update_html_js(html, ampere, tag)
+        :attr -> update_attr_js(html, ampere, prop_or_attr)
+        :prop -> update_prop_js(html, ampere, prop_or_attr)
+      end
+    end
+  end
+
+  defp update_html_js(html, ampere, tag) do
+    case Floki.find(html, "[drab-ampere='#{ampere}']") do
+      [{_, _, value}] ->
+        new_value = Floki.raw_html(value)
+
+        case {tag, Drab.Config.get(:enable_live_scripts)} do
+          {"script", false} ->
+            nil
+
+          {_, _} ->
+            "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp update_attr_js(html, ampere, attr) do
+    # new_value = html |> Floki.attribute("[drab-ampere='#{ampere}']", attr) |> List.first()
+    case Floki.attribute(html, "[drab-ampere='#{ampere}']", attr) do
+      [new_value] ->
+        "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(attr)}, #{encode_js(new_value)})"
+
+      _ ->
+        nil
+    end
+  end
+
+  defp update_prop_js(html, ampere, prop) do
+    case Floki.attribute(html, "[drab-ampere='#{ampere}']", "@#{String.downcase(prop)}") do
+      [new_value] ->
+        "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop)}, #{encode_js(new_value)})"
+
+      _ ->
+        nil
     end
   end
 
@@ -614,6 +628,7 @@ defmodule Drab.Live do
   end
 
   @spec assign_updates_js(map, String.t(), String.t()) :: [String.t()]
+  # TODO: refactor
   defp assign_updates_js(assigns, partial, "document") do
     Enum.map(assigns, fn {k, v} ->
       "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = {document: '#{

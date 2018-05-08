@@ -7,3 +7,13 @@
 </form>
 
 <div @style.backgroundColor=<%= @color %>><%= @text %> <%= @class2 %></div>
+
+<!-- index.html.drab -->
+
+<p> `my_list` is: <%= inspect @my_list %> </p>
+
+<%= if @my_list == [] do %>
+	<p> `my_list` is empty <%= inspect @my_list %></p>
+<% else %>
+	<p> <%= inspect @my_list %> </p>
+<% end %>
