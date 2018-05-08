@@ -1,0 +1,13 @@
+<%=
+
+    if @text do
+      "I'M TRUE"
+    else
+      "I'M FALSE"
+    end
+%>
+
+
+<div>
+  <%= @text %>
+</div>

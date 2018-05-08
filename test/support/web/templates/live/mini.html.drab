@@ -4,8 +4,7 @@
 
 
 <%=
-
-    if true do
+    if @text do
       "I'M TRUE"
     else
       "I'M FALSE"
