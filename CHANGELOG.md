@@ -4,11 +4,16 @@
 `Drab.Live` engine has been redesigned again. No more stupid DETS cache anymore. Drab engine now
 creates modules for each template, and stores metadata compiled there.
 
+### Elixir version
+Bumped to 1.6, because of the changes in the EEx Engine
+
 ### Migration from 0.7.7
 
     rm priv/drab.live.cache
     mix clean
 
+### Bug fixes
+Many. See closed issues!
 ## v0.7.7
 ### Potentially breaking release!
 As a preparation to 0.8.0, this release contains fundamental change in `Drab.Live` behaviour. It
