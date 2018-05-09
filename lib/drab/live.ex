@@ -578,7 +578,6 @@ defmodule Drab.Live do
       iex> Drab.Live.assigns(socket)
       [:welcome_text]
   """
-  # TODO: read assigns from compiled cache
   @spec assigns(Phoenix.Socket.t()) :: list
   def assigns(socket) do
     assigns(socket, nil, nil)
@@ -610,10 +609,7 @@ defmodule Drab.Live do
     partial_hash =
       if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
 
-    socket
-    |> ampere_assigns(:assigns)
-    |> Map.get(partial_hash, [])
-    |> Map.keys()
+    Partial.all_assigns(partial_hash)
   end
 
   @doc """
