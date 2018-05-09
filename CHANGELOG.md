@@ -1,5 +1,5 @@
 # CHANGELOG
-## v0.7.8 - `rm priv/drab.live.cache`
+## v0.8.0 - `rm priv/drab.live.cache`
 ### Potentially breaking release!
 `Drab.Live` engine has been redesigned again. No more stupid DETS cache anymore. Drab engine now
 creates modules for each template, and stores metadata compiled there.
