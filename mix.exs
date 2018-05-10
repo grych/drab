@@ -58,7 +58,7 @@ defmodule Drab.Mixfile do
       {:hound, "~> 1.0", only: [:dev, :test]},
       {:inch_ex, "~> 0.5", only: [:docs], runtime: false},
       {:deppie, "~> 1.0"},
-      {:floki, "~> 0.20"},
+      {:floki, ">= 0.20.2"},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:jason, "~> 1.0"}
     ]

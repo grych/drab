@@ -2,30 +2,20 @@
 <div id="drab_pid" style="display: none;"></div>
 <br><br>
 
-
-<%=
-    if @text do
-      "I'M TRUE"
-    else
-      "I'M FALSE"
-    end
-%>
-
-
-<div>
-  <%= @text %>
-</div>
-
-
-<form>
-  <button class="btn <%= @class2 %>" type="submit" drab="click:update_mini">update mini</button>
+<form id=f>
+	<%= @color %><br>
+  <button id=b class='btn <%= @class2 %>' type="submit" drab="click:update_mini('something')">update mini 2</button>
+  <button id=b class='btn <%= @class2 %>' type="submit" drab='click:update_mini("asomething")'>update mini 2</button>
 </form>
+
+<b id=x attr="one \"two\" three"></b>
 
 <div @style.backgroundColor=<%= @color %>><%= @text %> <%= @class2 %></div>
 
 <!-- index.html.drab -->
 
 <p> `my_list` is: <%= inspect @my_list %> </p>
+
 
 <%= if @my_list == [] do %>
 	<p> `my_list` is empty <%= inspect @my_list %></p>
