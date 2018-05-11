@@ -43,7 +43,7 @@ defmodule DrabTestApp.CoreTest do
       hijack_click = """
         var event;
         event = document.createEvent("HTMLEvents");
-        event.initEvent("customevent", true, true);
+        event.initEvent("custom.event", true, true);
 
         var node = document.getElementById('core8_button');
 

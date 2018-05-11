@@ -29,7 +29,7 @@
 <span id="core7_out"></span>
 <br>
 
-<button id="core8_button" class="btn btn-primary" drab="customevent:core8_customevent">core8 (custom events)</button>
+<button id="core8_button" class="btn btn-primary" drab="custom.event:core8_customevent">core8 (custom events)</button>
 <span id="core8_out"></span>
 <br>
 
