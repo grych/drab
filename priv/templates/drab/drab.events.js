@@ -128,10 +128,8 @@ Drab.setid = function (whom) {
 };
 
 function update_event_handler(node, event, func) {
-  // TODO: learn more about event listeners
-  // node.removeEventListener(event, func)
-  // node.addEventListener(event, func)
-  node["on" + event] = func;
+  node.removeEventListener(event, func);
+  node.addEventListener(event, func);
 }
 
 Drab.enable_drab_on = function(selector_or_node) {
