@@ -138,6 +138,13 @@ defmodule DrabTestApp.PageCommander do
     42
   end
 
+  defhandler core8_customevent(socket, _sender) do
+    {:ok, _} =
+      Drab.Core.exec_js(socket, "document.getElementById('core8_out').innerHTML = 'core8'")
+
+    42
+  end
+
   defhandler input1_change(socket, _sender) do
     {:ok, _} =
       Drab.Core.exec_js(socket, "document.getElementById('input1_out').innerHTML = 'input1'")

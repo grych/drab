@@ -29,6 +29,9 @@
 <span id="core7_out"></span>
 <br>
 
+<button id="core8_button" class="btn btn-primary" drab="custom.event:core8_customevent">core8 (custom events)</button>
+<span id="core8_out"></span>
+<br>
 
 <button id="set_store_button" class="btn btn-primary"  drab-click="set_store_click">set store</button><br>
 <button id="get_store_button" class="btn btn-primary"  drab-click="get_store_click">get store</button><br>

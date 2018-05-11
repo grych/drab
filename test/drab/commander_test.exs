@@ -41,6 +41,7 @@ defmodule Drab.CommanderTest do
                :core5_click,
                :core6_click,
                :core7_click,
+               :core8_customevent,
                :input1_change,
                :input2_change,
                :input3_change,

@@ -39,6 +39,26 @@ defmodule DrabTestApp.CoreTest do
     end
 
     @tag capture_log: true
+    test "capturing custom events", fixture do
+      hijack_click = """
+        var event;
+        event = document.createEvent("HTMLEvents");
+        event.initEvent("custom.event", true, true);
+
+        var node = document.getElementById('core8_button');
+
+        node.addEventListener('click', function(e) {
+          e.preventDefault();
+          node.dispatchEvent(event);
+        });
+      """
+
+      Drab.Core.exec_js(fixture.socket, hijack_click)
+
+      standard_click_and_get_test("core8")
+    end
+
+    @tag capture_log: true
     test "debounce", fixture do
       for t <- ["1", "2", "3"] do
         input = find_element(:id, "core#{t}_input")
