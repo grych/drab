@@ -20,6 +20,7 @@ defmodule Drab.Live.Engine do
 
     quoted =
       quote do
+        @moduledoc false
         def partial(), do: unquote(Macro.escape(partial))
         def path(), do: partial().path
         def hash(), do: partial().hash

@@ -64,6 +64,7 @@ defmodule DrabTestApp.LiveController do
 
   def mini(conn, _params) do
     # render_live conn, "mini.html", list: ["A", "B"]
+    conn = assign(conn, :current_user, 42)
     render(
       conn,
       "mini.html",
