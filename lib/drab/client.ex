@@ -1,8 +1,4 @@
 defmodule Drab.Client do
-  # changing the client API version will cause reload browsers with the different version
-  # must be a string
-  @client_lib_version "4"
-
   @moduledoc """
   Enable Drab on the browser side. Must be included in HTML template, for example
   in `web/templates/layout/app.html.eex`:
@@ -76,6 +72,10 @@ defmodule Drab.Client do
 
   import Drab.Template
   require Logger
+
+  # changing the client API version will cause reload browsers with the different version
+  # must be a string
+  @client_lib_version "5"
 
   @doc """
   Generates JS code and runs Drab.

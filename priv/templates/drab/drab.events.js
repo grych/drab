@@ -349,6 +349,7 @@ Drab.set_event_handlers = function (node) {
                 }
             <% end %>
           );
+          event.preventDefault();
           return false; // prevent default
         };
 
