@@ -1,83 +1,80 @@
 defmodule Drab.Live.HTML do
   @moduledoc false
+  alias Drab.Live.HTML
 
-  @type token :: {:tag, String.t()} | {:text, String.t()} | {:naked, String.t()}
+  defstruct tokenized: []
+
+  @type token ::
+          {:tag, String.t()} | {:text, String.t()} | {:naked, String.t()} | {:comment, String.t()}
+
+  @type t :: %HTML{
+          tokenized: list
+        }
 
   @doc """
   Simple html tokenizer. Works with nested lists.
 
       iex> tokenize("<html> <body >some<b> anything</b></body ></html>")
-      [{:tag, "html"}, {:text, " "}, {:tag, "body "}, {:text, "some"}, {:tag, "b"}, {:text, " anything"},
-      {:tag, "/b"}, {:tag, "/body "}, {:tag, "/html"}, {:text, ""}]
+      %Drab.Live.HTML{tokenized: [{:tag, "html"}, {:text, " "}, {:tag, "body "}, {:text, "some"},
+      {:tag, "b"}, {:text, " anything"},
+      {:tag, "/b"}, {:tag, "/body "}, {:tag, "/html"}, {:text, ""}]}
 
       iex> tokenize("some")
-      [{:text, "some"}]
+      %Drab.Live.HTML{tokenized: [{:text, "some"}]}
 
       iex> tokenize(["some"])
-      [[{:text, "some"}], {:other, []}]
+      [%Drab.Live.HTML{tokenized: [{:text, "some"}]}]
 
       iex> tokenize("")
-      [{:text, ""}]
+      %Drab.Live.HTML{tokenized: [{:text, ""}]}
 
       iex> tokenize([""])
-      [[{:text, ""}], {:other, []}]
+      [%Drab.Live.HTML{tokenized: [{:text, ""}]}]
 
       iex> tokenize("<!-- comment -->")
-      [tag: "!-- comment --", text: ""]
+      %Drab.Live.HTML{tokenized: [comment: "-- comment --", text: ""]}
 
       iex> tokenize("<!--comment--> text")
-      [tag: "!--comment--", text: " text"]
+      %Drab.Live.HTML{tokenized: [comment: "--comment--", text: " text"]}
 
       iex> tokenize("<tag> and more")
-      [{:tag, "tag"}, {:text, " and more"}]
+      %Drab.Live.HTML{tokenized: [{:tag, "tag"}, {:text, " and more"}]}
 
       iex> tokenize("<tag> <naked tag")
-      [{:tag, "tag"}, {:text, " "}, {:naked, "naked tag"}]
+      %Drab.Live.HTML{tokenized: [{:tag, "tag"}, {:text, " "}, {:naked, "naked tag"}]}
 
       iex> tokenize(["<tag a/> <naked tag"])
-      [[{:tag, "tag a/"}, {:text, " "}, {:naked, "naked tag"}], {:other, []}]
+      [%Drab.Live.HTML{tokenized: [{:tag, "tag a/"}, {:text, " "}, {:naked, "naked tag"}]}]
 
       iex> tokenize(["other", "<tag a> <naked tag"])
-      [[{:text, "other"}], [{:tag, "tag a"}, {:text, " "}, {:naked, "naked tag"}], {:other, []}]
+      [%Drab.Live.HTML{tokenized: [{:text, "other"}]},
+      %Drab.Live.HTML{tokenized: [{:tag, "tag a"}, {:text, " "}, {:naked, "naked tag"}]}]
 
       iex> tokenize(["other", :atom, "<tag a/> <naked tag"])
-      [[{:text, "other"}], :atom, [{:tag, "tag a/"}, {:text, " "}, {:naked, "naked tag"}], {:other, []}]
+      [%Drab.Live.HTML{tokenized: [{:text, "other"}]}, :atom,
+      %Drab.Live.HTML{tokenized: [{:tag, "tag a/"}, {:text, " "}, {:naked, "naked tag"}]}]
 
       iex> tokenize(["<tag", :atom, ">"])
-      [[naked: "tag"], :atom, [{:text, ">"}], {:other, []}]
+      [%Drab.Live.HTML{tokenized: [naked: "tag"]},
+      :atom, %Drab.Live.HTML{tokenized: [{:text, ">"}]}]
 
       iex> tokenize [do: {:->, [line: 3], [["set in the commander"], "commander"]}]
       [
         do: {:->, [line: 3],
         [
-          [[text: "set in the commander"], {:other, []}],
-          [text: "commander"],
-          {:other, []}
-        ]},
-        other: []
+          [%Drab.Live.HTML{tokenized: [text: "set in the commander"]}],
+          %Drab.Live.HTML{tokenized: [text: "commander"]}
+        ]}
       ]
+
+      iex> tokenize("<!-- Comment -->")
+      %Drab.Live.HTML{tokenized: [comment: "-- Comment --", text: ""]}
+
+      iex> tokenize("<!DOCTYPE html>")
+      %Drab.Live.HTML{tokenized: [comment: "DOCTYPE html", text: ""]}
   """
-  @spec tokenize(String.t() | list) :: [token]
-  def tokenize("") do
-    [{:text, ""}]
-  end
-
-  def tokenize("<" <> rest) do
-    case String.split(rest, ">", parts: 2) do
-      [tag] ->
-        [{:naked, String.trim_leading(tag)}]
-
-      # naked tag can be only at the end
-      [tag | tail] ->
-        [{:tag, String.trim_leading(tag)} | tokenize(Enum.join(tail))]
-    end
-  end
-
   def tokenize(string) when is_binary(string) do
-    case String.split(string, "<", parts: 2) do
-      [no_more_tags] -> [{:text, no_more_tags}]
-      [text, rest] -> [{:text, text} | tokenize("<" <> rest)]
-    end
+    %HTML{tokenized: tokenize_string(string)}
   end
 
   def tokenize({code, meta, args}) do
@@ -89,16 +86,43 @@ defmodule Drab.Live.HTML do
     {atom, tokenize(args)}
   end
 
-  def tokenize([]) do
-    [{:other, []}]
-  end
-
   def tokenize([head | tail]) do
     [tokenize(head) | tokenize(tail)]
   end
 
   def tokenize(other) do
     other
+  end
+
+  @spec tokenize_string(String.t()) :: list
+  defp tokenize_string("<" <> rest) do
+    case String.split(rest, ">", parts: 2) do
+      # naked tag can be only at the end
+      [tag] ->
+        [{:naked, trim_and_lower(tag)}]
+
+      ["!" <> comment | tail] ->
+        [{:comment, comment} | tokenize_string(Enum.join(tail))]
+
+      [tag | tail] ->
+        [{:tag, trim_and_lower(tag)} | tokenize_string(Enum.join(tail))]
+    end
+  end
+
+  defp tokenize_string(string) when is_binary(string) do
+    case String.split(string, "<", parts: 2) do
+      [no_more_tags] -> [{:text, no_more_tags}]
+      [text, rest] -> [{:text, text} | tokenize_string("<" <> rest)]
+    end
+  end
+
+  defp trim_and_lower(string) do
+    string |> String.trim_leading() |> lowercase_tag_name()
+  end
+
+  defp lowercase_tag_name(string) do
+    tag = tag_name(string)
+    String.replace(string, ~r/^\/?#{tag}/, String.downcase(tag))
   end
 
   @doc """
@@ -156,93 +180,38 @@ defmodule Drab.Live.HTML do
       iex> html |> tokenize() |> tokenized_to_html() == html
       true
 
-      iex> tok = [["other"], [:atom, [{:tag, "tag a"}, " ", {:tag, "/tag"}], {:other}]]
-      iex> tokenized_to_html(tok)
-      ["other", [:atom, "<tag a> </tag>", {:other}]]
+      iex> html = ["other", [:atom, "<tag a> </tag>", {:other}]]
+      iex> html |> tokenize() |> tokenized_to_html() == html
+      true
 
-      iex> tok = [[naked: "tag"], :atom, [">"]]
-      iex> tokenized_to_html(tok)
-      ["<tag", :atom, ">"]
+      iex> html = ["<tag", :atom, ">"]
+      iex> html |> tokenize() |> tokenized_to_html() == html
+      true
+
+      iex> html = "<!-- Comment -->"
+      iex> html |> tokenize() |> tokenized_to_html() == html
+      true
+
+      iex> html = "<!DOCTYPE html>"
+      iex> html |> tokenize() |> tokenized_to_html() == html
+      true
   """
-  # def tokenized_to_html([:empty]), do: []
-  # def tokenized_to_html(:empty), do: ""
-  @spec tokenized_to_html([token | Macro.t() | String.t()]) :: String.t() | list
-  def tokenized_to_html([{:other, []}]), do: []
-  def tokenized_to_html({:other, []}), do: ""
-  def tokenized_to_html([]), do: ""
-  def tokenized_to_html({:tag, tag}), do: "<#{tag}>"
-  def tokenized_to_html({:naked, tag}), do: "<#{tag}"
-  def tokenized_to_html({:text, text}), do: text
+  def tokenized_to_html([]), do: []
+  def tokenized_to_html(%HTML{tokenized: tokenized}), do: Enum.join(htmlize(tokenized))
   def tokenized_to_html({code, meta, args}), do: {code, meta, tokenized_to_html(args)}
-  def tokenized_to_html(text) when is_binary(text), do: text
-  def tokenized_to_html(atom) when is_atom(atom), do: atom
-
-  def tokenized_to_html({atom, list}) when is_atom(atom) and is_list(list),
-    do: {atom, tokenized_to_html(list)}
-
-  def tokenized_to_html([list]) when is_list(list), do: [tokenized_to_html(list)]
-
-  def tokenized_to_html([head | tail]) do
-    case {tokenized_to_html(head), tokenized_to_html(tail)} do
-      {h, t} when is_binary(h) and is_binary(t) -> h <> t
-      {h, ""} -> [h]
-      {h, t} when not is_list(t) -> [h, t]
-      {h, t} -> [h | t]
-    end
-  end
-
+  def tokenized_to_html({atom, args}) when atom in @block, do: {atom, tokenized_to_html(args)}
+  def tokenized_to_html([head | tail]), do: [tokenized_to_html(head) | tokenized_to_html(tail)]
   def tokenized_to_html(other), do: other
+
+  defp htmlize([]), do: []
+  defp htmlize([head | tail]), do: [htmlize(head) | htmlize(tail)]
+  defp htmlize({:tag, tag}), do: "<#{tag}>"
+  defp htmlize({:naked, tag}), do: "<#{tag}"
+  defp htmlize({:text, text}), do: text
+  defp htmlize({:comment, comment}), do: "<!#{comment}>"
 
   @doc """
   Injects given attribute to the last found opened (or naked) tag.
-
-    iex> inject_attribute_to_last_opened "<tag>", "attr=1"
-    {:ok, "<tag attr=1>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag attr2>", "attr=1"
-    {:ok, "<tag attr=1 attr2>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag attr2><tag></tag>", "attr=1"
-    {:ok, "<tag attr=1 attr2><tag></tag>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag></tag><tag attr2", "attr=1"
-    {:ok, "<tag></tag><tag attr=1 attr2", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag><tag attr2", "attr=1"
-    {:ok, "<tag><tag attr=1 attr2", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag><tag attr2>", "attr=1"
-    {:ok, "<tag><tag attr=1 attr2>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag><hr/><tag attr2></tag>", "attr=1"
-    {:ok, "<tag attr=1><hr/><tag attr2></tag>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag><br><tag attr2></tag>", "attr=1"
-    {:ok, "<tag attr=1><br><tag attr2></tag>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag><tag></tag>", "attr=1"
-    {:ok, "<tag attr=1><tag></tag>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<img src", "attr=1"
-    {:ok, "<img attr=1 src", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<hr>", "attr=1"
-    {:not_found, "<hr>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag>", "attr=1"
-    {:ok, "<tag 1><tag attr=1 2><tag 3></tag>", "attr=1"}
-
-    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag></tag>", "attr='3'"
-    {:ok, "<tag attr='3' 1><tag 2><tag 3></tag></tag>", "attr='3'"}
-
-    iex> inject_attribute_to_last_opened "<tag 1></tag>", "attr=x"
-    {:not_found, "<tag 1></tag>", "attr=x"}
-
-    iex> inject_attribute_to_last_opened "text only", "attr=x"
-    {:not_found, "text only", "attr=x"}
-
-    iex> inject_attribute_to_last_opened "<tag 1><tag 2><tag 3></tag></tag></tag>", "attr=x"
-    {:not_found, "<tag 1><tag 2><tag 3></tag></tag></tag>", "attr=x"}
 
     iex> inject_attribute_to_last_opened ["<tag 1><tag 2><tag 3></tag>", "</tag>"], "attr=x"
     {:ok, ["<tag attr=x 1><tag 2><tag 3></tag>", "</tag>"], "attr=x"}
@@ -264,12 +233,9 @@ defmodule Drab.Live.HTML do
 
     iex> inject_attribute_to_last_opened ["<tag attr=42 1><tag 2><tag 3></tag>", "</tag>"], "attr=x"
     {:already_there, ["<tag attr=42 1><tag 2><tag 3></tag>", "</tag>"], "attr=42"}
-
-    iex> inject_attribute_to_last_opened "<img attr=2 src", "attr=1"
-    {:already_there, "<img attr=2 src", "attr=2"}
   """
   @spec inject_attribute_to_last_opened(String.t() | list | Macro.t(), String.t()) ::
-          String.t() | list | Macro.t()
+          {:ok | :not_found | :already_there, String.t() | list | Macro.t(), String.t()}
   def inject_attribute_to_last_opened(buffer, attribute) when is_tuple(buffer) do
     # in case when there is no text between expressions
     {result, [acc], attribute} = inject_attribute_to_last_opened([buffer], attribute)
@@ -283,14 +249,12 @@ defmodule Drab.Live.HTML do
       |> deep_reverse()
       |> do_inject(attribute, [], :not_found, [])
 
-    # if Process.get(:partial) == "gi3tgnrzg44tmnbs" do
-    #   IO.inspect acc |> deep_reverse()
-    # end
     acc = acc |> deep_reverse() |> tokenized_to_html()
 
     case found do
-      result when is_atom(result) -> {result, acc, attribute}
-      result when is_binary(result) -> {:already_there, acc, result}
+      :not_found -> {:not_found, acc, attribute}
+      other when other == attribute -> {:ok, acc, attribute}
+      _ -> {:already_there, acc, found}
     end
   end
 
@@ -300,40 +264,18 @@ defmodule Drab.Live.HTML do
     wbr/
   }
 
-  # TODO: refactor, must be a simpler way to do it
   defp do_inject([], _, opened, found, acc) do
     {opened, found, acc}
   end
 
-  defp do_inject([head | tail], attribute, opened, found, acc) do
+  defp do_inject([head | tail], attribute, closed, found, acc) do
     case head do
-      {:tag, "/" <> tag} ->
-        do_inject(tail, attribute, [tag_name(tag) | opened], found, acc ++ [head])
-
-      # comment and doctype
-      {tag_type, "!" <> _} when tag_type in [:naked, :tag] ->
-        do_inject(tail, attribute, opened, found, acc ++ [head])
-
-      {tag_type, tag} when tag_type in [:naked, :tag] ->
-        if Enum.find(opened, fn x -> tag_name(tag) == x end) do
-          do_inject(tail, attribute, opened -- [tag_name(tag)], found, acc ++ [head])
-        else
-          if found != :not_found ||
-               (tag_type != :naked && Enum.member?(@non_closing_tags, tag_name(tag))) do
-            do_inject(tail, attribute, opened, found, acc ++ [head])
-          else
-            {result, injected} =
-              case find_attribute(tag, attribute) do
-                nil -> {:ok, {tag_type, add_attribute(tag, attribute)}}
-                found_attr -> {found_attr, head}
-              end
-
-            do_inject(tail, attribute, opened, result, acc ++ [injected])
-          end
-        end
+      %HTML{} = tokenized_html ->
+        {cls, fnd, tkn} = inject_to_html(tokenized_html, attribute, closed, found)
+        do_inject(tail, attribute, cls, fnd, acc ++ [tkn])
 
       {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | buffer]} | rest]} ->
-        {op, fd, ac} = do_inject(buffer, attribute, opened, found, [])
+        {op, fd, ac} = do_inject(buffer, attribute, closed, found, [])
 
         modified_buffer =
           {:__block__, [], [{:=, [], [{tmp, [], Drab.Live.EExEngine} | ac]} | rest]}
@@ -341,11 +283,157 @@ defmodule Drab.Live.HTML do
         do_inject(tail, attribute, op, fd, acc ++ [modified_buffer])
 
       list when is_list(list) ->
-        {op, fd, modified_buffer} = do_inject(list, attribute, opened, found, [])
+        {op, fd, modified_buffer} = do_inject(list, attribute, closed, found, [])
         do_inject(tail, attribute, op, fd, acc ++ [modified_buffer])
 
       _ ->
-        do_inject(tail, attribute, opened, found, acc ++ [head])
+        do_inject(tail, attribute, closed, found, acc ++ [head])
+    end
+  end
+
+  @doc """
+  Injects attribute to the last opened tag in tokenized html.
+
+      iex> {_closed, "attr=1", tokenized} = inject_to_html tokenize("<tag>"), "attr=1"
+      iex> tokenized_to_html(tokenized)
+      "<tag attr=1>"
+
+      iex> {_closed, "attr=1", tokenized} = inject_to_html tokenize("<tag attr2>"), "attr=1"
+      iex> tokenized_to_html(tokenized)
+      "<tag attr=1 attr2>"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<TAG attr2><tag></tag>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag attr=1 attr2><tag></tag>"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<tag></TAG><tag attr2"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag></tag><tag attr=1 attr2"
+
+      iex> {_closed, "attr=2", tked} = inject_to_html tokenize("<img attr=2 src"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<img attr=2 src"
+
+      iex> {_closed, "attr=2", tked} = inject_to_html tokenize("<Img attr=2 src>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<img attr=2 src>"
+
+      iex> {_closed, "attr=2", tokenized} = inject_to_html tokenize("<tag attr=2>"), "attr=1"
+      iex> tokenized_to_html(tokenized)
+      "<tag attr=2>"
+
+      iex> {_closed, "attr=2", tokenized} = inject_to_html tokenize("<tag attr=2 attr2>"), "attr=1"
+      iex> tokenized_to_html(tokenized)
+      "<tag attr=2 attr2>"
+
+      iex> {_closed, "attr=2", tked} = inject_to_html tokenize("<tag attr=2><tag></tag>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag attr=2><tag></tag>"
+
+      iex> {_closed, "attr=2", tked} = inject_to_html tokenize("<tag></tag><tag attr2 attr=2"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag></tag><tag attr2 attr=2"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<tag><tag attr2"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag><tag attr=1 attr2"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<tag><tag attr2>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag><tag attr=1 attr2>"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<tAg><hr/><taG Attr2></tag>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag attr=1><hr/><tag Attr2></tag>"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<tag><br><tag attr2></tag>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag attr=1><br><tag attr2></tag>"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<tag><tag></tag>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag attr=1><tag></tag>"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<img src"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<img attr=1 src"
+
+      iex> {_closed, :not_found, tked} = inject_to_html tokenize("<hr>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<hr>"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<tag 1><tag 2><tag 3></tag>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<tag 1><tag attr=1 2><tag 3></tag>"
+
+      iex> {_closed, "attr='3'", tked} = inject_to_html tokenize("<tag 1><tag 2><tag 3></tag></tag>"), "attr='3'"
+      iex> tokenized_to_html(tked)
+      "<tag attr='3' 1><tag 2><tag 3></tag></tag>"
+
+      iex> {_closed, :not_found, tked} = inject_to_html tokenize("<Tag 1></tag>"), "attr=x"
+      iex> tokenized_to_html(tked)
+      "<tag 1></tag>"
+
+      iex> {_closed, :not_found, tked} = inject_to_html tokenize("Text only"), "attr=x"
+      iex> tokenized_to_html(tked)
+      "Text only"
+
+      iex> {_closed, :not_found, tked} = inject_to_html tokenize("<tag 1><tag 2><tag 3></tag></tag></tag>"), "attr=x"
+      iex> tokenized_to_html(tked)
+      "<tag 1><tag 2><tag 3></tag></tag></tag>"
+  """
+  @spec inject_to_html(HTML.t(), String.t(), list, String.t() | atom) ::
+          {list, String.t() | atom, HTML.t()}
+  def inject_to_html(%HTML{tokenized: tokenized_html}, attr, closed \\ [], found \\ :not_found) do
+    tokens = Enum.reverse(tokenized_html)
+
+    {closed, found, acc} =
+      Enum.reduce(tokens, {closed, found, []}, fn
+        # move on, if already found
+        token, {closed, found, acc} when is_binary(found) ->
+          {closed, found, [token | acc]}
+
+        # if there is a naked tag, inject there
+        {:naked, _tag} = token, {closed, :not_found, acc} ->
+          inject_attribute(token, closed, attr, acc)
+
+        # move on if this is non closing tag
+        {:tag, tag} = token, {closed, :not_found, acc} when tag in @non_closing_tags ->
+          {closed, :not_found, [token | acc]}
+
+        # closing tag, add it to the closed tags list
+        {:tag, "/" <> tag} = token, {closed, :not_found, acc} ->
+          {[tag_name(tag) | closed], :not_found, [token | acc]}
+
+        # the list of closed tags in empty, we may inject here
+        {:tag, _tag} = token, {[], :not_found, acc} ->
+          inject_attribute(token, [], attr, acc)
+
+        # there are closed tag
+        {:tag, tag} = token, {closed, :not_found, acc} ->
+          if tag_name(tag) in closed do
+            # was closed before, ignoring
+            {closed -- [tag_name(tag)], :not_found, [token | acc]}
+          else
+            inject_attribute(token, closed, attr, acc)
+          end
+
+        token, {closed, found, acc} ->
+          {closed, found, [token | acc]}
+      end)
+
+    {closed, found, %HTML{tokenized: acc}}
+  end
+
+  defp inject_attribute({gender, tag} = token, closed, attribute, acc) do
+    case find_attribute(tag, attribute) do
+      # attribute not found, do inject and return injected
+      nil ->
+        {closed, attribute, [{gender, add_attribute(tag, attribute)} | acc]}
+
+      # attribute is already there; do not inject but return existing
+      found_attr ->
+        {closed, found_attr, [token | acc]}
     end
   end
 
@@ -513,7 +601,7 @@ defmodule Drab.Live.HTML do
     |> tokenize()
   end
 
-  defp last_tag(tokenized) do
+  defp last_tag(%HTML{tokenized: tokenized}) do
     tokenized
     |> Enum.filter(fn
       {:naked, _} -> true
@@ -606,10 +694,10 @@ defmodule Drab.Live.HTML do
   """
   @spec case_sensitive_prop_name(String.t(), String.t(), String.t()) :: String.t()
   def case_sensitive_prop_name(html, ampere, prop_name) do
+    %HTML{tokenized: tokenized} = tokenize(html)
+
     {:tag, body} =
-      html
-      |> tokenize()
-      |> Enum.find(fn x ->
+      Enum.find(tokenized, fn x ->
         case x do
           {:tag, tag} -> String.contains?(tag, "drab-ampere=\"#{ampere}\"")
           _ -> false

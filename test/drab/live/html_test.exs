@@ -3,10 +3,6 @@ defmodule Drab.Live.HtmlTest do
   import Drab.Live.HTML
   doctest Drab.Live.HTML
 
-  # @simple_html """
-  #   <b>before<%= @assign %>after</b>
-  #   """
-  # @simple_buffer EEx.compile_string(@simple_html,  engine: Drab.Live.EExEngine, file: "fake.html.drab")
   @simple_buffer [
     {:__block__, [],
      [
