@@ -291,7 +291,6 @@ defmodule Drab.Live do
   Assign gets its value only while rendering the page or via `poke`. After changing the value
   of node attribute or property on the client side, the assign value will remain the same.
   """
-  # TODO: think if it is needed to sign/encrypt
   @spec peek(Phoenix.Socket.t(), atom) :: term | no_return
   def peek(socket, assign), do: peek(socket, nil, nil, assign)
 
@@ -482,7 +481,7 @@ defmodule Drab.Live do
 
     html =
       view
-      |> Phoenix.View.render_to_string(Partial.template_filename(partial), all_assigns)
+      |> Phoenix.View.render_to_string(Partial.template_filename(view, partial), all_assigns)
       |> Floki.parse()
 
     # TODO: this is a very naive way of sorting JS. Small goes first.

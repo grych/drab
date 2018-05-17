@@ -41,12 +41,15 @@ defmodule Drab.Live.Partial do
   @doc """
   Returns the filename, without drab extension, for the template
 
-      iex> template_filename("gm2dgnjygm2dgnjt")
+      iex> template_filename(DrabTestApp.LiveView, "gm2dgnjygm2dgnjt")
       "live_engine_test.html"
+      iex> template_filename(DrabTestApp.LiveView, "gm4diobvgmytknbt")
+      "subfolder/subpartial.html"
   """
-  @spec template_filename(String.t()) :: String.t()
-  def template_filename(hash) do
-    module(hash).path() |> Path.basename() |> Path.rootname(Drab.Config.drab_extension())
+  @spec template_filename(atom, String.t()) :: String.t()
+  def template_filename(view, hash) do
+    template = Path.relative_to module(hash).path(), templates_path(view)
+    Path.rootname(template, Drab.Config.drab_extension())
   end
 
   @doc """
@@ -63,13 +66,13 @@ defmodule Drab.Live.Partial do
 
   @spec partial_path(atom, String.t()) :: String.t()
   defp partial_path(view, partial_name) do
-    templates_path(view) <> partial_name <> Drab.Config.drab_extension()
+    Path.join(templates_path(view), partial_name <> Drab.Config.drab_extension())
   end
 
   @spec templates_path(atom) :: String.t()
   defp templates_path(view) do
     {path, _, _} = view.__templates__()
-    path <> "/"
+    path
   end
 
   @doc """

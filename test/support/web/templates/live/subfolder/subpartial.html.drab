@@ -1,0 +1,4 @@
+<div id="subpartial_div">
+  <%= @text %>
+</div>
+

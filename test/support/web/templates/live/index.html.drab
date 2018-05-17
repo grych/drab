@@ -54,6 +54,15 @@
   Update @color in main partial
 </button>
 <br><br>
+
+<br>
+<%= render("subfolder/subpartial.html", text: "text in the subpartial") %>
+<button drab-click="update_in_subpartial" class="btn btn-primary">
+  Update in Subpartial
+</button>
+<br>
+
+<hr>
 <b id="text_to_set_onload"><%= @text %></b>
 <br>
 
@@ -67,7 +76,7 @@
 
 <%# TODO: uncomment when moved to >=1.6.0 %>
 <div>
-  <%#/ @nodrab2 %>
+  <%/ @nodrab2 %>
 </div>
 
 <br><br><hr>

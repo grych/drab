@@ -112,6 +112,13 @@ defmodule DrabTestApp.LiveTest do
       assert attribute_value(find_element(:id, "partial2_href"), "href") == "https://tg.pl/"
     end
 
+    test "update in partial in a subfolder should work", fixture do
+      assert peek(fixture.socket, "subfolder/subpartial.html", :text) == "text in the subpartial"
+      poke(fixture.socket, "subfolder/subpartial.html", text: "UPDATED")
+      assert peek(fixture.socket, DrabTestApp.LiveView, "subfolder/subpartial.html", :text) == "UPDATED"
+      assert visible_text(find_element(:id, "subpartial_div")) == "UPDATED"
+    end
+
     test "script test", fixture do
       poke(fixture.socket, "partial1.html", in_partial: "partial1_updated")
       test_val = Drab.Core.exec_js!(fixture.socket, "__drab_test")

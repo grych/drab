@@ -63,6 +63,10 @@ defmodule DrabTestApp.LiveCommander do
     poke(socket, color: "#aabbcc")
   end
 
+  defhandler update_in_subpartial(socket, _) do
+    poke(socket, "subfolder/subpartial.html", text: "UPDATED")
+  end
+
   defhandler update_form(socket, sender) do
     poke(socket, out: sender.params)
   end
