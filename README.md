@@ -74,7 +74,7 @@ $ mix deps.get
 
   3. Go to the application directory (if your Phoenix Web application is under the umbrella, go there) and run `mix drab.install`:
 
-```text
+```
 bash% mix drab.install
 Checking prerequisites for :my_app
   lib/my_app_web/templates/layout/app.html.eex
