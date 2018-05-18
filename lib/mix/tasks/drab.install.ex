@@ -18,27 +18,18 @@ defmodule Mix.Tasks.Drab.Install do
   @impl true
   def run(_args) do
     validate_phoenix_version()
-    app = Drab.Config.app_name()
+    app = app_name()
+
     Mix.shell().info("Checking prerequisites for #{inspect(app)}")
-    # check if app is ok, if not add an entry to the config
-    # inject_to_file("")
-    # app_module = Drab.Config.app_module()
-    # layout_view = Module.concat(app_module, LayoutView)
-    # {layout_path, _, _} = layout_view.__templates__()
-    # IO.inspect Drab.Config.app_env()
-    # IO.inspect Drab.Config.endpoint()
-    # Application.start(app)
-    # IO.inspect Application.spec(app)
     app_html = find_file("lib", "app.html.eex")
     user_socket = find_file("lib", "user_socket.ex")
     config = find_file("config", "config.exs")
     dev_config = find_file("config", "dev.exs")
-    # Mix.shell().info("All files found.")
 
     if Mix.shell().yes?("The installer is going to modify those files. OK to proceed?") do
       update("app.html.eex", app_html)
       update("user_socket.ex", user_socket)
-      update("config.exs", config)
+      update("config.exs", config, app)
       update("dev.exs", dev_config)
     end
 
@@ -51,25 +42,48 @@ defmodule Mix.Tasks.Drab.Install do
     """
   end
 
-  defp update("app.html.eex", file) do
+  defp app_name() do
+    app = Mix.Project.config()[:app]
+    unless app do
+      Mix.shell().error("Can't find the application name.")
+      Mix.shell().info("""
+      If your web application is under an umbrella, please change directory there and try again.
+      """)
+      Mix.raise("Giving up.")
+    end
+    app
+  end
+
+  defp update(file, path, app \\ nil)
+
+  defp update("app.html.eex", file, _app) do
     inject = "<%= Drab.Client.run(@conn) %>"
     inject_to_file(file, "  </body>", "    #{inject}\n  </body>")
   end
 
-  defp update("user_socket.ex", file) do
+  defp update("user_socket.ex", file, _app) do
     inject = "use Drab.Socket"
     inject_to_file(file, "  use Phoenix.Socket", "  use Phoenix.Socket\n  #{inject}")
   end
 
-  defp update("dev.exs", file) do
+  defp update("dev.exs", file, _app) do
     inject = "templates/.*(eex|drab)$"
     inject_to_file file, "templates/.*(eex)$", inject
   end
 
-  defp update("config.exs", file) do
+  defp update("config.exs", file, app) do
     inject = "\nconfig :phoenix, :template_engines,\n  drab: Drab.Live.Engine\n"
+    # if under an umbrella
+    umbrella = with {:ok, f} <- File.read("../../mix.exs"),
+      true <- String.contains?(f, "apps_path:")
+      do
+        "\nconfig :drab, main_phoenix_app: #{inspect(app)}\n"
+      else
+        _ -> ""
+      end
+
     unless inject_string_already_there(file, inject) do
-      File.write!(file, inject, [:append])
+      File.write!(file, inject <> umbrella, [:append])
     end
   end
 
