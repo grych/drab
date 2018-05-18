@@ -1,10 +1,28 @@
 # CHANGELOG
+
+## v0.8.1 - `mix drab.install`
+
+Very important role of Drab is to encourage beginners to try out `Elixir |> Phoenix |> Drab`. The
+goal is to have an environment, which is *less scary* than others, like `ruby.rails.ajax`. This
+is why all the configuration stuff should be minimized (but with options for power users).
+
+```text
+mix drab.install
+```
+
+### Bug Fixes
+
+Again, `Drab.Live` engine has been redesigned to solve existing and future issues.
+
 ## v0.8.0 - `rm priv/drab.live.cache`
+
 ### Potentially breaking release!
+
 `Drab.Live` engine has been redesigned again. No more stupid DETS cache anymore. Drab engine now
 creates modules for each template, and stores metadata compiled there.
 
 ### Elixir version
+
 Bumped to 1.6, because of the changes in the EEx Engine
 
 ### Migration from 0.7.7
@@ -13,7 +31,9 @@ Bumped to 1.6, because of the changes in the EEx Engine
     mix clean
 
 ### Bug fixes
+
 Many. See closed issues!
+
 ## v0.7.7
 ### Potentially breaking release!
 As a preparation to 0.8.0, this release contains fundamental change in `Drab.Live` behaviour. It

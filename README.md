@@ -45,7 +45,7 @@ defhandler perform_long_process(socket, _sender) do
 end
 ```
 
-### Prerequisites
+## Prerequisites
 
   1. Elixir ~> 1.6.0 (see [Installation Guide](https://elixir-lang.org/install.html))
 
