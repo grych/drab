@@ -49,120 +49,51 @@ end
 
   1. Erlang ~> 19
 
-  2. Elixir >= 1.5.1
+  2. Elixir ~> 1.6.0
 
   3. Phoenix ~> 1.2
 
-  4. Brunch
+  4. Brunch (if using `Drab.Query`)
 
 ## Installation
 
-  So far the process of the installation is mostly manual. In the future it will be automated.
+  First at all, you need to have a Phoenix application, on top of which you will install Drab. If this is a standard app, generated with `mix phx.new`, you may use Drab Installer to make it running in one, simple step. Otherwise, see [Manual Installation](#manual-installation) section below.
 
-  1. Add `drab` to your list of dependencies in `mix.exs` in your Phoenix application and install it:
+  1. Add `drab` to your list of dependencies in `mix.exs` in the application and install it:
 
 ```elixir
 def deps do
-  [{:drab, "~> 0.7"}]
+  [{:drab, "~> 0.8.1"}]
 end
 ```
 
 ```bash
 $ mix deps.get
-$ mix compile
 ```
 
-  2. Initialize Drab client library by adding to the layout page (`app.html.eex`)
-
-```html
-<%= Drab.Client.run(@conn) %>
-```
-
-  just after the following line:
-
-```html
-<script src="<%= static_path(@conn, "/js/app.js") %>"></script>
-```
-
-  3. Initialize Drab sockets by adding the following to `user_socket.ex`:
-
-```elixir
-use Drab.Socket
-```
-
-  4. Add Drab template engine to `config.exs`:
-
-```elixir
-config :phoenix, :template_engines,
-  drab: Drab.Live.Engine
-```
-
-  5. Add `:drab` to applications started by default in `mix.exs`:
-
-```elixir
-def application do
-  [mod: {MyApp, []},
-   applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext, :drab]]
-end
-```
-
-  It is not needed if you are running Phoenix 1.3
-
-  6. To enable live reload on Drab pages, add `.drab` extension to live reload patterns in `dev.exs`:
-
-```elixir
-config :my_app, MyApp.Endpoint,
-  live_reload: [
-    patterns: [
-      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
-      ~r{priv/gettext/.*(po)$},
-      ~r{web/views/.*(ex)$},
-      ~r{web/templates/.*(eex|drab)$}
-    ]
-  ]
-```
-
-  7. If your application is **under the umbrella project**, Drab is not able to find its name. In this case, add the app name to the `config.exs`:
-
-```elixir
-config :drab,
-  main_phoenix_app: :my_app
-```
-
-#### If you want to use Drab.Query (jQuery based module):
-
-  1. Add `jquery` and `boostrap` to `package.json`:
-
-```json
-"dependencies": {
-  "jquery": ">= 3.1.1",
-  "bootstrap": "~3.3.7"
-}
-```
-
-  2. Add jQuery as a global at the end of `brunch-config.js`:
-
-```javascript
-npm: {globals: {
-  $: 'jquery',
-  jQuery: 'jquery',
-  bootstrap: 'bootstrap'
-}}
-```
-
-  3. And install it:
+  2. Go to the application directory (if your Phoenix Web application is under the umbrella, go there) and run `mix drab.install`:
 
 ```bash
-$ npm install && node_modules/brunch/bin/brunch build
+bash% mix drab.install
+Checking prerequisites for :my_app
+  lib/my_app_web/templates/layout/app.html.eex
+  lib/my_app_web/channels/user_socket.ex
+  config/config.exs
+  config/dev.exs
+The installer is going to modify those files. OK to proceed? [Yn] Y
+Drab has been successfully installed in your Phoenix application.
+
+Now it is time to create your first commander, for example, for PageController:
+
+    mix drab.gen.commander Page
 ```
 
-
-Congratulations! You have installed Drab and you can proceed with your own commanders.
+Congratulations! You have installed Drab and you can proceed with your own commander.
 
 ## Usage
 
 All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`.
-Think about it as a controller for the live pages. Commanders should be placed in `web/commanders` directory. 
+Think about it as a controller for the live pages. Commanders should be placed in `web/commanders` directory.
 
 To enable Drab on the pages generated with corresponding controller, you need to create a twin commander. For example, for `MyApp.PageController` the commander should be named `MyApp.PageCommander`.
 
@@ -335,6 +266,93 @@ Finished in 120.9 seconds
 123 tests, 0 failures
 
 Randomized with seed 934572
+```
+
+## Manual Installation
+  1. Add Drab to the dependencies in `mix.exs`.
+
+  2. Initialize Drab client library by adding to the layout page (`app.html.eex`)
+
+```html
+<%= Drab.Client.run(@conn) %>
+```
+
+  just after the following line:
+
+```html
+<script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+```
+
+  3. Initialize Drab sockets by adding the following to `user_socket.ex`:
+
+```elixir
+use Drab.Socket
+```
+
+  4. Add Drab template engine to `config.exs`:
+
+```elixir
+config :phoenix, :template_engines,
+  drab: Drab.Live.Engine
+```
+
+  5. Add `:drab` to applications started by default in `mix.exs`:
+
+```elixir
+def application do
+  [mod: {MyApp, []},
+   applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext, :drab]]
+end
+```
+
+  It is not needed if you are running Phoenix 1.3
+
+  6. To enable live reload on Drab pages, add `.drab` extension to live reload patterns in `dev.exs`:
+
+```elixir
+config :my_app, MyApp.Endpoint,
+  live_reload: [
+    patterns: [
+      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
+      ~r{priv/gettext/.*(po)$},
+      ~r{web/views/.*(ex)$},
+      ~r{web/templates/.*(eex|drab)$}
+    ]
+  ]
+```
+
+  7. If your application is **under the umbrella project**, Drab is not able to find its name. In this case, add the app name to the `config.exs`:
+
+```elixir
+config :drab,
+  main_phoenix_app: :my_app
+```
+
+#### If you want to use Drab.Query (jQuery based module):
+
+  1. Add `jquery` and `boostrap` to `package.json`:
+
+```json
+"dependencies": {
+  "jquery": ">= 3.1.1",
+  "bootstrap": "~3.3.7"
+}
+```
+
+  2. Add jQuery as a global at the end of `brunch-config.js`:
+
+```javascript
+npm: {globals: {
+  $: 'jquery',
+  jQuery: 'jquery',
+  bootstrap: 'bootstrap'
+}}
+```
+
+  3. And install it:
+
+```bash
+$ npm install && node_modules/brunch/bin/brunch build
 ```
 
 ## Contact
