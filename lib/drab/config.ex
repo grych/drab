@@ -75,7 +75,7 @@ defmodule Drab.Config do
   @spec raise_app_not_found :: no_return
   defp raise_app_not_found() do
     raise """
-    drab can't find the main Phoenix application name.
+    Drab can't find the main Phoenix application name.
 
     Please check your mix.exs or set the name in confix.exs:
 

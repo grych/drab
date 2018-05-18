@@ -14,6 +14,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
   @impl true
   def run(args) do
     [module] = validate_args!(args)
+    module = String.replace(module, ~r/Commander$/, "")
 
     inf = Mix.Phoenix.inflect(module)
     module = web_module(inf)
