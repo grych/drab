@@ -239,7 +239,8 @@ function parse_drab_attr(attr) {
   var event_name = event_with_options[0];
   var options = event_with_options[1];
   var handler_name = l[1];
-  var in_shared_commander = handler_name && (handler_name.indexOf(".") !== -1)
+  var up_to_parenthesis = handler_name && handler_name.match(/^[^(]+/)[0];
+  var in_shared_commander = up_to_parenthesis && (up_to_parenthesis.indexOf(".") !== -1)
   if (event_name && handler_name) {
     return {
       handler_name: handler_name,

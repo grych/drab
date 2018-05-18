@@ -105,7 +105,7 @@ defmodule DrabTestApp.SharedTest do
       assert css_property(find_element(:id, "spaceholder20"), "color") == "rgba(255, 34, 34, 1)"
 
       assert visible_text(find_element(:id, "spaceholder21")) ==
-               "changed in shared commander, one"
+               "changed in shared commander, one."
 
       assert css_property(find_element(:id, "spaceholder21"), "background-color") ==
                "rgba(119, 221, 221, 1)"
@@ -127,7 +127,7 @@ defmodule DrabTestApp.SharedTest do
       assert css_property(find_element(:id, "spaceholder20"), "color") == "rgba(255, 34, 34, 1)"
 
       assert visible_text(find_element(:id, "spaceholder21")) ==
-               "changed in shared commander, one"
+               "changed in shared commander, one."
 
       assert css_property(find_element(:id, "spaceholder21"), "background-color") ==
                "rgba(119, 221, 221, 1)"
@@ -160,7 +160,7 @@ defmodule DrabTestApp.SharedTest do
       click_and_wait("peek1")
       click_and_wait("peek12")
       assert visible_text(find_element(:id, "peek0")) == "assigned in controller"
-      assert visible_text(find_element(:id, "peek1")) == "changed in shared commander, one"
+      assert visible_text(find_element(:id, "peek1")) == "changed in shared commander, one."
       assert visible_text(find_element(:id, "peek12")) == "assigned in controller"
 
       click_and_wait("shared12-button")
@@ -168,7 +168,7 @@ defmodule DrabTestApp.SharedTest do
       click_and_wait("peek1")
       click_and_wait("peek12")
       assert visible_text(find_element(:id, "peek0")) == "assigned in controller"
-      assert visible_text(find_element(:id, "peek1")) == "changed in shared commander, one"
+      assert visible_text(find_element(:id, "peek1")) == "changed in shared commander, one."
       assert visible_text(find_element(:id, "peek12")) == "changed in shared commander, two"
 
       click_and_wait("global-button")
