@@ -66,11 +66,13 @@ def deps do
 end
 ```
 
+  2. Download and install packages (including Drab):
+
 ```bash
 $ mix deps.get
 ```
 
-  2. Go to the application directory (if your Phoenix Web application is under the umbrella, go there) and run `mix drab.install`:
+  3. Go to the application directory (if your Phoenix Web application is under the umbrella, go there) and run `mix drab.install`:
 
 ```text
 bash% mix drab.install
