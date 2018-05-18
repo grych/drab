@@ -47,13 +47,9 @@ end
 
 ### Prerequisites
 
-  1. Erlang ~> 19
+  1. Elixir ~> 1.6.0 (see [Installation Guide](https://elixir-lang.org/install.html))
 
-  2. Elixir ~> 1.6.0
-
-  3. Phoenix ~> 1.2
-
-  4. Brunch (if using `Drab.Query`)
+  2. Phoenix ~> 1.2 (see [Installation Guide](https://hexdocs.pm/phoenix/installation.html#phoenix))
 
 ## Installation
 
