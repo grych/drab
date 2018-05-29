@@ -761,7 +761,7 @@ defmodule Drab.Live do
       message: """
       assign @#{assign} not found in Drab EEx template.
 
-      Please make sure all proper assigns have been set. If thisD
+      Please make sure all proper assigns have been set. If this
       is a child template, ensure assigns are given explicitly by
       the parent template as they are not automatically forwarded.
 

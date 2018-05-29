@@ -1,9 +1,8 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
 
-<div drab-commander="DrabTestApp.Shared1Commander" drab-argument="'one.'">
   <button drab-click="update_mini">Update mini</button>
-</div>
 <br>
-
 <%= @text %>
+<%= @color %>
+<% @color %>
