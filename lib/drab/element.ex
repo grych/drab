@@ -141,7 +141,7 @@ defmodule Drab.Element do
 
   Similar to `query/3`, but always returns a map of properties of one element (or `{:ok, nil}`
   if not found).
-  Returns `{:too_many, message}` if found more than one element.
+  Returns `{:error, message}` if found more than one element.
 
   Examples:
       iex> query_one socket, "button", :innerText

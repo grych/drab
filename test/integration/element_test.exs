@@ -42,10 +42,10 @@ defmodule DrabTestApp.ElementTest do
       socket = drab_socket()
       assert query_one(socket, "#button1", "id") == {:ok, %{"id" => "button1"}}
       assert query_one!(socket, "#button1", "id") == %{"id" => "button1"}
-      assert {:too_many, _} = query_one(socket, "input", :id)
+      assert {:error, _} = query_one(socket, "input", :id)
       assert {:ok, nil} == query_one(socket, "nonexistent", :id)
       assert nil == query_one!(socket, "nonexistent", :id)
-      assert_raise RuntimeError, fn -> query_one!(socket, "input", :id) end
+      assert_raise Drab.JSExecutionError, fn -> query_one!(socket, "input", :id) end
     end
 
     test "set_prop" do
