@@ -413,7 +413,7 @@ defmodule Drab.Element do
 
   Returns number of updated element.
   """
-  @spec set_html!(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.result() | no_return
+  @spec set_html!(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
   def set_html!(socket, selector, html) do
     set_prop! socket, selector, innerHTML: html
   end

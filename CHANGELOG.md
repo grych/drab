@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.8.2
+
+* New helpers in Drab.Element
+
 ## v0.8.1 - `mix drab.install`
 
 Very important role of Drab is to encourage beginners to try out `Elixir |> Phoenix |> Drab`. The
