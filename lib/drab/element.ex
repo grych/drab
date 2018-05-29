@@ -392,4 +392,30 @@ defmodule Drab.Element do
   defp insert_js(selector, position, html) do
     "Drab.insert_html(#{encode_js(selector)}, #{encode_js(position)}, #{encode_js(html)})"
   end
+
+  @doc """
+  Finds all html elements using `selector` and sets their `innerHTML` property.
+
+  Returns tuple `{:ok, number}` with number of updated elements or `{:error, description}`.
+
+  Examples:
+
+      iex> set_html socket, "#my_element", "<p>Hello, World!</p>"
+      {:ok, 1}
+  """
+  @spec set_html(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.result()
+  def set_html(socket, selector, html) do
+    set_prop socket, selector, innerHTML: html
+  end
+
+ @doc """
+  Bang version of `set_html/3`, raises exception on error.
+
+  Returns number of updated element.
+  """
+  @spec set_html!(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.result() | no_return
+  def set_html!(socket, selector, html) do
+    set_prop! socket, selector, innerHTML: html
+  end
+
 end
