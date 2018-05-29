@@ -179,14 +179,11 @@ defmodule DrabTestApp.ElementTest do
     assert visible_text(out) == "inner outer clicked"
   end
 
-
-
   test "set_html" do
     socket = drab_socket()
-    assert {:ok, 1} == set_html(socket, "#my_element", "<p>Hello, World!</p> ")
+    html = "<p>Hello, World!</p>"
+    assert {:ok, 1} == set_html(socket, "#my_element", html)
+    assert %{"innerHTML" => html} == query_one!(socket, "#my_element", :innerHTML)
   end
-
-
-
 
 end
