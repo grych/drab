@@ -289,6 +289,29 @@ defmodule Drab.Element do
   end
 
   @doc """
+  Broadcasting version of `set_style/3`.
+
+  It does exactly the same as `set_style/3`, but instead of pushing the message to the current
+  browser, it broadcasts it to all connected users.
+
+  Always returns `{:ok, :broadcasted}`.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.  
+  """
+  @spec broadcast_style(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.result()
+  def broadcast_style(subject, selector, properties) when is_list(properties) or is_map(properties) do
+    broadcast_js(subject, set_js(selector, %{"style" => Map.new(properties)}))
+  end
+
+  @doc """
+  Exception-throwing version of `broadcast_style/3`
+  """
+  @spec broadcast_style!(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.return() | no_return
+  def broadcast_style!(subject, selector, properties) when is_list(properties) or is_map(properties) do
+    broadcast_js!(subject, set_js(selector, %{"style" => Map.new(properties)}))
+  end
+
+  @doc """
   Helper for setting the attributes of found elements. A shorthand for:
 
       set_prop(socket, selector, %{"attributes" => attributes})
@@ -313,6 +336,30 @@ defmodule Drab.Element do
   end
 
   @doc """
+  Broadcasting version of `set_attr/3`.
+
+  It does exactly the same as `set_attr/3`, but instead of pushing the message to the current
+  browser, it broadcasts it to all connected users.
+
+  Always returns `{:ok, :broadcasted}`.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.  
+  """
+  @spec broadcast_attr(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.result()
+  def broadcast_attr(subject, selector, attributes) when is_list(attributes) or is_map(attributes) do
+    # set_prop(socket, selector, %{"attributes" => Map.new(attributes)})
+    broadcast_js(subject, set_js(selector, %{"attributes" => Map.new(attributes)}))
+  end
+
+  @doc """
+  Exception-throwing version of `broadcast_attr/3`
+  """
+  @spec broadcast_attr!(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.return() | no_return
+  def broadcast_attr!(subject, selector, attributes) when is_list(attributes) or is_map(attributes) do
+    broadcast_js(subject, set_js(selector, %{"attributes" => Map.new(attributes)}))
+  end
+
+  @doc """
   Helper for setting the dataset of elements. A shorthand for:
 
       set_prop(socket, selector, %{"dataset" => dataset})
@@ -334,6 +381,29 @@ defmodule Drab.Element do
           Drab.Core.return() | no_return
   def set_data!(socket, selector, dataset) when is_list(dataset) or is_map(dataset) do
     set_prop!(socket, selector, %{"dataset" => Map.new(dataset)})
+  end
+
+  @doc """
+  Broadcasting version of `set_data/3`.
+
+  It does exactly the same as `set_data/3`, but instead of pushing the message to the current
+  browser, it broadcasts it to all connected users.
+
+  Always returns `{:ok, :broadcasted}`.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.  
+  """
+  @spec broadcast_data(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.bcast_result()
+  def broadcast_data(subject, selector, dataset) when is_list(dataset) or is_map(dataset) do
+    broadcast_js(subject, set_js(selector, %{"dataset" => Map.new(dataset)}))
+  end
+
+  @doc """
+  Exception-throwing version of `broadcast_data/3`
+  """
+  @spec broadcast_data!(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.return() | no_return
+  def broadcast_data!(subject, selector, dataset) when is_list(dataset) or is_map(dataset) do
+    broadcast_js!(subject, set_js(selector, %{"dataset" => Map.new(dataset)}))
   end
 
   @doc """
@@ -416,6 +486,29 @@ defmodule Drab.Element do
   @spec set_html!(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.result() | no_return
   def set_html!(socket, selector, html) do
     set_prop! socket, selector, innerHTML: html
+  end
+
+  @doc """
+  Broadcasting version of `set_html/3`.
+
+  It does exactly the same as `set_html/3`, but instead of pushing the message to the current
+  browser, it broadcasts it to all connected users.
+
+  Always returns `{:ok, :broadcasted}`.
+
+  See `Drab.Core.broadcast_js/2` for broadcasting options.  
+  """
+  @spec broadcast_html(Drab.Core.subject(), String.t(), String.t()) :: Drab.Core.result()
+  def broadcast_html(subject, selector, html) do
+    broadcast_js(subject, set_js(selector, %{"innerHTML" => html}))
+  end
+
+  @doc """
+  Exception-throwing version of `broadcast_html/43`
+  """
+  @spec broadcast_html!(Drab.Core.subject(), String.t(), String.t()) :: Drab.Core.result()
+  def broadcast_html!(subject, selector, html) do
+    broadcast_js!(subject, set_js(selector, %{"innerHTML" => html}))
   end
 
 end
