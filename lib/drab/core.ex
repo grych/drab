@@ -326,6 +326,7 @@ defmodule Drab.Core do
   """
   @spec broadcast_js!(subject, String.t(), Keyword.t()) :: return
   def broadcast_js!(subject, js, _options \\ []) do
+    Deppie.warn("Drab.Core.broadcast_js!/2 is depreciated, please use broadcast_js/2 instead")
     Drab.broadcast(subject, self(), "broadcastjs", js: js)
     subject
   end
