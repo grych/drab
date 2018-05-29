@@ -160,7 +160,7 @@ defmodule Drab.Element do
         case Map.keys(map) do
           [] -> {:ok, nil}
           [key] -> {:ok, map[key]}
-          _ -> {:too_many, query_one_error_message(map, selector)}
+          _ -> {:error, query_one_error_message(map, selector)}
         end
 
       other ->
@@ -186,7 +186,7 @@ defmodule Drab.Element do
     case Map.keys(map) do
       [] -> nil
       [key] -> map[key]
-      _ -> raise query_one_error_message(map, selector)
+      _ -> raise Drab.JSExecutionError, message: query_one_error_message(map, selector)
     end
   end
 
@@ -296,7 +296,7 @@ defmodule Drab.Element do
 
   Always returns `{:ok, :broadcasted}`.
 
-  See `Drab.Core.broadcast_js/2` for broadcasting options.  
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
   @spec broadcast_style(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.bcast_result()
   def broadcast_style(subject, selector, properties) when is_list(properties) or is_map(properties) do
@@ -335,7 +335,7 @@ defmodule Drab.Element do
 
   Always returns `{:ok, :broadcasted}`.
 
-  See `Drab.Core.broadcast_js/2` for broadcasting options.  
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
   @spec broadcast_attr(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.bcast_result()
   def broadcast_attr(subject, selector, attributes) when is_list(attributes) or is_map(attributes) do
@@ -375,7 +375,7 @@ defmodule Drab.Element do
 
   Always returns `{:ok, :broadcasted}`.
 
-  See `Drab.Core.broadcast_js/2` for broadcasting options.  
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
   @spec broadcast_data(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.bcast_result()
   def broadcast_data(subject, selector, dataset) when is_list(dataset) or is_map(dataset) do
@@ -472,7 +472,7 @@ defmodule Drab.Element do
 
   Always returns `{:ok, :broadcasted}`.
 
-  See `Drab.Core.broadcast_js/2` for broadcasting options.  
+  See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
   @spec broadcast_html(Drab.Core.subject(), String.t(), String.t()) :: Drab.Core.bcast_result()
   def broadcast_html(subject, selector, html) do
