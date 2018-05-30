@@ -386,7 +386,7 @@ defmodule Drab.Browser do
   end
 
   @doc """
-  Retrieve all cookies from browser.
+  Retrieve all cookies from browser and convert them in a list of maps.
 
   ### Parameters
 
@@ -398,15 +398,47 @@ defmodule Drab.Browser do
         {:ok, result}
   """
   def cookies(socket) do
-    exec_js(socket, "document.cookie")
+    socket
+    |> raw_cookies()
+    |> case do
+        {:ok, cookies} -> {:ok, extract_cookies_maps(cookies)}
+        {:error, error} -> {:error, error}
+      end
   end
 
   @doc """
   Exception raising version of `cookies/1`
   """
   def cookies!(socket) do
+    socket
+    |> raw_cookies!()
+    |> extract_cookies_maps()
+  end
+
+
+  @doc """
+  Retrieve all cookies from browser.
+
+  ### Parameters
+
+  * `socket` - The Drab socket
+
+  ### Example:
+  
+        iex> Drab.Browser.raw_cookies(socket)
+        {:ok, result}
+  """
+  def raw_cookies(socket) do
+    exec_js(socket, "document.cookie")
+  end
+
+  @doc """
+  Exception raising version of `raw_cookies/1`
+  """
+  def raw_cookies!(socket) do
     exec_js!(socket, "document.cookie")
   end
+
 
   @doc """
   Retrieves a specific cookie form the browser.
@@ -423,7 +455,7 @@ defmodule Drab.Browser do
       [%{id: 001, key: "foo"}, %{id: 002, key: "bar"}]
   """
   def cookie(socket, key, options \\ []) do
-    case cookies(socket) do
+    case raw_cookies(socket) do
       {:ok, cookies} ->
         extract_cookie(cookies, key, options)
       _ -> ""
@@ -435,7 +467,7 @@ defmodule Drab.Browser do
   """
   def cookie!(socket, key, options \\ []) do
     socket
-    |> cookies()
+    |> raw_cookies()
     |> extract_cookie(key, options)
   end
 

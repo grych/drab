@@ -78,16 +78,29 @@ defmodule DrabTestApp.BrowserTest do
       assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: (3 * 24 * 60 * 60), encode: true)
     end
 
-    test "retrieves the cookies" do
+    test "retrieves raw cookies" do
       socket = drab_socket()
 
-      #write three cookies
+      #write some cookies
       assert {:ok, _} = set_cookie(socket, "map1", %{"message" => "Hello, World 1!"}, path: "/", encode: true)
       assert {:ok, _} = set_cookie(socket, "map2", %{"message" => "Hello, World 2!"}, path: "/", encode: true)
       assert {:ok, _} = set_cookie(socket, "map3", %{"message" => "Hello, World 3!"}, path: "/", encode: true)
 
       # Get cookies
       expected_result = "map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; map2=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDIhIn0; map3=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDMhIn0"
+      assert {:ok, ^expected_result} = raw_cookies(socket)
+    end
+
+    test "retrieves cookies" do
+      socket = drab_socket()
+
+      #write some cookies
+      assert {:ok, _} = set_cookie(socket, "map1", %{"message" => "Hello, World 1!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map2", %{"message" => "Hello, World 2!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map3", %{"message" => "Hello, World 3!"}, path: "/", encode: true)
+
+      # Get cookies
+      expected_result = [%{key: "map1", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0"}, %{key: "map2", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDIhIn0"}, %{key: "map3", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDMhIn0"}]
       assert {:ok, ^expected_result} = cookies(socket)
     end
 
@@ -114,7 +127,7 @@ defmodule DrabTestApp.BrowserTest do
       assert {:ok, _} = delete_cookie(socket, "map2")
        # Check cookies
       expected_result = "map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; map3=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDMhIn0"
-      assert {:ok, ^expected_result} = cookies(socket)
+      assert {:ok, ^expected_result} = raw_cookies(socket)
     end
 
   end

@@ -96,7 +96,40 @@ import Drab.Core
     |> decode_value(options)
   end
 
+  @doc """
+  Convert raw cookies string in a list of maps, where :key is the cookie name, and :value is the cookie value.
+
+  As at this level it is not possible to know which are the cookies values that have be encoded, their values are the same as those in the original string.
+
+  Examples:
+        iex> Drab.Utils.extract_cookies_maps("_ga=GA1.1.12345.54321; _gid=GA1.1.12345.54321; map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; _gat_gtag_UA_123ABC=1; cookiebar=CookieAllowed")
+        [
+          %{key: "_ga", value: "GA1.1.12345.54321"},
+          %{key: "_gid", value: "GA1.1.12345.54321"},
+          %{key: "map1", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0"},
+          %{key: "_gat_gtag_UA_123ABC", value: "1"},
+          %{key: "cookiebar", value: "CookieAllowed"}
+        ]
+  """
+  @spec extract_cookies_maps(String.t()) :: Keyword.t()
+  def extract_cookies_maps(cookies) do
+    Regex.scan(~r/(^|\s)(.*?)=(.*?)(;|$)/, cookies)
+    |> case do
+      [] -> []
+      matches -> matches_to_maps(matches)
+    end
+  end
+
 ## Private Helpers
+
+  defp matches_to_maps(matches) do
+    Enum.map(matches, fn match ->
+      case match do
+        [_, _, key, value, _] -> %{key: key, value: value}
+        _ -> %{}
+      end
+    end)
+  end
 
   defp extract_cookie_string(cookies, key) do
     ~r/(#{key}=.+?)(;|$)/
