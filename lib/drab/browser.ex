@@ -298,8 +298,6 @@ defmodule Drab.Browser do
     """)
   end
 
-## Cookies ##
-
   @doc """
   Synchronously set a cookie on the client side
   
@@ -330,8 +328,8 @@ defmodule Drab.Browser do
   
   ### Example:
   
-        iex> Drab.Browser.cookie(socket, "Items", [%{id: 001, name: "foo"}, %{id: 002, name: "bar"}], max_age: 3*24*60*60, encode: true)
-    
+        iex> Drab.Browser.set_cookie(socket, "Items", [%{id: 001, name: "foo"}, %{id: 002, name: "bar"}], max_age: 3*24*60*60, encode: true)
+        {:ok, result}
   """
   # @spec exec_js(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
   def set_cookie(socket, key, value, options \\ []) do
@@ -350,10 +348,18 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `set_cookie/4`
   """
-  def set_cookie!(_socket, _key, _value, _options \\ []) do
-    # TODO
-  end
+  def set_cookie!(socket, key, value, options \\ []) do
+    # Options
+    max_age = Keyword.get(options, :max_age, 0)
+    path = Keyword.get(options, :path, "/")
 
+    # Prepare
+    encoded_value = encode_value(value, options)
+    expires = cookie_expires(socket, max_age)
+
+    # Set cookie
+    exec_js!(socket, "document.cookie='#{key}=#{encoded_value}; expires=#{expires}; path=#{path};'")
+  end
 
   @doc """
   Delete a cookie.
@@ -366,7 +372,7 @@ defmodule Drab.Browser do
   ### Example:
   
         iex> Drab.Browser.delete_cookie(socket, "Items")
-
+        {:ok, result}
   """
   def delete_cookie(socket, key) do
     set_cookie(socket, key, "", max_age: -1)
@@ -375,10 +381,9 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `delete_cookie/2`
   """
-  def delete_cookie!(_socket, _key) do
-    # TODO
+  def delete_cookie!(socket, key) do
+    set_cookie!(socket, key, "", max_age: -1)
   end
-
 
   @doc """
   Retrieve all cookies from browser.
@@ -387,7 +392,10 @@ defmodule Drab.Browser do
 
   * `socket` - The Drab socket
 
-
+  ### Example:
+  
+        iex> Drab.Browser.cookies(socket)
+        {:ok, result}
   """
   def cookies(socket) do
     exec_js(socket, "document.cookie")
@@ -396,10 +404,9 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `cookies/1`
   """
-  def cookies!(_socket) do
-    # TODO
+  def cookies!(socket) do
+    exec_js!(socket, "document.cookie")
   end
-
 
   @doc """
   Retrieves a specific cookie form the browser.
@@ -412,9 +419,8 @@ defmodule Drab.Browser do
   ### Options
 
   ### Example
-      iex> items = cookie(socket, "Items")
+      iex> Drab.Browser.cookie(socket, "Items")
       [%{id: 001, key: "foo"}, %{id: 002, key: "bar"}]
-
   """
   def cookie(socket, key, options \\ []) do
     case cookies(socket) do
@@ -427,10 +433,10 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `cookie/3`
   """
-  def cookie!(_socket, _key, _options \\ []) do
-    # TODO
+  def cookie!(socket, key, options \\ []) do
+    cookies(socket)
+    |> extract_cookie(key, options)
   end
-
 
   # Composes the expire string adding the `max_age` seconds to the current client time
   defp cookie_expires(socket, max_age) do
@@ -446,8 +452,5 @@ defmodule Drab.Browser do
           "Thu, 01 Jan 1970 00:00:00 GMT"
       end
   end
-
-## / Cookies ##
-
 
 end

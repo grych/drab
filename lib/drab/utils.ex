@@ -50,7 +50,6 @@ import Drab.Core
     |> (&((encode || encrypt) && Base.encode64(&1, padding: false) || &1)).()
   end
 
-
   @doc """
   Decode a value.
 
@@ -77,8 +76,6 @@ import Drab.Core
     |> (&((decode || decrypt) && decode_js(&1) || &1)).()
   end
 
-
-
   @doc """
   Extract a specific cookie from cookies string.
 
@@ -100,8 +97,7 @@ import Drab.Core
     |> decode_value(options)
   end
 
-
-## Private Cookie Helpers
+## Private Helpers
 
   defp extract_cookie_string(cookies, key) do
     Regex.run(~r/(#{key}=.+?)(;|$)/, cookies)
@@ -119,18 +115,13 @@ import Drab.Core
         end    
   end
 
-
-  defp encrypt_value(value, _options \\ []) do
-    # TODO
-    value
+  defp encrypt_value(value, _options) do
+    Drab.Live.Crypto.encrypt(value)
   end
 
-  defp decrypt_value(value, _options \\ []) do
-    # TODO
-    value
+  defp decrypt_value(value, _options) do
+    Drab.Live.Crypto.decrypt(value)
   end
-
-
 
 end # Module
 

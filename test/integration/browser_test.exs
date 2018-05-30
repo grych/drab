@@ -70,5 +70,52 @@ defmodule DrabTestApp.BrowserTest do
       # assert String.contains?(Drab.Core.exec_js!(socket, "window.location.href"), "/other/path")
       assert Drab.Core.exec_js!(socket, "window.location.href") =~ "/other/path"
     end
+
+    test "set cookie" do
+      socket = drab_socket()
+
+      # result example: "map=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9; expires=Sat, 02 Jun 2018 10:42:15 +0000; path=/;"
+      assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: 3*24*60*60, encode: true)
+    end
+
+    test "retrieves the cookies" do
+      socket = drab_socket()
+
+      #write three cookies
+      assert {:ok, _} = set_cookie(socket, "map1", %{"message" => "Hello, World 1!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map2", %{"message" => "Hello, World 2!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map3", %{"message" => "Hello, World 3!"}, path: "/", encode: true)
+
+      # Get cookies
+      expected_result = "map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; map2=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDIhIn0; map3=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDMhIn0"
+      assert {:ok, ^expected_result} = cookies(socket)
+    end
+
+    test "retrieve a cookie" do
+      socket = drab_socket()
+      
+      #retrieve an non exixtent cookie
+      assert "" == cookie(socket, "foo")
+
+      #write and retrieve a cookie
+      assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: 3*24*60*60, encode: true)
+      assert %{"message" => "Hello, World!"} == cookie(socket, "map")
+    end
+
+    test "delete a cookie" do
+      socket = drab_socket()
+
+      #write three cookies
+      assert {:ok, _} = set_cookie(socket, "map1", %{"message" => "Hello, World 1!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map2", %{"message" => "Hello, World 2!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map3", %{"message" => "Hello, World 3!"}, path: "/", encode: true)
+      
+      #delete a cookie
+      assert {:ok, _} = delete_cookie(socket, "map2")
+       # Check cookies
+      expected_result = "map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; map3=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDMhIn0"
+      assert {:ok, ^expected_result} = cookies(socket)
+    end
+
   end
 end
