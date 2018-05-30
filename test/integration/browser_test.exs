@@ -75,7 +75,7 @@ defmodule DrabTestApp.BrowserTest do
       socket = drab_socket()
 
       # result example: "map=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9; expires=Sat, 02 Jun 2018 10:42:15 +0000; path=/;"
-      assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: 3*24*60*60, encode: true)
+      assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: (3 * 24 * 60 * 60), encode: true)
     end
 
     test "retrieves the cookies" do
@@ -93,12 +93,12 @@ defmodule DrabTestApp.BrowserTest do
 
     test "retrieve a cookie" do
       socket = drab_socket()
-      
+
       #retrieve an non exixtent cookie
       assert "" == cookie(socket, "foo")
 
       #write and retrieve a cookie
-      assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: 3*24*60*60, encode: true)
+      assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: (3 * 24 * 60 * 60), encode: true)
       assert %{"message" => "Hello, World!"} == cookie(socket, "map")
     end
 
@@ -109,7 +109,7 @@ defmodule DrabTestApp.BrowserTest do
       assert {:ok, _} = set_cookie(socket, "map1", %{"message" => "Hello, World 1!"}, path: "/", encode: true)
       assert {:ok, _} = set_cookie(socket, "map2", %{"message" => "Hello, World 2!"}, path: "/", encode: true)
       assert {:ok, _} = set_cookie(socket, "map3", %{"message" => "Hello, World 3!"}, path: "/", encode: true)
-      
+
       #delete a cookie
       assert {:ok, _} = delete_cookie(socket, "map2")
        # Check cookies

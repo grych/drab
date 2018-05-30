@@ -434,7 +434,8 @@ defmodule Drab.Browser do
   Exception raising version of `cookie/3`
   """
   def cookie!(socket, key, options \\ []) do
-    cookies(socket)
+    socket
+    |> cookies()
     |> extract_cookie(key, options)
   end
 

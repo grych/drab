@@ -37,7 +37,6 @@ import Drab.Core
         answer = decoded_value["answer"]
 
       end
-
   """
   def encode_value(value, options \\ []) do
     # Options
@@ -51,7 +50,7 @@ import Drab.Core
   end
 
   @doc """
-  Decode a value.
+  Decode a value encoded with encode_value/2
 
   ### Options
 
@@ -59,8 +58,8 @@ import Drab.Core
   * `decrypt` - `Boolean`, Decrypt the value, default `false`. When `true`, implies `decode` = `true`
 
   Examples:
-  TODO
-
+        iex> Drab.Utils.decode_value("eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9")
+        %{"message" => "Hello, World!"}
   """
   def decode_value(value, options \\ [])
   def decode_value(nil,  _options) do "" end
@@ -100,19 +99,21 @@ import Drab.Core
 ## Private Helpers
 
   defp extract_cookie_string(cookies, key) do
-    Regex.run(~r/(#{key}=.+?)(;|$)/, cookies)
+    ~r/(#{key}=.+?)(;|$)/
+    |> Regex.run(cookies)
     |> case do
         [_, value, _] -> value
-        _ -> "" 
+        _ -> ""
       end 
   end
 
   defp extract_cookie_value(cookie, key) do
-      Regex.run(~r/#{key}=(.*)/, cookie)
-      |> case do
-          [_, value] -> value
-          _ -> "" 
-        end    
+    ~r/#{key}=(.*)/
+    |> Regex.run(cookie)
+    |> case do
+        [_, value] -> value
+        _ -> "" 
+      end    
   end
 
   defp encrypt_value(value, _options) do
@@ -124,4 +125,3 @@ import Drab.Core
   end
 
 end # Module
-

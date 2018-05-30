@@ -22,7 +22,6 @@ defmodule Drab.UtilsTest do
     cookies = "a=foo; message=Hello, World!; c=bar"
     encoded_cookies = "a=foo; map=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9; c=bar"
 
-
     assert "Hello, World!" == extract_cookie(cookies, "message", decode: false)
     assert %{"message" => "Hello, World!"} == extract_cookie(encoded_cookies, "map")
     assert %{"message" => "Hello, World!"} == extract_cookie(encoded_cookies, "map", decode: true)
