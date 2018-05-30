@@ -2,7 +2,6 @@ defmodule Drab.UtilsTest do
   use ExUnit.Case, ascync: true
   import Drab.Utils
 
-
   test "encode_value" do
     value = %{"message" => "Hello, World!"}
     encoded_value = "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9"

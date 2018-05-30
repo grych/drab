@@ -104,7 +104,7 @@ import Drab.Core
     |> case do
         [_, value, _] -> value
         _ -> ""
-      end 
+      end
   end
 
   defp extract_cookie_value(cookie, key) do
@@ -112,8 +112,8 @@ import Drab.Core
     |> Regex.run(cookie)
     |> case do
         [_, value] -> value
-        _ -> "" 
-      end    
+        _ -> ""
+      end
   end
 
   defp encrypt_value(value, _options) do
