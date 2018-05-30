@@ -113,7 +113,8 @@ import Drab.Core
   """
   @spec extract_cookies_maps(String.t()) :: Keyword.t()
   def extract_cookies_maps(cookies) do
-    Regex.scan(~r/(^|\s)(.*?)=(.*?)(;|$)/, cookies)
+    ~r/(^|\s)(.*?)=(.*?)(;|$)/
+    |> Regex.scan(cookies)
     |> case do
       [] -> []
       matches -> matches_to_maps(matches)

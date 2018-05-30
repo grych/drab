@@ -415,7 +415,6 @@ defmodule Drab.Browser do
     |> extract_cookies_maps()
   end
 
-
   @doc """
   Retrieve all cookies from browser.
 
@@ -438,7 +437,6 @@ defmodule Drab.Browser do
   def raw_cookies!(socket) do
     exec_js!(socket, "document.cookie")
   end
-
 
   @doc """
   Retrieves a specific cookie form the browser.
