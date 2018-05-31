@@ -34,6 +34,12 @@ defmodule Drab.Coder do
   * `Drab.Coder.String` - encodes any term to string, not ciphered
   * `Drab.Coder.Cipher` - encodes any term to an encrypted string (default)
 
+  You may use the encoders individually, they expose the same API as `Drab.Coder`:
+
+      iex> {:ok, encoded} = Drab.Coder.String.encode(%{forty_two: 42})
+      iex> Drab.Coder.String.decode(encoded)
+      {:ok, %{forty_two: 42}}
+
   It is used in the other part of the application, for example in `Drab.Browser.set_cookie/3`:
 
       set_cookie(socket, "my_cookie", "42", encode: true) # use default encoder
