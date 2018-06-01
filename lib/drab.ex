@@ -35,7 +35,7 @@ defmodule Drab do
 
   ## Debugging Drab in IEx
 
-  When started with iex (`iex -S mix phoenix.server`) Drab shows the helpful message on how to
+  When started with iex (`iex -S mix phx.server`) Drab shows the helpful message on how to
   debug its functions:
 
           Started Drab for /drab/docs, handling events in DrabPoc.DocsCommander
