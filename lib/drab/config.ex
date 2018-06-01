@@ -50,6 +50,9 @@ defmodule Drab.Config do
 
   #### :phoenix_channel_options *(default: [])*
     An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.
+
+  #### :default_encoder *(default: Drab.Coder.Cipher)
+    Sets the default encoder/decoder for the various functions, like `Drab.Browser.set_cookie/3`
   """
 
   @doc """
@@ -276,6 +279,8 @@ defmodule Drab.Config do
   def get(:phoenix_channel_options), do: Application.get_env(:drab, :phoenix_channel_options, [])
 
   def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
+
+  def get(:default_encoder), do: Application.get_env(:drab, :default_encoder, Drab.Coder.Cipher)
 
   def get(:live_conn_pass_through) do
     Application.get_env(:drab, :live_conn_pass_through, %{
