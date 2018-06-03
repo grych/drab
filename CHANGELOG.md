@@ -3,6 +3,7 @@
 ## v0.8.2
 
 * New helpers in Drab.Element
+* New `Drab.Coder` for encoding terms to string
 
 ## v0.8.1 - `mix drab.install`
 

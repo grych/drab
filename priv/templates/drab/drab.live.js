@@ -3,8 +3,8 @@ Drab.on_load(function (resp, drab) {
   if (typeof window.__drab == 'undefined') {
     window.__drab = { assigns: {} };
   };
-  var d = window.__drab;
   set_properties(document);
+  window.__drab.csrf = find_csrf();
 });
 
 Drab.on_change(function(node) {
@@ -30,6 +30,20 @@ Drab.add_payload(function(sender) {
       };
     }
 });
+
+function find_csrf() {
+  var node;
+  if (node = document.querySelector("input[name='_csrf_token']")) {
+    return node.value;
+  }
+  if (node = document.querySelector("button[data-csrf]")) {
+    return node.dataset.csrf;
+  }
+  if (node = document.querySelector("a[data-csrf]")) {
+    return node.dataset.csrf;
+  }
+  return null;
+}
 
 function run_drab_scripts_on(node) {
   var scripts = node.querySelectorAll("script[drab-script]");
@@ -107,7 +121,7 @@ Drab.update_tag = function(tag, ampere, new_value) {
     default:
       var s = selector(ampere);
       var nodes = document.querySelectorAll(s);
-      
+
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         node.innerHTML = new_value;

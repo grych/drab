@@ -14,4 +14,13 @@
 <% end %>
 
 <br><br>
+<div>
+  <%= @text %>
+  <%= form_for @conn, form_for_path(@conn, :form_for), [as: :drab2], fn _ -> %>
+    <%= submit "Submit" %>
+  <% end %>
+  <%= button("CSRF test", to: form_for_path(@conn, :form_for), id: "button1" ) %>
+</div>
+
+<br><br>
 <b id="text_to_set_onload"><%= @text %></b>

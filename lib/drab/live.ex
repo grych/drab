@@ -479,10 +479,11 @@ defmodule Drab.Live do
 
     all_assigns = Keyword.merge(nodrab_assigns, updated_assigns)
 
-    html =
-      view
-      |> Phoenix.View.render_to_string(Partial.template_filename(view, partial), all_assigns)
-      |> Floki.parse()
+    template = Partial.template_filename(view, partial)
+    # t0 = :os.system_time(:milli_seconds)
+    html = Phoenix.View.render_to_string(view, template, all_assigns)
+    html = Floki.parse(html)
+    html = update_csrf_token(html, csrf_token(socket))
 
     # TODO: this is a very naive way of sorting JS. Small goes first.
     update_javascripts =
@@ -567,6 +568,17 @@ defmodule Drab.Live do
   defp intersection(list1, list2) do
     MapSet.intersection(MapSet.new(list1), MapSet.new(list2))
     |> MapSet.to_list()
+  end
+
+  @spec update_csrf_token(Floki.html_tree() | String.t(), String.t() | nil) ::
+          Floki.html_tree() | String.t()
+  defp update_csrf_token(html, nil), do: html
+
+  defp update_csrf_token(html, csrf) do
+    html
+    |> Floki.attr("input[name='_csrf_token']", "value", fn _ -> csrf end)
+    |> Floki.attr("button[data-csrf]", "data-csrf", fn _ -> csrf end)
+    |> Floki.attr("a[data-csrf]", "data-csrf", fn _ -> csrf end)
   end
 
   @doc """
@@ -696,6 +708,11 @@ defmodule Drab.Live do
     assigns_and_index(socket)[:index]
   end
 
+  @spec csrf_token(Phoenix.Socket.t()) :: String.t() | nil
+  defp csrf_token(socket) do
+    assigns_and_index(socket)[:csrf]
+  end
+
   @spec assigns_and_index(Phoenix.Socket.t()) :: map
   defp assigns_and_index(socket) do
     case {Process.get(:__drab_event_handler_or_callback), Process.get(:__assigns_and_index)} do
@@ -731,11 +748,15 @@ defmodule Drab.Live do
 
   defp decrypted_from_browser(socket) do
     {:ok, ret} =
-      exec_js(socket, "({assigns: __drab.assigns, nodrab: __drab.nodrab, index: __drab.index})")
+      exec_js(
+        socket,
+        "({assigns: __drab.assigns, nodrab: __drab.nodrab, index: __drab.index, csrf: __drab.csrf})"
+      )
 
     %{
       :assigns => decrypted_assigns(ret["assigns"]),
       :nodrab => decrypted_assigns(ret["nodrab"]),
+      :csrf => ret["csrf"],
       :index => ret["index"]
     }
   end

@@ -3,6 +3,9 @@
 
   <button drab-click="update_mini">Update mini</button>
 <br>
-<%= @text %>
-<%= @color %>
-<% @color %>
+<div>
+  <%= @text %>
+  <%= form_for @conn, form_for_path(@conn, :form_for), [as: :drab], fn _ -> %>
+  <% end %>
+  <%= button("Do My Action", to: live_path(@conn, :index), id: "a" ) %>
+</div>
