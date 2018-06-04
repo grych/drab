@@ -331,7 +331,7 @@ defmodule Drab.Browser do
         iex> Drab.Browser.set_cookie(socket, "Items", [%{id: 001, name: "foo"}, %{id: 002, name: "bar"}], max_age: 3*24*60*60, encode: true)
         {:ok, result}
   """
-  # @spec exec_js(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
+  @spec set_cookie(Phoenix.Socket.t(), String.t(), Keyword.t()) :: any
   def set_cookie(socket, key, value, options \\ []) do
     # Options
     max_age = Keyword.get(options, :max_age, 0)
@@ -386,16 +386,30 @@ defmodule Drab.Browser do
   end
 
   @doc """
-  Retrieve all cookies from browser and convert them in a list of maps.
+  Retrieve all cookies from browser and convert them in a list of maps, where :key is the cookie name, and :value is the cookie value.
+
+  As at this level it is not possible to know which are the cookies values that have be encoded, their values are the same as those in the original string.
 
   ### Parameters
 
   * `socket` - The Drab socket
 
-  ### Example:
-  
-        iex> Drab.Browser.cookies(socket)
-        {:ok, result}
+  Examples:
+  Given a browser with these cookies set: 
+    "_ga=GA1.1.12345.54321; _gid=GA1.1.12345.54321; map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; _gat_gtag_UA_123ABC=1; cookiebar=CookieAllowed"
+
+        iex> Drab.Browsers.cookies()
+        {:ok, [
+                %{key: "_ga", value: "IkdBMS4xLjEyMzQ1LjU0MzIxIg"},
+                %{key: "_gid", value: "IkdBMS4xLjEyMzQ1LjU0MzIxIg"},
+                %{
+                  key: "map1",
+                  value: "ImV5SnRaWE56WVdkbElqb2lTR1ZzYkc4c0lGZHZjbXhrSURFaEluMCI"
+                },
+                %{key: "_gat_gtag_UA_123ABC", value: "IjEi"},
+                %{key: "cookiebar", value: "IkNvb2tpZUFsbG93ZWQi"}
+              ]
+        }
   """
   def cookies(socket) do
     socket
@@ -413,29 +427,6 @@ defmodule Drab.Browser do
     socket
     |> raw_cookies!()
     |> extract_cookies_maps()
-  end
-
-  @doc """
-  Retrieve all cookies from browser.
-
-  ### Parameters
-
-  * `socket` - The Drab socket
-
-  ### Example:
-  
-        iex> Drab.Browser.raw_cookies(socket)
-        {:ok, result}
-  """
-  def raw_cookies(socket) do
-    exec_js(socket, "document.cookie")
-  end
-
-  @doc """
-  Exception raising version of `raw_cookies/1`
-  """
-  def raw_cookies!(socket) do
-    exec_js!(socket, "document.cookie")
   end
 
   @doc """
@@ -461,7 +452,7 @@ defmodule Drab.Browser do
   end
 
   @doc """
-  Exception raising version of `cookie/3`
+  # Exception raising version of `cookie/3`
   """
   def cookie!(socket, key, options \\ []) do
     socket
@@ -469,9 +460,23 @@ defmodule Drab.Browser do
     |> extract_cookie(key, options)
   end
 
+  # Helpers
+
+  # Retrieve all cookies from browser
+  #    iex> Drab.Browser.raw_cookies(socket)
+  #    {:ok, result}
+  defp raw_cookies(socket) do
+    exec_js(socket, "document.cookie")
+  end
+
+  # Exception raising version of `raw_cookies/1`
+  defp raw_cookies!(socket) do
+    exec_js!(socket, "document.cookie")
+  end
+
   # Composes the expire string adding the `max_age` seconds to the current client time
   defp cookie_expires(socket, max_age) do
-      cond  do
+      cond do
         max_age > 0 ->
           Drab.Browser.now!(socket)
           |> Timex.to_datetime()
@@ -481,6 +486,65 @@ defmodule Drab.Browser do
           ""
         max_age < 0 ->
           "Thu, 01 Jan 1970 00:00:00 GMT"
+      end
+  end
+
+  defp extract_cookies_maps(cookies) do
+    ~r/(^|\s)(.*?)=(.*?)(;|$)/
+    |> Regex.scan(cookies)
+    |> case do
+      [] -> []
+      matches -> matches_to_maps(matches)
+    end
+  end
+
+  defp matches_to_maps(matches) do
+    Enum.map(matches, fn match ->
+      case match do
+        [_, _, key, value, _] -> %{key: key, value: value}
+        _ -> %{}
+      end
+    end)
+  end
+
+  @doc """
+  Extract a specific cookie from cookies string.
+
+  ### Parameters
+  * `cookies` - The string that cotains the cookies
+  * `key` - The name of the cookie to extract
+
+  ### Options
+   See the options for `decode_value`
+
+  """
+  defp extract_cookie(cookies, key, options \\ [])
+  defp extract_cookie(_cookies, nil, _options) do "" end
+  defp extract_cookie(_cookies, "", _options) do "" end
+  defp extract_cookie(cookies, key,   options) do
+    cookies
+    |> extract_cookie_string(key)
+    |> extract_cookie_value(key)
+    |> decode_value(options)
+  end
+
+## Private Helpers
+
+  defp extract_cookie_string(cookies, key) do
+    ~r/(#{key}=.+?)(;|$)/
+    |> Regex.run(cookies)
+    |> case do
+        [_, value, _] -> value
+        _ -> ""
+      end
+  end
+
+  defp extract_cookie_value(cookie, key) do
+    ~r/#{key}=(.*)/
+    |> Regex.run(cookie)
+    |> case do
+        [_, value] -> value
+        _ -> ""
       end
   end
 
