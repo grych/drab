@@ -85,4 +85,21 @@ import Drab.Core
     Drab.Live.Crypto.decrypt(value)
   end
 
+  ## Experimental Drab.Coder based version
+
+  @spec encode_value(any(), Keyword.t()) :: String.t()
+  def encode_valueNEW(value, options \\ []) do
+    # Options
+    encode = Keyword.get(options, :encode, true)
+    encrypt = Keyword.get(options, :encrypt, false)
+
+    value
+    # |> (&((encode || encrypt) && encode_js(&1) || &1)).()
+    # |> (&(encrypt && encrypt_value(&1, options) || &1)).()
+    # |> (&((encode || encrypt) && Base.encode64(&1, padding: false) || &1)).()
+  end
+
+
+
+
 end # Module

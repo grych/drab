@@ -17,4 +17,13 @@ defmodule Drab.UtilsTest do
     assert value == value |> encode_value(encode: false, encrypt: true) |> decode_value(decode: false, decrypt: true)
   end
 
+  test "encode_valueNEW" do
+    value = %{"message" => "Hello, World!"}
+
+    # TODO: YET TO BE DONE
+    encoded_by_default_encoder = value
+
+    assert value == encoded_by_default_encoder
+  end
+
 end
