@@ -5,6 +5,8 @@
 * New helpers in Drab.Element
 * New `Drab.Coder` for encoding terms to string
 
+* preserve csrf token if `poke` updates the form (fix for #130)
+
 ## v0.8.1 - `mix drab.install`
 
 Very important role of Drab is to encourage beginners to try out `Elixir |> Phoenix |> Drab`. The

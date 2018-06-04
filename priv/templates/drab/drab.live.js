@@ -4,7 +4,9 @@ Drab.on_load(function (resp, drab) {
     window.__drab = { assigns: {} };
   };
   set_properties(document);
-  window.__drab.csrf = find_csrf();
+  if (!window.__drab.csrf) {
+    window.__drab.csrf = find_csrf();
+  }
 });
 
 Drab.on_change(function(node) {
