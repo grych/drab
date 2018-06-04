@@ -291,7 +291,7 @@ defmodule Drab.Browser do
       ** (Drab.JSExecutionError) Failed to execute 'pushState' on 'History' ...
 
   """
-  @spec set_url!(Phoenix.Socket.t(), String.t()) :: any
+  @spec set_url!(Phoenix.Socket.t(), String.t()) :: Drab.Core.bcast_result()
   def set_url!(socket, url) do
     exec_js!(socket, """
     window.history.pushState({}, "", #{Drab.Core.encode_js(url)});
@@ -331,7 +331,7 @@ defmodule Drab.Browser do
         iex> Drab.Browser.set_cookie(socket, "Items", [%{id: 001, name: "foo"}, %{id: 002, name: "bar"}], max_age: 3*24*60*60, encode: true)
         {:ok, result}
   """
-  @spec set_cookie(Phoenix.Socket.t(), String.t(), Keyword.t()) :: any
+  @spec set_cookie(Phoenix.Socket.t(), String.t(), any(), Keyword.t()) :: Drab.Core.bcast_result()
   def set_cookie(socket, key, value, options \\ []) do
     # Options
     max_age = Keyword.get(options, :max_age, 0)
@@ -348,6 +348,7 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `set_cookie/4`
   """
+  @spec set_cookie!(Phoenix.Socket.t(), String.t(), any(), Keyword.t()) :: Drab.Core.bcast_result()
   def set_cookie!(socket, key, value, options \\ []) do
     # Options
     max_age = Keyword.get(options, :max_age, 0)
@@ -374,6 +375,7 @@ defmodule Drab.Browser do
         iex> Drab.Browser.delete_cookie(socket, "Items")
         {:ok, result}
   """
+  @spec delete_cookie(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
   def delete_cookie(socket, key) do
     set_cookie(socket, key, "", max_age: -1)
   end
@@ -381,6 +383,7 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `delete_cookie/2`
   """
+  @spec delete_cookie!(Phoenix.Socket.t(), String.t()) :: Drab.Core.result() | no_return
   def delete_cookie!(socket, key) do
     set_cookie!(socket, key, "", max_age: -1)
   end
@@ -411,6 +414,7 @@ defmodule Drab.Browser do
               ]
         }
   """
+  @spec cookies(Phoenix.Socket.t()) :: Drab.Core.result()
   def cookies(socket) do
     socket
     |> raw_cookies()
@@ -423,6 +427,7 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `cookies/1`
   """
+  @spec cookies!(Phoenix.Socket.t()) :: list()
   def cookies!(socket) do
     socket
     |> raw_cookies!()
@@ -443,6 +448,7 @@ defmodule Drab.Browser do
       iex> Drab.Browser.cookie(socket, "Items")
       [%{id: 001, key: "foo"}, %{id: 002, key: "bar"}]
   """
+  @spec cookie(Phoenix.Socket.t(), String.t(), Keyword.t()) :: String.t()
   def cookie(socket, key, options \\ []) do
     case raw_cookies(socket) do
       {:ok, cookies} ->
@@ -454,6 +460,7 @@ defmodule Drab.Browser do
   @doc """
   # Exception raising version of `cookie/3`
   """
+  @spec cookie!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: String.t() | no_return
   def cookie!(socket, key, options \\ []) do
     socket
     |> raw_cookies()

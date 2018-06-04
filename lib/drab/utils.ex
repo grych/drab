@@ -38,6 +38,7 @@ import Drab.Core
 
       end
   """
+  @spec encode_value(any(), Keyword.t()) :: String.t()
   def encode_value(value, options \\ []) do
     # Options
     encode = Keyword.get(options, :encode, true)
@@ -61,6 +62,7 @@ import Drab.Core
         iex> Drab.Utils.decode_value("eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9")
         %{"message" => "Hello, World!"}
   """
+  @spec decode_value(String.t(), Keyword.t()) :: any()
   def decode_value(value, options \\ [])
   def decode_value(nil,  _options) do "" end
   def decode_value("",   _options) do "" end
