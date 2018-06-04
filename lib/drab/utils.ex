@@ -99,7 +99,4 @@ import Drab.Core
     # |> (&((encode || encrypt) && Base.encode64(&1, padding: false) || &1)).()
   end
 
-
-
-
 end # Module
