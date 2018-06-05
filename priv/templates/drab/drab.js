@@ -10,7 +10,7 @@
 
   window.Drab = {
     create: function (drab_return_token, drab_session_token, broadcast_topic) {
-      this.Socket = require("phoenix").Socket;
+      this.Socket = <%= Drab.Config.get(:js_socket_constructor) %>;
 
       this.drab_return_token = drab_return_token;
       this.drab_session_token = drab_session_token;

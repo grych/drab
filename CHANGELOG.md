@@ -2,8 +2,9 @@
 
 ## v0.8.2
 
-* New helpers in Drab.Element
-* New `Drab.Coder` for encoding terms to string
+* New functions in Drab.Element (#134, #135)
+* New `Drab.Coder` for encoding terms to string (#137)
+* new `js_socket_constructor` config (#133)
 
 * preserve csrf token if `poke` updates the form (fix for #130)
 

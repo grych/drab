@@ -22,6 +22,9 @@ defmodule Drab.Config do
   #### :socket *(default: `"/socket"`)*
     Path to the socket on which Drab operates.
 
+  #### :js_socket_constructor, *(default: "require(\"phoenix\").Socket")*
+    Javascript constructor for the Socket; more info in Drab.Client.
+
   #### :drab_store_storage *(default: :session_storage)*
     Where to keep the Drab Store - `:memory`, `:local_storage` or `:session_storage`. Data in
     the memory is kept to the next page load, session storage persist until browser (or a tab)
@@ -281,6 +284,9 @@ defmodule Drab.Config do
   def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
 
   def get(:default_encoder), do: Application.get_env(:drab, :default_encoder, Drab.Coder.Cipher)
+
+  def get(:js_socket_constructor),
+    do: Application.get_env(:drab, :js_socket_constructor, "require(\"phoenix\").Socket")
 
   def get(:live_conn_pass_through) do
     Application.get_env(:drab, :live_conn_pass_through, %{

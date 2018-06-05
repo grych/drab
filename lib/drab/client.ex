@@ -18,6 +18,29 @@ defmodule Drab.Client do
       ch = Drab.socket.channel("mychannel:whatever")
       ch.join()
 
+  ## Custom socket constructor (Webpack "require is not defined" fix)
+  If you are using JS bundler other than default brunch, the `require` method may not be availabe
+  as global. In this case, you might see the error:
+
+      require is not defined
+
+  in the Drab's javascript, in line:
+
+      this.Socket = require("phoenix").Socket;
+
+  In this case, you must provide it. In the `app.js` add a global variable, which will be passed
+  to Drab later:
+
+      window.__socket = require("phoenix").Socket;
+
+  Then, tell Drab to use this instead of default `require("phoenix").Socket`. Add to `config.exs`:
+
+      config :drab, js_socket_constructor: "window.__socket"
+
+  This will change the problematic line in Drab's javascript to:
+
+      this.Socket = window.__socket;
+
   ## Drab JS client API
   ### Drab.connect(token_object)
   Connects to the Drab's websocket. Must be called after injecting JS code with
