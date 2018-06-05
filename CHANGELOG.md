@@ -5,6 +5,7 @@
 * New functions in Drab.Element (#134, #135)
 * New `Drab.Coder` for encoding terms to string (#137)
 * new `js_socket_constructor` config (#133)
+* all assigns are now peekable (#126)
 
 * preserve csrf token if `poke` updates the form (fix for #130)
 

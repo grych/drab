@@ -315,6 +315,10 @@ defmodule Drab.Live do
   @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
           term | no_return
   def peek(socket, view, partial, assign) when is_atom(assign) do
+    Deppie.once """
+    `peek` return value will be changed to `{:ok, value}` in v0.9.0. Please use `peek!` instead.
+    """
+
     view = view || Drab.get_view(socket)
     hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
 
@@ -339,6 +343,64 @@ defmodule Drab.Live do
   def peek(socket, view, partial, assign) when is_binary(assign) do
     peek(socket, view, partial, String.to_existing_atom(assign))
   end
+
+  @doc """
+  Exception raising version of `peek/2`.
+
+  Returns the current value of the assign from the current (main) partial.
+
+      iex> peek!(socket, :count)
+      42
+      iex> peek!(socket, :nonexistent)
+      ** (ArgumentError) Assign @nonexistent not found in Drab EEx template
+  """
+  @spec peek!(Phoenix.Socket.t(), atom) :: term | no_return
+  def peek!(socket, assign), do: peek!(socket, nil, nil, assign)
+
+  @doc """
+  Exception raising version of `peek/3`.
+
+      iex> peek!(socket, "users.html", :count)
+      42
+  """
+  @spec peek!(Phoenix.Socket.t(), String.t(), atom) :: term | no_return
+  def peek!(socket, partial, assign), do: peek!(socket, nil, partial, assign)
+
+  @doc """
+  Exception raising version of `peek/4`.
+
+      iex> peek(socket, MyApp.UserView, "users.html", :count)
+      42
+  """
+  @spec peek!(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
+          term | no_return
+  def peek!(socket, view, partial, assign) when is_atom(assign) do
+    view = view || Drab.get_view(socket)
+    hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
+
+    current_assigns =
+      Map.merge(
+        assign_data_for_partial(socket, hash, partial, :assigns),
+        assign_data_for_partial(socket, hash, partial, :nodrab)
+      )
+
+    case current_assigns |> Map.fetch(assign) do
+      {:ok, val} ->
+        val
+
+      :error ->
+        raise_assign_not_found(
+          assign,
+          Map.keys(current_assigns)
+        )
+    end
+  end
+
+  def peek!(socket, view, partial, assign) when is_binary(assign) do
+    peek(socket, view, partial, String.to_existing_atom(assign))
+  end
+
+
 
   @doc """
   Updates the current page in the browser with the new assign value.
@@ -381,7 +443,53 @@ defmodule Drab.Live do
   """
   @spec poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
   def poke(socket, view, partial, assigns) do
+    Deppie.once """
+    `poke` return value will be changed to `{:ok, :ok}`, `{:error, reason}` in v0.9.0.
+    """
     do_poke(socket, view, partial, assigns, &Drab.Core.exec_js/2)
+  end
+
+
+
+
+
+  @doc """
+  Exception raising version of `poke/2`.
+
+  Returns `:ok`.
+
+      iex> poke!(socket, count: 42)
+      :ok
+  """
+  @spec poke!(Phoenix.Socket.t(), Keyword.t()) :: result
+  def poke!(socket, assigns) do
+    poke!(socket, nil, nil, assigns)
+  end
+
+  @doc """
+  Exception raising version of `poke/3`.
+
+  Returns `:ok`.
+
+      iex> poke!(socket, "user.html", name: "Bożywój")
+      :ok
+  """
+  @spec poke!(Phoenix.Socket.t(), String.t() | nil, Keyword.t()) :: result
+  def poke!(socket, partial, assigns) do
+    poke!(socket, nil, partial, assigns)
+  end
+
+  @doc """
+  Exception raising version of `poke/4`.
+
+  Returns `:ok`.
+
+      iex> poke!(socket, MyApp.UserView, "user.html", name: "Bożywój")
+      :ok
+  """
+  @spec poke!(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
+  def poke!(socket, view, partial, assigns) do
+    do_poke(socket, view, partial, assigns, &Drab.Core.exec_js!/2)
   end
 
   @doc """
@@ -508,8 +616,13 @@ defmodule Drab.Live do
         update_assigns_cache(socket, assigns_to_update, partial, shared_commander_id)
         socket
 
-      other ->
+      {:error, _} = other ->
         other
+
+      {:timeout, _} = other ->
+        other
+
+      _ -> :ok # poke! with exec_js!
     end
   end
 
