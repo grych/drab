@@ -130,9 +130,7 @@ defmodule DrabTestApp.LiveTest do
         poke(fixture.socket, conn: "whatever")
       end
 
-      assert_raise ArgumentError, fn ->
-        peek(fixture.socket, :conn)
-      end
+      assert match?(%Plug.Conn{}, peek(fixture.socket, :conn))
     end
 
     test "Drab.Live.assigns should return the proper assigns list", fixture do

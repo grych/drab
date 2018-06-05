@@ -302,7 +302,6 @@ defmodule Drab.Live do
       iex> peek(socket, "users.html", :count)
       42
   """
-  # TODO: think if it is needed to sign/encrypt
   @spec peek(Phoenix.Socket.t(), String.t(), atom) :: term | no_return
   def peek(socket, partial, assign), do: peek(socket, nil, partial, assign)
 
@@ -319,7 +318,11 @@ defmodule Drab.Live do
     view = view || Drab.get_view(socket)
     hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
 
-    current_assigns = assign_data_for_partial(socket, hash, partial, :assigns)
+    current_assigns =
+      Map.merge(
+        assign_data_for_partial(socket, hash, partial, :assigns),
+        assign_data_for_partial(socket, hash, partial, :nodrab)
+      )
 
     case current_assigns |> Map.fetch(assign) do
       {:ok, val} ->
@@ -343,8 +346,11 @@ defmodule Drab.Live do
   Works inside the main partial - the one rendered in the controller - only. Does not touch children
   partials, even if they contain the given assign.
 
-  Raises `ArgumentError` when assign is not found within the partial.
-  Returns untouched socket or tuple {:error, description} or {:timeout, description}
+  Raises `ArgumentError` when assign is not found within the partial. Please notice that only
+  assigns rendered with `<%= %>` mark are *pokeable*; assigns rendered with `<% %>` or `<%/ %>`
+  only can't be updated by `poke`.
+
+  Returns untouched socket or tuple {:error, description}
 
       iex> poke(socket, count: 42)
       %Phoenix.Socket{ ...
