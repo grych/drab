@@ -315,9 +315,9 @@ defmodule Drab.Live do
   @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
           term | no_return
   def peek(socket, view, partial, assign) when is_atom(assign) do
-    Deppie.once """
+    Deppie.once("""
     `peek` return value will be changed to `{:ok, value}` in v0.9.0. Please use `peek!` instead.
-    """
+    """)
 
     view = view || Drab.get_view(socket)
     hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
@@ -400,8 +400,6 @@ defmodule Drab.Live do
     peek(socket, view, partial, String.to_existing_atom(assign))
   end
 
-
-
   @doc """
   Updates the current page in the browser with the new assign value.
 
@@ -443,15 +441,12 @@ defmodule Drab.Live do
   """
   @spec poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
   def poke(socket, view, partial, assigns) do
-    Deppie.once """
+    Deppie.once("""
     `poke` return value will be changed to `{:ok, :ok}`, `{:error, reason}` in v0.9.0.
-    """
+    """)
+
     do_poke(socket, view, partial, assigns, &Drab.Core.exec_js/2)
   end
-
-
-
-
 
   @doc """
   Exception raising version of `poke/2`.
@@ -551,69 +546,29 @@ defmodule Drab.Live do
         assign @conn is read only.
         """
     end
+    assigns_to_update = Enum.into(assigns, %{})
 
     view = view || Drab.get_view(socket)
-
     partial =
       if partial_name, do: Partial.hash_for_view_and_name(view, partial_name), else: index(socket)
 
     current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
+    nodrab_assigns = assign_data_for_partial(socket, partial, partial_name, :nodrab)
+    all_assigns = all_assigns(assigns_to_update, current_assigns, nodrab_assigns)
 
-    current_assigns_keys = Map.keys(current_assigns)
-    assigns_to_update = Enum.into(assigns, %{})
-    assigns_to_update_keys = Map.keys(assigns_to_update)
+    html = rerender_template(socket, view, partial, all_assigns)
 
-    for as <- assigns_to_update_keys do
-      unless Enum.find(current_assigns_keys, fn key -> key == as end) do
-        raise_assign_not_found(as, current_assigns_keys)
-      end
-    end
-
-    updated_assigns =
-      current_assigns
-      |> Enum.into([])
-      |> Keyword.merge(assigns)
-
-    amperes_to_update = Partial.amperes_for_assigns(partial, assigns_to_update_keys)
-
-    # update only those which are in shared commander
-    amperes_to_update =
-      case socket.assigns[:__sender_drab_commander_amperes] do
-        [] ->
-          amperes_to_update
-
-        sender_drab_commader_amperes ->
-          intersection(amperes_to_update, sender_drab_commader_amperes)
-      end
-
-    shared_commander_id = drab_commander_id(socket)
-
-    nodrab_assigns =
-      socket |> assign_data_for_partial(partial, partial_name, :nodrab) |> Enum.into([])
-
-    all_assigns = Keyword.merge(nodrab_assigns, updated_assigns)
-
-    template = Partial.template_filename(view, partial)
-    # t0 = :os.system_time(:milli_seconds)
-    html = Phoenix.View.render_to_string(view, template, all_assigns)
-    html = Floki.parse(html)
-    html = update_csrf_token(html, csrf_token(socket))
-
-    # TODO: this is a very naive way of sorting JS. Small goes first.
     update_javascripts =
-      html
-      |> update_javascripts(partial, amperes_to_update)
-      |> Enum.sort_by(&has_amperes/1)
-
-    assign_updates = assign_updates_js(assigns_to_update, partial, shared_commander_id)
-    all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq()
+      update_javascripts(socket, html, partial, assigns_to_update, current_assigns)
+    assign_updates = assign_updates_js(assigns_to_update, partial, drab_commander_id(socket))
+    all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq() |> Enum.join(";")
 
     # IO.inspect update_javascripts
     # IO.inspect(all_javascripts)
 
-    case function.(socket, all_javascripts |> Enum.join(";")) do
+    case function.(socket, all_javascripts) do
       {:ok, _} ->
-        update_assigns_cache(socket, assigns_to_update, partial, shared_commander_id)
+        update_assigns_cache(socket, assigns_to_update, partial, drab_commander_id(socket))
         socket
 
       {:error, _} = other ->
@@ -622,20 +577,68 @@ defmodule Drab.Live do
       {:timeout, _} = other ->
         other
 
-      _ -> :ok # poke! with exec_js!
+      # poke! with exec_js!
+      _ ->
+        :ok
     end
   end
 
-  defp update_javascripts(html, partial, amperes_to_update) do
-    for ampere <- amperes_to_update,
-        %Ampere{gender: gender, tag: tag, attribute: prop_or_attr} <-
-          Partial.partial(partial).amperes[ampere] do
-      case gender do
-        :html -> update_html_js(html, ampere, tag)
-        :attr -> update_attr_js(html, ampere, prop_or_attr)
-        :prop -> update_prop_js(html, ampere, prop_or_attr)
+  defp all_assigns(assigns, current_assigns, nodrab_assigns) do
+    updated_assigns = Map.merge(current_assigns, assigns)
+    all_assigns = Map.merge(nodrab_assigns, updated_assigns)
+    Enum.into(all_assigns, [])
+  end
+
+  defp rerender_template(socket, view, partial, all_assigns) do
+    template = Partial.template_filename(view, partial)
+    html = Phoenix.View.render_to_string(view, template, all_assigns)
+    update_csrf_token(html, csrf_token(socket))
+  end
+
+  defp assigns_to_update_keys(assigns_to_update, current_assigns_keys) do
+    assigns_to_update_keys = Map.keys(assigns_to_update)
+
+    for as <- assigns_to_update_keys do
+      unless Enum.find(current_assigns_keys, fn key -> key == as end) do
+        raise_assign_not_found(as, current_assigns_keys)
       end
     end
+
+    assigns_to_update_keys
+  end
+
+  defp amperes_to_update(socket, partial, assigns_to_update, current_assigns_keys) do
+    assigns_to_update_keys = assigns_to_update_keys(assigns_to_update, current_assigns_keys)
+    amperes_to_update = Partial.amperes_for_assigns(partial, assigns_to_update_keys)
+
+    # update only those which are in shared commander
+    case socket.assigns[:__sender_drab_commander_amperes] do
+      [] ->
+        amperes_to_update
+
+      sender_drab_commader_amperes ->
+        intersection(amperes_to_update, sender_drab_commader_amperes)
+    end
+  end
+
+  defp update_javascripts(socket, html, partial, assigns_to_update, current_assigns) do
+    current_assigns_keys = Map.keys(current_assigns)
+
+    amperes_to_update =
+      amperes_to_update(socket, partial, assigns_to_update, current_assigns_keys)
+
+    js =
+      for ampere <- amperes_to_update,
+          %Ampere{gender: gender, tag: tag, attribute: prop_or_attr} <-
+            Partial.partial(partial).amperes[ampere] do
+        case gender do
+          :html -> update_html_js(html, ampere, tag)
+          :attr -> update_attr_js(html, ampere, prop_or_attr)
+          :prop -> update_prop_js(html, ampere, prop_or_attr)
+        end
+      end
+
+    Enum.sort_by(js, &has_amperes/1)
   end
 
   defp update_html_js(html, ampere, tag) do
@@ -689,12 +692,12 @@ defmodule Drab.Live do
     |> MapSet.to_list()
   end
 
-  @spec update_csrf_token(Floki.html_tree() | String.t(), String.t() | nil) ::
-          Floki.html_tree() | String.t()
+  @spec update_csrf_token(String.t(), String.t() | nil) :: Floki.html_tree() | String.t()
   defp update_csrf_token(html, nil), do: html
 
   defp update_csrf_token(html, csrf) do
     html
+    |> Floki.parse()
     |> Floki.attr("input[name='_csrf_token']", "value", fn _ -> csrf end)
     |> Floki.attr("button[data-csrf]", "data-csrf", fn _ -> csrf end)
     |> Floki.attr("a[data-csrf]", "data-csrf", fn _ -> csrf end)
