@@ -540,22 +540,24 @@ defmodule Drab.Live do
   @spec do_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t(), function) ::
           result
   defp do_poke(socket, view, partial_name, assigns, function) do
-    if Enum.member?(Keyword.keys(assigns), :conn) do
-      raise ArgumentError,
-        message: """
-        assign @conn is read only.
-        """
-    end
+    raise_if_read_only(assigns)
     assigns_to_update = Enum.into(assigns, %{})
 
     view = view || Drab.get_view(socket)
     partial =
       if partial_name, do: Partial.hash_for_view_and_name(view, partial_name), else: index(socket)
 
-    current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
-    nodrab_assigns = assign_data_for_partial(socket, partial, partial_name, :nodrab)
-    all_assigns = all_assigns(assigns_to_update, current_assigns, nodrab_assigns)
+    with current_assigns <- assign_data_for_partial(socket, partial, partial_name, :assigns),
+      nodrab_assigns <- assign_data_for_partial(socket, partial, partial_name, :nodrab)
+      do
+        process_poke(socket, view, partial, assigns_to_update, current_assigns, nodrab_assigns, function)
+      else
+        error -> error
+      end
+  end
 
+  defp process_poke(socket, view, partial, assigns_to_update, current_assigns, nodrab_assigns, function) do
+    all_assigns = all_assigns(assigns_to_update, current_assigns, nodrab_assigns)
     html = rerender_template(socket, view, partial, all_assigns)
 
     update_javascripts =
@@ -925,5 +927,14 @@ defmodule Drab.Live do
       If you want to poke assign to the partial which belong to
       the other view, you need to specify the view name in `poke/4`.
       """
+  end
+
+  defp raise_if_read_only(assigns) do
+    if Enum.member?(Keyword.keys(assigns), :conn) do
+      raise ArgumentError,
+        message: """
+        assign `@conn` is read only.
+        """
+    end
   end
 end
