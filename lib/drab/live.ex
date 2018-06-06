@@ -551,8 +551,8 @@ defmodule Drab.Live do
       nodrab_assigns <- assign_data_for_partial(socket, partial, partial_name, :nodrab)
       do
         process_poke(socket, view, partial, assigns_to_update, current_assigns, nodrab_assigns, function)
-      else
-        error -> error
+      # else
+      #   error -> error
       end
   end
 
