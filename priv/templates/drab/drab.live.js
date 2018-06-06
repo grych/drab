@@ -17,6 +17,10 @@ Drab.on_change(function(node) {
 });
 
 Drab.add_payload(function(sender) {
+  return {drab_index: __drab.index};
+});
+
+Drab.add_payload(function(sender) {
   if (sender)
     var shared_commander_id = sender.getAttribute("drab-commander-id");
     if (shared_commander_id) {

@@ -272,10 +272,16 @@ defmodule Drab.Live do
         payload["drab_commander_id"] || "document"
       )
 
-    Phoenix.Socket.assign(
+    socket = Phoenix.Socket.assign(
       socket,
       :__sender_drab_commander_amperes,
       payload["drab_commander_amperes"] || []
+    )
+
+    Phoenix.Socket.assign(
+      socket,
+      :__drab_index,
+      payload["drab_index"] || nil
     )
   end
 
@@ -544,24 +550,39 @@ defmodule Drab.Live do
     assigns_to_update = Enum.into(assigns, %{})
 
     view = view || Drab.get_view(socket)
+
     partial =
       if partial_name, do: Partial.hash_for_view_and_name(view, partial_name), else: index(socket)
 
-    with current_assigns <- assign_data_for_partial(socket, partial, partial_name, :assigns),
-      nodrab_assigns <- assign_data_for_partial(socket, partial, partial_name, :nodrab)
-      do
-        process_poke(socket, view, partial, assigns_to_update, current_assigns, nodrab_assigns, function)
-      # else
-      #   error -> error
-      end
+    current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
+    nodrab_assigns = assign_data_for_partial(socket, partial, partial_name, :nodrab)
+
+    process_poke(
+      socket,
+      view,
+      partial,
+      assigns_to_update,
+      current_assigns,
+      nodrab_assigns,
+      function
+    )
   end
 
-  defp process_poke(socket, view, partial, assigns_to_update, current_assigns, nodrab_assigns, function) do
+  defp process_poke(
+         socket,
+         view,
+         partial,
+         assigns_to_update,
+         current_assigns,
+         nodrab_assigns,
+         function
+       ) do
     all_assigns = all_assigns(assigns_to_update, current_assigns, nodrab_assigns)
     html = rerender_template(socket, view, partial, all_assigns)
 
     update_javascripts =
       update_javascripts(socket, html, partial, assigns_to_update, current_assigns)
+
     assign_updates = assign_updates_js(assigns_to_update, partial, drab_commander_id(socket))
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq() |> Enum.join(";")
 
@@ -829,7 +850,8 @@ defmodule Drab.Live do
 
   @spec index(Phoenix.Socket.t()) :: String.t()
   defp index(socket) do
-    assigns_and_index(socket)[:index]
+    # assigns_and_index(socket)[:index]
+    socket.assigns[:__drab_index]
   end
 
   @spec csrf_token(Phoenix.Socket.t()) :: String.t() | nil
@@ -841,7 +863,7 @@ defmodule Drab.Live do
   defp assigns_and_index(socket) do
     case {Process.get(:__drab_event_handler_or_callback), Process.get(:__assigns_and_index)} do
       {true, nil} ->
-        decrypted = decrypted_from_browser(socket)
+        {:ok, decrypted} = decrypted_from_browser(socket)
         Process.put(:__assigns_and_index, decrypted)
         decrypted
 
@@ -850,7 +872,8 @@ defmodule Drab.Live do
 
       # the other case (it is test or IEx session)
       {_, _} ->
-        decrypted_from_browser(socket)
+        {:ok, decrypted} = decrypted_from_browser(socket)
+        decrypted
     end
   end
 
@@ -870,19 +893,20 @@ defmodule Drab.Live do
     Process.put(:__assigns_and_index, %{cache | assigns: updated_assigns_cache})
   end
 
+  @pr "({assigns: __drab.assigns, nodrab: __drab.nodrab, csrf: __drab.csrf})"
   defp decrypted_from_browser(socket) do
-    {:ok, ret} =
-      exec_js(
-        socket,
-        "({assigns: __drab.assigns, nodrab: __drab.nodrab, index: __drab.index, csrf: __drab.csrf})"
-      )
+    case exec_js(socket, @pr) do
+      {:ok, ret} ->
+        {:ok,
+         %{
+           :assigns => decrypted_assigns(ret["assigns"]),
+           :nodrab => decrypted_assigns(ret["nodrab"]),
+           :csrf => ret["csrf"]
+         }}
 
-    %{
-      :assigns => decrypted_assigns(ret["assigns"]),
-      :nodrab => decrypted_assigns(ret["nodrab"]),
-      :csrf => ret["csrf"],
-      :index => ret["index"]
-    }
+      error ->
+        error
+    end
   end
 
   @spec decrypted_assigns(map) :: map
