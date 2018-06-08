@@ -203,9 +203,12 @@ defmodule DrabTestApp.PageCommander do
       socket,
       "document.getElementById('waiter_out_div').innerText = #{answer |> Drab.Core.encode_js()}"
     )
+  end
 
-    # socket
-    #   |> delete(from: "#waiter_wrapper")
-    #   |> update(:text, set: answer, on: "#waiter_out_div")
+  defhandler disconnection_click(socket, _) do
+    spawn fn ->
+      Process.sleep(500)
+      IO.inspect(exec_js!(socket, "2+2"))
+    end
   end
 end

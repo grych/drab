@@ -171,13 +171,15 @@ defmodule DrabTestApp.CoreTest do
 
   describe "after disconnect" do
     @tag capture_log: true
-    test "should return disconnection error" do
+    test "should return disconnection error", fixture do
       log = capture_log(fn ->
         click_and_wait("disconnect_button")
         navigate_to(index_url(DrabTestApp.Endpoint, :index))
-        Process.sleep(1000)
+
       end)
-      assert String.contains?(log, "(Drab.ConnectionError) Disconnected")
+      Process.sleep(2000)
+      IO.inspect log
     end
+
   end
 end

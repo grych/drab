@@ -519,17 +519,20 @@ defmodule Drab do
   @spec push_and_wait_for_response(Phoenix.Socket.t(), pid, String.t(), Keyword.t(), Keyword.t()) ::
           Drab.Core.result()
   def push_and_wait_for_response(socket, pid, message, payload \\ [], options \\ []) do
-    ref = make_ref()
-    push(socket, pid, ref, message, payload)
-    timeout = options[:timeout] || Drab.Config.get(:browser_response_timeout)
-
-    receive do
-      {:got_results_from_client, status, ^ref, reply} ->
-        {status, reply}
-    after
-      timeout ->
-        # TODO: message is still in a queue
-        {:timeout, "timed out after #{timeout} ms."}
+    if Process.alive?(Drab.pid(socket)) do
+      ref = make_ref()
+      push(socket, pid, ref, message, payload)
+      timeout = options[:timeout] || Drab.Config.get(:browser_response_timeout)
+      receive do
+        {:got_results_from_client, status, ^ref, reply} ->
+          {status, reply}
+      after
+        timeout ->
+          # TODO: message is still in a queue
+          {:timeout, "timed out after #{timeout} ms."}
+      end
+    else
+      {:error, :disconnected}
     end
   end
 

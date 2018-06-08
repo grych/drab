@@ -38,6 +38,10 @@
 <span id="store1_out"></span>
 <br>
 
+<button id="disconnect_button" class="btn btn-primary"  drab-click="disconnection_click">disconnect</button><br>
+<span id="disconnect_out"></span>
+<br>
+
 <input type="text" id="core1_input" drab="keyup#debounce(500):input1_change">
 <span id="input1_out"></span>
 <br>

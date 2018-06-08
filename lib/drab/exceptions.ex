@@ -20,3 +20,12 @@ defmodule Drab.JSExecutionError do
     raise Drab.JSExecutionError, message: to_string(description)
   end
 end
+
+defmodule Drab.ConnectionError do
+  @moduledoc """
+  Raised when function tries to query disconnected page.
+  """
+
+  @doc false
+  defexception message: "Disconnected"
+end

@@ -47,7 +47,8 @@ defmodule Drab.CommanderTest do
                :input3_change,
                :set_store_click,
                :get_store_click,
-               :start_waiter
+               :start_waiter,
+               :disconnection_click
              ],
              view: DrabTestApp.PageView
            }

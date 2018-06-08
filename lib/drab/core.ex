@@ -193,7 +193,7 @@ defmodule Drab.Core do
   @type return :: String.t() | map | float | integer | list
 
   @typedoc "Return value of `exec_js/2`"
-  @type result :: {status, return}
+  @type result :: {status, return | :disconnected | :timeout}
 
   @typedoc "Return value of `broadcast_js/2`"
   @type bcast_result :: {:ok, term} | {:error, term}
@@ -273,6 +273,7 @@ defmodule Drab.Core do
   def exec_js!(socket, js, options \\ []) do
     case exec_js(socket, js, options) do
       {:ok, result} -> result
+      {:error, :disconnected} -> raise Drab.ConnectionError
       {_, message} -> raise Drab.JSExecutionError, message: message
     end
   end
