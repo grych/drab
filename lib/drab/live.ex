@@ -272,16 +272,24 @@ defmodule Drab.Live do
         payload["drab_commander_id"] || "document"
       )
 
-    socket = Phoenix.Socket.assign(
-      socket,
-      :__sender_drab_commander_amperes,
-      payload["drab_commander_amperes"] || []
-    )
+    socket =
+      Phoenix.Socket.assign(
+        socket,
+        :__sender_drab_commander_amperes,
+        payload["drab_commander_amperes"] || []
+      )
+
+    socket =
+      Phoenix.Socket.assign(
+        socket,
+        :__drab_index,
+        payload["drab_index"] || nil
+      )
 
     Phoenix.Socket.assign(
       socket,
-      :__drab_index,
-      payload["drab_index"] || nil
+      :__csrf_token,
+      payload["csrf_token"] || nil
     )
   end
 
@@ -325,29 +333,38 @@ defmodule Drab.Live do
     `peek` return value will be changed to `{:ok, value}` in v0.9.0. Please use `peek!` instead.
     """)
 
+    case assigns_and_nodrab(socket) do
+      {:ok, assigns_data} ->
+        do_peek(socket, view, partial, assign, assigns_data)
+
+      error -> error
+    end
+  end
+
+  def peek(socket, view, partial, assign) when is_binary(assign) do
+    peek(socket, view, partial, String.to_existing_atom(assign))
+  end
+
+  def do_peek(socket, view, partial, assign, assigns_data) do
     view = view || Drab.get_view(socket)
     hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
 
-    current_assigns =
+    all_assigns =
       Map.merge(
-        assign_data_for_partial(socket, hash, partial, :assigns),
-        assign_data_for_partial(socket, hash, partial, :nodrab)
+        assigns_for_partial(socket, hash, partial, :assigns, assigns_data),
+        assigns_for_partial(socket, hash, partial, :nodrab, assigns_data)
       )
 
-    case current_assigns |> Map.fetch(assign) do
+    case all_assigns |> Map.fetch(assign) do
       {:ok, val} ->
         val
 
       :error ->
         raise_assign_not_found(
           assign,
-          Map.keys(current_assigns)
+          Map.keys(all_assigns)
         )
     end
-  end
-
-  def peek(socket, view, partial, assign) when is_binary(assign) do
-    peek(socket, view, partial, String.to_existing_atom(assign))
   end
 
   @doc """
@@ -381,24 +398,16 @@ defmodule Drab.Live do
   @spec peek!(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
           term | no_return
   def peek!(socket, view, partial, assign) when is_atom(assign) do
-    view = view || Drab.get_view(socket)
-    hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
+    case assigns_and_nodrab(socket) do
+      {:ok, assigns_data} ->
+        do_peek(socket, view, partial, assign, assigns_data)
 
-    current_assigns =
-      Map.merge(
-        assign_data_for_partial(socket, hash, partial, :assigns),
-        assign_data_for_partial(socket, hash, partial, :nodrab)
-      )
+      {:error, description} ->
+          raise Drab.JSExecutionError, message: to_string(description)
 
-    case current_assigns |> Map.fetch(assign) do
-      {:ok, val} ->
-        val
-
-      :error ->
-        raise_assign_not_found(
-          assign,
-          Map.keys(current_assigns)
-        )
+      #TODO: to be removed
+      {:timeout, description} ->
+          raise Drab.JSExecutionError, message: to_string(description)
     end
   end
 
@@ -448,7 +457,7 @@ defmodule Drab.Live do
   @spec poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
   def poke(socket, view, partial, assigns) do
     Deppie.once("""
-    `poke` return value will be changed to `{:ok, :ok}`, `{:error, reason}` in v0.9.0.
+    `poke` return value will be changed to `{:ok, socket}`, `{:error, reason}` in v0.9.0.
     """)
 
     do_poke(socket, view, partial, assigns, &Drab.Core.exec_js/2)
@@ -462,7 +471,7 @@ defmodule Drab.Live do
       iex> poke!(socket, count: 42)
       :ok
   """
-  @spec poke!(Phoenix.Socket.t(), Keyword.t()) :: result
+  @spec poke!(Phoenix.Socket.t(), Keyword.t()) :: result | no_return
   def poke!(socket, assigns) do
     poke!(socket, nil, nil, assigns)
   end
@@ -475,7 +484,7 @@ defmodule Drab.Live do
       iex> poke!(socket, "user.html", name: "Bożywój")
       :ok
   """
-  @spec poke!(Phoenix.Socket.t(), String.t() | nil, Keyword.t()) :: result
+  @spec poke!(Phoenix.Socket.t(), String.t() | nil, Keyword.t()) :: result | no_return
   def poke!(socket, partial, assigns) do
     poke!(socket, nil, partial, assigns)
   end
@@ -488,9 +497,11 @@ defmodule Drab.Live do
       iex> poke!(socket, MyApp.UserView, "user.html", name: "Bożywój")
       :ok
   """
-  @spec poke!(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
+  @spec poke!(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result | no_return
   def poke!(socket, view, partial, assigns) do
-    do_poke(socket, view, partial, assigns, &Drab.Core.exec_js!/2)
+    socket
+    |> do_poke(view, partial, assigns, &Drab.Core.exec_js!/2)
+    # |> Drab.JSExecutionError.result_or_raise()
   end
 
   @doc """
@@ -544,7 +555,7 @@ defmodule Drab.Live do
   end
 
   @spec do_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t(), function) ::
-          result
+          result | no_return
   defp do_poke(socket, view, partial_name, assigns, function) do
     raise_if_read_only(assigns)
     assigns_to_update = Enum.into(assigns, %{})
@@ -554,18 +565,32 @@ defmodule Drab.Live do
     partial =
       if partial_name, do: Partial.hash_for_view_and_name(view, partial_name), else: index(socket)
 
-    current_assigns = assign_data_for_partial(socket, partial, partial_name, :assigns)
-    nodrab_assigns = assign_data_for_partial(socket, partial, partial_name, :nodrab)
-
-    process_poke(
-      socket,
-      view,
-      partial,
-      assigns_to_update,
-      current_assigns,
-      nodrab_assigns,
-      function
-    )
+    case assigns_and_nodrab(socket) do
+      {:ok, assigns_data} ->
+        process_poke(
+          socket,
+          view,
+          partial,
+          assigns_to_update,
+          assigns_for_partial(socket, partial, partial_name, :assigns, assigns_data),
+          assigns_for_partial(socket, partial, partial_name, :nodrab, assigns_data),
+          assigns_data,
+          function
+        )
+      {:error, description} = error ->
+        if function == &Drab.Core.exec_js!/2 do
+          raise Drab.JSExecutionError, message: to_string(description)
+        else
+          error
+        end
+      #TODO: to be removed
+      {:timeout, description} = error ->
+        if function == &Drab.Core.exec_js!/2 do
+          raise Drab.JSExecutionError, message: to_string(description)
+        else
+          error
+        end
+    end
   end
 
   defp process_poke(
@@ -575,6 +600,7 @@ defmodule Drab.Live do
          assigns_to_update,
          current_assigns,
          nodrab_assigns,
+         cached,
          function
        ) do
     all_assigns = all_assigns(assigns_to_update, current_assigns, nodrab_assigns)
@@ -588,10 +614,11 @@ defmodule Drab.Live do
 
     # IO.inspect update_javascripts
     # IO.inspect(all_javascripts)
+    # IO.inspect(function)
 
     case function.(socket, all_javascripts) do
       {:ok, _} ->
-        update_assigns_cache(socket, assigns_to_update, partial, drab_commander_id(socket))
+        update_assigns_cache(assigns_to_update, partial, drab_commander_id(socket), cached)
         socket
 
       {:error, _} = other ->
@@ -602,7 +629,7 @@ defmodule Drab.Live do
 
       # poke! with exec_js!
       _ ->
-        :ok
+        socket
     end
   end
 
@@ -776,7 +803,7 @@ defmodule Drab.Live do
   """
   @spec clean_cache() :: term
   def clean_cache() do
-    Process.put(:__assigns_and_index, nil)
+    Process.put(:__assigns_data, nil)
   end
 
   @spec assign_updates_js(map, String.t(), String.t()) :: [String.t()]
@@ -802,17 +829,16 @@ defmodule Drab.Live do
     socket.assigns[:__sender_drab_commander_id] || "document"
   end
 
-  @spec assign_data_for_partial(
+  @spec assigns_for_partial(
           Phoenix.Socket.t(),
           String.t() | atom,
           String.t() | atom,
-          atom
+          atom,
+          map
         ) :: map | no_return
-  defp assign_data_for_partial(socket, partial, partial_name, assigns_type) do
+  defp assigns_for_partial(socket, partial, partial_name, assigns_type, assigns_data) do
     assigns =
-      case socket
-           |> ampere_assigns(assigns_type)
-           |> Map.fetch(partial) do
+      case Map.fetch(assigns_data[assigns_type], partial) do
         {:ok, val} ->
           val
 
@@ -843,11 +869,6 @@ defmodule Drab.Live do
   defp apply_conn_merge({:conn, v}), do: {:conn, Drab.Live.Assign.merge(%Plug.Conn{}, v)}
   defp apply_conn_merge(other), do: other
 
-  @spec ampere_assigns(Phoenix.Socket.t(), atom) :: map
-  defp ampere_assigns(socket, assigns_type) do
-    assigns_and_index(socket)[assigns_type]
-  end
-
   @spec index(Phoenix.Socket.t()) :: String.t()
   defp index(socket) do
     # assigns_and_index(socket)[:index]
@@ -856,31 +877,28 @@ defmodule Drab.Live do
 
   @spec csrf_token(Phoenix.Socket.t()) :: String.t() | nil
   defp csrf_token(socket) do
-    assigns_and_index(socket)[:csrf]
+    socket.assigns[:__csrf_token]
   end
 
-  @spec assigns_and_index(Phoenix.Socket.t()) :: map
-  defp assigns_and_index(socket) do
-    case {Process.get(:__drab_event_handler_or_callback), Process.get(:__assigns_and_index)} do
+  @spec assigns_and_nodrab(Phoenix.Socket.t()) :: {atom, map}
+  defp assigns_and_nodrab(socket) do
+    case {Process.get(:__drab_event_handler_or_callback), Process.get(:__assigns_data)} do
       {true, nil} ->
         {:ok, decrypted} = decrypted_from_browser(socket)
-        Process.put(:__assigns_and_index, decrypted)
-        decrypted
+        Process.put(:__assigns_data, decrypted)
+        {:ok, decrypted}
 
       {true, value} ->
-        value
+        {:ok, value}
 
       # the other case (it is test or IEx session)
       {_, _} ->
-        {:ok, decrypted} = decrypted_from_browser(socket)
-        decrypted
+        decrypted_from_browser(socket)
     end
   end
 
-  @spec update_assigns_cache(Phoenix.Socket.t(), map, String.t(), String.t()) :: term() | nil
-  defp update_assigns_cache(socket, assigns_to_update, partial_hash, shared_commander_id) do
-    cache = assigns_and_index(socket)
-
+  @spec update_assigns_cache(map, String.t(), String.t(), map) :: term() | nil
+  defp update_assigns_cache(assigns_to_update, partial_hash, shared_commander_id, cache) do
     updated_assigns =
       for {assign_name, assign_value} <- assigns_to_update, into: %{} do
         {assign_name, %{shared_commander_id => assign_value}}
@@ -890,18 +908,17 @@ defmodule Drab.Live do
     cache_for_partial = cached_assigns[partial_hash]
     updated_assigns_for_partial = Map.merge(cache_for_partial, updated_assigns)
     updated_assigns_cache = Map.put(cached_assigns, partial_hash, updated_assigns_for_partial)
-    Process.put(:__assigns_and_index, %{cache | assigns: updated_assigns_cache})
+    Process.put(:__assigns_data, %{cache | assigns: updated_assigns_cache})
   end
 
-  @pr "({assigns: __drab.assigns, nodrab: __drab.nodrab, csrf: __drab.csrf})"
+  @pr "({assigns: __drab.assigns, nodrab: __drab.nodrab})"
   defp decrypted_from_browser(socket) do
     case exec_js(socket, @pr) do
       {:ok, ret} ->
         {:ok,
          %{
            :assigns => decrypted_assigns(ret["assigns"]),
-           :nodrab => decrypted_assigns(ret["nodrab"]),
-           :csrf => ret["csrf"]
+           :nodrab => decrypted_assigns(ret["nodrab"])
          }}
 
       error ->

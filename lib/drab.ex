@@ -75,13 +75,13 @@ defmodule Drab do
 
   ## Drab in production and behind a proxy
 
-  When using in production, an app is often behind an apache/nginx server for domain virtualization 
-  or balancing, so the external port (80) is different from the actual app port (i.e. 4000). 
-  The necessary mapping between the two ports is usually done by configuring a proxy, 
-  but _a particularly care have to be taken to correctly handle_ `websocket` _calls_, 
+  When using in production, an app is often behind an apache/nginx server for domain virtualization
+  or balancing, so the external port (80) is different from the actual app port (i.e. 4000).
+  The necessary mapping between the two ports is usually done by configuring a proxy,
+  but _a particularly care have to be taken to correctly handle_ `websocket` _calls_,
   as they are at the core of Drab mechanism to communicate between the client browser and the backend server.
 
-  You can find more information and examples to how to configure your nxinx or apache environments 
+  You can find more information and examples to how to configure your nxinx or apache environments
   on the Drab wiki page at https://github.com/grych/drab/wiki/Drab-in-production-and-behind-a-proxy
 
   ## Learnig Drab

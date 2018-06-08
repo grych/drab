@@ -17,7 +17,7 @@ Drab.on_change(function(node) {
 });
 
 Drab.add_payload(function(sender) {
-  return {drab_index: __drab.index};
+  return {drab_index: __drab.index, csrf_token: __drab.csrf};
 });
 
 Drab.add_payload(function(sender) {
