@@ -37,7 +37,8 @@ defmodule Drab.Mixfile do
         :deppie,
         :floki,
         :gettext,
-        :jason
+        :jason,
+        :tzdata
       ]
     ]
   end
@@ -60,7 +61,8 @@ defmodule Drab.Mixfile do
       {:deppie, "~> 1.0"},
       {:floki, ">= 0.20.2"},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:timex, "~> 3.2"},
     ]
   end
 

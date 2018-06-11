@@ -1,5 +1,6 @@
 defmodule Drab.Browser do
   import Drab.Core
+  import Drab.Utils
 
   @moduledoc """
   Browser related functions.
@@ -290,10 +291,268 @@ defmodule Drab.Browser do
       ** (Drab.JSExecutionError) Failed to execute 'pushState' on 'History' ...
 
   """
-  @spec set_url!(Phoenix.Socket.t(), String.t()) :: any
+  @spec set_url!(Phoenix.Socket.t(), String.t()) :: Drab.Core.bcast_result()
   def set_url!(socket, url) do
     exec_js!(socket, """
     window.history.pushState({}, "", #{Drab.Core.encode_js(url)});
     """)
   end
+
+  @doc """
+  Synchronously set a cookie on the client side
+  
+  Returns tuple {status, return_value}, where status could be :ok, :error or :timeout, and return value contains the output computed by the Javascript or the error message.  
+
+  ### Parameters:
+
+  * `socket`  - the Drab socket
+  * `key`     - the cookie name
+  * `value`   - the cookie value, can be an Elixir data structure
+        
+        
+  ### Options:
+
+  * `max-age` :
+   
+       max-age > 0    - sets the cookie max-age, in seconds
+     
+       max-age == 0   - sets a session cookie
+     
+       max-age < 0    - delete the cookie
+     
+     
+  * `path` - the cookie path, default `"/"`
+  
+  * `encode` - encodes the cookie in Base64. The encoding is needed if you want to store values with comma, semicolon, quotes, etc or Elixir data structures.   
+  
+  
+  ### Example:
+  
+        iex> Drab.Browser.set_cookie(socket, "Items", [%{id: 001, name: "foo"}, %{id: 002, name: "bar"}], max_age: 3*24*60*60, encode: true)
+        {:ok, result}
+  """
+  @spec set_cookie(Phoenix.Socket.t(), String.t(), any(), Keyword.t()) :: Drab.Core.bcast_result()
+  def set_cookie(socket, key, value, options \\ []) do
+    # Options
+    max_age = Keyword.get(options, :max_age, 0)
+    path = Keyword.get(options, :path, "/")
+
+    # Prepare
+    encoded_value = encode_value(value, options)
+    expires = cookie_expires(socket, max_age)
+
+    # Set cookie
+    exec_js(socket, "document.cookie='#{key}=#{encoded_value}; expires=#{expires}; path=#{path};'")
+  end
+
+  @doc """
+  Exception raising version of `set_cookie/4`
+  """
+  @spec set_cookie!(Phoenix.Socket.t(), String.t(), any(), Keyword.t()) :: Drab.Core.bcast_result()
+  def set_cookie!(socket, key, value, options \\ []) do
+    # Options
+    max_age = Keyword.get(options, :max_age, 0)
+    path = Keyword.get(options, :path, "/")
+
+    # Prepare
+    encoded_value = encode_value(value, options)
+    expires = cookie_expires(socket, max_age)
+
+    # Set cookie
+    exec_js!(socket, "document.cookie='#{key}=#{encoded_value}; expires=#{expires}; path=#{path};'")
+  end
+
+  @doc """
+  Delete a cookie.
+  
+  ### Parameters:
+
+  * `socket`  - the Drab socket
+  * `key`     - the cookie name
+
+  ### Example:
+  
+        iex> Drab.Browser.delete_cookie(socket, "Items")
+        {:ok, result}
+  """
+  @spec delete_cookie(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
+  def delete_cookie(socket, key) do
+    set_cookie(socket, key, "", max_age: -1)
+  end
+
+  @doc """
+  Exception raising version of `delete_cookie/2`
+  """
+  @spec delete_cookie!(Phoenix.Socket.t(), String.t()) :: Drab.Core.result() | no_return
+  def delete_cookie!(socket, key) do
+    set_cookie!(socket, key, "", max_age: -1)
+  end
+
+  @doc """
+  Retrieve all cookies from browser and convert them in a list of maps, where :key is the cookie name, and :value is the cookie value.
+
+  As at this level it is not possible to know which are the cookies values that have be encoded, their values are the same as those in the original string.
+
+  ### Parameters
+
+  * `socket` - The Drab socket
+
+  Examples:
+  Given a browser with these cookies set: 
+    "_ga=GA1.1.12345.54321; _gid=GA1.1.12345.54321; map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; _gat_gtag_UA_123ABC=1; cookiebar=CookieAllowed"
+
+        iex> Drab.Browsers.cookies()
+        {:ok, [
+                %{key: "_ga", value: "IkdBMS4xLjEyMzQ1LjU0MzIxIg"},
+                %{key: "_gid", value: "IkdBMS4xLjEyMzQ1LjU0MzIxIg"},
+                %{
+                  key: "map1",
+                  value: "ImV5SnRaWE56WVdkbElqb2lTR1ZzYkc4c0lGZHZjbXhrSURFaEluMCI"
+                },
+                %{key: "_gat_gtag_UA_123ABC", value: "IjEi"},
+                %{key: "cookiebar", value: "IkNvb2tpZUFsbG93ZWQi"}
+              ]
+        }
+  """
+  @spec cookies(Phoenix.Socket.t()) :: Drab.Core.result()
+  def cookies(socket) do
+    socket
+    |> raw_cookies()
+    |> case do
+        {:ok, cookies} -> {:ok, extract_cookies_maps(cookies)}
+        {:error, error} -> {:error, error}
+      end
+  end
+
+  @doc """
+  Exception raising version of `cookies/1`
+  """
+  @spec cookies!(Phoenix.Socket.t()) :: list()
+  def cookies!(socket) do
+    socket
+    |> raw_cookies!()
+    |> extract_cookies_maps()
+  end
+
+  @doc """
+  Retrieves a specific cookie form the browser.
+
+  ### Parameters
+
+  * `socket` - The Drab socket
+  * `key` - `String`, The cookie name
+
+  ### Options
+
+  ### Example
+      iex> Drab.Browser.cookie(socket, "Items")
+      [%{id: 001, key: "foo"}, %{id: 002, key: "bar"}]
+  """
+  @spec cookie(Phoenix.Socket.t(), String.t(), Keyword.t()) :: String.t()
+  def cookie(socket, key, options \\ []) do
+    case raw_cookies(socket) do
+      {:ok, cookies} ->
+        extract_cookie(cookies, key, options)
+      _ -> ""
+    end
+  end
+
+  @doc """
+  # Exception raising version of `cookie/3`
+  """
+  @spec cookie!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: String.t() | no_return
+  def cookie!(socket, key, options \\ []) do
+    socket
+    |> raw_cookies()
+    |> extract_cookie(key, options)
+  end
+
+  # Helpers
+
+  # Retrieve all cookies from browser
+  #    iex> Drab.Browser.raw_cookies(socket)
+  #    {:ok, result}
+  defp raw_cookies(socket) do
+    exec_js(socket, "document.cookie")
+  end
+
+  # Exception raising version of `raw_cookies/1`
+  defp raw_cookies!(socket) do
+    exec_js!(socket, "document.cookie")
+  end
+
+  # Composes the expire string adding the `max_age` seconds to the current client time
+  defp cookie_expires(socket, max_age) do
+      cond do
+        max_age > 0 ->
+          Drab.Browser.now!(socket)
+          |> Timex.to_datetime()
+          |> Timex.add(%Timex.Duration{megaseconds: 0, seconds: max_age, microseconds: 0})
+          |> Timex.format!("{RFC1123}")
+        max_age == 0 ->
+          ""
+        max_age < 0 ->
+          "Thu, 01 Jan 1970 00:00:00 GMT"
+      end
+  end
+
+  defp extract_cookies_maps(cookies) do
+    ~r/(^|\s)(.*?)=(.*?)(;|$)/
+    |> Regex.scan(cookies)
+    |> case do
+      [] -> []
+      matches -> matches_to_maps(matches)
+    end
+  end
+
+  defp matches_to_maps(matches) do
+    Enum.map(matches, fn match ->
+      case match do
+        [_, _, key, value, _] -> %{key: key, value: value}
+        _ -> %{}
+      end
+    end)
+  end
+
+  @doc """
+  Extract a specific cookie from cookies string.
+
+  ### Parameters
+  * `cookies` - The string that cotains the cookies
+  * `key` - The name of the cookie to extract
+
+  ### Options
+   See the options for `decode_value`
+
+  """
+  defp extract_cookie(cookies, key, options \\ [])
+  defp extract_cookie(_cookies, nil, _options) do "" end
+  defp extract_cookie(_cookies, "", _options) do "" end
+  defp extract_cookie(cookies, key,   options) do
+    cookies
+    |> extract_cookie_string(key)
+    |> extract_cookie_value(key)
+    |> decode_value(options)
+  end
+
+## Private Helpers
+
+  defp extract_cookie_string(cookies, key) do
+    ~r/(#{key}=.+?)(;|$)/
+    |> Regex.run(cookies)
+    |> case do
+        [_, value, _] -> value
+        _ -> ""
+      end
+  end
+
+  defp extract_cookie_value(cookie, key) do
+    ~r/#{key}=(.*)/
+    |> Regex.run(cookie)
+    |> case do
+        [_, value] -> value
+        _ -> ""
+      end
+  end
+
 end

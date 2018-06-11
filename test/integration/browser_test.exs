@@ -70,5 +70,95 @@ defmodule DrabTestApp.BrowserTest do
       # assert String.contains?(Drab.Core.exec_js!(socket, "window.location.href"), "/other/path")
       assert Drab.Core.exec_js!(socket, "window.location.href") =~ "/other/path"
     end
+
+    test "set cookie" do
+      socket = drab_socket()
+
+      # result example: "map=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9; expires=Sat, 02 Jun 2018 10:42:15 +0000; path=/;"
+      assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: (3 * 24 * 60 * 60), encode: true)
+    end
+
+    test "retrieves cookies" do
+      socket = drab_socket()
+
+      #write some cookies
+      assert {:ok, _} = set_cookie(socket, "map1", %{"message" => "Hello, World 1!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map2", %{"message" => "Hello, World 2!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map3", %{"message" => "Hello, World 3!"}, path: "/", encode: true)
+
+      # Get cookies
+      expected_result = [%{key: "map1", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0"}, %{key: "map2", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDIhIn0"}, %{key: "map3", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDMhIn0"}]
+      assert {:ok, ^expected_result} = cookies(socket)
+    end
+
+    test "retrieve a cookie" do
+      socket = drab_socket()
+
+      #retrieve an non exixtent cookie
+      assert "" == cookie(socket, "foo")
+
+      #write and retrieve a cookie
+      assert {:ok, _} = set_cookie(socket, "map", %{"message" => "Hello, World!"}, path: "/", max_age: (3 * 24 * 60 * 60), encode: true)
+      assert %{"message" => "Hello, World!"} == cookie(socket, "map")
+    end
+
+    test "delete a cookie" do
+      socket = drab_socket()
+
+      #write three cookies
+      assert {:ok, _} = set_cookie(socket, "map1", %{"message" => "Hello, World 1!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map2", %{"message" => "Hello, World 2!"}, path: "/", encode: true)
+      assert {:ok, _} = set_cookie(socket, "map3", %{"message" => "Hello, World 3!"}, path: "/", encode: true)
+
+      #delete a cookie
+      assert {:ok, _} = delete_cookie(socket, "map2")
+
+       # Check remaining cookies
+      expected_result = [%{key: "map1", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0"}, %{key: "map3", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDMhIn0"}]
+      assert {:ok, ^expected_result} = cookies(socket)
+    end
+
+    ## Disabled and left here to run these test after some refactoring
+
+    # test "retrieves raw cookies" do
+    #   socket = drab_socket()
+
+    #   #write some cookies
+    #   assert {:ok, _} = set_cookie(socket, "map1", %{"message" => "Hello, World 1!"}, path: "/", encode: true)
+    #   assert {:ok, _} = set_cookie(socket, "map2", %{"message" => "Hello, World 2!"}, path: "/", encode: true)
+    #   assert {:ok, _} = set_cookie(socket, "map3", %{"message" => "Hello, World 3!"}, path: "/", encode: true)
+
+    #   # Get cookies
+    #   expected_result = "map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; map2=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDIhIn0; map3=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDMhIn0"
+    #   assert {:ok, ^expected_result} = raw_cookies(socket)
+    # end
+
+    # test "extract cookies maps" do
+    #   cookies = "_ga=GA1.1.12345.54321; _gid=GA1.1.12345.54321; map1=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0; _gat_gtag_UA_123ABC=1; cookiebar=CookieAllowed"
+    #   expected_value =
+    #     [
+    #       %{key: "_ga", value: "GA1.1.12345.54321"},
+    #       %{key: "_gid", value: "GA1.1.12345.54321"},
+    #       %{key: "map1", value: "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkIDEhIn0"},
+    #       %{key: "_gat_gtag_UA_123ABC", value: "1"},
+    #       %{key: "cookiebar", value: "CookieAllowed"}
+    #     ]
+    #   assert expected_value == Drab.Browser.extract_cookies_maps(cookies)
+    # end
+
+    # test "exctract a cookie" do
+    #   cookies = "a=foo; message=Hello, World!; c=bar"
+    #   encoded_cookies = "a=foo; map=eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9; c=bar"
+
+    #   assert "Hello, World!" == extract_cookie(cookies, "message", decode: false)
+    #   assert %{"message" => "Hello, World!"} == extract_cookie(encoded_cookies, "map")
+    #   assert %{"message" => "Hello, World!"} == extract_cookie(encoded_cookies, "map", decode: true)
+    #   assert %{"message" => "Hello, World!"} == extract_cookie(encoded_cookies, "map", encrypted: true)
+    #   assert %{"message" => "Hello, World!"} == extract_cookie(encoded_cookies, "map", decode: true, encrypted: true)
+    #   assert "eyJtZXNzYWdlIjoiSGVsbG8sIFdvcmxkISJ9" == extract_cookie(encoded_cookies, "map", decode: false, encrypted: true)
+    #   assert "" == extract_cookie(cookies, nil)
+    #   assert "" == extract_cookie(cookies, "")
+    # end
+
   end
 end
