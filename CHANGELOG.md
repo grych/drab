@@ -2,11 +2,13 @@
 
 ## v0.8.2
 
-* New functions in Drab.Element (#134, #135)
-* New `Drab.Coder` for encoding terms to string (#137)
-* new `js_socket_constructor` config (#133)
-* all assigns are now peekable (#126)
+This version is a preparation for v0.9.0, which is going to bring API changes, as described in #127.
 
+* new functions in Drab.Element (#134, #135)
+* new `Drab.Coder` for encoding terms to string (#137)
+* new `js_socket_constructor` config (#133), useful when using Drab with Webpack
+* all assigns are now peekable (#126)
+* `broadcast_poke` now gets subject, not only socket (under some limitations) (#141)
 * preserve csrf token if `poke` updates the form (fix for #130)
 
 ## v0.8.1 - `mix drab.install`

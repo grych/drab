@@ -115,7 +115,10 @@ defmodule DrabTestApp.LiveTest do
     test "update in partial in a subfolder should work", fixture do
       assert peek(fixture.socket, "subfolder/subpartial.html", :text) == "text in the subpartial"
       poke(fixture.socket, "subfolder/subpartial.html", text: "UPDATED")
-      assert peek(fixture.socket, DrabTestApp.LiveView, "subfolder/subpartial.html", :text) == "UPDATED"
+
+      assert peek(fixture.socket, DrabTestApp.LiveView, "subfolder/subpartial.html", :text) ==
+               "UPDATED"
+
       assert visible_text(find_element(:id, "subpartial_div")) == "UPDATED"
     end
 
@@ -148,9 +151,66 @@ defmodule DrabTestApp.LiveTest do
       refute Enum.member?(assigns(fixture.socket), :nodrab1)
     end
 
-    # TODO: uncomment after moved to 1.6.0
-    # test "/ marker test", fixture do
-    #   refute Enum.member?(assigns(fixture.socket), :nodrab2)
-    # end
+    test "/ marker test", fixture do
+      refute Enum.member?(assigns(fixture.socket), :nodrab2)
+    end
   end
+
+  describe "Drab.Live broadcasting" do
+    test "change assign", fixture do
+      main_color = find_element(:id, "color_main")
+      broadcast_poke(fixture.socket, color: "red")
+      assert css_property(main_color, "backgroundColor") == "rgba(255, 0, 0, 1)"
+      assert peek(fixture.socket, :color) == "red"
+    end
+
+    test "broadcast/2 with subject" do
+      assert_raise ArgumentError, fn ->
+        broadcast_poke(Drab.Core.same_action(DrabTestApp.LiveController, :index), color: "red")
+      end
+    end
+
+    test "broadcast/3 with subject" do
+      assert_raise ArgumentError, fn ->
+        broadcast_poke(
+          Drab.Core.same_action(DrabTestApp.LiveController, :index),
+          DrabTestApp.LiveView,
+          color: "red"
+        )
+      end
+    end
+
+    test "broadcast/4 with subject", fixture do
+      main_color = find_element(:id, "color_main")
+
+      broadcast_poke(
+        Drab.Core.same_action(DrabTestApp.LiveController, :index),
+        DrabTestApp.LiveView,
+        "index.html",
+        color: "red",
+        using_assigns: [
+          count: 1,
+          users: [],
+          text: "",
+          nodrab1: "",
+          nodrab2: "",
+          conn: %Plug.Conn{private: %{:phoenix_endpoint => DrabTestApp.Endpoint}}
+        ]
+      )
+
+      assert css_property(main_color, "backgroundColor") == "rgba(255, 0, 0, 1)"
+      assert peek(fixture.socket, :color) == "red"
+
+      assert_raise ArgumentError, fn ->
+      broadcast_poke(
+        Drab.Core.same_action(DrabTestApp.LiveController, :index),
+        DrabTestApp.LiveView,
+        "index.html",
+        color: "red"
+        )
+      end
+    end
+  end
+
+
 end

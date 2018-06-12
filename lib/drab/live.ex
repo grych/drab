@@ -47,7 +47,6 @@ defmodule Drab.Live do
         }
       }
 
-
   ### Shared Commanders
   When the event is triggered inside the Shared Commander, defined with `drab-commander` attribute,
   all the updates will be done only withing this region. For example:
@@ -251,6 +250,16 @@ defmodule Drab.Live do
   in your `config.exs`:
 
       config :drab, enable_live_scripts: true
+
+  ### Broadcasting
+  There is a function `broadcast_poke` to broadcast living assigns to more than one browser.
+
+  For broadcasting using a `subject` instead of `socket` (like `same_action/1`), Drab is unable
+  to automatically retrieve view and template name, as well as existing assigns values. This,
+  the only acceptable version is `broadcast_poke/4` with `:using_assigns` option.
+
+      iex> broadcast_poke same_action(MyApp.PageController, :mini), MyApp.PageView, "index.html",
+           text: "changed text", using_assigns: [color: "red"]
   """
 
   @type result :: Phoenix.Socket.t() | Drab.Core.result() | no_return
@@ -337,7 +346,8 @@ defmodule Drab.Live do
       {:ok, assigns_data} ->
         do_peek(socket, view, partial, assign, assigns_data)
 
-      error -> error
+      error ->
+        error
     end
   end
 
@@ -403,11 +413,11 @@ defmodule Drab.Live do
         do_peek(socket, view, partial, assign, assigns_data)
 
       {:error, description} ->
-          raise Drab.JSExecutionError, message: to_string(description)
+        raise Drab.JSExecutionError, message: to_string(description)
 
-      #TODO: to be removed
+      # TODO: to be removed
       {:timeout, description} ->
-          raise Drab.JSExecutionError, message: to_string(description)
+        raise Drab.JSExecutionError, message: to_string(description)
     end
   end
 
@@ -501,7 +511,6 @@ defmodule Drab.Live do
   def poke!(socket, view, partial, assigns) do
     socket
     |> do_poke(view, partial, assigns, &Drab.Core.exec_js!/2)
-    # |> Drab.JSExecutionError.result_or_raise()
   end
 
   @doc """
@@ -516,9 +525,12 @@ defmodule Drab.Live do
       %Phoenix.Socket{ ...
   """
   @spec broadcast_poke(Drab.Core.subject(), Keyword.t()) :: result
-  def broadcast_poke(socket, assigns) do
-    # do_poke(socket, nil, nil, assigns, &Drab.Core.broadcast_js/2)
+  def broadcast_poke(%Phoenix.Socket{} = socket, assigns) do
     broadcast_poke(socket, nil, nil, assigns)
+  end
+
+  def broadcast_poke(_, _) do
+    raise_broadcast_poke_with_subject()
   end
 
   @doc """
@@ -528,9 +540,12 @@ defmodule Drab.Live do
       %Phoenix.Socket{ ...
   """
   @spec broadcast_poke(Drab.Core.subject(), String.t() | nil, Keyword.t()) :: result
-  def broadcast_poke(socket, partial, assigns) do
-    # do_poke(socket, nil, partial, assigns, &Drab.Core.broadcast_js/2)
+  def broadcast_poke(%Phoenix.Socket{} = socket, partial, assigns) do
     broadcast_poke(socket, nil, partial, assigns)
+  end
+
+  def broadcast_poke(_, _, _) do
+    raise_broadcast_poke_with_subject()
   end
 
   @doc """
@@ -538,28 +553,41 @@ defmodule Drab.Live do
 
       iex> broadcast_poke(socket, MyApp.UserView, "user.html", name: "Bożywój")
       %Phoenix.Socket{ ...
+
+  This function allow to use `subject` instead of `socket` to broadcast living assigns without
+  having a `socket`. In this case, you need to provide **all other assigns** to the function,
+  with `:using_assigns` option.
+
+      iex> broadcast_poke same_action(MyApp.PageController, :mini), MyApp.PageView, "index.html",
+           text: "changed text", using_assigns: [color: "red"]
+      {:ok, :broadcasted}
+
+  Hint: if you have functions using `@conn` assign, you may fake it with
+  `%Plug.Conn{private: %{:phoenix_endpoint => MyAppWeb.Endpoint}}`
   """
   @spec broadcast_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t()) :: result
-  def broadcast_poke(socket, view, partial, assigns) do
-    # if socket.assigns.__broadcast_topic =~ "same_path:" ||
-    #    socket.assigns.__broadcast_topic =~ "action:" do
+  def broadcast_poke(%Phoenix.Socket{} = socket, view, partial, assigns) do
     do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
-    #  else
-    #   raise ArgumentError,
-    #     message: """
-    #     Broadcasting `poke` makes sense only with `:same_path` or `:same_action` options.
+  end
 
-    #     You tried: `#{socket.assigns.__broadcast_topic}`
-    #     """
-    #  end
+  def broadcast_poke(subject, view, partial, assigns) do
+    {_, options} = extract_options(assigns)
+
+    unless options[:using_assigns] do
+      raise_broadcast_poke_with_subject()
+    end
+
+    do_poke(subject, view, partial, assigns, &Drab.Core.broadcast_js/2)
   end
 
   @spec do_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t(), function) ::
           result | no_return
   defp do_poke(socket, view, partial_name, assigns, function) do
     raise_if_read_only(assigns)
-    assigns_to_update = Enum.into(assigns, %{})
+    {assigns, options} = extract_options(assigns)
+    predefined_assigns = options[:using_assigns]
 
+    assigns = Enum.into(assigns, %{})
     view = view || Drab.get_view(socket)
 
     partial =
@@ -571,21 +599,32 @@ defmodule Drab.Live do
           socket,
           view,
           partial,
-          assigns_to_update,
-          assigns_for_partial(socket, partial, partial_name, :assigns, assigns_data),
-          assigns_for_partial(socket, partial, partial_name, :nodrab, assigns_data),
+          assigns,
+          if predefined_assigns do
+            predefined_assigns |> Enum.into(%{}) |> Map.merge(assigns)
+          else
+            assigns_for_partial(socket, partial, partial_name, :assigns, assigns_data)
+          end,
+          if predefined_assigns do
+            %{}
+          else
+            assigns_for_partial(socket, partial, partial_name, :nodrab, assigns_data)
+          end,
           assigns_data,
-          function
+          function,
+          options
         )
+
       {:error, description} = error ->
-        if function == &Drab.Core.exec_js!/2 do
+        if function == (&Drab.Core.exec_js!/2) do
           raise Drab.JSExecutionError, message: to_string(description)
         else
           error
         end
-      #TODO: to be removed
+
+      # TODO: to be removed
       {:timeout, description} = error ->
-        if function == &Drab.Core.exec_js!/2 do
+        if function == (&Drab.Core.exec_js!/2) do
           raise Drab.JSExecutionError, message: to_string(description)
         else
           error
@@ -594,32 +633,36 @@ defmodule Drab.Live do
   end
 
   defp process_poke(
-         socket,
+         subject,
          view,
          partial,
          assigns_to_update,
          current_assigns,
          nodrab_assigns,
-         cached,
-         function
+         assigns_data,
+         function,
+         _options
        ) do
     all_assigns = all_assigns(assigns_to_update, current_assigns, nodrab_assigns)
-    html = rerender_template(socket, view, partial, all_assigns)
+    html = rerender_template(subject, view, partial, all_assigns)
 
     update_javascripts =
-      update_javascripts(socket, html, partial, assigns_to_update, current_assigns)
+      update_javascripts(subject, html, partial, assigns_to_update, current_assigns)
 
-    assign_updates = assign_updates_js(assigns_to_update, partial, drab_commander_id(socket))
+    assign_updates = assign_updates_js(assigns_to_update, partial, drab_commander_id(subject))
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq() |> Enum.join(";")
 
     # IO.inspect update_javascripts
     # IO.inspect(all_javascripts)
     # IO.inspect(function)
 
-    case function.(socket, all_javascripts) do
+    case function.(subject, all_javascripts) do
+      {:ok, :broadcasted} ->
+        subject
+
       {:ok, _} ->
-        update_assigns_cache(assigns_to_update, partial, drab_commander_id(socket), cached)
-        socket
+        update_assigns_cache(assigns_to_update, partial, drab_commander_id(subject), assigns_data)
+        subject
 
       {:error, _} = other ->
         other
@@ -629,8 +672,20 @@ defmodule Drab.Live do
 
       # poke! with exec_js!
       _ ->
-        socket
+        subject
     end
+  end
+
+  @doc false
+  def drab_options_list, do: [:using_assigns, :drab_timeout]
+
+  defp extract_options(assigns) do
+    Enum.split_with(assigns, fn {x, _} -> x not in drab_options_list() end)
+  end
+
+  @doc false
+  def reserved_assigns?(assigns) do
+    intersection(assigns, drab_options_list()) != []
   end
 
   defp all_assigns(assigns, current_assigns, nodrab_assigns) do
@@ -657,7 +712,12 @@ defmodule Drab.Live do
     assigns_to_update_keys
   end
 
-  defp amperes_to_update(socket, partial, assigns_to_update, current_assigns_keys) do
+  defp amperes_to_update(
+         %Phoenix.Socket{} = socket,
+         partial,
+         assigns_to_update,
+         current_assigns_keys
+       ) do
     assigns_to_update_keys = assigns_to_update_keys(assigns_to_update, current_assigns_keys)
     amperes_to_update = Partial.amperes_for_assigns(partial, assigns_to_update_keys)
 
@@ -669,6 +729,11 @@ defmodule Drab.Live do
       sender_drab_commader_amperes ->
         intersection(amperes_to_update, sender_drab_commader_amperes)
     end
+  end
+
+  defp amperes_to_update(_subject, partial, assigns_to_update, current_assigns_keys) do
+    assigns_to_update_keys = assigns_to_update_keys(assigns_to_update, current_assigns_keys)
+    Partial.amperes_for_assigns(partial, assigns_to_update_keys)
   end
 
   defp update_javascripts(socket, html, partial, assigns_to_update, current_assigns) do
@@ -824,10 +889,12 @@ defmodule Drab.Live do
     end)
   end
 
-  @spec drab_commander_id(Phoenix.Socket.t()) :: String.t()
-  defp drab_commander_id(socket) do
+  @spec drab_commander_id(Drab.Core.subject()) :: String.t()
+  defp drab_commander_id(%Phoenix.Socket{} = socket) do
     socket.assigns[:__sender_drab_commander_id] || "document"
   end
+
+  defp drab_commander_id(_), do: "document"
 
   @spec assigns_for_partial(
           Phoenix.Socket.t(),
@@ -875,13 +942,15 @@ defmodule Drab.Live do
     socket.assigns[:__drab_index]
   end
 
-  @spec csrf_token(Phoenix.Socket.t()) :: String.t() | nil
-  defp csrf_token(socket) do
+  @spec csrf_token(Drab.Core.subject()) :: String.t() | nil
+  defp csrf_token(%Phoenix.Socket{} = socket) do
     socket.assigns[:__csrf_token]
   end
 
-  @spec assigns_and_nodrab(Phoenix.Socket.t()) :: {atom, map}
-  defp assigns_and_nodrab(socket) do
+  defp csrf_token(_), do: nil
+
+  @spec assigns_and_nodrab(Drab.Core.subject()) :: {atom, map}
+  defp assigns_and_nodrab(%Phoenix.Socket{} = socket) do
     case {Process.get(:__drab_event_handler_or_callback), Process.get(:__assigns_data)} do
       {true, nil} ->
         {:ok, decrypted} = decrypted_from_browser(socket)
@@ -896,6 +965,9 @@ defmodule Drab.Live do
         decrypted_from_browser(socket)
     end
   end
+
+  # for broadcasting
+  defp assigns_and_nodrab(_), do: {:ok, %{}}
 
   @spec update_assigns_cache(map, String.t(), String.t(), map) :: term() | nil
   defp update_assigns_cache(assigns_to_update, partial_hash, shared_commander_id, cache) do
@@ -977,5 +1049,19 @@ defmodule Drab.Live do
         assign `@conn` is read only.
         """
     end
+  end
+
+  defp raise_broadcast_poke_with_subject do
+    raise ArgumentError,
+      message: """
+      `broadcast_poke` without given socket must be called with the following arguments:
+      * view
+      * template
+      * using_assings option
+
+      Example:
+      iex> broadcast_poke same_action(MyApp.PageController, :mini), MyApp.PageView, "index.html",
+           text: "changed text", using_assigns: [color: "red"]
+      """
   end
 end

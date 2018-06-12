@@ -7,4 +7,14 @@ defmodule Drab.LiveTest do
     assert String.contains?(html, "<!--42-->")
     refute String.contains?(html, "drab-ampere=")
   end
+
+  describe "Drab.Live non-compilable cases" do
+    test "with restricted words as assigns" do
+      reserved_words = "<html><%= @using_assigns %></html>"
+      assert_raise EEx.SyntaxError, fn ->
+        EEx.compile_string(reserved_words, engine: Drab.Live.EExEngine, file: "path.html.drab")
+      end
+    end
+
+  end
 end

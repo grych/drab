@@ -157,6 +157,14 @@ defmodule Drab.Live.EExEngine do
     partial = %Partial{partial | amperes: partial_amperes}
 
     found_assigns = Partial.all_assigns(partial)
+    if Drab.Live.reserved_assigns?(found_assigns) do
+      raise EEx.SyntaxError,
+        message: """
+        trying to use Drab reserved word as an assign name. Please rename the assign.
+
+        Reserved assign names: #{Enum.join(Drab.Live.drab_options_list(), ", ")}
+        """
+    end
     all_assigns = find_assigns(body)
     nodrab_assigns = all_assigns -- found_assigns
 
