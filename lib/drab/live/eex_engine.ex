@@ -251,20 +251,7 @@ defmodule Drab.Live.EExEngine do
         expr
 
       _ ->
-        raise EEx.SyntaxError,
-          message: """
-          syntax error in Drab property special form for tag: <#{tag}>, property: #{property}
-
-          You can only combine one Elixir expression with one node property.
-          Allowed:
-
-              <tag @property=<%=expression%>>
-
-          Prohibited:
-
-              <tag @property="other text <%=expression%>">
-              <tag @property="<%=expression1%><%=expression2%>">
-          """
+        raise_property_syntax_error(property)
     end
   end
 
@@ -402,6 +389,9 @@ defmodule Drab.Live.EExEngine do
     # TODO: REFACTOR
     attr = find_attr_in_html(html)
     is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attr && String.starts_with?(attr, "@")
+    if is_property && !String.ends_with?(String.trim_trailing(html), "=") do
+      raise_property_syntax_error(attr)
+    end
     expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
 
     span_begin = "<span #{attribute}>"
@@ -667,4 +657,25 @@ defmodule Drab.Live.EExEngine do
        do: name
 
   defp find_assign(_), do: false
+
+  defp raise_property_syntax_error(property) do
+    raise EEx.SyntaxError,
+      message: """
+      syntax error in Drab property special form for property: #{property}
+
+      You can only combine one Elixir expression with one node property.
+      Quotes and apostrophes are not allowed.
+
+      Allowed:
+
+          <tag @property=<%=expression%>>
+
+      Prohibited:
+
+          <tag @property="<%=expression%>">
+          <tag @property='<%=expression%>'>
+          <tag @property="other text <%=expression%>">
+          <tag @property="<%=expression1%><%=expression2%>">
+      """
+  end
 end

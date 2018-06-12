@@ -16,5 +16,48 @@ defmodule Drab.LiveTest do
       end
     end
 
+    test "not allowed property" do
+      wrong_property = """
+      <html>
+        <div @property="not allowed <%= @assign %>">
+      </html>
+      """
+      assert_raise EEx.SyntaxError, fn ->
+        EEx.compile_string(wrong_property, engine: Drab.Live.EExEngine, file: "path.html.drab")
+      end
+    end
+
+    test "not allowed property 2" do
+      wrong_property = """
+      <html>
+        <div @property="<%= @assign %><%= @assign2 %>">
+      </html>
+      """
+      assert_raise EEx.SyntaxError, fn ->
+        EEx.compile_string(wrong_property, engine: Drab.Live.EExEngine, file: "path.html.drab")
+      end
+    end
+
+    test "not allowed property 3" do
+      wrong_property = """
+      <html>
+        <div @property="<%= @assign %>">
+      </html>
+      """
+      assert_raise EEx.SyntaxError, fn ->
+        EEx.compile_string(wrong_property, engine: Drab.Live.EExEngine, file: "path.html.drab")
+      end
+    end
+
+    test "not allowed property 4" do
+      wrong_property = """
+      <html>
+        <div @property='<%= @assign %>'>
+      </html>
+      """
+      assert_raise EEx.SyntaxError, fn ->
+        EEx.compile_string(wrong_property, engine: Drab.Live.EExEngine, file: "path.html.drab")
+      end
+    end
   end
 end

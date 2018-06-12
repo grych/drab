@@ -3,7 +3,6 @@
 
   <button drab-click="update_mini">Update mini</button>
 <br>
-<div>
+<div @style.backgroundColor=<%= @color %>>
   <%= @text %>
-  <% @color %>
 </div>

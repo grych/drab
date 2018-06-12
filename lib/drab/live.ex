@@ -218,11 +218,13 @@ defmodule Drab.Live do
   Additionally, Drab sets up all the properties defined that way when the page loads. Thanks to
   this, you don't have to worry about the initial value.
 
-  Notice that `@property=<%= expression %>` *is the only available syntax*, you can not use
+  Notice that `@property=<%= expression %>` **is the only available syntax**, you can not use
   string pattern or give more than one expression. Property must be stronly bind to the expression.
+  You also can't use quotes or apostrophes sourrounding the expressio. This is because it does
+  not have to be a string, but any JSON encodable value.
 
-  The expression binded with the property *must be encodable to JSON*, so, for example, tuples
-  are not allowed here. Please refer to `Jason` for more information about encoding JS.
+  The expression binded with the property **must be encodable to JSON**, so, for example, tuples
+  are not allowed here. Please refer to `Jason` docs for more information about encoding JS.
 
   #### Scripts
   When the assign we want to change is inside the `<script></script>` tag, Drab will re-evaluate
