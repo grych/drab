@@ -55,6 +55,8 @@ defmodule Drab.Coder do
   * `{:ok, string}`
   * `{:error, reason}`
 
+  Example:
+
       iex> {:ok, encoded} = Drab.Coder.encode(%{forty_two: 42})
       iex> is_binary(encoded)
       true
@@ -80,6 +82,8 @@ defmodule Drab.Coder do
   Returns:
   * `{:ok, term}`
   * `{:error, reason}`
+
+  Example:
 
       iex> {:ok, encoded} = Drab.Coder.encode(%{forty_two: 42})
       iex> Drab.Coder.decode(encoded)
