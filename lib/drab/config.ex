@@ -13,7 +13,7 @@ defmodule Drab.Config do
     Shall controls be disabled when there is no connectivity between the browser and the server?
 
   #### :events_to_disable_while_processing *(default: `["click"]`)*
-    The list of events which will be disabled when waiting for server response.
+    Controls with those Drab events will be disabled when waiting for server response.
 
   #### :events_shorthands *(default: `["click", "change", "keyup", "keydown"]`)*
     The list of the shorthand attributes to be used in drab-controlled DOM object, ie:

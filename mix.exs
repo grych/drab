@@ -66,7 +66,7 @@ defmodule Drab.Mixfile do
 
   defp description() do
     """
-    Plugin to the Phoenix Framework to access the User Interface in the browser directly from the server side.
+    Remote controlled frontend framework for Phoenix.
     """
   end
 
