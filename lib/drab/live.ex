@@ -357,7 +357,7 @@ defmodule Drab.Live do
     peek(socket, view, partial, String.to_existing_atom(assign))
   end
 
-  def do_peek(socket, view, partial, assign, assigns_data) do
+  defp do_peek(socket, view, partial, assign, assigns_data) do
     view = view || Drab.get_view(socket)
     hash = if partial, do: Partial.hash_for_view_and_name(view, partial), else: index(socket)
 
