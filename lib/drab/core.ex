@@ -159,12 +159,13 @@ defmodule Drab.Core do
 
   ## Broadcasting
   Normally Drab operates on the user interface of the browser which generared the event, but
-  you may use it for broadcasting changes to all connected browsers. Drab uses a *subject*
+  you may use it for broadcasting changes to all connected browsers. Drab uses a *topic*
   for distinguishing browsers, which are allowed to receive the change.
 
-  Broadcasting function receives `socket` or `subject` as the first argument. If `socket` is used,
-  function derives the `subject` from the commander configuration. See
-  `Drab.Commander.broadcasting/1` to learn how to configure the broadcasting options.
+  Broadcasting function receives `socket` or `topic` as the first argument. If `socket` is used,
+  function derives the `topic` from the commander configuration. See
+  `Drab.Commander.broadcasting/1` to learn how to configure the broadcasting options. It is also
+  possible to subscribe to the external topic in a runtime, using `Drab.Commander.subscribe/2`.
 
   Broadcasting functions may be launched without the `socket` given. In this case, you need
   to define it manually, using helper functions: `Drab.Core.same_path/1`, `Drab.Core.same_topic/1`
@@ -174,6 +175,8 @@ defmodule Drab.Core do
     * `Drab.Core`:
       * `Drab.Core.broadcast_js/3`
       * `Drab.Core.broadcast_js!/3`
+    * `Drab.Live`:
+      * `Drab.Live.broadcast_poke/2`
     * `Drab.Element`:
       * `Drab.Element.broadcast_insert/4`
       * `Drab.Element.broadcast_prop/3`
