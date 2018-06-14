@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.8.3
+Subscribe and unsubscribe from external topics in a runtime.
+
 ## v0.8.2
 
 This version is a preparation for v0.9.0, which is going to bring API changes, as described in #127.

@@ -541,7 +541,7 @@ defmodule Drab.Commander do
   def subscribe(socket, topic) when is_binary(topic) do
     drab = Drab.pid(socket)
     topics = external_topics(socket)
-    if topic in topics do
+    if topic in topics || topic == socket.assigns[:__broadcast_topic] do
       :duplicate
     else
       Drab.set_topics(drab, [topic | topics])
@@ -561,10 +561,14 @@ defmodule Drab.Commander do
   """
   @spec unsubscribe(Phoenix.Socket.t(), Drab.Core.subject()) :: atom
   def unsubscribe(socket, topic) when is_binary(topic) do
-    drab = Drab.pid(socket)
-    topics = external_topics(socket)
-    Drab.set_topics(drab, List.delete(topics, topic))
-    Phoenix.Channel.broadcast socket, "unsubscribe", %{topic: topic}
+    if socket.assigns[:__broadcast_topic] do
+      :error
+    else
+      drab = Drab.pid(socket)
+      topics = external_topics(socket)
+      Drab.set_topics(drab, List.delete(topics, topic))
+      Phoenix.Channel.broadcast socket, "unsubscribe", %{topic: topic}
+    end
   end
 
   @doc """
