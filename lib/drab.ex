@@ -101,6 +101,7 @@ defmodule Drab do
           commanders: list,
           controller: atom,
           socket: Phoenix.Socket.t(),
+          topics: list,
           priv: map
         }
 
@@ -110,6 +111,7 @@ defmodule Drab do
             commanders: [],
             controller: nil,
             socket: nil,
+            topics: [],
             priv: %{}
 
   @doc false
@@ -204,7 +206,7 @@ defmodule Drab do
   end
 
   # casts for update values from the state
-  Enum.each([:store, :session, :socket, :priv], fn name ->
+  Enum.each([:store, :session, :socket, :priv, :topics], fn name ->
     msg_name = String.to_atom("set_#{name}")
     @doc false
     def handle_cast({unquote(msg_name), value}, state) do
@@ -220,7 +222,7 @@ defmodule Drab do
   end
 
   # calls for get values from the state
-  Enum.each([:store, :session, :socket, :priv], fn name ->
+  Enum.each([:store, :session, :socket, :priv, :topics], fn name ->
     msg_name = String.to_atom("get_#{name}")
     @doc false
     def handle_call(unquote(msg_name), _from, state) do
@@ -500,7 +502,7 @@ defmodule Drab do
   end
 
   # setter and getter functions
-  Enum.each([:store, :session, :socket, :priv], fn name ->
+  Enum.each([:store, :session, :socket, :priv, :topics], fn name ->
     get_name = String.to_atom("get_#{name}")
     update_name = String.to_atom("set_#{name}")
 

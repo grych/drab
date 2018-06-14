@@ -361,11 +361,12 @@ defmodule Drab.Core do
 
   @doc """
   Helper for broadcasting functions, returns topic for a given topic string.
+
       iex> same_topic("mytopic")
-      "topic:mytopic"
+      "mytopic"
   """
   @spec same_topic(String.t()) :: String.t()
-  def same_topic(topic), do: "topic:#{topic}"
+  def same_topic(topic), do: topic
 
   @doc false
   @spec encode_js(term) :: String.t() | no_return

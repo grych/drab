@@ -1,6 +1,6 @@
 defmodule Drab.CommanderTest do
   use ExUnit.Case, ascync: true
-  doctest Drab.Commander
+  doctest Drab.Commander, except: [subscribe: 2, unsubscribe: 2]
 
   defmodule TestController do
     # use Drab.Controller

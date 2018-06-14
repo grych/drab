@@ -3,6 +3,8 @@ defmodule Drab.Channel do
 
   use Phoenix.Channel, Drab.Config.get(:phoenix_channel_options)
 
+  intercept ["subscribe", "unsubscribe"]
+
   @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}
   def join("__drab:" <> broadcast_topic, _, socket) do
     # socket already contains controller and action
@@ -123,6 +125,22 @@ defmodule Drab.Channel do
         socket
       ) do
     verify_and_cast(:event, [payload, event_handler_function, reply_to], socket)
+  end
+
+  # special messages for subscription for external channels, called from Controller
+  def handle_out("subscribe", %{topic: topic}, socket) do
+    :ok = Drab.Config.endpoint().subscribe("__drab:" <> topic)
+    {:noreply, socket}
+  end
+
+  def handle_out("unsubscribe", %{topic: topic}, socket) do
+    :ok = Drab.Config.endpoint().unsubscribe("__drab:" <> topic)
+    {:noreply, socket}
+  end
+
+  def handle_info(%Phoenix.Socket.Broadcast{topic: _, event: ev, payload: payload}, socket) do
+    push socket, ev, payload
+    {:noreply, socket}
   end
 
   @spec verify_and_cast(atom, list, Phoenix.Socket.t()) :: {:noreply, Phoenix.Socket.t()}

@@ -499,7 +499,7 @@ defmodule Drab.Commander do
       description: """
       invalid `broadcasting` option: #{inspect(unknown_argument)}.
 
-      Available: :same_path, :same_controller, "topic"
+      Available: :same_path, :same_action, :same_controller, "topic"
       """
   end
 
@@ -518,5 +518,62 @@ defmodule Drab.Commander do
   @spec action(Phoenix.Socket.t()) :: atom
   def action(socket) do
     socket.assigns.__action
+  end
+
+  @doc """
+  Subscribe to the external topic for broadcasting.
+
+  Default broadcasting topic is set in the compile time with `broadcasting/1` macro. Subscribing
+  to the external topic may be done in the runtime.
+
+  Please notice that you can't subscribe to the main topic (set with `broadcasting/1`).
+
+  Returns `:ok` or `:duplicate` in case we are already subscribed to the external topic.
+
+      iex> subscribe(socket, same_action(MyApp.MyController, :index))
+      :ok
+      iex> subscribe(socket, same_topic("product_#{42}"))
+      :ok
+      iex> subscribe(socket, same_topic("product_#{42}"))
+      :duplicate
+  """
+  @spec subscribe(Phoenix.Socket.t(), Drab.Core.subject()) :: atom
+  def subscribe(socket, topic) when is_binary(topic) do
+    drab = Drab.pid(socket)
+    topics = external_topics(socket)
+    if topic in topics do
+      :duplicate
+    else
+      Drab.set_topics(drab, [topic | topics])
+      Phoenix.Channel.broadcast socket, "subscribe", %{topic: topic}
+    end
+  end
+
+  @doc """
+  Unsubscribe from the external topic.
+
+  Please notice that you can't unsubscribe from the main topic (set with `broadcasting/1`).
+
+      iex> unsubscribe(socket, same_action(MyApp.MyController, :index))
+      :ok
+      iex> unsubscribe(socket, same_topic("product_#{42}"))
+      :ok
+  """
+  @spec unsubscribe(Phoenix.Socket.t(), Drab.Core.subject()) :: atom
+  def unsubscribe(socket, topic) when is_binary(topic) do
+    drab = Drab.pid(socket)
+    topics = external_topics(socket)
+    Drab.set_topics(drab, List.delete(topics, topic))
+    Phoenix.Channel.broadcast socket, "unsubscribe", %{topic: topic}
+  end
+
+  @doc """
+  Returns list of external topics we subscribe.
+
+  This list does not contain the main topic, as set with `broadcasting/1`.
+  """
+  @spec external_topics(Phoenix.Socket.t()) :: [String.t()]
+  def external_topics(socket) do
+    socket |> Drab.pid() |> Drab.get_topics()
   end
 end
