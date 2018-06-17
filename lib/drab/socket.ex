@@ -101,7 +101,8 @@ defmodule Drab.Socket do
   @spec verify(Phoenix.Socket.t(), map) :: {:ok, term} | :error
   def verify(socket, %{
         "__drab_return" => controller_and_action_token,
-        "__client_lib_version" => client_lib_version
+        "__client_lib_version" => client_lib_version,
+        "__client_id" => client_id
       }) do
     case Drab.Client.api_version() do
       ^client_lib_version ->
@@ -133,6 +134,7 @@ defmodule Drab.Socket do
               |> Phoenix.Socket.assign(:__commander, commander)
               |> Phoenix.Socket.assign(:__view, view)
               |> Phoenix.Socket.assign(:__action, action)
+              |> Phoenix.Socket.assign(:__client_id, client_id)
             }
 
           {:ok, _} ->

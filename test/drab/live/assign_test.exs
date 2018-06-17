@@ -40,7 +40,7 @@ defmodule Drab.Live.AssignTest do
       params: %{},
       path_info: ["tests", "live", "mini"],
       path_params: %{},
-      peer: {{127, 0, 0, 1}, 61462},
+      # peer: {{127, 0, 0, 1}, 61462},
       port: 4000,
       private: %{
         DrabTestApp.Router => {[], %{}},

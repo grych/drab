@@ -111,7 +111,7 @@ function default_payload(sender, event) {
 
 function do_setid(whom) {
   if (!whom.getAttribute("drab-id")) {
-    whom.setAttribute("drab-id", uuid());
+    whom.setAttribute("drab-id", did());
   }
 }
 

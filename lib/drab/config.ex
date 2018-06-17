@@ -54,8 +54,11 @@ defmodule Drab.Config do
   #### :phoenix_channel_options *(default: [])*
     An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.
 
-  #### :default_encoder *(default: Drab.Coder.Cipher)
+  #### :default_encoder *(default: Drab.Coder.Cipher)*
     Sets the default encoder/decoder for the various functions, like `Drab.Browser.set_cookie/3`
+
+  #### :presence *(default: false)*
+    Runs the `Drab.Presence` server. Defaults to false to avoid unnecessary load.
   """
 
   @doc """
@@ -97,14 +100,14 @@ defmodule Drab.Config do
   """
   @spec endpoint :: atom
   def endpoint() do
-    {endpoint, _} =
+    get(:main_phoenix_app_endpoint) || ({endpoint, _} =
       app_env()
       |> Enum.filter(fn {x, _} -> first_uppercase?(x) end)
       |> Enum.find(fn {base, _} ->
         is_endpoint?(base)
       end)
 
-    endpoint
+    endpoint)
   end
 
   @doc """
@@ -135,7 +138,7 @@ defmodule Drab.Config do
   # TODO: find a better way to check if the module is an Endpoint
   @spec is_endpoint?(atom) :: boolean
   defp is_endpoint?(module) when is_atom(module) do
-    {loaded, _} = Code.ensure_loaded(module)
+    {loaded, _} = Code.ensure_compiled(module)
 
     loaded == :module && function_exported?(module, :struct_url, 0) &&
       function_exported?(module, :url, 0)
@@ -287,6 +290,10 @@ defmodule Drab.Config do
 
   def get(:js_socket_constructor),
     do: Application.get_env(:drab, :js_socket_constructor, "require(\"phoenix\").Socket")
+
+  def get(:presence), do: Application.get_env(:drab, :presence, false)
+
+  def get(:main_phoenix_app_endpoint), do: Application.get_env(:drab, :main_phoenix_app_endpoint, nil)
 
   def get(:live_conn_pass_through) do
     Application.get_env(:drab, :live_conn_pass_through, %{

@@ -9,11 +9,9 @@ defmodule Drab.Channel do
   def join("__drab:" <> broadcast_topic, _, socket) do
     # socket already contains controller and action
     socket_with_topic = assign(socket, :__broadcast_topic, broadcast_topic)
-
     {:ok, pid} = Drab.start_link(socket)
-
     socket_with_pid = assign(socket_with_topic, :__drab_pid, pid)
-
+    if Drab.Config.get(:presence), do: send(self(), :after_join)
     {:ok, socket_with_pid}
   end
 
@@ -135,6 +133,14 @@ defmodule Drab.Channel do
 
   def handle_out("unsubscribe", %{topic: topic}, socket) do
     :ok = Drab.Config.endpoint().unsubscribe("__drab:" <> topic)
+    {:noreply, socket}
+  end
+
+  def handle_info(:after_join, socket) do
+    # push socket, "presence_state", Drab.Presence.list(socket)
+    {:ok, _} = Drab.Presence.track(socket, socket.assigns[:__client_id], %{
+      online_at: System.system_time(:seconds)
+    })
     {:noreply, socket}
   end
 

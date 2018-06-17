@@ -41,3 +41,5 @@ config :drab, :live_conn_pass_through, %{
     phoenix_endpoint: true
   }
 }
+
+config :drab, :presence, true
