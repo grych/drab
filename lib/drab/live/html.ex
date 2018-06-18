@@ -671,7 +671,7 @@ defmodule Drab.Live.HTML do
 
       html_part =
         if contains_expression?(inner_html),
-          do: [{:html, tag, "innerHTML", Floki.raw_html(inner_html)}],
+          do: [{:html, tag, "innerHTML", Floki.raw_html(inner_html, encode: false)}],
           else: []
 
       attrs_part =
@@ -721,7 +721,7 @@ defmodule Drab.Live.HTML do
   end
 
   defp contains_expression?(html) do
-    html |> Floki.raw_html() |> contains_expression?()
+    html |> Floki.raw_html(encode: false) |> contains_expression?()
   end
 
   @doc """

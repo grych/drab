@@ -9,7 +9,7 @@ defmodule DrabTestApp.LiveTest do
   setup do
     live_index() |> navigate_to()
     # wait for the Drab to initialize, this is needed for travis
-    Process.sleep(250)
+    Process.sleep(500)
     find_element(:id, "page_loaded_indicator")
     [socket: drab_socket()]
   end

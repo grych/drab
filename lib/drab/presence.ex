@@ -11,11 +11,11 @@ defmodule Drab.Presence do
     otp_app: Drab.Config.app_name(),
     pubsub_server: Drab.Config.pubsub()
 
-    def track(socket) do
-    # IO.inspect Drab.get_session(Drab.pid(socket))
+  def track(socket) do
+    # presence = Drab.Config.get(:presence)
+    # id = presence[:id_from_session]
     client_id =
-      Drab.Core.get_session(socket, :user_id) || socket.assigns[:user_id] ||
-        Drab.Browser.id!(socket)
+      Drab.Core.get_session(socket, Drab.Config.get(:presence, :id)) || Drab.Browser.id!(socket)
 
     {:ok, _} =
       track(socket, client_id, %{

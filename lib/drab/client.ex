@@ -167,7 +167,6 @@ defmodule Drab.Client do
       commander = commander_for(controller)
       view = view_for(controller)
       action = Phoenix.Controller.action_name(conn)
-      conn_assigns = for {k, v} <- conn.assigns, k in Drab.Config.get(:copy_assigns), do: {k, v}
 
       controller_and_action =
         Phoenix.Token.sign(
@@ -177,7 +176,7 @@ defmodule Drab.Client do
           __commander: commander,
           __view: view,
           __action: action,
-          __assigns: Keyword.merge(conn_assigns, assigns)
+          __assigns: assigns
         )
 
       broadcast_topic =

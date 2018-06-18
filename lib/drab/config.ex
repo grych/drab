@@ -317,10 +317,13 @@ defmodule Drab.Config do
   def get(:endpoint),
     do: Application.get_env(:drab, :endpoint, nil)
 
-  def get(:copy_assigns), do: Application.get_env(:drab, :copy_assigns, [:user_id])
-
-  def get(:access_session),
-    do: Application.get_env(:drab, :access_session, [:user_id])
+  def get(:access_session) do
+    if get(:presence) do
+      [get(:presence, :id) | Application.get_env(:drab, :access_session, [])]
+    else
+      Application.get_env(:drab, :access_session, [])
+    end
+  end
 
   def get(:live_conn_pass_through) do
     Application.get_env(:drab, :live_conn_pass_through, %{
@@ -331,4 +334,11 @@ defmodule Drab.Config do
   end
 
   def get(_), do: nil
+
+  def get(:presence, :id) do
+    case get(:presence) do
+      options when is_list(options) -> Keyword.fetch!(options, :id)
+      _ -> nil
+    end
+  end
 end
