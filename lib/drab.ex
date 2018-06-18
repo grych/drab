@@ -96,7 +96,6 @@ defmodule Drab do
 
   @type t :: %Drab{
           store: map,
-          session: map,
           commander: atom,
           commanders: list,
           controller: atom,
@@ -106,7 +105,6 @@ defmodule Drab do
         }
 
   defstruct store: %{},
-            session: %{},
             commander: nil,
             commanders: [],
             controller: nil,
@@ -133,10 +131,13 @@ defmodule Drab do
 
   @doc false
   @spec terminate(any, t) :: {:noreply, t}
-  def terminate(_reason, %Drab{store: store, session: session, commander: commander} = state) do
+  def terminate(_reason, %Drab{store: store, commander: commander, socket: socket} = state) do
     if commander.__drab__().ondisconnect do
-      # TODO: timeout
-      :ok = apply(commander, commander_config(commander).ondisconnect, [store, session])
+      :ok =
+        apply(commander, commander_config(commander).ondisconnect, [
+          store,
+          socket.assigns[:__session]
+        ])
     end
 
     {:noreply, state}
@@ -206,7 +207,7 @@ defmodule Drab do
   end
 
   # casts for update values from the state
-  Enum.each([:store, :session, :socket, :priv, :topics], fn name ->
+  Enum.each([:store, :socket, :priv, :topics], fn name ->
     msg_name = String.to_atom("set_#{name}")
     @doc false
     def handle_cast({unquote(msg_name), value}, state) do
@@ -222,7 +223,7 @@ defmodule Drab do
   end
 
   # calls for get values from the state
-  Enum.each([:store, :session, :socket, :priv, :topics], fn name ->
+  Enum.each([:store, :socket, :priv, :topics], fn name ->
     msg_name = String.to_atom("get_#{name}")
     @doc false
     def handle_call(unquote(msg_name), _from, state) do
@@ -502,7 +503,7 @@ defmodule Drab do
   end
 
   # setter and getter functions
-  Enum.each([:store, :session, :socket, :priv, :topics], fn name ->
+  Enum.each([:store, :socket, :priv, :topics], fn name ->
     get_name = String.to_atom("get_#{name}")
     update_name = String.to_atom("set_#{name}")
 
@@ -525,6 +526,7 @@ defmodule Drab do
       ref = make_ref()
       push(socket, pid, ref, message, payload)
       timeout = options[:timeout] || Drab.Config.get(:browser_response_timeout)
+
       receive do
         {:got_results_from_client, status, ^ref, reply} ->
           {status, reply}
