@@ -11,7 +11,7 @@ defmodule Drab.Channel do
     socket_with_topic = assign(socket, :__broadcast_topic, broadcast_topic)
     {:ok, pid} = Drab.start_link(socket)
     socket_with_pid = assign(socket_with_topic, :__drab_pid, pid)
-    if Drab.Config.get(:presence), do: send(self(), :after_join)
+
     {:ok, socket_with_pid}
   end
 
@@ -61,7 +61,6 @@ defmodule Drab.Channel do
   end
 
   def handle_in("onconnect", payload, socket) do
-    Drab.set_socket(socket.assigns.__drab_pid, socket)
     # for debugging
     if IEx.started?() do
       commander = Drab.get_commander(socket)
@@ -108,7 +107,10 @@ defmodule Drab.Channel do
       #{Enum.join(examples, "\n")}
       """)
     end
-
+    session = Drab.Core.detokenize_store(socket, payload["drab_session_token"])
+    socket = assign(socket, :__session, session)
+    if Drab.Config.get(:presence), do: send(self(), :run_presence)
+    Drab.set_socket(socket.assigns.__drab_pid, socket)
     verify_and_cast(:onconnect, [payload], socket)
   end
 
@@ -136,11 +138,12 @@ defmodule Drab.Channel do
     {:noreply, socket}
   end
 
-  def handle_info(:after_join, socket) do
+  def handle_info(:run_presence, socket) do
     # push socket, "presence_state", Drab.Presence.list(socket)
-    {:ok, _} = Drab.Presence.track(socket, socket.assigns[:__client_id], %{
-      online_at: System.system_time(:seconds)
-    })
+    Drab.Presence.track(socket)
+    # {:ok, _} = Drab.Presence.track(socket, socket.assigns[:__client_id], %{
+    #   online_at: System.system_time(:seconds)
+    # })
     {:noreply, socket}
   end
 

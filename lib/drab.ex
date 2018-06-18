@@ -171,10 +171,10 @@ defmodule Drab do
   def handle_cast({:onconnect, socket, payload}, %Drab{commander: commander} = state) do
     socket = transform_socket(payload["payload"], socket, state)
 
-    Drab.Core.save_session(
-      socket,
-      Drab.Core.detokenize_store(socket, payload["drab_session_token"])
-    )
+    # Drab.Core.save_session(
+    #   socket,
+    #   Drab.Core.detokenize_store(socket, payload["drab_session_token"])
+    # )
 
     Drab.Core.save_store(socket, Drab.Core.detokenize_store(socket, payload["drab_store_token"]))
     Drab.Core.save_socket(socket)

@@ -167,6 +167,7 @@ defmodule Drab.Client do
       commander = commander_for(controller)
       view = view_for(controller)
       action = Phoenix.Controller.action_name(conn)
+      conn_assigns = for {k, v} <- conn.assigns, k in Drab.Config.get(:copy_assigns), do: {k, v}
 
       controller_and_action =
         Phoenix.Token.sign(
@@ -176,7 +177,7 @@ defmodule Drab.Client do
           __commander: commander,
           __view: view,
           __action: action,
-          __assigns: assigns
+          __assigns: Keyword.merge(conn_assigns, assigns)
         )
 
       broadcast_topic =
@@ -184,7 +185,8 @@ defmodule Drab.Client do
 
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
-      access_session = commander.__drab__().access_session
+      access_session =
+        Enum.uniq(commander.__drab__().access_session ++ Drab.Config.get(:access_session))
 
       session =
         access_session

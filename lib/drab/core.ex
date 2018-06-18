@@ -441,12 +441,16 @@ defmodule Drab.Core do
       counter = get_session(socket, :userid)
 
   You must explicit which session keys you want to access in `:access_session` option in
-  `use Drab.Commander`.
+  `use Drab.Commander` or globally, in `config.exs`:
+
+      config :drab, :access_session, [:user_id]
   """
   @spec get_session(Phoenix.Socket.t(), atom) :: term
   def get_session(socket, key) do
-    Drab.get_session(socket.assigns.__drab_pid)[key]
+    # IO.inspect socket
+    # Drab.get_session(socket.assigns.__drab_pid)[key]
     # session(socket)[key]
+    socket.assigns[:__session] && socket.assigns[:__session][key]
   end
 
   @doc """
@@ -455,19 +459,18 @@ defmodule Drab.Core do
 
       counter = get_session(socket, :userid, 0)
 
-  You must explicit which session keys you want to access in `:access_session` option in
-  `use Drab.Commander`.
+  See also `get_session/2`.
   """
   @spec get_session(Phoenix.Socket.t(), atom, term) :: term
   def get_session(socket, key, default) do
     get_session(socket, key) || default
   end
 
-  @doc false
-  @spec save_session(Phoenix.Socket.t(), map) :: :ok
-  def save_session(socket, session) do
-    Drab.set_session(socket.assigns.__drab_pid, session)
-  end
+  # @doc false
+  # @spec save_session(Phoenix.Socket.t(), map) :: :ok
+  # def save_session(socket, session) do
+  #   Drab.set_session(socket.assigns.__drab_pid, session)
+  # end
 
   @doc false
   @spec store(Phoenix.Socket.t()) :: map
@@ -476,12 +479,12 @@ defmodule Drab.Core do
     detokenize_store(socket, store_token)
   end
 
-  @doc false
-  @spec session(Phoenix.Socket.t()) :: map
-  def session(socket) do
-    {:ok, session_token} = exec_js(socket, "Drab.get_drab_session_token()")
-    detokenize_store(socket, session_token)
-  end
+  # @doc false
+  # @spec session(Phoenix.Socket.t()) :: map
+  # def session(socket) do
+  #   {:ok, session_token} = exec_js(socket, "Drab.get_drab_session_token()")
+  #   detokenize_store(socket, session_token)
+  # end
 
   @doc false
   @spec tokenize_store(Phoenix.Socket.t() | Plug.Conn.t(), map) :: String.t()
