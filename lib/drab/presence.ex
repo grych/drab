@@ -61,12 +61,12 @@ defmodule Drab.Presence do
         ondisconnect :disconnected
 
         def connected(socket) do
-          broadcast_html socket, "#number_of_users", count_connections(socket)
+          broadcast_html socket, "#number_of_users", count_users(socket)
         end
 
         def disconnected(_store, _session) do
           topic = same_topic("global")
-          broadcast_html topic, "#number_of_users", count_connections(topic)
+          broadcast_html topic, "#number_of_users", count_users(topic)
         end
       end
 
