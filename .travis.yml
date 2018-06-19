@@ -24,6 +24,7 @@ env:
 before_script:
   - export PATH=$PATH:/usr/lib/chromium-browser/
   - export DISPLAY=:99.0
+  - export TRAVIS=true
   - sh -e /etc/init.d/xvfb start
   - sleep 3 # give xvfb some time to start
   - nohup chromedriver &
