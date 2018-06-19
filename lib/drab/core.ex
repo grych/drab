@@ -312,7 +312,7 @@ defmodule Drab.Core do
       iex> Drab.Core.broadcast_js(same_topic("my_topic"), "alert('Broadcasted!')")
       {:ok, :broadcasted}
       iex> Drab.Core.broadcast_js([same_topic("my_topic"), same_path("/drab/live")],
-           "alert('Broadcasted!')")
+      "alert('Broadcasted!')")
       {:ok, :broadcasted}
 
   Returns `{:ok, :broadcasted}`
