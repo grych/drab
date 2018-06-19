@@ -12,8 +12,6 @@ defmodule Drab.Presence do
     pubsub_server: Drab.Config.pubsub()
 
   def track(socket) do
-    # presence = Drab.Config.get(:presence)
-    # id = presence[:id_from_session]
     client_id =
       Drab.Core.get_session(socket, Drab.Config.get(:presence, :id)) || Drab.Browser.id!(socket)
 

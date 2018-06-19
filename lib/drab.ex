@@ -569,7 +569,7 @@ defmodule Drab do
   def broadcast(subject, _pid, message, payload) when is_binary(subject) do
     Phoenix.Channel.Server.broadcast(
       Drab.Config.pubsub(),
-      "__drab:#{subject}",
+      subject,
       message,
       Map.new(payload)
     )

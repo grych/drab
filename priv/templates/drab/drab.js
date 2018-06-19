@@ -66,7 +66,7 @@
       // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
 
       this.socket.connect();
-      this.channel = this.socket.channel("__drab:" + this.drab_topic, {});
+      this.channel = this.socket.channel(this.drab_topic, {});
 
       this.channel.join().receive("error", function (resp) {
         console.log("Unable to join the Drab Channel", resp);

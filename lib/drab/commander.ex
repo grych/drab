@@ -215,7 +215,7 @@ defmodule Drab.Commander do
   ## Broadcasting options
 
   All Drab function may be broadcasted. By default, broadcasts are sent to browsers sharing the
-  same page (the same url), but it could be overrided by `broadcasting/1` macro.
+  same page (the same url), but it could be override by `broadcasting/1` macro.
 
   ## Modules
 
@@ -478,6 +478,10 @@ defmodule Drab.Commander do
     same controller and action
   * `"topic"` - any topic you want to set, messages will go to the clients sharing this topic
 
+  Please notice that Drab topic is not the same as Phoenix topic, it always begins with "__drab:"
+  string. This is because you may share the socket between Drab and your own communication. Thus,
+  always use `Drab.Core.same_topic/1` when broadcasting with Drab.
+
   See `Drab.Core.broadcast_js/2` for more.
   """
   defmacro broadcasting(subject) when is_atom(subject) and subject in @broadcasts do
@@ -541,7 +545,7 @@ defmodule Drab.Commander do
   def subscribe(socket, topic) when is_binary(topic) do
     drab = Drab.pid(socket)
     topics = external_topics(socket)
-    if topic in topics || topic == socket.assigns[:__broadcast_topic] do
+    if topic in topics || topic == socket.topic do
       :duplicate
     else
       Drab.set_topics(drab, [topic | topics])

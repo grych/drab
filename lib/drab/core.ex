@@ -312,7 +312,7 @@ defmodule Drab.Core do
       iex> Drab.Core.broadcast_js(same_topic("my_topic"), "alert('Broadcasted!')")
       {:ok, :broadcasted}
       iex> Drab.Core.broadcast_js([same_topic("my_topic"), same_path("/drab/live")],
-      "alert('Broadcasted!')")
+           "alert('Broadcasted!')")
       {:ok, :broadcasted}
 
   Returns `{:ok, :broadcasted}`
@@ -339,19 +339,19 @@ defmodule Drab.Core do
   Helper for broadcasting functions, returns topic for a given URL path.
 
       iex> same_path("/test/live")
-      "same_path:/test/live"
+      "__drab:same_path:/test/live"
   """
   @spec same_path(String.t()) :: String.t()
-  def same_path(url), do: "same_path:#{url}"
+  def same_path(url), do: "__drab:same_path:#{url}"
 
   @doc """
   Helper for broadcasting functions, returns topic for a given controller.
 
       iex> same_controller(DrabTestApp.LiveController)
-      "controller:Elixir.DrabTestApp.LiveController"
+      "__drab:controller:Elixir.DrabTestApp.LiveController"
   """
   @spec same_controller(String.t() | atom) :: String.t()
-  def same_controller(controller), do: "controller:#{controller}"
+  def same_controller(controller), do: "__drab:controller:#{controller}"
 
   @doc """
   Helper for broadcasting functions, returns topic for a given controller and action.
@@ -360,16 +360,19 @@ defmodule Drab.Core do
       "controller:Elixir.DrabTestApp.LiveController#index"
   """
   @spec same_action(String.t() | atom, String.t() | atom) :: String.t()
-  def same_action(controller, action), do: "action:#{controller}##{action}"
+  def same_action(controller, action), do: "__drab:action:#{controller}##{action}"
 
   @doc """
   Helper for broadcasting functions, returns topic for a given topic string.
 
+  Drab broadcasting topics are different from Phoenix topic - they begin with "__drab:". This is
+  because you can share Drab socket with you own one.
+
       iex> same_topic("mytopic")
-      "mytopic"
+      "__drab:mytopic"
   """
   @spec same_topic(String.t()) :: String.t()
-  def same_topic(topic), do: topic
+  def same_topic(topic), do: "__drab:#{topic}"
 
   @doc false
   @spec encode_js(term) :: String.t() | no_return
