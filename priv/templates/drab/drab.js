@@ -1,7 +1,30 @@
 (function () {
   "use strict";
-  function uuid() {
+  function did() {
     return "d" + window.Drab.counter++;
+  }
+
+  function generateUUID() {
+    var d = new Date().getTime();
+    if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+      d += performance.now();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = (d + Math.random() * 16) % 16 | 0;
+      d = Math.floor(d / 16);
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+
+  function client_id() {
+    var id = localStorage.getItem("client_id");
+    if (id) {
+      return id;
+    } else {
+      id = generateUUID();
+      localStorage.setItem("client_id", id);
+      return id
+    }
   }
 
   function closest(el, fn) {
@@ -16,7 +39,7 @@
       this.drab_session_token = drab_session_token;
       this.self = this;
       this.counter = 0;
-      this.myid = uuid();
+      this.myid = client_id();
       this.onload_launched = false;
       this.already_connected = false;
       this.drab_topic = broadcast_topic;
@@ -32,7 +55,10 @@
       }
 
       var params = Object.assign({ __drab_return: this.drab_return_token }, additional_token);
-      params = Object.assign(params, {__client_lib_version: Drab.client_lib_version});
+      params = Object.assign(params, {
+        __client_lib_version: Drab.client_lib_version,
+        __client_id: Drab.myid
+      });
       this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", {
         params: params
       });
@@ -40,7 +66,7 @@
       // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
 
       this.socket.connect();
-      this.channel = this.socket.channel("__drab:" + this.drab_topic, {});
+      this.channel = this.socket.channel(this.drab_topic, {});
 
       this.channel.join().receive("error", function (resp) {
         console.log("Unable to join the Drab Channel", resp);
@@ -72,7 +98,7 @@
     //   payload: object - will be passed as the second argument to the Event Handler
     //   execute_after - callback to function executes after event finish
     exec_elixir: function (event_handler, payload, execute_after) {
-      var reply_to = uuid();
+      var reply_to = did();
       if (execute_after) {
         Drab.event_reply_table[reply_to] = execute_after;
       }

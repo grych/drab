@@ -5,6 +5,7 @@ defmodule DrabTestApp.LiveCommander do
   use Drab.Commander, modules: [Drab.Live, Drab.Element]
   onload(:page_loaded)
   broadcasting(:same_action)
+  # access_session(:some_id)
 
   def page_loaded(socket) do
     DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)

@@ -98,7 +98,7 @@ defmodule Drab.Client do
 
   # changing the client API version will cause reload browsers with the different version
   # must be a string
-  @client_lib_version "7"
+  @client_lib_version "8"
 
   @doc """
   Generates JS code and runs Drab.
@@ -184,7 +184,8 @@ defmodule Drab.Client do
 
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
-      access_session = commander.__drab__().access_session
+      access_session =
+        Enum.uniq(commander.__drab__().access_session ++ Drab.Config.get(:access_session))
 
       session =
         access_session

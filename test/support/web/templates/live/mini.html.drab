@@ -6,3 +6,5 @@
 <div @style.backgroundColor=<%= @color %>>
   <%= @text %>
 </div>
+<%= inspect assigns[:current_user_id] %>
+<%# get_session(@conn, :current_user) %>

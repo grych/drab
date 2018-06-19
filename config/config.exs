@@ -23,7 +23,7 @@ import_config "#{Mix.env()}.exs"
 
 config :phoenix, :template_engines, drab: Drab.Live.Engine
 
-config :floki, :encode_raw_html, false
+# config :floki, :encode_raw_html, false
 
 config :drab, templates_path: "priv/custom_templates"
 
@@ -41,3 +41,5 @@ config :drab, :live_conn_pass_through, %{
     phoenix_endpoint: true
   }
 }
+
+config :drab, :presence, true

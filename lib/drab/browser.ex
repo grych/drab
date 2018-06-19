@@ -35,6 +35,35 @@ defmodule Drab.Browser do
   end
 
   @doc """
+  Returns string with the browser unique id.
+
+  The id is generated on the client side and stored in local store.
+
+      iex> Drab.Browser.id(socket)
+      {:ok, "2bd34ffc-b365-46a9-9479-474b628364ed"}
+  """
+  @spec id(Phoenix.Socket.t()) :: {:ok | :error, String.t()}
+  def id(socket) do
+    case socket.assigns[:__client_id] do
+      nil -> {:error, "can't get the browser id"}
+      id -> {:ok, id}
+    end
+  end
+
+  @doc """
+  Returns string with the browser unique id.
+
+  Bang version of `id/1`.
+  """
+  @spec id!(Phoenix.Socket.t()) :: String.t() | no_return
+  def id!(socket) do
+    case id(socket) do
+      {:ok, id} -> id
+      {:error, message} -> raise message
+    end
+  end
+
+  @doc """
   Returns local browser time as NaiveDateTime. Timezone information is not included.
 
   Examples:

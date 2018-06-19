@@ -54,8 +54,11 @@ defmodule Drab.Config do
   #### :phoenix_channel_options *(default: [])*
     An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.
 
-  #### :default_encoder *(default: Drab.Coder.Cipher)
+  #### :default_encoder *(default: Drab.Coder.Cipher)*
     Sets the default encoder/decoder for the various functions, like `Drab.Browser.set_cookie/3`
+
+  #### :presence *(default: false)*
+    Runs the `Drab.Presence` server. Defaults to false to avoid unnecessary load.
   """
 
   @doc """
@@ -97,14 +100,23 @@ defmodule Drab.Config do
   """
   @spec endpoint :: atom
   def endpoint() do
-    {endpoint, _} =
-      app_env()
-      |> Enum.filter(fn {x, _} -> first_uppercase?(x) end)
-      |> Enum.find(fn {base, _} ->
-        is_endpoint?(base)
-      end)
+    get(:endpoint) ||
+      (
+        case app_env()
+          |> Enum.filter(fn {x, _} -> first_uppercase?(x) end)
+          |> Enum.find(fn {base, _} ->
+            is_endpoint?(base)
+          end) do
+            {endpoint, _} -> endpoint
+            _ -> raise CompileError, description: """
+              Drab is unable to find the application's endpoint.
+              Please add to config:
 
-    endpoint
+                  config :drab, endpoint: MyAppWeb.Endpoint
+              """
+          end
+
+      )
   end
 
   @doc """
@@ -115,7 +127,8 @@ defmodule Drab.Config do
   """
   @spec pubsub :: atom | no_return
   def pubsub() do
-    with {:ok, pubsub_conf} <- Keyword.fetch(Drab.Config.app_config(), :pubsub),
+    with config <- Drab.Config.app_config(),
+         {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
          {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
       name
     else
@@ -135,7 +148,7 @@ defmodule Drab.Config do
   # TODO: find a better way to check if the module is an Endpoint
   @spec is_endpoint?(atom) :: boolean
   defp is_endpoint?(module) when is_atom(module) do
-    {loaded, _} = Code.ensure_loaded(module)
+    {loaded, _} = Code.ensure_compiled(module)
 
     loaded == :module && function_exported?(module, :struct_url, 0) &&
       function_exported?(module, :url, 0)
@@ -175,7 +188,8 @@ defmodule Drab.Config do
   """
   @spec app_config(atom) :: term
   def app_config(config_key) do
-    app_env() |> Keyword.fetch!(endpoint()) |> Keyword.fetch!(config_key)
+    app_config() |> Keyword.fetch!(config_key)
+    # app_env() |> Keyword.fetch!(endpoint()) |> Keyword.fetch!(config_key)
   end
 
   @doc """
@@ -186,7 +200,17 @@ defmodule Drab.Config do
   """
   @spec app_config :: Keyword.t()
   def app_config() do
-    Keyword.fetch!(app_env(), endpoint())
+    with {:ok, app_config} <- Keyword.fetch(app_env(), endpoint()) do
+      app_config
+    else
+      _ -> raise CompileError, description: """
+        Drab can't find the application or endpoint configuration.
+
+        Please include your app name and the endpoint in config.exs:
+
+            config :drab, main_phoenix_app: :my_app_web, endpoint: MyAppWeb.Endpoint
+        """
+    end
   end
 
   @doc """
@@ -288,6 +312,19 @@ defmodule Drab.Config do
   def get(:js_socket_constructor),
     do: Application.get_env(:drab, :js_socket_constructor, "require(\"phoenix\").Socket")
 
+  def get(:presence), do: Application.get_env(:drab, :presence, false)
+
+  def get(:endpoint),
+    do: Application.get_env(:drab, :endpoint, nil)
+
+  def get(:access_session) do
+    if get(:presence) do
+      [get(:presence, :id) | Application.get_env(:drab, :access_session, [])]
+    else
+      Application.get_env(:drab, :access_session, [])
+    end
+  end
+
   def get(:live_conn_pass_through) do
     Application.get_env(:drab, :live_conn_pass_through, %{
       private: %{
@@ -297,4 +334,18 @@ defmodule Drab.Config do
   end
 
   def get(_), do: nil
+
+  def get(:presence, :id) do
+    case get(:presence) do
+      options when is_list(options) -> Keyword.get(options, :id, :user_id)
+      _ -> nil
+    end
+  end
+
+  def get(:presence, :module) do
+    case get(:presence) do
+      options when is_list(options) -> Keyword.get(options, :module, Drab.Presence)
+      _ -> Drab.Presence
+    end
+  end
 end

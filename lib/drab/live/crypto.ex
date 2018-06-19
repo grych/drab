@@ -6,7 +6,8 @@ defmodule Drab.Live.Crypto do
 
   @doc false
   @spec uuid :: String.t()
-  def uuid(), do: "u" <> hash({now_ms(), make_ref()})
+  @spec uuid(String.t()) :: String.t()
+  def uuid(begin_with \\ "u"), do: begin_with <> hash({now_ms(), make_ref()})
 
   # The most effective way for store assigns in the browser is basic encode
   @doc false

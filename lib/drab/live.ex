@@ -761,7 +761,7 @@ defmodule Drab.Live do
   defp update_html_js(html, ampere, tag) do
     case Floki.find(html, "[drab-ampere='#{ampere}']") do
       [{_, _, value}] ->
-        new_value = Floki.raw_html(value)
+        new_value = Floki.raw_html(value, encode: false)
 
         case {tag, Drab.Config.get(:enable_live_scripts)} do
           {"script", false} ->

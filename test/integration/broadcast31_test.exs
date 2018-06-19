@@ -21,6 +21,7 @@ defmodule DrabTestApp.Broadcast31Test do
     change_to_default_session()
     broadcast3_index() |> navigate_to()
     wait_for_drab()
+
     click_and_wait("broadcast3_button")
 
     assert visible_text(find_element(:id, "broadcast_out")) ==
