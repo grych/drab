@@ -150,26 +150,6 @@ defmodule Drab.Socket do
     end
   end
 
-  ### The below are for the backwards compatibility
-  #TODO: remove in stable
-  def verify(socket, %{
-        "__drab_return" => controller_and_action_token,
-        "__client_lib_version" => client_lib_version
-      }) do
-    verify(socket, %{
-      "__drab_return" => controller_and_action_token,
-      "__client_lib_version" => client_lib_version,
-      "__client_id" => "0"
-    })
-  end
-
-  def verify(socket, %{"__drab_return" => controller_and_action_token}) do
-    verify(socket, %{
-      "__drab_return" => controller_and_action_token,
-      "__client_lib_version" => "0"
-    })
-  end
-
   def verify(_, _) do
     :error
   end
