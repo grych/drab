@@ -140,10 +140,7 @@ defmodule Drab.Channel do
 
   def handle_info(:run_presence, socket) do
     # push socket, "presence_state", Drab.Presence.list(socket)
-    Drab.Presence.track(socket)
-    # {:ok, _} = Drab.Presence.track(socket, socket.assigns[:__client_id], %{
-    #   online_at: System.system_time(:seconds)
-    # })
+    Drab.Config.get(:presence, :module).start(socket, socket.topic)
     {:noreply, socket}
   end
 

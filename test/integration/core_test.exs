@@ -180,4 +180,34 @@ defmodule DrabTestApp.CoreTest do
       assert String.contains?(log, "(Drab.ConnectionError) Disconnected")
     end
   end
+
+  describe "presence" do
+    @tag capture_log: true
+    test "presence should be started", feature do
+      assert Drab.Presence.count_connections(feature.socket) == 1
+
+      change_to_secondary_session()
+      core_index() |> navigate_to()
+      assert Drab.Presence.count_connections(feature.socket) == 2
+    end
+
+    @tag capture_log: true
+    test "presence with subscribtion to some topic", feature do
+      topic = same_topic("my_topic")
+      Drab.Commander.subscribe(feature.socket, topic)
+      assert Drab.Presence.count_connections(topic) == 1
+
+      change_to_secondary_session()
+      core_index() |> navigate_to()
+      find_element(:id, "page_loaded_indicator")
+      assert Drab.Presence.count_connections(topic) == 1
+
+      socket = drab_socket()
+      Drab.Commander.subscribe(socket, topic)
+      assert Drab.Presence.count_connections(topic) == 2
+
+      Drab.Commander.unsubscribe(socket, topic)
+      assert Drab.Presence.count_connections(topic) == 1
+    end
+  end
 end

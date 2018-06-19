@@ -530,6 +530,9 @@ defmodule Drab.Commander do
   Default broadcasting topic is set in the compile time with `broadcasting/1` macro. Subscribing
   to the external topic may be done in the runtime.
 
+  If you have `Drab.Presence` configured, subscription to the topic runs presence tracker on
+  this topic.
+
   Please notice that you can't subscribe to the main topic (set with `broadcasting/1`).
 
   Returns `:ok` or `:duplicate` in case we are already subscribed to the external topic.
@@ -549,12 +552,15 @@ defmodule Drab.Commander do
       :duplicate
     else
       Drab.set_topics(drab, [topic | topics])
+      if Drab.Config.get(:presence), do: Drab.Config.get(:presence, :module).start(socket, topic)
       Phoenix.Channel.broadcast socket, "subscribe", %{topic: topic}
     end
   end
 
   @doc """
   Unsubscribe from the external topic.
+
+  Unsubscription from the topic stops the presence tracker on it (if `Drab.Presence` is running).
 
   Please notice that you can't unsubscribe from the main topic (set with `broadcasting/1`).
 
@@ -571,6 +577,7 @@ defmodule Drab.Commander do
       drab = Drab.pid(socket)
       topics = external_topics(socket)
       Drab.set_topics(drab, List.delete(topics, topic))
+      if Drab.Config.get(:presence), do: Drab.Config.get(:presence, :module).stop(socket, topic)
       Phoenix.Channel.broadcast socket, "unsubscribe", %{topic: topic}
     end
   end
@@ -584,4 +591,10 @@ defmodule Drab.Commander do
   def external_topics(socket) do
     socket |> Drab.pid() |> Drab.get_topics()
   end
+
+  @doc """
+  Returns the current main broadcasting topic.
+  """
+  @spec topic(Phoenix.Socket.t()) :: String.t()
+  def topic(socket), do: socket.topic
 end

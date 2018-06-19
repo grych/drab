@@ -42,4 +42,4 @@ config :drab, :live_conn_pass_through, %{
   }
 }
 
-config :drab, :presence, id: :current_user_id
+config :drab, :presence, true

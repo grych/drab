@@ -337,8 +337,15 @@ defmodule Drab.Config do
 
   def get(:presence, :id) do
     case get(:presence) do
-      options when is_list(options) -> Keyword.fetch!(options, :id)
+      options when is_list(options) -> Keyword.get(options, :id, :user_id)
       _ -> nil
+    end
+  end
+
+  def get(:presence, :module) do
+    case get(:presence) do
+      options when is_list(options) -> Keyword.get(options, :module, Drab.Presence)
+      _ -> Drab.Presence
     end
   end
 end
