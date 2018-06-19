@@ -112,10 +112,9 @@ defmodule Drab.Presence do
       Drab.Core.get_session(socket, Drab.Config.get(:presence, :id)) || Drab.Browser.id!(socket)
 
     case track(socket.channel_pid, topic, client_id, %{online_at: System.system_time(:seconds)}) do
-      # {:ok, reason} -> {:ok, reason}
+      {:ok, reason} -> {:ok, reason}
       {:error, {:already_tracked, _, _, _} = reason} -> {:ok, reason}
-      other -> other
-      # {:error, reason} -> raise to_string(reason)
+      {:error, reason} -> raise inspect(reason)
     end
   end
 
