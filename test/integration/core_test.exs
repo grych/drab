@@ -204,7 +204,7 @@ defmodule DrabTestApp.CoreTest do
 
       socket = drab_socket()
       Drab.Commander.subscribe(socket, topic)
-      Process.sleep(500)
+      Process.sleep(1000)
       assert Drab.Presence.count_connections(topic) == 2
 
       Drab.Commander.unsubscribe(socket, topic)
