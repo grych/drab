@@ -48,13 +48,6 @@ defmodule DrabTestApp.PageCommander do
       "var n = document.getElementById('test_session_value2'); if (n) n.innerText = #{s2}"
     )
 
-    # socket |> Drab.Query.update(:text, set: get_session(socket, :test_session_value1), on: "#test_session_value1")
-    # socket |> Drab.Query.update(:text, set: get_session(socket, :test_session_value2), on: "#test_session_value2")
-
-    # p = inspect(socket.assigns.__drab_pid)
-    # pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
-    # socket |> Drab.Query.update(:text, set: pid_string, on: "#drab_pid")
-
     # counter is to test load&connect order
     put_store(socket, :counter, get_store(socket, :counter, 0) + 1)
     s = get_store(socket, :counter) |> Drab.Core.encode_js()

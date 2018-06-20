@@ -77,6 +77,7 @@
           fxc(resp, drab);
         }
         drab.already_connected = true;
+        drab.already_disconnected = false;
         // event is sent after Drab finish processing the event
         drab.channel.on("event", function (message) {
           if (message.finished && drab.event_reply_table[message.finished]) {
@@ -87,9 +88,12 @@
       });
 
       this.socket.onClose(function (event) {
-        for (var di = 0; di < drab.disconnected.length; di++) {
-          var fxd = drab.disconnected[di];
-          fxd(drab);
+        if (!drab.already_disconnected) {
+          drab.already_disconnected = true;
+          for (var di = 0; di < drab.disconnected.length; di++) {
+            var fxd = drab.disconnected[di];
+            fxd(drab);
+          }
         }
       });
     },
@@ -115,7 +119,9 @@
     },
     error: function (message) {
       console.log("[drab] " + message);
-      Drab.exec_elixir("Drab.Logger.error", {message: message});
+      if (this.channel) {
+        Drab.exec_elixir("Drab.Logger.error", {message: message});
+      }
     },
     connected: [],
     disconnected: [],

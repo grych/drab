@@ -55,6 +55,10 @@
 <br>
 <br>
 
+<button id="disabled_button" class="btn btn-primary" disabled drab-click="core1_click">Disabled button</button>
+<br>
+<br>
+
 <button class="btn btn-primary" drab-event="click">Wrong attributes</button>
 <br>
 <button class="btn btn-primary" drab-handler="core2_click">Wrong attributes</button>

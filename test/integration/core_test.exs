@@ -181,6 +181,34 @@ defmodule DrabTestApp.CoreTest do
     end
   end
 
+  describe "disabled element" do
+    @tag capture_log: true
+    test "should remain disabled" do
+      refute element_enabled?(find_element(:id, "disabled_button"))
+    end
+
+    @tag capture_log: true
+    test "should remain disabled after close", fixture do
+      broadcast_js fixture.socket, "Drab.socket.conn.close()"
+      Process.sleep(100)
+      refute element_enabled?(find_element(:id, "disabled_button"))
+    end
+  end
+
+  describe "enabled element" do
+    @tag capture_log: true
+    test "should remain enabled" do
+      assert element_enabled?(find_element(:id, "core1_button"))
+    end
+
+    @tag capture_log: true
+    test "should disable after close", fixture do
+      broadcast_js fixture.socket, "Drab.socket.conn.close()"
+      Process.sleep(100)
+      refute element_enabled?(find_element(:id, "core1_button"))
+    end
+  end
+
   describe "presence" do
     @tag capture_log: true
     test "presence should be started", feature do

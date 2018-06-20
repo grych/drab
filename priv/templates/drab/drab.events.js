@@ -1,12 +1,20 @@
 const EVENT_SHORTCUTS = <%= Drab.Config.get(:events_shorthands) |> Drab.Core.encode_js %>;
 const EVENTS_TO_DISABLE = <%= Drab.Config.get(:events_to_disable_while_processing) |> Drab.Core.encode_js %>;
 
+Drab.save_disabled_state = function() {
+  var drabs = document.querySelectorAll("[drab]");
+  for (var i = 0; i < drabs.length; i++) {
+    var element = drabs[i];
+    element.drab_disable_state = element.disabled;
+  };
+};
+
 Drab.disable_drab_objects = function (disable) {
   <%= if Drab.Config.get(:disable_controls_when_disconnected) do %>
     var found =  document.querySelectorAll("[drab]");
     for (var i = 0; i < found.length; i++) {
       var element = found[i];
-      element['disabled'] = disable;
+      element.disabled = disable || element.drab_disable_state;
     };
   <% end %>
 };
@@ -157,7 +165,7 @@ function add_drab_attribute(node, event, handler, options) {
   } else {
     var events_and_handlers = node.getAttribute("drab") || "";
     var new_event_handler = event + (options ? "#" + options : "") + ":" + handler;
-    var re = new RegExp(event + ":\\S");
+    var re = new RegExp(event + "[:#]\\S");
     if (re.exec(events_and_handlers) === null) {
       var attr = events_and_handlers + " " + new_event_handler;
       node.setAttribute("drab", attr.trim());
@@ -280,20 +288,14 @@ function split_drab_attribute(attr) {
   return ret;
 }
 
-// re-read event handlers
-Drab.set_event_handlers = function (node) {
-  var drab_objects = [];
-  var drab_objects_shortcutted = [];
-  var where = node ? node.parentNode : document;
-
+function set_drab_attribute(where) {
   // first serve the shortcut controls by adding the internal attribute
   for (var ei = 0; ei < EVENT_SHORTCUTS.length; ei++) {
     var ev = EVENT_SHORTCUTS[ei];
 
-    drab_objects_shortcutted = where.querySelectorAll("[drab-" + ev + "]");
+    var drab_objects_shortcutted = where.querySelectorAll("[drab-" + ev + "]");
     for (var i = 0; i < drab_objects_shortcutted.length; i++) {
       var node = drab_objects_shortcutted[i];
-      // console.log(node);
       add_drab_attribute(node, ev, node.getAttribute("drab-" + ev), node.getAttribute("drab-options"));
     };
   }
@@ -308,11 +310,19 @@ Drab.set_event_handlers = function (node) {
       node.getAttribute("drab-event"),
       node.getAttribute("drab-handler"),
       node.getAttribute("drab-options")
-      )
+    )
   }
 
   find_drab_argument_attr(where);
   find_drab_commander_attr(where);
+}
+
+// re-read event handlers
+Drab.set_event_handlers = function (node) {
+  var drab_objects = [];
+  var where = node ? node.parentNode : document;
+
+  set_drab_attribute(where);
 
   var events_to_disable = EVENTS_TO_DISABLE;
   drab_objects = where.querySelectorAll("[drab]")
@@ -370,16 +380,18 @@ Drab.set_event_handlers = function (node) {
 };
 
 Drab.on_load(function (drab) {
+  set_drab_attribute(document);
+  drab.save_disabled_state();
   drab.disable_drab_objects(true);
 });
 
 Drab.on_disconnect(function (drab) {
+  drab.save_disabled_state();
   drab.disable_drab_objects(true);
 });
 
 Drab.on_connect(function (resp, drab) {
   drab.set_event_handlers();
-
   // re-enable drab controls
   drab.disable_drab_objects(false);
 });
