@@ -31,15 +31,14 @@ defmodule Mix.Tasks.Drab.Install do
       update("user_socket.ex", user_socket)
       update("config.exs", config, app)
       update("dev.exs", dev_config)
+      Mix.shell().info """
+      Drab has been successfully installed in your Phoenix application.
+
+      Now it is time to create your first commander, for example, for PageController:
+
+          mix drab.gen.commander Page
+      """
     end
-
-    Mix.shell().info """
-    Drab has been successfully installed in your Phoenix application.
-
-    Now it is time to create your first commander, for example, for PageController:
-
-        mix drab.gen.commander Page
-    """
   end
 
   defp app_name() do
@@ -72,18 +71,18 @@ defmodule Mix.Tasks.Drab.Install do
   end
 
   defp update("config.exs", file, app) do
-    inject = "\nconfig :phoenix, :template_engines,\n  drab: Drab.Live.Engine\n"
-    # if under an umbrella
-    umbrella = with {:ok, f} <- File.read("../../mix.exs"),
-      true <- String.contains?(f, "apps_path:")
-      do
-        "\nconfig :drab, main_phoenix_app: #{inspect(app)}\n"
-      else
-        _ -> ""
-      end
+    phoenix = """
+              \nconfig :phoenix, :template_engines,
+                drab: Drab.Live.Engine
+              """
+    drab = """
+           \nconfig :drab,
+             main_phoenix_app: #{inspect(app)},
+             endpoint: #{Drab.Config.endpoint()}
+           """
 
-    unless inject_string_already_there(file, inject) do
-      File.write!(file, inject <> umbrella, [:append])
+    unless inject_string_already_there(file, phoenix) do
+      File.write!(file, phoenix <> drab, [:append])
     end
   end
 
@@ -143,7 +142,7 @@ defmodule Mix.Tasks.Drab.Install do
   defp validate_phoenix_version do
     unless phoenix13?() do
       Mix.raise """
-      Only Phoenix 1.3 is supported, please proceed with manual install.
+      Only Phoenix 1.3 is supported with the installer, please proceed with manual install.
       """
     end
   end

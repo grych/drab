@@ -61,7 +61,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     if phoenix12?() do
       inflected[:module]
     else
-      "#{inflected[:web_module]}.#{inflected[:alias]}"
+      "#{inflected[:web_module]}.#{inflected[:scoped]}"
     end
   end
 

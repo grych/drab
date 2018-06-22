@@ -55,24 +55,24 @@ end
 
   First at all, you need to have a Phoenix application, on top of which you will install Drab. If this is a standard app, generated with `mix phx.new`, you may use Drab Installer to make it running in one, simple step. Otherwise, see [Manual Installation](#manual-installation) section below.
 
-  1. Edit `mix.exs` in the main folder in your application. Locate function `deps` (search for `def deps` string). Add an entry `{:drab, "~> 0.8.1"}` to the list. Don't forget about comma!
+  1. Edit `mix.exs` in the main folder in your web application (if you have multiple application under an umbrella, this is the one ending with `_web`). Locate function `deps` (search for `def deps` string). Add an entry `{:drab, "~> 0.8.3"}` to the list. Don't forget about comma!
 
 ```elixir
 def deps do
   [
     {...},
-    {:drab, "~> 0.8.1"}
+    {:drab, "~> 0.8.3"}
   ]
 end
 ```
 
-  2. Download and install packages (including Drab):
+  2. Download and install packages:
 
 ```bash
 $ mix deps.get
 ```
 
-  3. Go to the application directory (if your Phoenix Web application is under the umbrella, go there) and run `mix drab.install`:
+  3. Go to the application directory (**if your Phoenix Web application is under the umbrella, go there**) and run `mix drab.install`:
 
 ```
 bash% mix drab.install
@@ -290,11 +290,15 @@ Randomized with seed 934572
 use Drab.Socket
 ```
 
-  4. Add Drab template engine to `config.exs`:
+  4. Add Drab template engine and application name with endpoint to `config.exs`:
 
 ```elixir
 config :phoenix, :template_engines,
   drab: Drab.Live.Engine
+
+config :drab,
+  main_phoenix_app: :my_app_web,
+  endpoint: MyAppWeb.Endpoint
 ```
 
   5. Add `:drab` to applications started by default in `mix.exs`:

@@ -2,6 +2,8 @@
 
 ## v0.8.3
 Subscribe and unsubscribe from external topics in a runtime.
+Presence.
+Updated behaviour of enable disable.
 
 ## v0.8.2
 
