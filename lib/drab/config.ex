@@ -127,7 +127,7 @@ defmodule Drab.Config do
     get(:endpoint) || find_endpoint_in_app_env() || find_endpoint_in_config_exs()
   end
 
-  @spec endpoint :: atom
+  @spec find_endpoint_in_app_env :: atom
   defp find_endpoint_in_app_env() do
     case app_env() do
       [{ep, _}] -> ep
