@@ -87,6 +87,7 @@ defmodule Drab.Config do
     get(:main_phoenix_app) || find_app_in_mix_exs()
   end
 
+  @spec find_app_in_mix_exs :: atom | no_return
   defp find_app_in_mix_exs() do
     # try to find out the app name in config.exs, in compile time only
     with {:ok, pwd} <- Map.fetch(System.get_env(), "PWD"),
@@ -126,6 +127,7 @@ defmodule Drab.Config do
     get(:endpoint) || find_endpoint_in_app_env() || find_endpoint_in_config_exs()
   end
 
+  @spec endpoint :: atom
   defp find_endpoint_in_app_env() do
     case app_env() do
       [{ep, _}] -> ep
