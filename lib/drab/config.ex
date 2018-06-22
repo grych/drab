@@ -11,9 +11,6 @@ defmodule Drab.Config do
     `mix.exs`.
     Must be set when not using `Mix`.
 
-  #### :endpoint
-    Endpoint module name of your Web Application.
-
   ### Optional
 
   #### :access_session *(default: [])*
@@ -43,6 +40,9 @@ defmodule Drab.Config do
   #### :enable_live_scripts *(default: `false`)*
     Re-evaluation of JavaScripts containing living assigns is disabled by default.
 
+  #### :endpoint
+    Endpoint module name of your Web Application.
+
   #### :events_to_disable_while_processing *(default: `["click"]`)*
     Controls with those Drab events will be disabled when waiting for server response.
 
@@ -63,6 +63,9 @@ defmodule Drab.Config do
   #### :presence *(default: false)*
     Runs the `Drab.Presence` server. Defaults to false to avoid unnecessary load. See
     `Drab.Presence` for more information.
+
+  #### :pubsub
+    PubSub module name.
 
   #### :socket *(default: `"/socket"`)*
     Path to the socket on which Drab operates.
@@ -157,14 +160,17 @@ defmodule Drab.Config do
   """
   @spec pubsub :: atom | no_return
   def pubsub() do
-    with config <- Drab.Config.app_config(),
+    get(:pubsub) || with config <- Drab.Config.app_config(),
          {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
          {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
       name
     else
       _ ->
         raise """
-        Can't find the PubSub module. Please ensure that it is set in config.exs.
+        Can't find the PubSub module.
+        Please add to config.exs:
+
+            config :drab, pubsub: MyApp.PubSub
         """
     end
   end
@@ -324,6 +330,8 @@ defmodule Drab.Config do
   def get(:presence), do: Application.get_env(:drab, :presence, false)
 
   def get(:endpoint), do: Application.get_env(:drab, :endpoint, nil)
+
+  def get(:pubsub), do: Application.get_env(:drab, :pubsub, nil)
 
   def get(:access_session) do
     if get(:presence) do
