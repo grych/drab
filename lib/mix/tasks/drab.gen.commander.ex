@@ -7,8 +7,9 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
   Generates a Drab commander.
 
       mix drab.gen.commander Name
+      mix drab.gen.commander Context/Name
 
-  This will generate a module NameCommander in web/commanders, if and only if NameController is already present.
+  This will generate a module NameCommander in web/commanders, if NameController is already present.
   """
 
   @impl true
