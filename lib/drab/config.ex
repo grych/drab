@@ -84,6 +84,49 @@ defmodule Drab.Config do
     get(:main_phoenix_app) || find_app_in_mix_exs()
   end
 
+  @doc """
+  Returns the name of the client Phoenix Application
+
+      iex> Drab.Config.app_name(DrabTestApp.Endpoint)
+      :drab
+  """
+  @spec app_name(atom) :: atom | no_return
+  def app_name(endpoint) do
+    case :drab |> Application.get_env(endpoint, []) |> Keyword.fetch(:otp_app) do
+      {:ok, app} -> app
+      :error -> raise_app_not_found()
+    end
+  end
+
+  @doc """
+  Returns the name of all configured Phoenix applications
+
+      iex> Drab.Config.app_names()
+      [:drab]
+  """
+  def app_names() do
+    Enum.map(app_endpoints(), &app_name/1)
+  end
+
+  @doc """
+  Returns the name of all configured endpoints
+
+      iex> Drab.Config.app_endpoints()
+      [DrabTestApp.Endpoint]
+  """
+  def app_endpoints() do
+    :drab
+    |> Application.get_all_env()
+    |> Enum.filter(fn {x, _} -> is_module?(x) end)
+    |> Keyword.keys()
+  end
+
+  defp is_module?(atom) when is_atom(atom), do: is_module?(Atom.to_string(atom))
+
+  defp is_module?("Elixir." <> _), do: true
+
+  defp is_module?(_), do: false
+
   defp find_app_in_mix_exs() do
     # try to find out the app name in config.exs, in compile time only
     with {:ok, pwd} <- Map.fetch(System.get_env(), "PWD"),
@@ -341,7 +384,7 @@ defmodule Drab.Config do
     })
   end
 
-  def get(_), do: nil
+  # def get(_), do: nil
 
   def get(:presence, :id) do
     case get(:presence) do
