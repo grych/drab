@@ -98,6 +98,15 @@ defmodule Drab.Config do
     end
   end
 
+  @spec get_all_env(atom) :: Keyword.t() | no_return
+  defp get_all_env(endpoint) do
+    Application.get_env(:drab, endpoint) || raise_app_not_found()
+  end
+
+  defp get_env(endpoint, key, default) do
+    Keyword.get(get_all_env(endpoint), key, default)
+  end
+
   @doc """
   Returns the name of all configured Phoenix applications
 
@@ -230,7 +239,7 @@ defmodule Drab.Config do
   @doc """
   Returns all environment for the default main Application
 
-      iex> is_list(Drab.Config.app_config())
+      iex> is_list(Drab.Config.app_env())
       true
   """
   @spec app_env :: Keyword.t()
@@ -323,7 +332,7 @@ defmodule Drab.Config do
   @doc """
   Returns Drab configuration for the given atom.
 
-      iex> Drab.Config.get(:templates_path)
+      iex> Drab.Config.get(DrabTestApp.Endpoint, :templates_path)
       "priv/custom_templates"
 
   All the config values may be override in `config.exs`, for example:
@@ -345,8 +354,8 @@ defmodule Drab.Config do
 
   def get(:socket), do: Application.get_env(:drab, :socket, "/socket")
 
-  def get(:drab_store_storage),
-    do: Application.get_env(:drab, :drab_store_storage, :session_storage)
+  # def get(:drab_store_storage),
+  #   do: Application.get_env(:drab, :drab_store_storage, :session_storage)
 
   def get(:browser_response_timeout),
     do: Application.get_env(:drab, :browser_response_timeout, 5000)
@@ -357,7 +366,7 @@ defmodule Drab.Config do
 
   def get(:phoenix_channel_options), do: Application.get_env(:drab, :phoenix_channel_options, [])
 
-  def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
+  # def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
 
   def get(:default_encoder), do: Application.get_env(:drab, :default_encoder, Drab.Coder.Cipher)
 
@@ -399,4 +408,11 @@ defmodule Drab.Config do
       _ -> Drab.Presence
     end
   end
+
+  def get(endpoint, :templates_path),
+    do: get_env(endpoint, :templates_path, "priv/templates/drab")
+
+  def get(endpoint, :drab_store_storage),
+    do: get_env(endpoint, :drab_store_storage, :session_storage)
+
 end

@@ -85,10 +85,10 @@ defmodule Drab.Modal do
       title: title,
       body: body,
       class: options[:class],
-      buttons: buttons_html(buttons)
+      buttons: buttons_html(socket, buttons)
     ]
 
-    html = render_template("modal.alert.html.eex", bindings)
+    html = render_template(socket.endpoint, "modal.alert.html.eex", bindings)
 
     socket
     |> delete("#_drab_modal")
@@ -100,11 +100,11 @@ defmodule Drab.Modal do
     result
   end
 
-  @spec buttons_html(Keyword.t()) :: String.t()
-  defp buttons_html(buttons) do
+  @spec buttons_html(atom, Keyword.t()) :: String.t()
+  defp buttons_html(socket, buttons) do
     buttons
     |> Enum.map(fn {button, label} ->
-      render_template("modal.alert.button.#{Atom.to_string(button)}.html.eex", label: label)
+      render_template(socket.endpoint, "modal.alert.button.#{Atom.to_string(button)}.html.eex", label: label)
     end)
     |> Enum.join("\n")
   end

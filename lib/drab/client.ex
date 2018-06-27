@@ -98,7 +98,7 @@ defmodule Drab.Client do
 
   # changing the client API version will cause reload browsers with the different version
   # must be a string
-  @client_lib_version "8"
+  @client_lib_version "9"
 
   @doc """
   Generates JS code and runs Drab.
@@ -166,6 +166,7 @@ defmodule Drab.Client do
     if enables_drab?(controller) do
       commander = commander_for(controller)
       view = view_for(controller)
+      endpoint = Phoenix.Controller.endpoint_module(conn)
       action = Phoenix.Controller.action_name(conn)
 
       controller_and_action =
@@ -196,6 +197,7 @@ defmodule Drab.Client do
 
       bindings = [
         controller_and_action: controller_and_action,
+        endpoint: endpoint,
         commander: commander,
         templates: templates,
         drab_session_token: session_token,
@@ -204,7 +206,7 @@ defmodule Drab.Client do
         client_lib_version: @client_lib_version
       ]
 
-      js = render_template("drab.js", bindings)
+      js = render_template(endpoint, "drab.js", bindings)
 
       Phoenix.HTML.raw("""
       <script>

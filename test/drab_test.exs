@@ -9,7 +9,7 @@ defmodule DrabTest do
     assert Drab.Config.get(:events_to_disable_while_processing) == ["click"]
     assert Drab.Config.get(:disable_controls_when_disconnected) == true
     assert Drab.Config.get(:socket) == "/socket"
-    assert Drab.Config.get(:drab_store_storage) == :session_storage
+    assert Drab.Config.get(DrabTestApp.Endpoint, :drab_store_storage) == :session_storage
   end
 
   describe "helpers" do

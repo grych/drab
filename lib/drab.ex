@@ -462,6 +462,7 @@ defmodule Drab do
     if socket do
       js =
         Drab.Template.render_template(
+          socket.endpoint,
           "drab.error_handler.js",
           message: Drab.Core.encode_js(error)
         )

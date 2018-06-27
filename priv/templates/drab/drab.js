@@ -145,10 +145,10 @@
       this.additional_payloads.push(f);
     },
     set_drab_store_token: function(token) {
-      <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.set.js", []) %>
+      <%= Drab.Template.render_template(endpoint, "drab.store.#{Drab.Config.get(endpoint, :drab_store_storage)}.set.js", []) %>
     },
     get_drab_store_token: function() {
-      <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.get.js", []) %>
+      <%= Drab.Template.render_template(endpoint, "drab.store.#{Drab.Config.get(endpoint, :drab_store_storage)}.get.js", []) %>
     },
     get_drab_session_token: function () {
       return this.drab_session_token;
@@ -157,7 +157,7 @@
 
   <%=
     Enum.map(templates, fn template ->
-      Drab.Template.render_template(template, [])
+      Drab.Template.render_template(endpoint, template, [])
     end)
   %>
 
