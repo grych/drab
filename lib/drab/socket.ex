@@ -76,6 +76,8 @@ defmodule Drab.Socket do
 
       config :drab,
         socket: "/my/socket"
+
+  This entry must correspond with the entry in your endpoint.ex.
   """
 
   defmacro __using__(_options) do

@@ -23,23 +23,24 @@ import_config "#{Mix.env()}.exs"
 
 config :phoenix, :template_engines, drab: Drab.Live.Engine
 
-# config :floki, :encode_raw_html, false
 
 
 
 config :drab, DrabTestApp.Endpoint,
   otp_app: :drab,
-  templates_path: "priv/custom_templates"
+  templates_path: "priv/custom_templates",
+  events_shorthands: ["click", "keyup", "keydown", "change", "mousedown"]
 
 
 
-# config :drab, templates_path: "priv/custom_templates"
+
+
 
 config :drab, enable_live_scripts: true
 
-config :drab, :events_shorthands, ["click", "keyup", "keydown", "change", "mousedown"]
-
 config :drab, :phoenix_channel_options, log_handle_in: false
+
+
 
 config :drab, :live_conn_pass_through, %{
   assigns: %{

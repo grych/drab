@@ -530,7 +530,7 @@ defmodule Drab do
     if Process.alive?(Drab.pid(socket)) do
       ref = make_ref()
       push(socket, pid, ref, message, payload)
-      timeout = options[:timeout] || Drab.Config.get(:browser_response_timeout)
+      timeout = options[:timeout] || Drab.Config.get(socket.endpoint, :browser_response_timeout)
 
       receive do
         {:got_results_from_client, status, ^ref, reply} ->

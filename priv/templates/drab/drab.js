@@ -33,7 +33,7 @@
 
   window.Drab = {
     create: function (drab_return_token, drab_session_token, broadcast_topic) {
-      this.Socket = <%= Drab.Config.get(:js_socket_constructor) %>;
+      this.Socket = <%= Drab.Config.get(endpoint, :js_socket_constructor) %>;
 
       this.drab_return_token = drab_return_token;
       this.drab_session_token = drab_session_token;
@@ -59,7 +59,7 @@
         __client_lib_version: Drab.client_lib_version,
         __client_id: Drab.myid
       });
-      this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", {
+      this.socket = new this.Socket("<%= Drab.Config.get(endpoint, :socket) %>", {
         params: params
       });
       // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
@@ -157,7 +157,7 @@
 
   <%=
     Enum.map(templates, fn template ->
-      Drab.Template.render_template(endpoint, template, [])
+      Drab.Template.render_template(endpoint, template, [endpoint: endpoint])
     end)
   %>
 

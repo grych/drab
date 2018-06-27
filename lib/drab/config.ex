@@ -340,25 +340,25 @@ defmodule Drab.Config do
       config :drab, disable_controls_while_processing: false
   """
   @spec get(atom) :: term
-  def get(:disable_controls_while_processing),
-    do: Application.get_env(:drab, :disable_controls_while_processing, true)
+  # def get(:disable_controls_while_processing),
+  #   do: Application.get_env(:drab, :disable_controls_while_processing, true)
 
-  def get(:events_to_disable_while_processing),
-    do: Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
+  # def get(:events_to_disable_while_processing),
+  #   do: Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
 
-  def get(:events_shorthands),
-    do: Application.get_env(:drab, :events_shorthands, ["click", "change", "keyup", "keydown"])
+  # def get(:events_shorthands),
+  #   do: Application.get_env(:drab, :events_shorthands, ["click", "change", "keyup", "keydown"])
 
-  def get(:disable_controls_when_disconnected),
-    do: Application.get_env(:drab, :disable_controls_when_disconnected, true)
+  # def get(:disable_controls_when_disconnected),
+  #   do: Application.get_env(:drab, :disable_controls_when_disconnected, true)
 
-  def get(:socket), do: Application.get_env(:drab, :socket, "/socket")
+  # def get(:socket), do: Application.get_env(:drab, :socket, "/socket")
 
   # def get(:drab_store_storage),
   #   do: Application.get_env(:drab, :drab_store_storage, :session_storage)
 
-  def get(:browser_response_timeout),
-    do: Application.get_env(:drab, :browser_response_timeout, 5000)
+  # def get(:browser_response_timeout),
+  #   do: Application.get_env(:drab, :browser_response_timeout, 5000)
 
   def get(:main_phoenix_app), do: Application.get_env(:drab, :main_phoenix_app, nil)
 
@@ -370,8 +370,8 @@ defmodule Drab.Config do
 
   def get(:default_encoder), do: Application.get_env(:drab, :default_encoder, Drab.Coder.Cipher)
 
-  def get(:js_socket_constructor),
-    do: Application.get_env(:drab, :js_socket_constructor, "require(\"phoenix\").Socket")
+  # def get(:js_socket_constructor),
+  #   do: Application.get_env(:drab, :js_socket_constructor, "require(\"phoenix\").Socket")
 
   def get(:presence), do: Application.get_env(:drab, :presence, false)
 
@@ -409,10 +409,35 @@ defmodule Drab.Config do
     end
   end
 
-  def get(endpoint, :templates_path),
-    do: get_env(endpoint, :templates_path, "priv/templates/drab")
+
+
+  def get(endpoint, :disable_controls_while_processing),
+    do: get_env(endpoint, :disable_controls_while_processing, true)
+
+  def get(endpoint, :events_to_disable_while_processing),
+    do: get_env(endpoint, :events_to_disable_while_processing, ["click"])
+
+  def get(endpoint, :events_shorthands),
+    do: get_env(endpoint, :events_shorthands, ["click", "change", "keyup", "keydown"])
+
+  def get(endpoint, :disable_controls_when_disconnected),
+    do: get_env(endpoint, :disable_controls_when_disconnected, true)
 
   def get(endpoint, :drab_store_storage),
     do: get_env(endpoint, :drab_store_storage, :session_storage)
+
+  def get(endpoint, :templates_path),
+    do: get_env(endpoint, :templates_path, "priv/templates/drab")
+
+  def get(endpoint, :socket),
+    do: get_env(endpoint, :socket, "/socket")
+
+  def get(endpoint, :browser_response_timeout),
+    do: get_env(endpoint, :browser_response_timeout, 5000)
+
+  def get(endpoint, :js_socket_constructor),
+    do: get_env(endpoint, :js_socket_constructor, "require(\"phoenix\").Socket")
+
+
 
 end
