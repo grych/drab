@@ -24,17 +24,10 @@ import_config "#{Mix.env()}.exs"
 config :phoenix, :template_engines, drab: Drab.Live.Engine
 
 
-
-
 config :drab, DrabTestApp.Endpoint,
   otp_app: :drab,
   templates_path: "priv/custom_templates",
   events_shorthands: ["click", "keyup", "keydown", "change", "mousedown"]
-
-
-
-
-config :drab, secret_key_base: "cosdjcbaisjdbcvaisb"
 
 config :drab, enable_live_scripts: true
 
@@ -51,4 +44,4 @@ config :drab, :live_conn_pass_through, %{
   }
 }
 
-config :drab, :presence, endpoint: DrabTestApp.Endpoint
+config :drab, :presence, true

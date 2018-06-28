@@ -33,7 +33,7 @@ defmodule Drab.Template do
   end
 
   @doc false
-  @spec render_template(atom, String.t(), Keyword.t()) :: String.t()
+  @spec render_template(atom, String.t(), Keyword.t()) :: String.t() | no_return
   def render_template(endpoint, filename, bindings) do
     # TODO: this is not very efficient, as it searches for a template every single time
     p = Path.join(user_templates(endpoint), filename)
@@ -46,6 +46,7 @@ defmodule Drab.Template do
     end
   end
 
+  @spec user_templates(atom) :: String.t() | no_return
   defp user_templates(endpoint) do
     case Drab.Config.get(endpoint, :templates_path) do
       "priv" <> rest ->

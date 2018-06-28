@@ -105,8 +105,8 @@ if Drab.Config.get(:presence) do
     @dialyzer {:nowarn_function, init: 1}
 
     use Phoenix.Presence,
-      otp_app: Drab.Config.app_name(Drab.Config.get(:presence, :endpoint)),
-      pubsub_server: Drab.Config.pubsub(Drab.Config.get(:presence, :endpoint))
+      otp_app: Drab.Config.app_name(Drab.Config.get(:presence, :endpoint) || Drab.Config.default_endpoint()),
+      pubsub_server: Drab.Config.pubsub(Drab.Config.get(:presence, :endpoint) || Drab.Config.default_endpoint())
 
     @doc false
     @spec start(Phoenix.Socket.t(), String.t()) :: {:ok, binary()} | {:error, reason :: term()}

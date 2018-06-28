@@ -29,9 +29,13 @@ before_script:
   - sleep 3 # give xvfb some time to start
   - nohup chromedriver &
 
-script: mix test && mix dialyzer
+script: mix test && mix dialyzer --halt-exit-status
 
 after_script:
   - cd $TRAVIS_BUILD_DIR
   - MIX_ENV=docs mix inch.report
 
+cache:
+  directories:
+    - _build
+    - deps

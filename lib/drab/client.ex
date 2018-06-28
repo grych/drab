@@ -186,7 +186,7 @@ defmodule Drab.Client do
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
       access_session =
-        Enum.uniq(commander.__drab__().access_session ++ Drab.Config.get(:access_session))
+        Enum.uniq(commander.__drab__().access_session ++ Drab.Config.get(endpoint, :access_session))
 
       session =
         access_session

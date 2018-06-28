@@ -98,21 +98,24 @@ defmodule Drab.Config do
     end
   end
 
+  @doc false
   @spec get_all_env(atom) :: Keyword.t() | no_return
   defp get_all_env(endpoint) do
     Application.get_env(:drab, endpoint) || raise_app_not_found()
   end
 
+  @spec get_env(atom, atom, any) :: any
   defp get_env(endpoint, key, default) do
     Keyword.get(get_all_env(endpoint), key, default)
   end
 
   @doc """
-  Returns the name of all configured Phoenix applications
+  Returns the name of all configured Drab applications
 
       iex> Drab.Config.app_names()
       [:drab]
   """
+  @spec app_names() :: [atom]
   def app_names() do
     Enum.map(app_endpoints(), &app_name/1)
   end
@@ -123,6 +126,7 @@ defmodule Drab.Config do
       iex> Drab.Config.app_endpoints()
       [DrabTestApp.Endpoint]
   """
+  @spec app_endpoints() :: [atom]
   def app_endpoints() do
     :drab
     |> Application.get_all_env()
@@ -130,10 +134,9 @@ defmodule Drab.Config do
     |> Keyword.keys()
   end
 
+  @spec is_module?(any) :: boolean
   defp is_module?(atom) when is_atom(atom), do: is_module?(Atom.to_string(atom))
-
   defp is_module?("Elixir." <> _), do: true
-
   defp is_module?(_), do: false
 
   @doc false
@@ -262,6 +265,8 @@ defmodule Drab.Config do
     end
   end
 
+  @doc false
+  @spec default_pubsub() :: atom | no_return
   def default_pubsub() do
     case app_endpoints() do
       [endpoint] ->
@@ -284,6 +289,24 @@ defmodule Drab.Config do
         """
     end
   end
+
+  @doc false
+  @spec default_endpoint() :: atom | no_return
+  def default_endpoint() do
+    case app_endpoints() do
+      [endpoint] ->
+        endpoint
+      _ ->
+        raise """
+        Can't find the default Endpoint module. Please ensure that it is set in config.exs.
+
+        In multiple endpoint environments, you must specify which enpoint to use with presence:
+
+            config :drab, :presence, endpoint: MyAppWeb.Endpoint
+        """
+    end
+  end
+
   # @doc """
   # Returns the Phoenix Application module atom
 
@@ -310,8 +333,27 @@ defmodule Drab.Config do
   #   Application.get_all_env(app_name())
   # end
 
+  @doc false
+  @spec secret_key_base() :: String.t() | no_return
   def secret_key_base() do
-    Application.get_env(:drab, :secret_key_base)
+    get(:secret_key_base) || case app_endpoints() do
+      [endpoint] ->
+        with app <- app_name(endpoint),
+          config <- Application.get_env(app, endpoint),
+          {:ok, secret_key_base} <- Keyword.fetch(config, :secret_key_base) do
+            secret_key_base
+        else
+          _ -> raise_app_not_found()
+        end
+      _ ->
+        raise """
+        Can't find the default secret key base. Please ensure that it is set in config.exs.
+
+        In multiple endpoint environments, you must specify it globally for Drab:
+
+            config :drab, secret_key_base: "remember to put it in prod_secret.exs"
+        """
+    end
   end
 
   # @doc """
@@ -427,7 +469,7 @@ defmodule Drab.Config do
   # def get(:browser_response_timeout),
   #   do: Application.get_env(:drab, :browser_response_timeout, 5000)
 
-  def get(:main_phoenix_app), do: Application.get_env(:drab, :main_phoenix_app, nil)
+
 
   def get(:enable_live_scripts), do: Application.get_env(:drab, :enable_live_scripts, false)
 
@@ -440,30 +482,34 @@ defmodule Drab.Config do
   # def get(:js_socket_constructor),
   #   do: Application.get_env(:drab, :js_socket_constructor, "require(\"phoenix\").Socket")
 
-  def get(:presence), do: Application.get_env(:drab, :presence, false)
 
-  def get(:endpoint), do: Application.get_env(:drab, :endpoint, nil)
+  # def get(:endpoint), do: Application.get_env(:drab, :endpoint, nil)
 
-  def get(:pubsub), do: Application.get_env(:drab, :pubsub, nil)
+  # def get(:pubsub), do: Application.get_env(:drab, :pubsub, nil)
 
-  def get(:access_session) do
-    if get(:presence) do
-      [get(:presence, :id) | Application.get_env(:drab, :access_session, [])]
-    else
-      Application.get_env(:drab, :access_session, [])
-    end
-  end
+  def get(:secret_key_base), do: Application.get_env(:drab, :secret_key_base, nil)
 
-  def get(:live_conn_pass_through) do
-    Application.get_env(:drab, :live_conn_pass_through, %{
-      private: %{
-        phoenix_endpoint: true
-      }
-    })
-  end
+  # def get(:access_session) do
+  #   if get(:presence) do
+  #     [get(:presence, :id) | Application.get_env(:drab, :access_session, [])]
+  #   else
+  #     Application.get_env(:drab, :access_session, [])
+  #   end
+  # end
+
+  # def get(:live_conn_pass_through) do
+  #   Application.get_env(:drab, :live_conn_pass_through, %{
+  #     private: %{
+  #       phoenix_endpoint: true
+  #     }
+  #   })
+  # end
 
   # def get(_), do: nil
 
+  def get(:presence), do: Application.get_env(:drab, :presence, false)
+
+  @spec get(atom, atom) :: term
   def get(:presence, :id) do
     case get(:presence) do
       options when is_list(options) -> Keyword.get(options, :id, :user_id)
@@ -514,6 +560,20 @@ defmodule Drab.Config do
   def get(endpoint, :js_socket_constructor),
     do: get_env(endpoint, :js_socket_constructor, "require(\"phoenix\").Socket")
 
+  def get(endpoint, :access_session) do
+    if get(:presence) do
+      [get(:presence, :id) | get_env(endpoint, :access_session, [])]
+    else
+      Application.get_env(endpoint, :access_session, [])
+    end
+  end
 
+  def get(endpoint, :live_conn_pass_through) do
+    get_env(endpoint, :live_conn_pass_through, %{
+      private: %{
+        phoenix_endpoint: true
+      }
+    })
+  end
 
 end
