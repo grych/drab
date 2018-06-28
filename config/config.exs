@@ -34,7 +34,7 @@ config :drab, DrabTestApp.Endpoint,
 
 
 
-
+config :drab, secret_key_base: "cosdjcbaisjdbcvaisb"
 
 config :drab, enable_live_scripts: true
 
@@ -51,4 +51,4 @@ config :drab, :live_conn_pass_through, %{
   }
 }
 
-config :drab, :presence, true
+config :drab, :presence, endpoint: DrabTestApp.Endpoint

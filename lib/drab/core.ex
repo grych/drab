@@ -202,7 +202,7 @@ defmodule Drab.Core do
   @type bcast_result :: {:ok, term} | {:error, term}
 
   @typedoc "Subject for broadcasting"
-  @type subject :: Phoenix.Socket.t() | String.t() | list
+  @type subject :: Phoenix.Socket.t() | String.t() | {atom, String.t()} | list
 
   @impl true
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
@@ -345,6 +345,17 @@ defmodule Drab.Core do
   def same_path(url), do: "__drab:same_path:#{url}"
 
   @doc """
+  Helper for broadcasting functions, returns topic for a given endpoint and URL path.
+
+  To be used in multiple endpoint environments only.
+
+      iex> same_path(DrabTestApp.Endpoint, "/test/live")
+      {DrabTestApp.Endpoint, "__drab:same_path:/test/live"}
+  """
+  @spec same_path(atom, String.t()) :: {atom, String.t()}
+  def same_path(endpoint, url), do: {endpoint, same_path(url)}
+
+  @doc """
   Helper for broadcasting functions, returns topic for a given controller.
 
       iex> same_controller(DrabTestApp.LiveController)
@@ -354,6 +365,17 @@ defmodule Drab.Core do
   def same_controller(controller), do: "__drab:controller:#{controller}"
 
   @doc """
+  Helper for broadcasting functions, returns topic for a given endpoint and controller.
+
+  To be used in multiple endpoint environments only.
+
+      iex> same_controller(DrabTestApp.Endpoint, DrabTestApp.LiveController)
+      {DrabTestApp.Endpoint, "__drab:controller:Elixir.DrabTestApp.LiveController"}
+  """
+  @spec same_controller(atom, String.t() | atom) :: {atom, String.t()}
+  def same_controller(endpoint, controller), do: {endpoint, same_controller(controller)}
+
+  @doc """
   Helper for broadcasting functions, returns topic for a given controller and action.
 
       iex> same_action(DrabTestApp.LiveController, :index)
@@ -361,6 +383,17 @@ defmodule Drab.Core do
   """
   @spec same_action(String.t() | atom, String.t() | atom) :: String.t()
   def same_action(controller, action), do: "__drab:action:#{controller}##{action}"
+
+  @doc """
+  Helper for broadcasting functions, returns topic for a given endpoint, controller and action.
+
+  To be used in multiple endpoint environments only.
+
+      iex> same_action(DrabTestApp.Endpoint, DrabTestApp.LiveController, :index)
+      {DrabTestApp.Endpoint, "controller:Elixir.DrabTestApp.LiveController#index"}
+  """
+  @spec same_action(atom, String.t() | atom, String.t() | atom) :: {atom, String.t()}
+  def same_action(endpoint, controller, action), do: {endpoint, same_action(controller, action)}
 
   @doc """
   Helper for broadcasting functions, returns topic for a given topic string.
@@ -373,6 +406,20 @@ defmodule Drab.Core do
   """
   @spec same_topic(String.t()) :: String.t()
   def same_topic(topic), do: "__drab:#{topic}"
+
+  @doc """
+  Helper for broadcasting functions, returns topic for a given topic string.
+
+  To be used in multiple endpoint environments only.
+
+  Drab broadcasting topics are different from Phoenix topic - they begin with "__drab:". This is
+  because you can share Drab socket with you own one.
+
+      iex> same_topic(DrabTestApp.Endpoint, "mytopic")
+      {DrabTestApp.Endpoint, "__drab:mytopic"}
+  """
+  @spec same_topic(atom, String.t()) :: {atom, String.t()}
+  def same_topic(endpoint, topic), do: {endpoint, same_topic(topic)}
 
   @doc false
   @spec encode_js(term) :: String.t() | no_return

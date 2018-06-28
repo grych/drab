@@ -78,7 +78,7 @@ defmodule Mix.Tasks.Drab.Install do
     drab = """
            \nconfig :drab,
              main_phoenix_app: #{inspect(app)},
-             endpoint: #{Drab.Config.endpoint()}
+             endpoint: #{Drab.Config.find_endpoint_in_config_exs(app)}
            """
 
     unless inject_string_already_there(file, phoenix) do

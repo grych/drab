@@ -571,9 +571,18 @@ defmodule Drab do
     do_push_or_broadcast(socket, pid, nil, message, payload, &Phoenix.Channel.broadcast/3)
   end
 
+  def broadcast({endpoint, subject}, _pid, message, payload) when is_binary(subject) and is_atom(endpoint) do
+    Phoenix.Channel.Server.broadcast(
+      Drab.Config.pubsub(endpoint),
+      subject,
+      message,
+      Map.new(payload)
+    )
+  end
+
   def broadcast(subject, _pid, message, payload) when is_binary(subject) do
     Phoenix.Channel.Server.broadcast(
-      Drab.Config.pubsub(),
+      Drab.Config.default_pubsub(),
       subject,
       message,
       Map.new(payload)

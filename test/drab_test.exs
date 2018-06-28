@@ -42,7 +42,6 @@ defmodule DrabTest do
 
     test "application config" do
       assert Drab.Config.app_name(DrabTestApp.Endpoint) == :drab
-      assert Drab.Config.endpoint() == DrabTestApp.Endpoint
     end
 
     def function() do

@@ -49,7 +49,7 @@ defmodule Drab.Template do
   defp user_templates(endpoint) do
     case Drab.Config.get(endpoint, :templates_path) do
       "priv" <> rest ->
-        priv = Drab.Config.app_name() |> :code.priv_dir() |> to_string()
+        priv = Drab.Config.app_name(endpoint) |> :code.priv_dir() |> to_string()
         Path.join(priv, rest)
 
       path ->

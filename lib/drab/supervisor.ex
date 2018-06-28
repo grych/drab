@@ -11,13 +11,12 @@ defmodule Drab.Supervisor do
       case Code.ensure_compiled(DrabTestApp) do
         {:error, _} -> []
         {:module, DrabTestApp} -> [supervisor(DrabTestApp.Endpoint, []), Drab.Presence]
+          if Drab.Config.get(:presence) do
+            [supervisor(DrabTestApp.Endpoint, []), Drab.Presence]
+          else
+            [supervisor(DrabTestApp.Endpoint, [])]
+          end
       end
-
-    # children = if Drab.Config.get(:presence) do
-    #   children ++ [Drab.Presence]
-    # else
-    #   children
-    # end
 
     opts = [strategy: :one_for_one, name: Drab.Supervisor]
     Supervisor.start_link(children, opts)

@@ -73,16 +73,16 @@ defmodule Drab.Config do
     "priv/".
   """
 
-  @doc """
-  Returns the name of the client Phoenix Application
+  # @doc """
+  # Returns the name of the client Phoenix Application
 
-      iex> Drab.Config.app_name()
-      :drab
-  """
-  @spec app_name :: atom | no_return
-  def app_name() do
-    get(:main_phoenix_app) || find_app_in_mix_exs()
-  end
+  #     iex> Drab.Config.app_name()
+  #     :drab
+  # """
+  # @spec app_name :: atom | no_return
+  # def app_name() do
+  #   get(:main_phoenix_app) || find_app_in_mix_exs()
+  # end
 
   @doc """
   Returns the name of the client Phoenix Application
@@ -136,7 +136,9 @@ defmodule Drab.Config do
 
   defp is_module?(_), do: false
 
-  defp find_app_in_mix_exs() do
+  @doc false
+  @spec find_app_in_mix_exs :: atom | no_return
+  def find_app_in_mix_exs() do
     # try to find out the app name in config.exs, in compile time only
     with {:ok, pwd} <- Map.fetch(System.get_env(), "PWD"),
          {:ok, mix} <- File.read(Path.expand("mix.exs", pwd)),
@@ -147,11 +149,11 @@ defmodule Drab.Config do
     end
   end
 
-  @doc false
-  @spec ebin_dir :: String.t()
-  def ebin_dir() do
-    app_name() |> Application.app_dir() |> Path.join("ebin")
-  end
+  # @doc false
+  # @spec ebin_dir :: String.t()
+  # def ebin_dir() do
+  #   app_name() |> Application.app_dir() |> Path.join("ebin")
+  # end
 
   @spec raise_app_not_found :: no_return
   defp raise_app_not_found() do
@@ -164,29 +166,41 @@ defmodule Drab.Config do
     """
   end
 
-  @doc """
-  Returns the Endpoint of the client Phoenix Application
+  # @doc """
+  # Returns the Endpoint of the client Phoenix Application
 
-      iex> Drab.Config.endpoint()
-      DrabTestApp.Endpoint
-  """
-  @spec endpoint :: atom | no_return
-  def endpoint() do
-    get(:endpoint) || find_endpoint_in_app_env() || find_endpoint_in_config_exs()
-  end
+  #     iex> Drab.Config.default_endpoint()
+  #     DrabTestApp.Endpoint
+  # """
+  # @spec default_endpoint :: atom | no_return
+  # def default_endpoint() do
+  #   # get(:endpoint) || find_endpoint_in_app_env() || find_endpoint_in_config_exs()
+  #   case app_endpoints() do
+  #     [endpoint] -> endpoint
+  #     _ ->
+  #       raise """
+  #       Can't find the application's endpoint module. Please ensure that it is set in config.exs.
 
-  defp find_endpoint_in_app_env() do
-    case app_env() do
-      [{ep, _}] -> ep
-      _ -> false
-    end
-  end
+  #       In multiple endpoint environments, broadcasting to the topic requires
 
-  @spec find_endpoint_in_config_exs :: atom | no_return
-  defp find_endpoint_in_config_exs() do
+  #           config :drab, pubsub: MyApp.PubSub
+  #       """
+  #   end
+  # end
+
+  # defp find_endpoint_in_app_env() do
+  #   case app_env() do
+  #     [{ep, _}] -> ep
+  #     _ -> false
+  #   end
+  # end
+
+  @doc false
+  @spec find_endpoint_in_config_exs(atom) :: atom | no_return
+  def find_endpoint_in_config_exs(app_name) do
     with {:ok, pwd} <- Map.fetch(System.get_env(), "PWD"),
          {:ok, con_exs} <- File.read(Path.expand("config/config.exs", pwd)),
-         a <- inspect(app_name()),
+         a <- inspect(app_name),
          [_, endpoint] <- Regex.run(~r/config\s+#{a}\s*,\s*(\S+),/s, con_exs) do
       Module.concat([endpoint])
     else
@@ -202,77 +216,130 @@ defmodule Drab.Config do
   end
 
   @doc """
-  Returns the PubSub module of the client Phoenix Application
+  Returns the PubSub module of the given endpoint.
 
-      iex> Drab.Config.pubsub()
+      iex> Drab.Config.pubsub(DrabTestApp.Endpoint)
       DrabTestApp.PubSub
   """
-  @spec pubsub :: atom | no_return
-  def pubsub() do
-    with config <- Drab.Config.app_config(),
-         {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
-         {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
-      name
-    else
-      _ ->
-        raise """
-        Can't find the PubSub module. Please ensure that it is set in config.exs.
-        """
-    end
-  end
+  @spec pubsub(atom) :: atom | no_return
+  def pubsub(endpoint) do
+    # with config <- Drab.Config.app_config(),
+    #      {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
+    #      {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
+    #   name
+    # else
+    #   _ ->
+    #     raise """
+    #     Can't find the PubSub module. Please ensure that it is set in config.exs.
+    #     """
+    # end
+    # case app_endpoints() do
+    #   [endpoint] ->
+    #     with app <- app_name(endpoint),
+    #       config <- Application.get_env(app, endpoint),
+    #       {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
+    #       {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
+    #         name
+    #     else
+    #       _ -> raise_app_not_found()
+    #     end
+    #   _ ->
+    #     raise """
+    #     Can't find the PubSub module. Please ensure that it is set in config.exs.
 
-  @doc """
-  Returns the Phoenix Application module atom
+    #     In multiple endpoint environments, you need to specify the default pubsub with:
 
-      iex> Drab.Config.app_module()
-      DrabTestApp
-  """
-  @spec app_module :: atom
-  def app_module() do
-    # in 1.3 app module is not under the endpoint
-    endpoint()
-    |> Module.split()
-    |> Enum.drop(-1)
-    |> Module.concat()
-  end
-
-  @doc """
-  Returns all environment for the default main Application
-
-      iex> is_list(Drab.Config.app_env())
-      true
-  """
-  @spec app_env :: Keyword.t()
-  def app_env() do
-    Application.get_all_env(app_name())
-  end
-
-  @doc """
-  Returns any config key for current main Application
-
-      iex> Drab.Config.app_config(:secret_key_base) |> String.length()
-      64
-  """
-  @spec app_config(atom) :: term
-  def app_config(config_key) do
-    app_config() |> Keyword.fetch!(config_key)
-    # app_env() |> Keyword.fetch!(endpoint()) |> Keyword.fetch!(config_key)
-  end
-
-  @doc """
-  Returns the config for current main Application
-
-      iex> is_list(Drab.Config.app_config())
-      true
-  """
-  @spec app_config :: Keyword.t()
-  def app_config() do
-    with {:ok, app_config} <- Keyword.fetch(app_env(), endpoint()) do
-      app_config
+    #         config :drab, pubsub: MyApp.PubSub
+    #     """
+    # end
+    with app <- app_name(endpoint),
+      config <- Application.get_env(app, endpoint),
+      {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
+      {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
+        name
     else
       _ -> raise_app_not_found()
     end
   end
+
+  def default_pubsub() do
+    case app_endpoints() do
+      [endpoint] ->
+        with app <- app_name(endpoint),
+          config <- Application.get_env(app, endpoint),
+          {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
+          {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
+            name
+        else
+          _ -> raise_app_not_found()
+        end
+      _ ->
+        raise """
+        Can't find the default PubSub module. Please ensure that it is set in config.exs.
+
+        In multiple endpoint environments, broadcasting with a topic requires endpoint to
+        be specified:
+
+            broadcast_js same_topic(MyAppWeb.Endpoint, "product_10"), "console.log(2+2);"
+        """
+    end
+  end
+  # @doc """
+  # Returns the Phoenix Application module atom
+
+  #     iex> Drab.Config.app_module()
+  #     DrabTestApp
+  # """
+  # @spec app_module :: atom
+  # def app_module() do
+  #   # in 1.3 app module is not under the endpoint
+  #   endpoint()
+  #   |> Module.split()
+  #   |> Enum.drop(-1)
+  #   |> Module.concat()
+  # end
+
+  # @doc """
+  # Returns all environment for the default main Application
+
+  #     iex> is_list(Drab.Config.app_env())
+  #     true
+  # """
+  # @spec app_env :: Keyword.t()
+  # def app_env() do
+  #   Application.get_all_env(app_name())
+  # end
+
+  def secret_key_base() do
+    Application.get_env(:drab, :secret_key_base)
+  end
+
+  # @doc """
+  # Returns any config key for current main Application
+
+  #     iex> Drab.Config.app_config(:secret_key_base) |> String.length()
+  #     64
+  # """
+  # @spec app_config(atom) :: term
+  # def app_config(config_key) do
+  #   app_config() |> Keyword.fetch!(config_key)
+  #   # app_env() |> Keyword.fetch!(endpoint()) |> Keyword.fetch!(config_key)
+  # end
+
+  # @doc """
+  # Returns the config for current main Application
+
+  #     iex> is_list(Drab.Config.app_config())
+  #     true
+  # """
+  # @spec app_config :: Keyword.t()
+  # def app_config() do
+  #   with {:ok, app_config} <- Keyword.fetch(app_env(), endpoint()) do
+  #     app_config
+  #   else
+  #     _ -> raise_app_not_found()
+  #   end
+  # end
 
   @doc """
   Returns configured Drab.Live.Engine Extension. String with dot at the begin.
@@ -377,6 +444,8 @@ defmodule Drab.Config do
 
   def get(:endpoint), do: Application.get_env(:drab, :endpoint, nil)
 
+  def get(:pubsub), do: Application.get_env(:drab, :pubsub, nil)
+
   def get(:access_session) do
     if get(:presence) do
       [get(:presence, :id) | Application.get_env(:drab, :access_session, [])]
@@ -398,6 +467,13 @@ defmodule Drab.Config do
   def get(:presence, :id) do
     case get(:presence) do
       options when is_list(options) -> Keyword.get(options, :id, :user_id)
+      _ -> nil
+    end
+  end
+
+  def get(:presence, :endpoint) do
+    case get(:presence) do
+      options when is_list(options) -> Keyword.get(options, :endpoint, nil)
       _ -> nil
     end
   end

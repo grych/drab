@@ -54,7 +54,7 @@ defmodule Drab.Live.Crypto do
   @doc false
   @spec keys :: {String.t(), String.t()}
   defp keys() do
-    secret_key_base = Drab.Config.app_config(:secret_key_base)
+    secret_key_base = Drab.Config.secret_key_base()
     secret = KeyGenerator.generate(secret_key_base, "Drab.Live.Crypto salt")
     sign_secret = KeyGenerator.generate(secret_key_base, "Drab.Live.Crypto sign salt")
     {secret, sign_secret}

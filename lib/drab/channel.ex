@@ -129,12 +129,14 @@ defmodule Drab.Channel do
 
   # special messages for subscription for external channels, called from Controller
   def handle_out("subscribe", %{topic: topic}, socket) do
-    :ok = Drab.Config.endpoint().subscribe(topic)
+    endpoint = socket.endpoint
+    :ok = endpoint.subscribe(topic)
     {:noreply, socket}
   end
 
   def handle_out("unsubscribe", %{topic: topic}, socket) do
-    :ok = Drab.Config.endpoint().unsubscribe(topic)
+    endpoint = socket.endpoint
+    :ok = endpoint.unsubscribe(topic)
     {:noreply, socket}
   end
 
