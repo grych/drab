@@ -5,7 +5,7 @@
 
 <div id="<%= @current_week_monday %>" style="display: none;"></div>
 <div id="weekdays">
-    <span src="<%= @current_week_monday %>" class="arrow ar-right" drab="click:next_week">
+    <img src="<%= @current_week_monday %>" class="arrow ar-right" drab="click:next_week">
     <%= for day <- @weekdays do %>
         <%= day %>
     <% end %>
