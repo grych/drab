@@ -27,7 +27,7 @@ defmodule DrabTestApp.SharedTest do
     @tag capture_log: true
     test "should raise" do
       assert_raise RuntimeError,
-        ~r/is not declared in Elixir.DrabTestApp.ShareController/s,
+        ~r/is not declared in DrabTestApp.ShareController/s,
         fn -> click_and_wait("not-defined-controller-button") end
     end
   end

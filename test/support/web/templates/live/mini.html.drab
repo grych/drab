@@ -2,7 +2,7 @@
 <div id="drab_pid" style="display: none;"></div>
 
 <div id="top-pane"><span class="helper"></span><span id="user-name">Test</span></div>
-
+<div><%= @text %></div>
 <div id="<%= @current_week_monday %>" style="display: none;"></div>
 <div id="weekdays">
     <img src="<%= @current_week_monday %>" class="arrow ar-right" drab="click:next_week">
