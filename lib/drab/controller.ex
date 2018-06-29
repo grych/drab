@@ -15,7 +15,7 @@ defmodule Drab.Controller do
   defmacro __using__(options) do
     if options == [] do
       Logger.warn(
-        "`use Drab.Controller` without options is not needed anymore (#{__CALLER__.module})"
+        "`use Drab.Controller` without options is not mandatory (#{__CALLER__.module})"
       )
     end
 

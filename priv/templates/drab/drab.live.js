@@ -128,7 +128,6 @@ Drab.update_property = function (ampere, property, new_value) {
 Drab.update_tag = function(tag, ampere, new_value) {
   var n = 0;
   switch(tag) {
-    // TODO: script should also work under the shared commander
     case "script":
       eval(new_value);
       break;

@@ -244,7 +244,6 @@ defmodule Drab do
   @spec handle_callback(Phoenix.Socket.t(), atom, atom) :: Phoenix.Socket.t()
   defp handle_callback(socket, commander, callback) do
     if callback do
-      # TODO: rethink the subprocess strategies - now it is just spawn_link
       spawn_link(fn ->
         try do
           Process.put(:__drab_event_handler_or_callback, true)

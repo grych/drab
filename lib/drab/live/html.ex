@@ -530,7 +530,6 @@ defmodule Drab.Live.HTML do
   defp do_to_flat_html({_, _, _}), do: []
   defp do_to_flat_html(atom) when is_atom(atom), do: []
   defp do_to_flat_html({_, buffer}), do: do_to_flat_html(buffer)
-  # TODO: rething, may be insecure
   defp do_to_flat_html(_), do: []
 
   @doc """

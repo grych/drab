@@ -33,7 +33,6 @@ defmodule DrabTestApp.BrowserTest do
     end
 
     test "check the current month, as it is crazy numbered in JS" do
-      # TODO: could fail at the end or the begining of the month (different timezones, etc)
       socket = drab_socket()
       browser_dt = socket |> now!()
       server_dt = DateTime.utc_now()

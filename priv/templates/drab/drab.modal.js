@@ -39,7 +39,6 @@ Drab.on_connect(function (resp, drab) {
       }
     });
     // set the timeout on a modal
-    // TODO: cancel this event after closing before the timeout
     if (message.timeout) {
       if (drab.modal_timeout_function) {
         clearTimeout(drab.modal_timeout_function);

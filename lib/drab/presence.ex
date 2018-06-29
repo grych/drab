@@ -113,7 +113,6 @@ if Drab.Config.get(:presence) do
     """
 
     # this is because of the wrong specs in Phx <=1.3.3
-    # TODO: remove nowarn when Phx release new specs
     @dialyzer {:nowarn_function, init: 1}
 
     use Phoenix.Presence,

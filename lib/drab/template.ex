@@ -35,7 +35,6 @@ defmodule Drab.Template do
   @doc false
   @spec render_template(atom, String.t(), Keyword.t()) :: String.t() | no_return
   def render_template(endpoint, filename, bindings) do
-    # TODO: this is not very efficient, as it searches for a template every single time
     p = Path.join(user_templates(endpoint), filename)
 
     if p |> File.exists?() do

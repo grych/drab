@@ -458,7 +458,6 @@ defmodule Drab.Core do
   @doc false
   @spec save_store(Phoenix.Socket.t(), map) :: :ok
   def save_store(socket, store) do
-    # TODO: too complicated, too many functions
     Drab.set_store(Drab.pid(socket), store)
   end
 

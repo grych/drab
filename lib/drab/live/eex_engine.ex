@@ -386,7 +386,6 @@ defmodule Drab.Live.EExEngine do
       Process.put(hash, {remove_drab_marks(expr), found_assigns})
     end
 
-    # TODO: REFACTOR
     attr = find_attr_in_html(html)
     is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attr && String.starts_with?(attr, "@")
     if is_property && !String.ends_with?(String.trim_trailing(html), "=") do
@@ -457,7 +456,6 @@ defmodule Drab.Live.EExEngine do
   defp partial(body) do
     html = to_flat_html(body)
     p = Regex.run(~r/{{{{@drab-partial:([^']+)}}}}/Uis, html)
-    # TODO: possibly dangerous - returning nil when partial not found
     if p, do: List.last(p), else: nil
   end
 

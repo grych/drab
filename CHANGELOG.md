@@ -2,6 +2,19 @@
 
 ## v0.9.0 BREAKING RELEASE
 
+This release finally introduces the final API. There is no intention to change it, unless very
+significant errors are found.
+
+If you are using Drab already, prepare for the changes in the configuration and also in the code.
+
+
+### `Drab.Live` API changed
+
+As described in #127, API has changed. The most painful change is `Drab.Live.peek`, as it now
+returns `{:ok, value}` or `{:error, why}`. Raising `Drab.Live.peek` is for convinience.
+
+`Drab.Live.poke` returns tuple now as well, to catch update errors or disconnections.
+
 ### Redesigned `Drab.Config`
 
 Since this version, Drab is no longer configured globally. This means that you may use it in the
@@ -20,6 +33,12 @@ The endpoint and application name are mandatory.
 However, there are still few global options, like `:enable_live_scripts`. Please read
 [`Drab.Config`](https://hexdocs.pm/drab/Drab.Config.html#content) documentation
 for more information.
+
+[Do You Want to Know More?](https://hexdocs.pm/drab/Drab.Config.html)
+
+### More API changes
+
+All functions returning `{:timeout, description}` now return just `{:error, :timeout}`.
 
 ### Undeclared handler or shared commander raises
 
@@ -43,7 +62,7 @@ The same is with shared commanders, if you want to use it, declare it with `Drab
 use Drab.Controller, commanders: [My.Shared.Commander]
 ```
 
-### Hard depreciations
+### Hard depreciations of various functions
 
 * [x] Drab.Client.js/2
 * [x] Drab.run_handler()
@@ -60,10 +79,6 @@ The existing syntax `drab-event` and `drab-handler` is removed. Please use the n
     <input drab-focus="input_focus" drab-blur="input_blur">
 
 [Do You Want to Know More?](https://hexdocs.pm/drab/Drab.Core.html#module-events)
-
-
-
-
 
 ### Updating from <= v0.8.3
 

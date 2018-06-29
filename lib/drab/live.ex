@@ -835,7 +835,6 @@ defmodule Drab.Live do
   end
 
   @spec assign_updates_js(map, String.t(), String.t()) :: [String.t()]
-  # TODO: refactor
   defp assign_updates_js(assigns, partial, "document") do
     Enum.map(assigns, fn {k, v} ->
       "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = {document: '#{
