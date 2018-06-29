@@ -1,9 +1,101 @@
 # CHANGELOG
 
+## v0.9.0 BREAKING RELEASE
+
+### Redesigned `Drab.Config`
+
+Since this version, Drab is no longer configured globally. This means that you may use it in the
+multiple endpoints environments.
+This requires configuration API change. Most of the Drab options are now located under
+the endpoint module:
+
+```elixir
+config :drab, MyAppWeb.Endpoint,
+  otp_app: :my_app_web,
+  ...
+```
+
+The endpoint and application name are mandatory.
+
+However, there are still few global options, like `:enable_live_scripts`. Please read
+[`Drab.Config`](https://hexdocs.pm/drab/Drab.Config.html#content) documentation
+for more information.
+
+### Updating from <= v0.8.3
+
+#### `config.exs`
+
+Replace:
+
+```elixir
+config :drab, main_phoenix_app: :my_app_web, endpoint: MyAppWeb.Endpoint
+```
+
+with:
+
+```elixir
+config :drab, MyAppWeb.Endpoint, otp_app: :my_app_web
+```
+
+Most of the configuration options now must be placed under the endpoint. Please read
+[`Drab.Config`](https://hexdocs.pm/drab/Drab.Config.html#content) documentation for more info.
+
 ## v0.8.3
-Subscribe and unsubscribe from external topics in a runtime.
-Presence.
-Updated behaviour of enable disable.
+
+This version brings two useful features: presence and ability to subscribe to topics in the runtime.
+
+### Upgrading from =< 0.8.2
+
+Please ensure you have set `:main_phoenix_app` in your `config.exs`. The way how Drab is searching
+for the Phoenix app it is working on, has been changed.
+
+### Subscribe and unsubscribe from external topics in a runtime
+
+Finally, you are not limited to the compile-time topic you’ve set with `broadcasting/1` macro in the
+commander. Now you can `subscribe/2` to the external topic, receiving broadcasts sent to it.
+
+```elixir
+subscribe(socket, same_action(MyApp.MyController, :index))
+subscribe(socket, same_topic("user_#{user_id}"))
+```
+
+### Presence
+
+Conveniences for Phoenix.Presence
+If configured (it is disabled by default), tracks the user presence on the topic. The following
+example shows the number of connected users, live:
+
+```elixir
+defmodule MyAppWeb.MyCommander
+  use Drab.Commander
+
+  broadcasting "global"
+  onconnect :connected
+  ondisconnect :disconnected
+
+  def connected(socket) do
+    broadcast_html socket, "#number_of_users", Drab.Presence.count_users(socket)
+  end
+
+  def disconnected(_store, _session) do
+    topic = same_topic("global")
+    broadcast_html topic, "#number_of_users", Drab.Presence.count_users(topic)
+  end
+end
+```
+
+By default, presence map key is set as a browser UUID (which is shamelessly stored in the local
+store in the browser), but it may be also any session value. This may be useful, if you have the
+`user_id` already in the session, just configure it:
+
+```elixir
+config :drab, :presence, id: :user_id
+```
+
+### Updated enable/disable when processing behaviour
+
+After launching an event from the page, the control (button) is disable until processing stops.
+Now it is even better, as it recognizes previously disabled controls (#146).
 
 ## v0.8.2
 
