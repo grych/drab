@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Drab.Install do
   @impl true
   def run(_args) do
     validate_phoenix_version()
-    app = app_name()
+    app = Mix.Drab.app_name()
 
     Mix.shell().info("Checking prerequisites for #{inspect(app)}")
     app_html = find_file("lib", "app.html.eex")
@@ -31,31 +31,14 @@ defmodule Mix.Tasks.Drab.Install do
       update("user_socket.ex", user_socket)
       update("config.exs", config, app)
       update("dev.exs", dev_config)
-
-      Mix.shell().info("""
+      Mix.shell().info """
       Drab has been successfully installed in your Phoenix application.
 
       Now it is time to create your first commander, for example, for PageController:
 
           mix drab.gen.commander Page
-      """)
+      """
     end
-  end
-
-  defp app_name() do
-    app = Mix.Project.config()[:app]
-
-    unless app do
-      Mix.shell().error("Can't find the application name.")
-
-      Mix.shell().info("""
-      If your web application is under an umbrella, please change directory there and try again.
-      """)
-
-      Mix.raise("Giving up.")
-    end
-
-    app
   end
 
   defp update(file, path, app \\ nil)
@@ -72,24 +55,25 @@ defmodule Mix.Tasks.Drab.Install do
 
   defp update("dev.exs", file, _app) do
     inject = "templates/.*(eex|drab)$"
-    inject_to_file(file, "templates/.*(eex)$", inject)
+    inject_to_file file, "templates/.*(eex)$", inject
   end
 
   defp update("config.exs", file, app) do
     phoenix = """
-    \nconfig :phoenix, :template_engines,
-      drab: Drab.Live.Engine
-    """
-
+              \n# Configures default Drab file extension
+              config :phoenix, :template_engines,
+                drab: Drab.Live.Engine\n
+              """
     drab = """
-    \nconfig :drab,
-      main_phoenix_app: #{inspect(app)},
-      endpoint: #{Drab.Config.endpoint()},
-      pubsub: #{Drab.Config.pubsub()}
-    """
+           # Configures Drab
+           config :drab, #{inspect(Mix.Drab.find_endpoint_in_config_exs(app))},
+             otp_app: #{inspect(app)}
+           """
 
     unless inject_string_already_there(file, drab) do
-      File.write!(file, phoenix <> drab, [:append])
+      # File.write!(file, phoenix <> drab, [:append])
+      logger = "# Configures Elixir's Logger\n"
+      inject_to_file(file, logger, drab <> phoenix <> logger)
     end
   end
 
@@ -97,7 +81,6 @@ defmodule Mix.Tasks.Drab.Install do
     unless inject_string_already_there(file, replace_with) do
       f = File.read!(file)
       replaced = String.replace(f, search_for, replace_with)
-
       if replaced == f do
         Mix.shell().error("Installer could not update #{file}. Please install Drab manually.")
       else
@@ -109,30 +92,25 @@ defmodule Mix.Tasks.Drab.Install do
   defp inject_string_already_there(file, inject) do
     f = File.read!(file)
     contains = String.contains?(f, inject)
-
     if contains do
       Mix.shell().info("  Drab is already installed in #{file}, skipping.")
     end
-
     contains
   end
 
   defp find_file(dir, name) do
-    file =
-      case Path.wildcard("#{dir}/**/#{name}") do
-        [] -> ask_for_file_path(name)
-        [filename] -> filename
-        names -> choose_file(names, name)
-      end
-
-    Mix.shell().info("  #{file}")
+    file = case Path.wildcard("#{dir}/**/#{name}") do
+      [] -> ask_for_file_path(name)
+      [filename] -> filename
+      names -> choose_file(names, name)
+    end
+    Mix.shell().info "  #{file}"
     file
   end
 
   defp ask_for_file_path(name) do
     Mix.shell().error("Can't find #{name}. Please specify the full path.")
     path = String.trim(Mix.shell().prompt(">"))
-
     if File.exists?(path) do
       path
     else
@@ -144,7 +122,6 @@ defmodule Mix.Tasks.Drab.Install do
     Mix.shell().error("Multiple #{name} found, please copy/paste the full path of correct one.")
     Mix.shell().info(Enum.join(names, "\n"))
     path = String.trim(Mix.shell().prompt(">"))
-
     if File.exists?(path) do
       path
     else
@@ -154,9 +131,9 @@ defmodule Mix.Tasks.Drab.Install do
 
   defp validate_phoenix_version do
     unless phoenix13?() do
-      Mix.raise("""
+      Mix.raise """
       Only Phoenix 1.3 is supported with the installer, please proceed with manual install.
-      """)
+      """
     end
   end
 

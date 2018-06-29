@@ -1,23 +1,36 @@
 defmodule Drab.Config do
   @moduledoc """
-  Drab configuration related functions.
+  Drab configuration.
+
+  Drab works over the Phoenix Endpoints. You must provide configuration for each endpoint. The
+  minimum is to set up the endpoint module name, and the application name, so for the application
+  configured like:
+
+      config :my_app_web, MyAppWeb.Endpoint,
+        ...
+
+  provide corresponding Drab configuration:
+
+      config :drab, MyAppWeb.Endpoint,
+        otp_app: :my_app_web,
+        ...
+
+  There are also global Drab options, which can't be configured by the endpoint, like
+  `:enable_live_scripts`. See the whole list below.
 
   ## Configuration options:
 
-  ### Mandatory
+  ### Endpoint related options
 
-  #### :main_phoenix_app
-    A name of your Phoenix application (atom). If it is not set, Drab tries to guess it from
-    `mix.exs`.
-    Must be set when not using `Mix`.
+  This options are set within the endpoint:
 
-  ### Optional
+      config :drab, MyAppWeb.Endpoint, option: value, option: value
 
-  #### :access_session *(default: [])*
+  #### :access_session *(default: `[]`)*
     Keys of the session map, which will be included to the Drab Session globally, usually
     `:user_id`, etc. See `Drab.Commander.access_session/1` for more.
 
-  #### :browser_response_timeout *(default: 5000)*
+  #### :browser_response_timeout *(default: `5000`)*
     Timeout, after which all functions querying/updating browser UI will give up; integer in
     milliseconds, or `:infinity`.
 
@@ -29,43 +42,24 @@ defmodule Drab.Config do
   #### :disable_controls_when_disconnected *(default: `true`)*
     Shall controls be disabled when there is no connectivity between the browser and the server?
 
-  #### :default_encoder *(default: Drab.Coder.Cipher)*
-    Sets the default encoder/decoder for the various functions, like `Drab.Browser.set_cookie/3`
-
-  #### :drab_store_storage *(default: :session_storage)*
+  #### :drab_store_storage *(default: `:session_storage`)*
     Where to keep the Drab Store - `:memory`, `:local_storage` or `:session_storage`. Data in
     the memory is kept to the next page load, session storage persist until browser (or a tab)
     is closed, local storage is kept forever.
-
-  #### :enable_live_scripts *(default: `false`)*
-    Re-evaluation of JavaScripts containing living assigns is disabled by default.
-
-  #### :endpoint
-    Endpoint module name of your Web Application.
-
-  #### :events_to_disable_while_processing *(default: `["click"]`)*
-    Controls with those Drab events will be disabled when waiting for server response.
 
   #### :events_shorthands *(default: `["click", "change", "keyup", "keydown"]`)*
     The list of the shorthand attributes to be used in drab-controlled DOM object, ie:
     `<drab-click="handler">`. Please keep the list small, as it affects the client JS performance.
 
-  #### :js_socket_constructor, *(default: "require(\"phoenix\").Socket")*
+  #### :events_to_disable_while_processing *(default: `["click"]`)*
+    Controls with those Drab events will be disabled when waiting for server response.
+
+  #### :js_socket_constructor, *(default: `"require(\"phoenix\").Socket"`)*
     Javascript constructor for the Socket; more info in Drab.Client.
 
   #### :live_conn_pass_through, *(default: `%{private: %{phoenix_endpoint: true}}`)*
     A deep map marking fields which should be preserved in the fake `@conn` assign. See `Drab.Live`
     for more detailed explanation on conn case.
-
-  #### :phoenix_channel_options *(default: [])*
-    An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.
-
-  #### :presence *(default: false)*
-    Runs the `Drab.Presence` server. Defaults to false to avoid unnecessary load. See
-    `Drab.Presence` for more information.
-
-  #### :pubsub
-    PubSub module name.
 
   #### :socket *(default: `"/socket"`)*
     Path to the socket on which Drab operates.
@@ -74,36 +68,84 @@ defmodule Drab.Config do
     Path to the user-defined Drab templates (not to be confused with Phoenix application templates,
     these are to be used internally, see `Drab.Modal` for the example usage). Must start with
     "priv/".
+
+  ### Global configuration options
+  Those options are set globally and works in every endpoint.
+
+      config :drab, option: value, option: value
+
+  #### :default_encoder *(default: `Drab.Coder.Cipher`)*
+    Sets the default encoder/decoder for the various functions, like `Drab.Browser.set_cookie/3`
+
+  #### :enable_live_scripts *(default: `false`)*
+    Re-evaluation of JavaScripts containing living assigns is disabled by default.
+
+  #### :phoenix_channel_options *(default: `[]`)*
+    An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.
+
+  #### :presence *(default: `false`)*
+    Runs the `Drab.Presence` server. Defaults to false to avoid unnecessary load. See
+    `Drab.Presence` for more information.
+
+  #### :secret_key_base *(default taken from endpoint)*
+    Random key for ciphering. May be generated by `mix phx.gen.secret`. In single-endpoint
+    configuration it is taken from the endpoint.
   """
 
   @doc """
-  Returns the name of the client Phoenix Application
+  Returns the name of the client Phoenix Application for given endpoint.
 
-      iex> Drab.Config.app_name()
+      iex> Drab.Config.app_name(DrabTestApp.Endpoint)
       :drab
   """
-  @spec app_name :: atom | no_return
-  def app_name() do
-    get(:main_phoenix_app) || find_app_in_mix_exs()
-  end
-
-  @spec find_app_in_mix_exs :: atom | no_return
-  defp find_app_in_mix_exs() do
-    # try to find out the app name in config.exs, in compile time only
-    with {:ok, pwd} <- Map.fetch(System.get_env(), "PWD"),
-         {:ok, mix} <- File.read(Path.expand("mix.exs", pwd)),
-         [_, app_name] <- Regex.run(~r/project\s*do.*app:\s*:(\S+),/s, mix) do
-      String.to_atom(app_name)
-    else
-      _ -> raise_app_not_found()
+  @spec app_name(atom) :: atom | no_return
+  def app_name(endpoint) do
+    case :drab |> Application.get_env(endpoint, []) |> Keyword.fetch(:otp_app) do
+      {:ok, app} -> app
+      :error -> raise_app_not_found()
     end
   end
 
   @doc false
-  @spec ebin_dir :: String.t()
-  def ebin_dir() do
-    app_name() |> Application.app_dir() |> Path.join("ebin")
+  @spec get_all_env(atom) :: Keyword.t() | no_return
+  defp get_all_env(endpoint) do
+    Application.get_env(:drab, endpoint) || raise_app_not_found()
   end
+
+  @spec get_env(atom, atom, any) :: any
+  defp get_env(endpoint, key, default) do
+    Keyword.get(get_all_env(endpoint), key, default)
+  end
+
+  @doc """
+  Returns the name of all configured Drab applications.
+
+      iex> Drab.Config.app_names()
+      [:drab]
+  """
+  @spec app_names() :: [atom]
+  def app_names() do
+    Enum.map(app_endpoints(), &app_name/1)
+  end
+
+  @doc """
+  Returns the name of all configured Drab endpoints.
+
+      iex> Drab.Config.app_endpoints()
+      [DrabTestApp.Endpoint]
+  """
+  @spec app_endpoints() :: [atom]
+  def app_endpoints() do
+    :drab
+    |> Application.get_all_env()
+    |> Enum.filter(fn {x, _} -> is_module?(x) end)
+    |> Keyword.keys()
+  end
+
+  @spec is_module?(any) :: boolean
+  defp is_module?(atom) when is_atom(atom), do: is_module?(Atom.to_string(atom))
+  defp is_module?("Elixir." <> _), do: true
+  defp is_module?(_), do: false
 
   @spec raise_app_not_found :: no_return
   defp raise_app_not_found() do
@@ -117,116 +159,85 @@ defmodule Drab.Config do
   end
 
   @doc """
-  Returns the Endpoint of the client Phoenix Application
+  Returns the PubSub module of the given endpoint.
 
-      iex> Drab.Config.endpoint()
-      DrabTestApp.Endpoint
-  """
-  @spec endpoint :: atom | no_return
-  def endpoint() do
-    get(:endpoint) || find_endpoint_in_app_env() || find_endpoint_in_config_exs()
-  end
-
-  @spec find_endpoint_in_app_env :: atom
-  defp find_endpoint_in_app_env() do
-    case app_env() do
-      [{ep, _}] -> ep
-      _ -> false
-    end
-  end
-
-  @spec find_endpoint_in_config_exs :: atom | no_return
-  defp find_endpoint_in_config_exs() do
-    with {:ok, pwd} <- Map.fetch(System.get_env(), "PWD"),
-         {:ok, con_exs} <- File.read(Path.expand("config/config.exs", pwd)),
-         a <- inspect(app_name()),
-         [_, endpoint] <- Regex.run(~r/config\s+#{a}\s*,\s*(\S+),/s, con_exs) do
-      Module.concat([endpoint])
-    else
-      _ ->
-        raise CompileError,
-          description: """
-          Drab is unable to find the application's endpoint.
-          Please add to config:
-
-              config :drab, endpoint: MyAppWeb.Endpoint
-          """
-    end
-  end
-
-  @doc """
-  Returns the PubSub module of the client Phoenix Application
-
-      iex> Drab.Config.pubsub()
+      iex> Drab.Config.pubsub(DrabTestApp.Endpoint)
       DrabTestApp.PubSub
   """
-  @spec pubsub :: atom | no_return
-  def pubsub() do
-    get(:pubsub) || with config <- Drab.Config.app_config(),
-         {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
-         {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
-      name
+  @spec pubsub(atom) :: atom | no_return
+  def pubsub(endpoint) do
+    with app <- app_name(endpoint),
+      config <- Application.get_env(app, endpoint),
+      {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
+      {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
+        name
     else
+      _ -> raise_app_not_found()
+    end
+  end
+
+  @doc false
+  @spec default_pubsub() :: atom | no_return
+  def default_pubsub() do
+    case app_endpoints() do
+      [endpoint] ->
+        with app <- app_name(endpoint),
+          config <- Application.get_env(app, endpoint),
+          {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
+          {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
+            name
+        else
+          _ -> raise_app_not_found()
+        end
       _ ->
         raise """
-        Can't find the PubSub module.
-        Please add to config.exs:
+        Can't find the default PubSub module. Please ensure that it is set in config.exs.
 
-            config :drab, pubsub: MyApp.PubSub
+        In multiple endpoint environments, broadcasting with a topic requires endpoint to
+        be specified:
+
+            broadcast_js same_topic(MyAppWeb.Endpoint, "product_10"), "console.log(2+2);"
         """
     end
   end
 
-  @doc """
-  Returns the Phoenix Application module atom
+  @doc false
+  @spec default_endpoint() :: atom | no_return
+  def default_endpoint() do
+    case app_endpoints() do
+      [endpoint] ->
+        endpoint
+      _ ->
+        raise """
+        Can't find the default Endpoint module. Please ensure that it is set in config.exs.
 
-      iex> Drab.Config.app_module()
-      DrabTestApp
-  """
-  @spec app_module :: atom
-  def app_module() do
-    # in 1.3 app module is not under the endpoint
-    endpoint()
-    |> Module.split()
-    |> Enum.drop(-1)
-    |> Module.concat()
+        In multiple endpoint environments, you must specify which enpoint to use with presence:
+
+            config :drab, :presence, endpoint: MyAppWeb.Endpoint
+        """
+    end
   end
 
-  @doc """
-  Returns all environment for the default main Application
+  @doc false
+  @spec secret_key_base() :: String.t() | no_return
+  def secret_key_base() do
+    get(:secret_key_base) || case app_endpoints() do
+      [endpoint] ->
+        with app <- app_name(endpoint),
+          config <- Application.get_env(app, endpoint),
+          {:ok, secret_key_base} <- Keyword.fetch(config, :secret_key_base) do
+            secret_key_base
+        else
+          _ -> raise_app_not_found()
+        end
+      _ ->
+        raise """
+        Can't find the default secret key base. Please ensure that it is set in config.exs.
 
-      iex> is_list(Drab.Config.app_config())
-      true
-  """
-  @spec app_env :: Keyword.t()
-  def app_env() do
-    Application.get_all_env(app_name())
-  end
+        In multiple endpoint environments, you must specify it globally for Drab:
 
-  @doc """
-  Returns any config key for current main Application
-
-      iex> Drab.Config.app_config(:secret_key_base) |> String.length()
-      64
-  """
-  @spec app_config(atom) :: term
-  def app_config(config_key) do
-    app_config() |> Keyword.fetch!(config_key)
-    # app_env() |> Keyword.fetch!(endpoint()) |> Keyword.fetch!(config_key)
-  end
-
-  @doc """
-  Returns the config for current main Application
-
-      iex> is_list(Drab.Config.app_config())
-      true
-  """
-  @spec app_config :: Keyword.t()
-  def app_config() do
-    with {:ok, app_config} <- Keyword.fetch(app_env(), endpoint()) do
-      app_config
-    else
-      _ -> raise_app_not_found()
+            config :drab, secret_key_base: "remember to put it in prod_secret.exs"
+        """
     end
   end
 
@@ -288,74 +299,41 @@ defmodule Drab.Config do
   @doc """
   Returns Drab configuration for the given atom.
 
-      iex> Drab.Config.get(:templates_path)
-      "priv/custom_templates"
-
-  All the config values may be override in `config.exs`, for example:
-
-      config :drab, disable_controls_while_processing: false
+      iex> Drab.Config.get(:default_encoder)
+      Drab.Coder.Cipher
   """
   @spec get(atom) :: term
-  def get(:disable_controls_while_processing),
-    do: Application.get_env(:drab, :disable_controls_while_processing, true)
-
-  def get(:events_to_disable_while_processing),
-    do: Application.get_env(:drab, :events_to_disable_while_processing, ["click"])
-
-  def get(:events_shorthands),
-    do: Application.get_env(:drab, :events_shorthands, ["click", "change", "keyup", "keydown"])
-
-  def get(:disable_controls_when_disconnected),
-    do: Application.get_env(:drab, :disable_controls_when_disconnected, true)
-
-  def get(:socket), do: Application.get_env(:drab, :socket, "/socket")
-
-  def get(:drab_store_storage),
-    do: Application.get_env(:drab, :drab_store_storage, :session_storage)
-
-  def get(:browser_response_timeout),
-    do: Application.get_env(:drab, :browser_response_timeout, 5000)
-
-  def get(:main_phoenix_app), do: Application.get_env(:drab, :main_phoenix_app, nil)
+  def get(key)
 
   def get(:enable_live_scripts), do: Application.get_env(:drab, :enable_live_scripts, false)
 
   def get(:phoenix_channel_options), do: Application.get_env(:drab, :phoenix_channel_options, [])
 
-  def get(:templates_path), do: Application.get_env(:drab, :templates_path, "priv/templates/drab")
-
   def get(:default_encoder), do: Application.get_env(:drab, :default_encoder, Drab.Coder.Cipher)
 
-  def get(:js_socket_constructor),
-    do: Application.get_env(:drab, :js_socket_constructor, "require(\"phoenix\").Socket")
+  def get(:secret_key_base), do: Application.get_env(:drab, :secret_key_base, nil)
 
   def get(:presence), do: Application.get_env(:drab, :presence, false)
 
-  def get(:endpoint), do: Application.get_env(:drab, :endpoint, nil)
+  @doc """
+  Returns Drab configuration for the given endpoint and atom.
 
-  def get(:pubsub), do: Application.get_env(:drab, :pubsub, nil)
-
-  def get(:access_session) do
-    if get(:presence) do
-      [get(:presence, :id) | Application.get_env(:drab, :access_session, [])]
-    else
-      Application.get_env(:drab, :access_session, [])
-    end
-  end
-
-  def get(:live_conn_pass_through) do
-    Application.get_env(:drab, :live_conn_pass_through, %{
-      private: %{
-        phoenix_endpoint: true
-      }
-    })
-  end
-
-  def get(_), do: nil
+      iex> Drab.Config.get(DrabTestApp.Endpoint, :templates_path)
+      "priv/custom_templates"
+  """
+  @spec get(atom, atom) :: term
+  def get(endpoint, key)
 
   def get(:presence, :id) do
     case get(:presence) do
-      options when is_list(options) -> Keyword.get(options, :id, :user_id)
+      options when is_list(options) -> Keyword.get(options, :id, [session: :user_id])
+      _ -> nil
+    end
+  end
+
+  def get(:presence, :endpoint) do
+    case get(:presence) do
+      options when is_list(options) -> Keyword.get(options, :endpoint, nil)
       _ -> nil
     end
   end
@@ -366,4 +344,48 @@ defmodule Drab.Config do
       _ -> Drab.Presence
     end
   end
+
+  def get(endpoint, :disable_controls_while_processing),
+    do: get_env(endpoint, :disable_controls_while_processing, true)
+
+  def get(endpoint, :events_to_disable_while_processing),
+    do: get_env(endpoint, :events_to_disable_while_processing, ["click"])
+
+  def get(endpoint, :events_shorthands),
+    do: get_env(endpoint, :events_shorthands, ["click", "change", "keyup", "keydown"])
+
+  def get(endpoint, :disable_controls_when_disconnected),
+    do: get_env(endpoint, :disable_controls_when_disconnected, true)
+
+  def get(endpoint, :drab_store_storage),
+    do: get_env(endpoint, :drab_store_storage, :session_storage)
+
+  def get(endpoint, :templates_path),
+    do: get_env(endpoint, :templates_path, "priv/templates/drab")
+
+  def get(endpoint, :socket),
+    do: get_env(endpoint, :socket, "/socket")
+
+  def get(endpoint, :browser_response_timeout),
+    do: get_env(endpoint, :browser_response_timeout, 5000)
+
+  def get(endpoint, :js_socket_constructor),
+    do: get_env(endpoint, :js_socket_constructor, "require(\"phoenix\").Socket")
+
+  def get(endpoint, :access_session) do
+    # if get(:presence) do
+    #   [get(:presence, :id) | get_env(endpoint, :access_session, [])]
+    # else
+      Application.get_env(endpoint, :access_session, [])
+    # end
+  end
+
+  def get(endpoint, :live_conn_pass_through) do
+    get_env(endpoint, :live_conn_pass_through, %{
+      private: %{
+        phoenix_endpoint: true
+      }
+    })
+  end
+
 end
