@@ -8,6 +8,7 @@
   <button id="peek0" drab-click="peek_text">peek :text</button>
   <br><br>
   <button id="not-defined-handler-button" drab-click="not_defined_handler">Not defined handler</button>
+  <button id="not-existing-handler-button" drab-click="not_existing_handler">Not existing handler</button>
 </div>
 <br>
 

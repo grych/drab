@@ -1,7 +1,7 @@
 defmodule DrabTestApp.SharedTest do
   use DrabTestApp.IntegrationCase
   # import Drab.Core
-  import ExUnit.CaptureLog
+  # import ExUnit.CaptureLog
 
   defp share_index do
     share_url(DrabTestApp.Endpoint, :index)
@@ -15,20 +15,20 @@ defmodule DrabTestApp.SharedTest do
   end
 
   describe "not defined handler" do
-    test "should generate a warning" do
-      log = capture_log(fn -> click_and_wait("not-defined-handler-button") end)
-
-      assert String.contains?(
-               log,
-               "must be declared as public in the commander."
-             )
+    @tag capture_log: true
+    test "should raise" do
+      assert_raise RuntimeError,
+        ~r/must be declared as public in the commander/s,
+        fn -> click_and_wait("not-defined-handler-button") end
     end
   end
 
   describe "not declared controller" do
-    test "should generate a warning" do
-      log = capture_log(fn -> click_and_wait("not-defined-controller-button") end)
-      assert String.contains?(log, "is not declared in Elixir.DrabTestApp.ShareController")
+    @tag capture_log: true
+    test "should raise" do
+      assert_raise RuntimeError,
+        ~r/is not declared in Elixir.DrabTestApp.ShareController/s,
+        fn -> click_and_wait("not-defined-controller-button") end
     end
   end
 

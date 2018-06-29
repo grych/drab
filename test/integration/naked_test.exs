@@ -81,7 +81,7 @@ defmodule DrabTestApp.NakedTest do
 
       assert String.contains?(
                log,
-               "handler Elixir.DrabTestApp.LoneCommander.non_public_handler is not public"
+               "handler Elixir.DrabTestApp.LoneCommander.non_public_handler must be declared as public in the commander."
              )
     end
 

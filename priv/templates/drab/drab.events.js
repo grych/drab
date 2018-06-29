@@ -300,18 +300,6 @@ function set_drab_attribute(where) {
     };
   }
 
-  // long way, to be depreciated
-  // drab-event= drab-handler= drab-options=
-  var drab_objects_long = where.querySelectorAll("[drab-event]");
-  for (var i = 0; i < drab_objects_long.length; i++) {
-    var node = drab_objects_long[i];
-    add_drab_attribute(
-      node,
-      node.getAttribute("drab-event"),
-      node.getAttribute("drab-handler"),
-      node.getAttribute("drab-options")
-    )
-  }
 
   find_drab_argument_attr(where);
   find_drab_commander_attr(where);

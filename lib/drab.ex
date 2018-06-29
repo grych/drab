@@ -293,41 +293,11 @@ defmodule Drab do
         Process.put(:__drab_event_handler_or_callback, true)
         argument = payload["__additional_argument"]
         payload = Map.delete(payload, "__additional_argument")
-        arity = if argument, do: 3, else: 2
 
-        {commander_module, event_handler} =
-          case event_handler(event_handler_function) do
-            {nil, function} -> raise_if_handler_not_exists(commander_module, function, arity)
-            {module, function} -> raise_if_handler_is_not_public(module, function)
-          end
+        {commander_module, event_handler} = event_handler(commander_module, event_handler_function)
 
-        # Warn if handler is not public
-        # TODO: in v0.8.0, all handler must be public
-        unless is_public?(commander_module, event_handler) do
-          Logger.warn("""
-          handler #{commander_module}.#{event_handler} must be declared as public in the commander.
-
-          Please use Drab.Commander.public or Drab.Commander.defhandler macro as following:
-              defhandler #{event_handler}(socket, sender) do
-                ...
-              end
-
-          This warning will become an error in v0.8.0.
-          """)
-        end
-
-        # Warn if shared commander is not declared
-        # TODO: in v0.8.0, all shared commanders must be declared
-        unless is_commander_declared?(commander_module, controller_module) do
-          Logger.warn("""
-          shared commander #{commander_module} is not declared in #{controller_module}.
-
-          Please whitelist all shared commanders in the controller:
-              use Drab.Controller, commanders: [#{commander_module}]
-
-          This warning will become an error in v0.8.0.
-          """)
-        end
+        raise_if_handler_is_not_public(commander_module, event_handler)
+        raise_if_commander_is_not_shared(commander_module, controller_module)
 
         payload = transform_payload(payload, state)
         socket = transform_socket(payload, socket, state)
@@ -372,11 +342,11 @@ defmodule Drab do
     {:noreply, state}
   end
 
-  @spec event_handler(String.t()) :: {atom | nil, atom}
-  defp event_handler(function_name) do
+  @spec event_handler(atom, String.t()) :: {atom | nil, atom}
+  defp event_handler(original_module, function_name) do
     case String.split(function_name, ".") do
       [function] ->
-        {nil, String.to_existing_atom(function)}
+        {original_module, String.to_existing_atom(function)}
 
       module_and_function ->
         module = module_and_function |> List.delete_at(-1) |> Module.safe_concat()
@@ -392,37 +362,32 @@ defmodule Drab do
     end
   end
 
-  @spec raise_if_handler_not_exists(atom, atom, integer) :: {atom, atom} | no_return
-  defp raise_if_handler_not_exists(module, function, arity) do
-    if !({function, arity} in apply(module, :__info__, [:functions])) ||
-         is_callback?(module, function) do
-      raise """
-      handler `#{function}/#{arity}` does not exist.
-      """
-    end
-
-    {module, function}
-  end
-
-  @spec is_callback?(atom, atom) :: boolean
-  defp is_callback?(module, function) do
-    options = apply(module, :__drab__, [])
-    # TODO: group callbacks in compile time
-    callbacks = Map.get(options, :before_handler, []) ++ Map.get(options, :after_handler, [])
-    function in callbacks
-  end
-
   @spec raise_if_handler_is_not_public(atom, atom) :: {atom, atom} | no_return
   defp raise_if_handler_is_not_public(module, function) do
     unless is_public?(module, function) do
-      raise """
-      handler #{module}.#{function} is not public.
+      raise Drab.ConfigurationError, message: """
+      handler #{module}.#{function} must be declared as public in the commander.
 
-      Use `Drab.Commander.public/1` macro to make it executable from any page.
+      Please use Drab.Commander.public or Drab.Commander.defhandler macro as following:
+          defhandler #{function}(socket, sender) do
+            ...
+          end
       """
     end
-
     {module, function}
+  end
+
+  @spec raise_if_commander_is_not_shared(atom, atom) :: {atom, atom} | no_return
+  defp raise_if_commander_is_not_shared(commander_module, controller_module) do
+    unless is_commander_declared?(commander_module, controller_module) do
+      raise Drab.ConfigurationError, message: """
+      shared commander #{commander_module} is not declared in #{controller_module}.
+
+      Please whitelist all shared commanders in the controller:
+          use Drab.Controller, commanders: [#{commander_module}]
+      """
+    end
+    {commander_module, controller_module}
   end
 
   @spec is_public?(atom, atom) :: boolean | no_return
@@ -431,7 +396,7 @@ defmodule Drab do
       options = apply(module, :__drab__, [])
       function in Map.get(options, :public_handlers, [])
     else
-      raise """
+      raise Drab.ConfigurationError, message: """
       #{module} is not a Drab module.
       """
     end

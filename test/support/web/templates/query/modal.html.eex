@@ -1,7 +1,7 @@
 <div id="begin"></div>
 <div id="drab_pid"></div>
 
-<button id="modal1_button" drab-event='click' drab-handler='show_modal1' data-modal="modal1">Modal1</button>
+<button id="modal1_button" drab-click='show_modal1' data-modal="modal1">Modal1</button>
 <div id="modal1_out"></div>
 
 <button id="modal2_button" drab-click='show_modal2' data-modal="modal2">Modal2</button>

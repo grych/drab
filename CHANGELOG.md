@@ -21,6 +21,50 @@ However, there are still few global options, like `:enable_live_scripts`. Please
 [`Drab.Config`](https://hexdocs.pm/drab/Drab.Config.html#content) documentation
 for more information.
 
+### Undeclared handler or shared commander raises
+
+All handlers must now be strictly declared by using `Drab.Commander.defhandler` or
+`Drab.Commander.public` macro.
+
+```elixir
+defhandler my_handler(socket, payload), do: ..
+```
+
+or
+
+```elixir
+public :my_handler
+def my_handler(socket, payload), do: ...
+```
+
+The same is with shared commanders, if you want to use it, declare it with `Drab.Controller`:
+
+```elixir
+use Drab.Controller, commanders: [My.Shared.Commander]
+```
+
+### Hard depreciations
+
+* [x] Drab.Client.js/2
+* [x] Drab.run_handler()
+* [x] Drab.Browser.console!/2
+* [x] Drab.Browser.redirect_to!/2
+* [x] Drab.Core.broadcast_js!/2
+
+### `drab-event` and `drab-handler` combination no longer exists
+
+The existing syntax `drab-event` and `drab-handler` is removed. Please use the new syntax of:
+
+    <tag drab="event:handler">
+    <input drab="focus:input_focus blur:input_blur"
+    <input drab-focus="input_focus" drab-blur="input_blur">
+
+[Do You Want to Know More?](https://hexdocs.pm/drab/Drab.Core.html#module-events)
+
+
+
+
+
 ### Updating from <= v0.8.3
 
 #### `config.exs`

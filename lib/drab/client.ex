@@ -99,7 +99,7 @@ defmodule Drab.Client do
 
   # changing the client API version will cause reload browsers with the different version
   # must be a string
-  @client_lib_version "9"
+  @client_lib_version "10"
 
   @doc """
   Generates JS code and runs Drab.
@@ -120,17 +120,6 @@ defmodule Drab.Client do
   @spec run(Plug.Conn.t(), Keyword.t()) :: String.t()
   def run(conn, assigns \\ []) do
     generate_drab_js(conn, true, assigns)
-  end
-
-  @doc false
-  @spec js(Plug.Conn.t(), Keyword.t()) :: String.t()
-  def js(conn, assigns \\ []) do
-    Deppie.warn("""
-    Drab.Client.js/2 is depreciated.
-    Please use Drab.Client.run/2 or Drab.client.generate/2 instead.
-    """)
-
-    run(conn, assigns)
   end
 
   @doc """

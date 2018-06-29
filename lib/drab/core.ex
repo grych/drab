@@ -78,11 +78,6 @@ defmodule Drab.Core do
 
   Please keep this list short, as it affects client script performance.
 
-  ### Long form [depreciated]
-  You may also configure drab handler with `drab-event` and `drab-handler` combination, but
-  please don't. This is coming from the ancient version of the software and will be removed
-  in the stable release.
-
   #### Defining optional argument in multiple nodes with `drab-argument` attribute
   If you add `drab-argument` attribute to any tag, all children of this tag will use this as
   an optional attribute. Notice that the existing arguments are not overwritten, so this:
@@ -322,18 +317,6 @@ defmodule Drab.Core do
   def broadcast_js(subject, js, _options \\ []) do
     ret = Drab.broadcast(subject, self(), "broadcastjs", js: js)
     {ret, :broadcasted}
-  end
-
-  @doc """
-  Bang version of `Drab.Core.broadcast_js/3`
-
-  Returns subject.
-  """
-  @spec broadcast_js!(subject, String.t(), Keyword.t()) :: return
-  def broadcast_js!(subject, js, _options \\ []) do
-    Deppie.warn("Drab.Core.broadcast_js!/2 is depreciated, please use broadcast_js/2 instead")
-    Drab.broadcast(subject, self(), "broadcastjs", js: js)
-    subject
   end
 
   @doc """

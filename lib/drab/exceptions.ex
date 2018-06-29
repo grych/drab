@@ -29,3 +29,12 @@ defmodule Drab.ConnectionError do
   @doc false
   defexception message: "Disconnected"
 end
+
+defmodule Drab.ConfigurationError do
+  @moduledoc """
+  Raised when misconfigured, for example trying to call not declared handler.
+  """
+
+  @doc false
+  defexception message: "Misconfiguration"
+end
