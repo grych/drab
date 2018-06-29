@@ -38,14 +38,15 @@ defmodule Drab.Live do
   This behaviour is configuable with `:live_conn_pass_through`. For example, if you want to preseve
   the specific assigns in the conn struct, mark them as true in the config:
 
-      config :drab, :live_conn_pass_through, %{
-        assigns: %{
-          users: true
-        },
-        private: %{
-          phoenix_endpoint: true
+      config :drab, MyAppWeb.Endpoint,
+        live_conn_pass_through: %{
+          assigns: %{
+            users: true
+          },
+          private: %{
+            phoenix_endpoint: true
+          }
         }
-      }
 
   ### Shared Commanders
   When the event is triggered inside the Shared Commander, defined with `drab-commander` attribute,
@@ -102,27 +103,6 @@ defmodule Drab.Live do
   manipulation must be done within the added partial:
 
       poke socket, "partial1.html", color: "red"
-
-  ### Evaluating expressions
-  When the assign change is poked back to the browser, Drab need to re-evaluate all the expressions
-  from the template which contain the given assign. This expressions are stored with the pattern
-  in the cache DETS file.
-
-  Because the expression must be run in the Phoenix environments, Drab does some `import` and `use`
-  before. For example, it does `use Phoenix.HTML` and `import Phoenix.View`. It also imports
-  the following modules from your application:
-
-      import YourApplication.Router.Helpers
-      import YourApplication.ErrorHelpers
-      import YourApplication.Gettext
-
-  If you renamed any of those modules in your application, you must tell Drab where to find it
-  by adding the following entry to the `config.exs` file:
-
-      config :drab, live_helper_modules: [Router.Helpers, ErrorHelpers, Gettext]
-
-  Notice that the application name is derived automatically. Please check `Drab.Config.get/1`
-  for more information on Drab setup.
 
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML

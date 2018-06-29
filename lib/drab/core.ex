@@ -73,7 +73,8 @@ defmodule Drab.Core do
 
   There is a possibility to configure the shortcut list:
 
-      config :drab, :events_shorthands, ["click", "keyup", "blur"]
+      config :drab, MyAppWeb.Endpoint,
+        events_shorthands: ["click", "keyup", "blur"]
 
   Please keep this list short, as it affects client script performance.
 
@@ -493,7 +494,8 @@ defmodule Drab.Core do
   You must explicit which session keys you want to access in `:access_session` option in
   `use Drab.Commander` or globally, in `config.exs`:
 
-      config :drab, :access_session, [:user_id]
+      config :drab, MyAppWeb.Endpoint,
+        :access_session, [:user_id]
   """
   @spec get_session(Phoenix.Socket.t(), atom) :: term
   def get_session(socket, key) do

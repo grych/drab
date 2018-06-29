@@ -20,7 +20,8 @@ if Drab.Config.get(:presence) do
     Please also ensure that there `main_phoenix_app` and `endpoint` for this app are configured
     correctly:
 
-        config :drab, main_phoenix_app: :my_app_web, endpoint: MyAppWeb.Endpoint
+        config :drab, MyAppWeb.Endpoint,
+          otp_app: :my_app_web
 
     ## Usage
     When installed, system tracks the presence over every Drab topic, both static topics configured

@@ -74,7 +74,7 @@ defmodule Drab.Socket do
   ## Configuration Options
   By default, Drab uses "/socket" as a path. In case of using different one, configure it with:
 
-      config :drab,
+      config :drab, MyAppWeb.Endpoint,
         socket: "/my/socket"
 
   This entry must correspond with the entry in your endpoint.ex.

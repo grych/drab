@@ -35,7 +35,8 @@ defmodule Drab.Client do
 
   Then, tell Drab to use this instead of default `require("phoenix").Socket`. Add to `config.exs`:
 
-      config :drab, js_socket_constructor: "window.__socket"
+      config :drab, MyAppWeb.Endpoint,
+        js_socket_constructor: "window.__socket"
 
   This will change the problematic line in Drab's javascript to:
 

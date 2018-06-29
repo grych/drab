@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Drab.Install do
   @impl true
   def run(_args) do
     validate_phoenix_version()
-    app = app_name()
+    app = Mix.Drab.app_name()
 
     Mix.shell().info("Checking prerequisites for #{inspect(app)}")
     app_html = find_file("lib", "app.html.eex")
@@ -41,18 +41,6 @@ defmodule Mix.Tasks.Drab.Install do
     end
   end
 
-  defp app_name() do
-    app = Mix.Project.config()[:app]
-    unless app do
-      Mix.shell().error("Can't find the application name.")
-      Mix.shell().info("""
-      If your web application is under an umbrella, please change directory there and try again.
-      """)
-      Mix.raise("Giving up.")
-    end
-    app
-  end
-
   defp update(file, path, app \\ nil)
 
   defp update("app.html.eex", file, _app) do
@@ -72,17 +60,20 @@ defmodule Mix.Tasks.Drab.Install do
 
   defp update("config.exs", file, app) do
     phoenix = """
-              \nconfig :phoenix, :template_engines,
-                drab: Drab.Live.Engine
+              \n# Configures default Drab file extension
+              config :phoenix, :template_engines,
+                drab: Drab.Live.Engine\n
               """
     drab = """
-           \nconfig :drab,
-             main_phoenix_app: #{inspect(app)},
-             endpoint: #{Drab.Config.find_endpoint_in_config_exs(app)}
+           # Configures Drab
+           config :drab, #{inspect(Mix.Drab.find_endpoint_in_config_exs(app))},
+             otp_app: #{inspect(app)}
            """
 
-    unless inject_string_already_there(file, phoenix) do
-      File.write!(file, phoenix <> drab, [:append])
+    unless inject_string_already_there(file, drab) do
+      # File.write!(file, phoenix <> drab, [:append])
+      logger = "# Configures Elixir's Logger\n"
+      inject_to_file(file, logger, drab <> phoenix <> logger)
     end
   end
 
@@ -97,7 +88,6 @@ defmodule Mix.Tasks.Drab.Install do
       end
     end
   end
-
 
   defp inject_string_already_there(file, inject) do
     f = File.read!(file)
