@@ -365,7 +365,7 @@ defmodule Drab do
   defp raise_if_handler_is_not_public(module, function) do
     unless is_public?(module, function) do
       raise Drab.ConfigurationError, message: """
-      handler #{module}.#{function} must be declared as public in the commander.
+      handler #{inspect(module)}.#{function} must be declared as public in the commander.
 
       Please use Drab.Commander.public or Drab.Commander.defhandler macro as following:
           defhandler #{function}(socket, sender) do
@@ -380,10 +380,10 @@ defmodule Drab do
   defp raise_if_commander_is_not_shared(commander_module, controller_module) do
     unless is_commander_declared?(commander_module, controller_module) do
       raise Drab.ConfigurationError, message: """
-      shared commander #{commander_module} is not declared in #{controller_module}.
+      shared commander #{inspect(commander_module)} is not declared in #{inspect(controller_module)}
 
       Please whitelist all shared commanders in the controller:
-          use Drab.Controller, commanders: [#{commander_module}]
+          use Drab.Controller, commanders: [#{inspect(commander_module)}]
       """
     end
     {commander_module, controller_module}

@@ -10,7 +10,7 @@ defmodule DrabTestApp.LiveCommander do
   def page_loaded(socket) do
     DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)
     DrabTestApp.IntegrationCase.add_pid(socket)
-    poke(socket, text: "set in the commander")
+    # poke(socket, text: "set in the commander")
     put_store socket, :current_user_id, 44
   end
 

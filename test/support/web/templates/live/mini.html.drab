@@ -1,10 +1,13 @@
 <div id="begin" style="display: none;"></div>
 <div id="drab_pid" style="display: none;"></div>
 
-  <button drab-click="update_mini">Update mini</button>
-<br>
-<div @style.backgroundColor=<%= @color %>>
-  <%= @text %>
+<div id="top-pane"><span class="helper"></span><span id="user-name">Test</span></div>
+
+<div id="<%= @current_week_monday %>" style="display: none;"></div>
+<div id="weekdays">
+    <span src="<%= @current_week_monday %>" class="arrow ar-right" drab="click:next_week">
+    <%= for day <- @weekdays do %>
+        <%= day %>
+    <% end %>
+    <img src="<%= static_path(@conn, "/images/arrow.svg") %>" class="arrow ar-right" drab="click:next_week">
 </div>
-<%= inspect assigns[:current_user_id] %>
-<%# get_session(@conn, :current_user) %>
