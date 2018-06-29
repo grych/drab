@@ -181,7 +181,8 @@ defmodule Drab do
     #   Drab.Core.detokenize_store(socket, payload["drab_session_token"])
     # )
 
-    Drab.Core.save_store(socket, Drab.Core.detokenize_store(socket, payload["drab_store_token"]))
+    # Drab.Core.save_store(socket, Drab.Core.detokenize_store(socket, payload["drab_store_token"]))
+    Drab.Core.save_store(socket, socket.assigns[:__store])
     Drab.Core.save_socket(socket)
 
     onconnect = commander_config(commander).onconnect
@@ -190,6 +191,10 @@ defmodule Drab do
     for shared_commander <- state.commanders do
       onconnect = commander_config(shared_commander).onconnect
       handle_callback(socket, shared_commander, onconnect)
+    end
+
+    if Drab.Config.get(:presence) do
+      Drab.Config.get(:presence, :module).start(socket, socket.topic)
     end
 
     {:noreply, state}

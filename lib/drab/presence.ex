@@ -17,11 +17,15 @@ if Drab.Config.get(:presence) do
           Drab.Presence,
         ]
 
-    Please also ensure that there `main_phoenix_app` and `endpoint` for this app are configured
-    correctly:
+    Please also ensure that there `otp_app` and endpoint for this app are configured correctly:
 
         config :drab, MyAppWeb.Endpoint,
           otp_app: :my_app_web
+
+    In multiple endpoint configuration, you need to specify which endpoint to use with
+    `Drab.Presence`:
+
+        config :drab, :presence, endpoint: MyAppWeb.Endpoint
 
     ## Usage
     When installed, system tracks the presence over every Drab topic, both static topics configured
@@ -35,10 +39,11 @@ if Drab.Config.get(:presence) do
           }
         }
 
-    The ID may also be taken from Plug Session. For example, you have a `:current_user_id` stored in
-    the session, you may want to use it as an id with `id` config option:
+    The ID may also be taken from Plug Session or from the Drab Store. For example, you have
+    a `:current_user_id` stored in the session, you may want to use it as an id with
+    `id` config option:
 
-        config :drab, :presence, id: :current_user_id
+        config :drab, :presence, id: [session: :current_user_id]
 
     So this ID will become the key of the presence map:
 
@@ -48,6 +53,12 @@ if Drab.Config.get(:presence) do
             metas: [%{online_at: 1520417565, phx_ref: ...}]
           }
         }
+
+    Notice that system transforms the key value to the binary string.
+
+    The similar would be with the Drab Store:
+
+      config :drab, :presence, id: [store: :current_user_id]
 
     ### Example
     Here we are going to show how to display number of connected users online. The solution is to
@@ -87,7 +98,7 @@ if Drab.Config.get(:presence) do
     along with `stop/2`, which runs when user unsubscribe from the topic.
 
         defmodule MyAppWeb.MyPresence do
-          use Phoenix.Presence, otp_app: Drab.Config.app_name(), pubsub_server: Drab.Config.pubsub()
+          use Phoenix.Presence, otp_app: :my_app, pubsub_server: MyApp.PubSub
 
           def start(socket, topic) do
             client_id = Drab.Browser.id!(socket)
@@ -106,16 +117,21 @@ if Drab.Config.get(:presence) do
     @dialyzer {:nowarn_function, init: 1}
 
     use Phoenix.Presence,
-      otp_app: Drab.Config.app_name(Drab.Config.get(:presence, :endpoint) || Drab.Config.default_endpoint()),
-      pubsub_server: Drab.Config.pubsub(Drab.Config.get(:presence, :endpoint) || Drab.Config.default_endpoint())
+      otp_app:
+        Drab.Config.app_name(
+          Drab.Config.get(:presence, :endpoint) || Drab.Config.default_endpoint()
+        ),
+      pubsub_server:
+        Drab.Config.pubsub(
+          Drab.Config.get(:presence, :endpoint) || Drab.Config.default_endpoint()
+        )
 
     @doc false
     @spec start(Phoenix.Socket.t(), String.t()) :: {:ok, binary()} | {:error, reason :: term()}
     def start(socket, topic) do
-      client_id =
-        Drab.Core.get_session(socket, Drab.Config.get(:presence, :id)) || Drab.Browser.id!(socket)
-
-      case track(socket.channel_pid, topic, client_id, %{online_at: System.system_time(:seconds)}) do
+      case track(socket.channel_pid, topic, client_id(socket), %{
+             online_at: System.system_time(:seconds)
+           }) do
         {:ok, reason} -> {:ok, reason}
         {:error, {:already_tracked, _, _, _} = reason} -> {:ok, reason}
         {:error, reason} -> raise inspect(reason)
@@ -125,10 +141,17 @@ if Drab.Config.get(:presence) do
     @doc false
     @spec stop(Phoenix.Socket.t(), String.t()) :: :ok
     def stop(socket, topic) do
-      client_id =
-        Drab.Core.get_session(socket, Drab.Config.get(:presence, :id)) || Drab.Browser.id!(socket)
+      untrack(socket.channel_pid, topic, client_id(socket))
+    end
 
-      untrack(socket.channel_pid, topic, client_id)
+    @spec client_id(Phoenix.Socket.t()) :: String.t() | no_return
+    defp client_id(socket) do
+      case Drab.Config.get(:presence, :id) do
+        [session: session_key] -> Drab.Core.get_session(socket, session_key)
+        [store: store_key] -> Map.get(socket.assigns[:__store], store_key, nil)
+        session_key when is_atom(session_key) -> Drab.Core.get_session(socket, session_key)
+        _ -> nil
+      end || Drab.Browser.id!(socket)
     end
 
     @doc """

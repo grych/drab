@@ -5,12 +5,13 @@ defmodule DrabTestApp.LiveCommander do
   use Drab.Commander, modules: [Drab.Live, Drab.Element]
   onload(:page_loaded)
   broadcasting(:same_action)
-  # access_session(:some_id)
+  access_session(:current_user_id)
 
   def page_loaded(socket) do
     DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)
     DrabTestApp.IntegrationCase.add_pid(socket)
     poke(socket, text: "set in the commander")
+    put_store socket, :current_user_id, 44
   end
 
   defhandler update_both(socket, _) do

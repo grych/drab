@@ -31,7 +31,7 @@ config :drab, enable_live_scripts: true
 
 config :drab, :phoenix_channel_options, log_handle_in: false
 
-config :drab, :presence, true
+config :drab, :presence, id: [store: :current_user_id]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

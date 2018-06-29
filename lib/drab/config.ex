@@ -303,6 +303,8 @@ defmodule Drab.Config do
       Drab.Coder.Cipher
   """
   @spec get(atom) :: term
+  def get(key)
+
   def get(:enable_live_scripts), do: Application.get_env(:drab, :enable_live_scripts, false)
 
   def get(:phoenix_channel_options), do: Application.get_env(:drab, :phoenix_channel_options, [])
@@ -320,9 +322,11 @@ defmodule Drab.Config do
       "priv/custom_templates"
   """
   @spec get(atom, atom) :: term
+  def get(endpoint, key)
+
   def get(:presence, :id) do
     case get(:presence) do
-      options when is_list(options) -> Keyword.get(options, :id, :user_id)
+      options when is_list(options) -> Keyword.get(options, :id, [session: :user_id])
       _ -> nil
     end
   end
@@ -369,11 +373,11 @@ defmodule Drab.Config do
     do: get_env(endpoint, :js_socket_constructor, "require(\"phoenix\").Socket")
 
   def get(endpoint, :access_session) do
-    if get(:presence) do
-      [get(:presence, :id) | get_env(endpoint, :access_session, [])]
-    else
+    # if get(:presence) do
+    #   [get(:presence, :id) | get_env(endpoint, :access_session, [])]
+    # else
       Application.get_env(endpoint, :access_session, [])
-    end
+    # end
   end
 
   def get(endpoint, :live_conn_pass_through) do

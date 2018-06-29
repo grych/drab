@@ -8,7 +8,6 @@ defmodule Drab.Channel do
   @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}
   def join("__drab:" <> _broadcast_topic, _, socket) do
     # socket already contains controller and action
-    # socket_with_topic = assign(socket, :__broadcast_topic, broadcast_topic)
     {:ok, pid} = Drab.start_link(socket)
     socket_with_pid = assign(socket, :__drab_pid, pid)
 
@@ -107,9 +106,12 @@ defmodule Drab.Channel do
       #{Enum.join(examples, "\n")}
       """)
     end
+
     session = Drab.Core.detokenize_store(socket, payload["drab_session_token"])
     socket = assign(socket, :__session, session)
-    if Drab.Config.get(:presence), do: send(self(), :run_presence)
+    store = Drab.Core.detokenize_store(socket, payload["drab_store_token"])
+    socket = assign(socket, :__store, store)
+
     Drab.set_socket(socket.assigns.__drab_pid, socket)
     verify_and_cast(:onconnect, [payload], socket)
   end
@@ -140,11 +142,10 @@ defmodule Drab.Channel do
     {:noreply, socket}
   end
 
-  def handle_info(:run_presence, socket) do
-    # push socket, "presence_state", Drab.Presence.list(socket)
-    Drab.Config.get(:presence, :module).start(socket, socket.topic)
-    {:noreply, socket}
-  end
+  # def handle_info(:run_presence, socket) do
+  #   Drab.Config.get(:presence, :module).start(socket, socket.topic)
+  #   {:noreply, socket}
+  # end
 
   def handle_info(%Phoenix.Socket.Broadcast{topic: _, event: ev, payload: payload}, socket) do
     push socket, ev, payload
