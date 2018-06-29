@@ -18,6 +18,6 @@ defmodule DrabTestApp.ShareCommander do
   end
 
   defhandler peek_text(socket, sender) do
-    set_prop(socket, this(sender), innerText: peek(socket, :text) || "--- nil ---")
+    set_prop(socket, this(sender), innerText: peek!(socket, :text) || "--- nil ---")
   end
 end

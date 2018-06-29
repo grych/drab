@@ -78,8 +78,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   defhandler add_item(socket, sender) do
-    items = socket |> peek(:list)
-    # new_item = socket |> Drab.Query.select(:val, from: "#drab_new_item")
+    items = peek!(socket, :list)
     new_item = sender["form"]["drab[new_item]"]
     new_list = items ++ ["#{new_item}"]
     Drab.Live.poke(socket, list: new_list)
@@ -107,7 +106,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   defhandler update_excluded_and_users(socket, _sender) do
-    poke(socket, users: peek(socket, :users), excluded: "Hegemon")
+    poke(socket, users: peek!(socket, :users), excluded: "Hegemon")
   end
 
   defhandler update_excluded(socket, _sender) do

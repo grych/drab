@@ -508,7 +508,7 @@ defmodule Drab do
       after
         timeout ->
           # TODO: message is still in a queue
-          {:timeout, "timed out after #{timeout} ms."}
+          {:error, :timeout}
       end
     else
       {:error, :disconnected}

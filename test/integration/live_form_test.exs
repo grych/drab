@@ -16,10 +16,10 @@ defmodule DrabTestApp.LiveFormTest do
   describe "Drab.Live" do
     test "form should return initial values", fixture do
       socket = fixture.socket
-      assert peek(socket, :out) == %{}
+      assert peek!(socket, :out) == %{}
       click_and_wait("update_form_button")
 
-      assert peek(socket, :out) == %{
+      assert peek!(socket, :out) == %{
                "radio" => "2",
                "textarea" => "textarea initial value",
                "select_input" => "2",
@@ -30,7 +30,7 @@ defmodule DrabTestApp.LiveFormTest do
 
     test "poking should update form", fixture do
       socket = fixture.socket
-      assert peek(socket, :out) == %{}
+      assert peek!(socket, :out) == %{}
 
       poke(
         socket,
@@ -43,7 +43,7 @@ defmodule DrabTestApp.LiveFormTest do
       Drab.Element.set_prop(socket, "input[name=checkbox3][value='3']", checked: true)
       click_and_wait("update_form_button")
 
-      assert peek(socket, :out) == %{
+      assert peek!(socket, :out) == %{
                "radio" => "3",
                "textarea" => "textarea updated value",
                "select_input" => "3",

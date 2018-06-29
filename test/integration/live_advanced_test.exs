@@ -23,7 +23,7 @@ defmodule DrabTestApp.LiveAdvancedTest do
     end
 
     test "update both list and child should work", fixture do
-      poke(fixture.socket, users: peek(fixture.socket, :users), excluded: "Hegemon")
+      poke(fixture.socket, users: peek!(fixture.socket, :users), excluded: "Hegemon")
 
       assert query_one!(fixture.socket, "#users_list", :innerText) == %{
                "innerText" => "Mirmił Kokosz"

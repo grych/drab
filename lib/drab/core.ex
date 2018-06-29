@@ -186,7 +186,7 @@ defmodule Drab.Core do
   use DrabModule
 
   @typedoc "Returned status of all Core operations"
-  @type status :: :ok | :error | :timeout
+  @type status :: :ok | :error
 
   @typedoc "Types returned from the browser"
   @type return :: String.t() | map | float | integer | list
@@ -220,7 +220,7 @@ defmodule Drab.Core do
   @doc """
   Synchronously executes the given javascript on the client side.
 
-  Returns tuple `{status, return_value}`, where status could be `:ok`, `:error` or `:timeout`,
+  Returns tuple `{status, return_value}`, where status could be `:ok` or `:error`,
   and return value contains the output computed by the Javascript or the error message.
 
   ### Options
@@ -236,10 +236,10 @@ defmodule Drab.Core do
       {:error, "not_existing_function is not defined"}
 
       iex> socket |> exec_js("for(i=0; i<1000000000; i++) {}")
-      {:timeout, "timed out after 5000 ms."}
+      {:error, :timeout}
 
       iex> socket |> exec_js("alert('hello from IEx!')", timeout: 500)
-      {:timeout, "timed out after 500 ms."}
+      {:error, :timeout}
 
   """
   @spec exec_js(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
@@ -260,20 +260,19 @@ defmodule Drab.Core do
             (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
 
         iex> socket |> exec_js!("for(i=0; i<1000000000; i++) {}")
-        ** (Drab.JSExecutionError) timed out after 5000 ms.
+        ** (Drab.JSExecutionError) timeout
             (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
 
         iex> socket |> exec_js!("for(i=0; i<10000000; i++) {}", timeout: 1000)
-        ** (Drab.JSExecutionError) timed out after 1000 ms.
+        ** (Drab.JSExecutionError) timeout
             lib/drab/core.ex:114: Drab.Core.exec_js!/3
 
   """
   @spec exec_js!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: return | no_return
   def exec_js!(socket, js, options \\ []) do
     case exec_js(socket, js, options) do
-      {:ok, result} -> result
       {:error, :disconnected} -> raise Drab.ConnectionError
-      {_, message} -> raise Drab.JSExecutionError, message: message
+      other -> Drab.JSExecutionError.result_or_raise(other)
     end
   end
 

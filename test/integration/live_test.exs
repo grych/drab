@@ -17,11 +17,11 @@ defmodule DrabTestApp.LiveTest do
   describe "Drab.Live" do
     test "simple poke and peek on global", fixture do
       poke(fixture.socket, count: 42)
-      assert peek(fixture.socket, :count) == 42
+      assert peek(fixture.socket, :count) == {:ok, 42}
     end
 
     test "poke onload", fixture do
-      assert peek(fixture.socket, :text) == "set in the commander"
+      assert peek(fixture.socket, :text) == {:ok, "set in the commander"}
       set_onload = find_element(:id, "text_to_set_onload")
       assert visible_text(set_onload) == "set in the commander"
     end
@@ -46,21 +46,21 @@ defmodule DrabTestApp.LiveTest do
 
     test "change assign in main should not touch partial", fixture do
       poke(fixture.socket, color: 42)
-      refute peek(fixture.socket, "partial1.html", :color) == 42
-      assert peek(fixture.socket, :color) == 42
+      refute peek!(fixture.socket, "partial1.html", :color) == 42
+      assert peek!(fixture.socket, :color) == 42
     end
 
     test "change assign in partial should not touch main", fixture do
       poke(fixture.socket, "partial1.html", color: 42)
-      assert peek(fixture.socket, "partial1.html", :color) == 42
-      refute peek(fixture.socket, :color) == 42
+      assert peek!(fixture.socket, "partial1.html", :color) == 42
+      refute peek!(fixture.socket, :color) == 42
     end
 
     test "change assign in external partial should not touch main and internal one", fixture do
       poke(fixture.socket, DrabTestApp.Live2View, "partial2.html", color: 42)
-      assert peek(fixture.socket, DrabTestApp.Live2View, "partial2.html", :color) == 42
-      refute peek(fixture.socket, "partial1.html", :color) == 42
-      refute peek(fixture.socket, :color) == 42
+      assert peek!(fixture.socket, DrabTestApp.Live2View, "partial2.html", :color) == 42
+      refute peek!(fixture.socket, "partial1.html", :color) == 42
+      refute peek!(fixture.socket, :color) == 42
     end
 
     test "updating color in main should change style.backgroundColor in main, but not in partials",
@@ -113,10 +113,10 @@ defmodule DrabTestApp.LiveTest do
     end
 
     test "update in partial in a subfolder should work", fixture do
-      assert peek(fixture.socket, "subfolder/subpartial.html", :text) == "text in the subpartial"
+      assert peek!(fixture.socket, "subfolder/subpartial.html", :text) == "text in the subpartial"
       poke(fixture.socket, "subfolder/subpartial.html", text: "UPDATED")
 
-      assert peek(fixture.socket, DrabTestApp.LiveView, "subfolder/subpartial.html", :text) ==
+      assert peek!(fixture.socket, DrabTestApp.LiveView, "subfolder/subpartial.html", :text) ==
                "UPDATED"
 
       assert visible_text(find_element(:id, "subpartial_div")) == "UPDATED"
@@ -133,7 +133,7 @@ defmodule DrabTestApp.LiveTest do
         poke(fixture.socket, conn: "whatever")
       end
 
-      assert match?(%Plug.Conn{}, peek(fixture.socket, :conn))
+      assert match?(%Plug.Conn{}, peek!(fixture.socket, :conn))
     end
 
     test "Drab.Live.assigns should return the proper assigns list", fixture do
@@ -161,7 +161,7 @@ defmodule DrabTestApp.LiveTest do
       main_color = find_element(:id, "color_main")
       broadcast_poke(fixture.socket, color: "red")
       assert css_property(main_color, "backgroundColor") == "rgba(255, 0, 0, 1)"
-      assert peek(fixture.socket, :color) == "red"
+      assert peek(fixture.socket, :color) == {:ok, "red"}
     end
 
     test "broadcast/2 with subject" do
@@ -199,7 +199,7 @@ defmodule DrabTestApp.LiveTest do
       )
 
       assert css_property(main_color, "backgroundColor") == "rgba(255, 0, 0, 1)"
-      assert peek(fixture.socket, :color) == "red"
+      assert peek!(fixture.socket, :color) == "red"
 
       assert_raise ArgumentError, fn ->
       broadcast_poke(
