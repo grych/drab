@@ -198,7 +198,6 @@ defmodule DrabTestApp.QueryTest do
       socket = drab_socket()
       selector = "#select1_div"
       tests = [:width, :height, :innerWidth, :innerHeight]
-      # TODO: :scrollTop, :scrollLeft are not tested, as it can't be changed (always return 0)
       for method <- tests do
         r = Enum.random(100..200)
         socket |> update(method, set: "#{r}px", on: selector)

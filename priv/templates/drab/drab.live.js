@@ -100,27 +100,34 @@ function ampere_nodes(ampere, where) {
 
 Drab.update_attribute = function (ampere, attribute, new_value) {
   var nodes = ampere_nodes(ampere);
+  var n = 0;
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
     // a corner case for <input value="">
     if ((node.tagName == "INPUT" || node.tagName == "TEXAREA") && attribute.toLowerCase() == "value") {
       node.value = new_value;
+      n++;
     }
     node.setAttribute(attribute, new_value);
   }
+  return n;
 }
 
 Drab.update_property = function (ampere, property, new_value) {
   var nodes = ampere_nodes(ampere);
+  var n = 0;
   for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
     set_property(node, ampere, property, new_value);
+    n++;
   }
+  console.log(n);
+  return n;
 }
 
 Drab.update_tag = function(tag, ampere, new_value) {
+  var n = 0;
   switch(tag) {
-    // TODO: script should also work under the shared commander
     case "script":
       eval(new_value);
       break;
@@ -131,8 +138,10 @@ Drab.update_tag = function(tag, ampere, new_value) {
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         node.innerHTML = new_value;
+        n++;
       }
       Drab.enable_drab_on(s);
   }
+  return n;
 };
 

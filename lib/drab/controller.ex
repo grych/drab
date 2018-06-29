@@ -11,10 +11,11 @@ defmodule Drab.Controller do
   See also `Drab.Commander`
   """
 
+  require Logger
   defmacro __using__(options) do
     if options == [] do
-      Deppie.warn(
-        "`use Drab.Controller` without options is not needed anymore (#{__CALLER__.module})"
+      Logger.warn(
+        "`use Drab.Controller` without options is not mandatory (#{__CALLER__.module})"
       )
     end
 

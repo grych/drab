@@ -33,7 +33,7 @@
 
   window.Drab = {
     create: function (drab_return_token, drab_session_token, broadcast_topic) {
-      this.Socket = <%= Drab.Config.get(:js_socket_constructor) %>;
+      this.Socket = <%= Drab.Config.get(endpoint, :js_socket_constructor) %>;
 
       this.drab_return_token = drab_return_token;
       this.drab_session_token = drab_session_token;
@@ -59,7 +59,7 @@
         __client_lib_version: Drab.client_lib_version,
         __client_id: Drab.myid
       });
-      this.socket = new this.Socket("<%= Drab.Config.get(:socket) %>", {
+      this.socket = new this.Socket("<%= Drab.Config.get(endpoint, :socket) %>", {
         params: params
       });
       // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
@@ -113,10 +113,6 @@
       };
       this.channel.push("event", message);
     },
-    run_handler: function(event_name, event_handler, payload, execute_after) {
-      Drab.error("Drab.run_handler() is depreciated. Please use Drab.exec_elixir() instead");
-      this.exec_elixir(event_handler, payload, execute_after);
-    },
     error: function (message) {
       console.log("[drab] " + message);
       if (this.channel) {
@@ -145,10 +141,10 @@
       this.additional_payloads.push(f);
     },
     set_drab_store_token: function(token) {
-      <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.set.js", []) %>
+      <%= Drab.Template.render_template(endpoint, "drab.store.#{Drab.Config.get(endpoint, :drab_store_storage)}.set.js", []) %>
     },
     get_drab_store_token: function() {
-      <%= Drab.Template.render_template("drab.store.#{Drab.Config.get(:drab_store_storage) |> Atom.to_string}.get.js", []) %>
+      <%= Drab.Template.render_template(endpoint, "drab.store.#{Drab.Config.get(endpoint, :drab_store_storage)}.get.js", []) %>
     },
     get_drab_session_token: function () {
       return this.drab_session_token;
@@ -157,7 +153,7 @@
 
   <%=
     Enum.map(templates, fn template ->
-      Drab.Template.render_template(template, [])
+      Drab.Template.render_template(endpoint, template, [endpoint: endpoint])
     end)
   %>
 

@@ -218,14 +218,12 @@ defmodule Drab.Browser do
     exec_js(socket, @languages_js)
   end
 
-  @doc false
+  @doc """
+  Exception raising version of redirect_to/2
+  """
   @spec redirect_to!(Phoenix.Socket.t(), String.t()) :: any
   def redirect_to!(socket, url) do
-    Deppie.warn("""
-    Drab.Live.redirect_to! has been renamed to broadcast_redirect_to!/1
-    """)
-
-    broadcast_redirect_to(socket, url)
+    exec_js!(socket, "window.location = '#{url}'")
   end
 
   @doc """
@@ -250,15 +248,12 @@ defmodule Drab.Browser do
     broadcast_js(socket, "window.location = '#{url}'")
   end
 
-  @doc false
+  @doc """
+  Exception raising version of console/2
+  """
   @spec console!(Phoenix.Socket.t(), String.t()) :: Phoenix.Socket.t()
   def console!(socket, log) do
-    Deppie.warn("""
-    Drab.Live.console (broadcasting version of console/1) has been renamed to broadcast_console/1
-    """)
-
-    broadcast_console(socket, log)
-    socket
+    exec_js!(socket, "console.log(#{Drab.Core.encode_js(log)})")
   end
 
   @doc """

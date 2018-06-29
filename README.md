@@ -55,13 +55,13 @@ end
 
   First at all, you need to have a Phoenix application, on top of which you will install Drab. If this is a standard app, generated with `mix phx.new`, you may use Drab Installer to make it running in one, simple step. Otherwise, see [Manual Installation](#manual-installation) section below.
 
-  1. Edit `mix.exs` in the main folder in your web application (if you have multiple application under an umbrella, this is the one ending with `_web`). Locate function `deps` (search for `def deps` string). Add an entry `{:drab, "~> 0.8.3"}` to the list. Don't forget about comma!
+  1. Edit `mix.exs` in the main folder in your web application (if you have multiple application under an umbrella, this is the one ending with `_web`). Locate function `deps` (search for `def deps` string). Add an entry `{:drab, "~> 0.9.0"}` to the list. Don't forget about comma!
 
 ```elixir
 def deps do
   [
     {...},
-    {:drab, "~> 0.8.3"}
+    {:drab, "~> 0.9.0"}
   ]
 end
 ```
@@ -296,9 +296,8 @@ use Drab.Socket
 config :phoenix, :template_engines,
   drab: Drab.Live.Engine
 
-config :drab,
-  main_phoenix_app: :my_app_web,
-  endpoint: MyAppWeb.Endpoint
+config :drab, MyAppWeb.Endpoint,
+  otp_app: :my_app_web
 ```
 
   5. Add `:drab` to applications started by default in `mix.exs`:
@@ -324,13 +323,6 @@ config :my_app, MyApp.Endpoint,
       ~r{web/templates/.*(eex|drab)$}
     ]
   ]
-```
-
-  7. If your application is **under the umbrella project**, Drab is not able to find its name. In this case, add the app name to the `config.exs`:
-
-```elixir
-config :drab,
-  main_phoenix_app: :my_app
 ```
 
 #### If you want to use Drab.Query (jQuery based module):

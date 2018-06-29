@@ -35,7 +35,8 @@ defmodule Drab.Client do
 
   Then, tell Drab to use this instead of default `require("phoenix").Socket`. Add to `config.exs`:
 
-      config :drab, js_socket_constructor: "window.__socket"
+      config :drab, MyAppWeb.Endpoint,
+        js_socket_constructor: "window.__socket"
 
   This will change the problematic line in Drab's javascript to:
 
@@ -98,7 +99,7 @@ defmodule Drab.Client do
 
   # changing the client API version will cause reload browsers with the different version
   # must be a string
-  @client_lib_version "8"
+  @client_lib_version "10"
 
   @doc """
   Generates JS code and runs Drab.
@@ -119,17 +120,6 @@ defmodule Drab.Client do
   @spec run(Plug.Conn.t(), Keyword.t()) :: String.t()
   def run(conn, assigns \\ []) do
     generate_drab_js(conn, true, assigns)
-  end
-
-  @doc false
-  @spec js(Plug.Conn.t(), Keyword.t()) :: String.t()
-  def js(conn, assigns \\ []) do
-    Deppie.warn("""
-    Drab.Client.js/2 is depreciated.
-    Please use Drab.Client.run/2 or Drab.client.generate/2 instead.
-    """)
-
-    run(conn, assigns)
   end
 
   @doc """
@@ -166,6 +156,7 @@ defmodule Drab.Client do
     if enables_drab?(controller) do
       commander = commander_for(controller)
       view = view_for(controller)
+      endpoint = Phoenix.Controller.endpoint_module(conn)
       action = Phoenix.Controller.action_name(conn)
 
       controller_and_action =
@@ -185,7 +176,7 @@ defmodule Drab.Client do
       templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
       access_session =
-        Enum.uniq(commander.__drab__().access_session ++ Drab.Config.get(:access_session))
+        Enum.uniq(commander.__drab__().access_session ++ Drab.Config.get(endpoint, :access_session))
 
       session =
         access_session
@@ -196,6 +187,7 @@ defmodule Drab.Client do
 
       bindings = [
         controller_and_action: controller_and_action,
+        endpoint: endpoint,
         commander: commander,
         templates: templates,
         drab_session_token: session_token,
@@ -204,7 +196,7 @@ defmodule Drab.Client do
         client_lib_version: @client_lib_version
       ]
 
-      js = render_template("drab.js", bindings)
+      js = render_template(endpoint, "drab.js", bindings)
 
       Phoenix.HTML.raw("""
       <script>

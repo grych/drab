@@ -76,8 +76,8 @@ defmodule Drab.Modal do
                   buttons: [ok: "Yes", cancel: "No", unspecified: "Don't know"])
 
   """
-  @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) :: Drab.Core.return()
-  @spec alert(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return()
+  @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) :: Drab.Core.return() | no_return
+  @spec alert(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
   def alert(socket, title, body, options \\ []) do
     buttons = options[:buttons] || [ok: "OK"]
 
@@ -85,10 +85,10 @@ defmodule Drab.Modal do
       title: title,
       body: body,
       class: options[:class],
-      buttons: buttons_html(buttons)
+      buttons: buttons_html(socket, buttons)
     ]
 
-    html = render_template("modal.alert.html.eex", bindings)
+    html = render_template(socket.endpoint, "modal.alert.html.eex", bindings)
 
     socket
     |> delete("#_drab_modal")
@@ -100,11 +100,11 @@ defmodule Drab.Modal do
     result
   end
 
-  @spec buttons_html(Keyword.t()) :: String.t()
-  defp buttons_html(buttons) do
+  @spec buttons_html(Phoenix.Socket.t(), Keyword.t()) :: String.t()
+  defp buttons_html(socket, buttons) do
     buttons
     |> Enum.map(fn {button, label} ->
-      render_template("modal.alert.button.#{Atom.to_string(button)}.html.eex", label: label)
+      render_template(socket.endpoint, "modal.alert.button.#{Atom.to_string(button)}.html.eex", label: label)
     end)
     |> Enum.join("\n")
   end

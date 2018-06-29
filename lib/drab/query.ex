@@ -345,7 +345,6 @@ defmodule Drab.Query do
   end
 
   defp one_element_selector_only!(v, selector) do
-    # TODO: maybe it would be better to allow multiple-element cycling?
     if Enum.count(v) != 1 do
       raise ArgumentError,
             "Cycle is possible only on one element selector, given: \"#{selector}\""
@@ -451,7 +450,7 @@ defmodule Drab.Query do
       socket |> delete(from: "code") # empty all `<code>`, but node remains
       socket |> delete(class: "btn-success", from: "#button")
   """
-  @spec delete(Phoenix.Socket.t(), Keyword.t() | String.t()) :: Phoenix.Socket.t() | no_return
+  @spec delete(Phoenix.Socket.t(),  Keyword.t() | String.t()) :: Phoenix.Socket.t() | no_return
   def delete(socket, options) do
     do_delete(socket, @no_broadcast, options)
     socket
@@ -571,8 +570,6 @@ defmodule Drab.Query do
   defp jquery_method(method, attribute, parameter) do
     {method, "(#{escape_value(attribute)}, #{escape_value(parameter)})"}
   end
-
-  # TODO: move it to templates
 
   defp build_js(selector, {:all, "()"}, :select) do
     # val: $(this).val(), html: $(this).html(), text: $(this).text()

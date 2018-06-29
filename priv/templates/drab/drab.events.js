@@ -1,5 +1,5 @@
-const EVENT_SHORTCUTS = <%= Drab.Config.get(:events_shorthands) |> Drab.Core.encode_js %>;
-const EVENTS_TO_DISABLE = <%= Drab.Config.get(:events_to_disable_while_processing) |> Drab.Core.encode_js %>;
+const EVENT_SHORTCUTS = <%= Drab.Config.get(endpoint, :events_shorthands) |> Drab.Core.encode_js %>;
+const EVENTS_TO_DISABLE = <%= Drab.Config.get(endpoint, :events_to_disable_while_processing) |> Drab.Core.encode_js %>;
 
 Drab.save_disabled_state = function() {
   var drabs = document.querySelectorAll("[drab]");
@@ -10,7 +10,7 @@ Drab.save_disabled_state = function() {
 };
 
 Drab.disable_drab_objects = function (disable) {
-  <%= if Drab.Config.get(:disable_controls_when_disconnected) do %>
+  <%= if Drab.Config.get(endpoint, :disable_controls_when_disconnected) do %>
     var found =  document.querySelectorAll("[drab]");
     for (var i = 0; i < found.length; i++) {
       var element = found[i];
@@ -300,18 +300,6 @@ function set_drab_attribute(where) {
     };
   }
 
-  // long way, to be depreciated
-  // drab-event= drab-handler= drab-options=
-  var drab_objects_long = where.querySelectorAll("[drab-event]");
-  for (var i = 0; i < drab_objects_long.length; i++) {
-    var node = drab_objects_long[i];
-    add_drab_attribute(
-      node,
-      node.getAttribute("drab-event"),
-      node.getAttribute("drab-handler"),
-      node.getAttribute("drab-options")
-    )
-  }
 
   find_drab_argument_attr(where);
   find_drab_commander_attr(where);
@@ -339,7 +327,7 @@ Drab.set_event_handlers = function (node) {
         var event_handler_function = function (event) {
           // disable current control - will be re-enabled after finish
           var n = this;
-          <%= if Drab.Config.get(:disable_controls_while_processing) do %>
+          <%= if Drab.Config.get(endpoint, :disable_controls_while_processing) do %>
             if (events_to_disable.indexOf(event.type) >= 0) {
               n['disabled'] = true;
             }
@@ -354,7 +342,7 @@ Drab.set_event_handlers = function (node) {
           Drab.exec_elixir(
             parsed_handler_name || handler_name,
             payload(n, event, argument)
-            <%= if Drab.Config.get(:disable_controls_while_processing) do %>
+            <%= if Drab.Config.get(endpoint, :disable_controls_while_processing) do %>
               , function() {
                   n['disabled'] = false
                 }

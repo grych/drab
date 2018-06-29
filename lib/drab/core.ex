@@ -73,14 +73,10 @@ defmodule Drab.Core do
 
   There is a possibility to configure the shortcut list:
 
-      config :drab, :events_shorthands, ["click", "keyup", "blur"]
+      config :drab, MyAppWeb.Endpoint,
+        events_shorthands: ["click", "keyup", "blur"]
 
   Please keep this list short, as it affects client script performance.
-
-  ### Long form [depreciated]
-  You may also configure drab handler with `drab-event` and `drab-handler` combination, but
-  please don't. This is coming from the ancient version of the software and will be removed
-  in the stable release.
 
   #### Defining optional argument in multiple nodes with `drab-argument` attribute
   If you add `drab-argument` attribute to any tag, all children of this tag will use this as
@@ -190,7 +186,7 @@ defmodule Drab.Core do
   use DrabModule
 
   @typedoc "Returned status of all Core operations"
-  @type status :: :ok | :error | :timeout
+  @type status :: :ok | :error
 
   @typedoc "Types returned from the browser"
   @type return :: String.t() | map | float | integer | list
@@ -202,7 +198,7 @@ defmodule Drab.Core do
   @type bcast_result :: {:ok, term} | {:error, term}
 
   @typedoc "Subject for broadcasting"
-  @type subject :: Phoenix.Socket.t() | String.t() | list
+  @type subject :: Phoenix.Socket.t() | String.t() | {atom, String.t()} | list
 
   @impl true
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
@@ -224,7 +220,7 @@ defmodule Drab.Core do
   @doc """
   Synchronously executes the given javascript on the client side.
 
-  Returns tuple `{status, return_value}`, where status could be `:ok`, `:error` or `:timeout`,
+  Returns tuple `{status, return_value}`, where status could be `:ok` or `:error`,
   and return value contains the output computed by the Javascript or the error message.
 
   ### Options
@@ -240,10 +236,10 @@ defmodule Drab.Core do
       {:error, "not_existing_function is not defined"}
 
       iex> socket |> exec_js("for(i=0; i<1000000000; i++) {}")
-      {:timeout, "timed out after 5000 ms."}
+      {:error, :timeout}
 
       iex> socket |> exec_js("alert('hello from IEx!')", timeout: 500)
-      {:timeout, "timed out after 500 ms."}
+      {:error, :timeout}
 
   """
   @spec exec_js(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
@@ -264,20 +260,19 @@ defmodule Drab.Core do
             (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
 
         iex> socket |> exec_js!("for(i=0; i<1000000000; i++) {}")
-        ** (Drab.JSExecutionError) timed out after 5000 ms.
+        ** (Drab.JSExecutionError) timeout
             (drab) lib/drab/core.ex:100: Drab.Core.exec_js!/2
 
         iex> socket |> exec_js!("for(i=0; i<10000000; i++) {}", timeout: 1000)
-        ** (Drab.JSExecutionError) timed out after 1000 ms.
+        ** (Drab.JSExecutionError) timeout
             lib/drab/core.ex:114: Drab.Core.exec_js!/3
 
   """
   @spec exec_js!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: return | no_return
   def exec_js!(socket, js, options \\ []) do
     case exec_js(socket, js, options) do
-      {:ok, result} -> result
       {:error, :disconnected} -> raise Drab.ConnectionError
-      {_, message} -> raise Drab.JSExecutionError, message: message
+      other -> Drab.JSExecutionError.result_or_raise(other)
     end
   end
 
@@ -324,18 +319,6 @@ defmodule Drab.Core do
   end
 
   @doc """
-  Bang version of `Drab.Core.broadcast_js/3`
-
-  Returns subject.
-  """
-  @spec broadcast_js!(subject, String.t(), Keyword.t()) :: return
-  def broadcast_js!(subject, js, _options \\ []) do
-    Deppie.warn("Drab.Core.broadcast_js!/2 is depreciated, please use broadcast_js/2 instead")
-    Drab.broadcast(subject, self(), "broadcastjs", js: js)
-    subject
-  end
-
-  @doc """
   Helper for broadcasting functions, returns topic for a given URL path.
 
       iex> same_path("/test/live")
@@ -343,6 +326,17 @@ defmodule Drab.Core do
   """
   @spec same_path(String.t()) :: String.t()
   def same_path(url), do: "__drab:same_path:#{url}"
+
+  @doc """
+  Helper for broadcasting functions, returns topic for a given endpoint and URL path.
+
+  To be used in multiple endpoint environments only.
+
+      iex> same_path(DrabTestApp.Endpoint, "/test/live")
+      {DrabTestApp.Endpoint, "__drab:same_path:/test/live"}
+  """
+  @spec same_path(atom, String.t()) :: {atom, String.t()}
+  def same_path(endpoint, url), do: {endpoint, same_path(url)}
 
   @doc """
   Helper for broadcasting functions, returns topic for a given controller.
@@ -354,6 +348,17 @@ defmodule Drab.Core do
   def same_controller(controller), do: "__drab:controller:#{controller}"
 
   @doc """
+  Helper for broadcasting functions, returns topic for a given endpoint and controller.
+
+  To be used in multiple endpoint environments only.
+
+      iex> same_controller(DrabTestApp.Endpoint, DrabTestApp.LiveController)
+      {DrabTestApp.Endpoint, "__drab:controller:Elixir.DrabTestApp.LiveController"}
+  """
+  @spec same_controller(atom, String.t() | atom) :: {atom, String.t()}
+  def same_controller(endpoint, controller), do: {endpoint, same_controller(controller)}
+
+  @doc """
   Helper for broadcasting functions, returns topic for a given controller and action.
 
       iex> same_action(DrabTestApp.LiveController, :index)
@@ -361,6 +366,17 @@ defmodule Drab.Core do
   """
   @spec same_action(String.t() | atom, String.t() | atom) :: String.t()
   def same_action(controller, action), do: "__drab:action:#{controller}##{action}"
+
+  @doc """
+  Helper for broadcasting functions, returns topic for a given endpoint, controller and action.
+
+  To be used in multiple endpoint environments only.
+
+      iex> same_action(DrabTestApp.Endpoint, DrabTestApp.LiveController, :index)
+      {DrabTestApp.Endpoint, "controller:Elixir.DrabTestApp.LiveController#index"}
+  """
+  @spec same_action(atom, String.t() | atom, String.t() | atom) :: {atom, String.t()}
+  def same_action(endpoint, controller, action), do: {endpoint, same_action(controller, action)}
 
   @doc """
   Helper for broadcasting functions, returns topic for a given topic string.
@@ -373,6 +389,20 @@ defmodule Drab.Core do
   """
   @spec same_topic(String.t()) :: String.t()
   def same_topic(topic), do: "__drab:#{topic}"
+
+  @doc """
+  Helper for broadcasting functions, returns topic for a given topic string.
+
+  To be used in multiple endpoint environments only.
+
+  Drab broadcasting topics are different from Phoenix topic - they begin with "__drab:". This is
+  because you can share Drab socket with you own one.
+
+      iex> same_topic(DrabTestApp.Endpoint, "mytopic")
+      {DrabTestApp.Endpoint, "__drab:mytopic"}
+  """
+  @spec same_topic(atom, String.t()) :: {atom, String.t()}
+  def same_topic(endpoint, topic), do: {endpoint, same_topic(topic)}
 
   @doc false
   @spec encode_js(term) :: String.t() | no_return
@@ -428,7 +458,6 @@ defmodule Drab.Core do
   @doc false
   @spec save_store(Phoenix.Socket.t(), map) :: :ok
   def save_store(socket, store) do
-    # TODO: too complicated, too many functions
     Drab.set_store(Drab.pid(socket), store)
   end
 
@@ -446,7 +475,8 @@ defmodule Drab.Core do
   You must explicit which session keys you want to access in `:access_session` option in
   `use Drab.Commander` or globally, in `config.exs`:
 
-      config :drab, :access_session, [:user_id]
+      config :drab, MyAppWeb.Endpoint,
+        :access_session, [:user_id]
   """
   @spec get_session(Phoenix.Socket.t(), atom) :: term
   def get_session(socket, key) do

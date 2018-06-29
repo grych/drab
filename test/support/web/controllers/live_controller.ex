@@ -87,7 +87,9 @@ defmodule DrabTestApp.LiveController do
       text: "set in the controller",
       user: "Zofia",
       in_partial: "in partial before",
-      my_list: []
+      my_list: [],
+      weekdays: ["Pon", "Wt", "Sr"],
+      current_week_monday: "MONDAY"
     )
   end
 

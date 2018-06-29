@@ -11,7 +11,7 @@
 <span id="core1_out"></span>
 <br>
 
-<button id="core2_button" class="btn btn-primary" drab-event="click" drab-handler="core2_click">core2</button>
+<button id="core2_button" class="btn btn-primary" drab-click="core2_click">core2</button>
 <span id="core2_out"></span>
 <br>
 
@@ -46,7 +46,7 @@
 <span id="input1_out"></span>
 <br>
 
-<input type="text" id="core2_input" drab-event="keyup" drab-handler="input2_change" drab-options="debounce(500)">
+<input type="text" id="core2_input" drab-keyup="input2_change" drab-options="debounce(500)">
 <span id="input2_out"></span>
 <br>
 
@@ -59,8 +59,6 @@
 <br>
 <br>
 
-<button class="btn btn-primary" drab-event="click">Wrong attributes</button>
-<br>
 <button class="btn btn-primary" drab-handler="core2_click">Wrong attributes</button>
 <br>
 <button class="btn btn-primary" drab="wrong">Wrong attributes</button>

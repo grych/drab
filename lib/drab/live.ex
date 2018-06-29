@@ -38,14 +38,15 @@ defmodule Drab.Live do
   This behaviour is configuable with `:live_conn_pass_through`. For example, if you want to preseve
   the specific assigns in the conn struct, mark them as true in the config:
 
-      config :drab, :live_conn_pass_through, %{
-        assigns: %{
-          users: true
-        },
-        private: %{
-          phoenix_endpoint: true
+      config :drab, MyAppWeb.Endpoint,
+        live_conn_pass_through: %{
+          assigns: %{
+            users: true
+          },
+          private: %{
+            phoenix_endpoint: true
+          }
         }
-      }
 
   ### Shared Commanders
   When the event is triggered inside the Shared Commander, defined with `drab-commander` attribute,
@@ -102,27 +103,6 @@ defmodule Drab.Live do
   manipulation must be done within the added partial:
 
       poke socket, "partial1.html", color: "red"
-
-  ### Evaluating expressions
-  When the assign change is poked back to the browser, Drab need to re-evaluate all the expressions
-  from the template which contain the given assign. This expressions are stored with the pattern
-  in the cache DETS file.
-
-  Because the expression must be run in the Phoenix environments, Drab does some `import` and `use`
-  before. For example, it does `use Phoenix.HTML` and `import Phoenix.View`. It also imports
-  the following modules from your application:
-
-      import YourApplication.Router.Helpers
-      import YourApplication.ErrorHelpers
-      import YourApplication.Gettext
-
-  If you renamed any of those modules in your application, you must tell Drab where to find it
-  by adding the following entry to the `config.exs` file:
-
-      config :drab, live_helper_modules: [Router.Helpers, ErrorHelpers, Gettext]
-
-  Notice that the application name is derived automatically. Please check `Drab.Config.get/1`
-  for more information on Drab setup.
 
   ### Limitions
   Because Drab must interpret the template, inject it's ID etc, it assumes that the template HTML
@@ -264,7 +244,7 @@ defmodule Drab.Live do
            text: "changed text", using_assigns: [color: "red"]
   """
 
-  @type result :: Phoenix.Socket.t() | Drab.Core.result() | no_return
+  @type result :: Phoenix.Socket.t() | Drab.Core.result() | integer | no_return
 
   import Drab.Core
   require IEx
@@ -308,7 +288,7 @@ defmodule Drab.Live do
   Returns the current value of the assign from the current (main) partial.
 
       iex> peek(socket, :count)
-      42
+      {ok, 42}
       iex> peek(socket, :nonexistent)
       ** (ArgumentError) Assign @nonexistent not found in Drab EEx template
 
@@ -316,7 +296,7 @@ defmodule Drab.Live do
   Assign gets its value only while rendering the page or via `poke`. After changing the value
   of node attribute or property on the client side, the assign value will remain the same.
   """
-  @spec peek(Phoenix.Socket.t(), atom) :: term | no_return
+  @spec peek(Phoenix.Socket.t(), atom) :: result | no_return
   def peek(socket, assign), do: peek(socket, nil, nil, assign)
 
   @doc """
@@ -325,9 +305,9 @@ defmodule Drab.Live do
   Partial is taken from the current view.
 
       iex> peek(socket, "users.html", :count)
-      42
+      {:ok, 42}
   """
-  @spec peek(Phoenix.Socket.t(), String.t(), atom) :: term | no_return
+  @spec peek(Phoenix.Socket.t(), String.t(), atom) :: result | no_return
   def peek(socket, partial, assign), do: peek(socket, nil, partial, assign)
 
   @doc """
@@ -335,15 +315,11 @@ defmodule Drab.Live do
   view/partial.
 
       iex> peek(socket, MyApp.UserView, "users.html", :count)
-      42
+      {:ok, 42}
   """
   @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
-          term | no_return
+          result | no_return
   def peek(socket, view, partial, assign) when is_atom(assign) do
-    Deppie.once("""
-    `peek` return value will be changed to `{:ok, value}` in v0.9.0. Please use `peek!` instead.
-    """)
-
     case assigns_and_nodrab(socket) do
       {:ok, assigns_data} ->
         do_peek(socket, view, partial, assign, assigns_data)
@@ -369,7 +345,7 @@ defmodule Drab.Live do
 
     case all_assigns |> Map.fetch(assign) do
       {:ok, val} ->
-        val
+        {:ok, val}
 
       :error ->
         raise_assign_not_found(
@@ -412,13 +388,9 @@ defmodule Drab.Live do
   def peek!(socket, view, partial, assign) when is_atom(assign) do
     case assigns_and_nodrab(socket) do
       {:ok, assigns_data} ->
-        do_peek(socket, view, partial, assign, assigns_data)
+        Drab.JSExecutionError.result_or_raise(do_peek(socket, view, partial, assign, assigns_data))
 
       {:error, description} ->
-        raise Drab.JSExecutionError, message: to_string(description)
-
-      # TODO: to be removed
-      {:timeout, description} ->
         raise Drab.JSExecutionError, message: to_string(description)
     end
   end
@@ -437,10 +409,11 @@ defmodule Drab.Live do
   assigns rendered with `<%= %>` mark are *pokeable*; assigns rendered with `<% %>` or `<%/ %>`
   only can't be updated by `poke`.
 
-  Returns untouched socket or tuple {:error, description}
+  Returns `{:error, description}` or `{:ok, N}`, where N is the number of updates on the page. It
+  combines all the operations, so updating properties, attributes, text, etc.
 
       iex> poke(socket, count: 42)
-      %Phoenix.Socket{ ...
+      {:ok, 3}
   """
   @spec poke(Phoenix.Socket.t(), Keyword.t()) :: result
   def poke(socket, assigns) do
@@ -452,7 +425,7 @@ defmodule Drab.Live do
   Like `poke/2`, but limited only to the given partial name.
 
       iex> poke(socket, "user.html", name: "Bożywój")
-      %Phoenix.Socket{ ...
+      {:ok, 3}
   """
   @spec poke(Phoenix.Socket.t(), String.t() | nil, Keyword.t()) :: result
   def poke(socket, partial, assigns) do
@@ -464,26 +437,23 @@ defmodule Drab.Live do
   Like `poke/3`, but searches for the partial within the given view.
 
       iex> poke(socket, MyApp.UserView, "user.html", name: "Bożywój")
-      %Phoenix.Socket{ ...
+      {:ok, 3}
   """
   @spec poke(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result
   def poke(socket, view, partial, assigns) do
-    Deppie.once("""
-    `poke` return value will be changed to `{:ok, socket}`, `{:error, reason}` in v0.9.0.
-    """)
-
     do_poke(socket, view, partial, assigns, &Drab.Core.exec_js/2)
   end
 
   @doc """
   Exception raising version of `poke/2`.
 
-  Returns `:ok`.
+  Returns integer, which is the number of updates on the page. It combines all the operations,
+  so updating properties, attributes, text, etc.
 
       iex> poke!(socket, count: 42)
-      :ok
+      3
   """
-  @spec poke!(Phoenix.Socket.t(), Keyword.t()) :: result | no_return
+  @spec poke!(Phoenix.Socket.t(), Keyword.t()) :: integer | no_return
   def poke!(socket, assigns) do
     poke!(socket, nil, nil, assigns)
   end
@@ -491,12 +461,13 @@ defmodule Drab.Live do
   @doc """
   Exception raising version of `poke/3`.
 
-  Returns `:ok`.
+  Returns integer, which is the number of updates on the page. It combines all the operations,
+  so updating properties, attributes, text, etc.
 
       iex> poke!(socket, "user.html", name: "Bożywój")
-      :ok
+      0
   """
-  @spec poke!(Phoenix.Socket.t(), String.t() | nil, Keyword.t()) :: result | no_return
+  @spec poke!(Phoenix.Socket.t(), String.t() | nil, Keyword.t()) :: integer | no_return
   def poke!(socket, partial, assigns) do
     poke!(socket, nil, partial, assigns)
   end
@@ -504,12 +475,13 @@ defmodule Drab.Live do
   @doc """
   Exception raising version of `poke/4`.
 
-  Returns `:ok`.
+  Returns integer, which is the number of updates on the page. It combines all the operations,
+  so updating properties, attributes, text, etc.
 
       iex> poke!(socket, MyApp.UserView, "user.html", name: "Bożywój")
-      :ok
+      0
   """
-  @spec poke!(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: result | no_return
+  @spec poke!(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: integer | no_return
   def poke!(socket, view, partial, assigns) do
     socket
     |> do_poke(view, partial, assigns, &Drab.Core.exec_js!/2)
@@ -521,12 +493,16 @@ defmodule Drab.Live do
   Please notice that broadcasting living assigns makes sense only for the pages, which was rendered
   with the same templates.
 
-  Always returns socket.
+  Broadcasting the poke is a non-trivial operation, and you must be aware that the local
+  assign cache of the handler process is not updated on any of the browsers. This mean that
+  `peek/2` may return obsolete values.
+
+  Returns `{:ok, :broadcasted}`.
 
       iex> broadcast_poke(socket, count: 42)
       %Phoenix.Socket{ ...
   """
-  @spec broadcast_poke(Drab.Core.subject(), Keyword.t()) :: result
+  @spec broadcast_poke(Drab.Core.subject(), Keyword.t()) :: result | no_return
   def broadcast_poke(%Phoenix.Socket{} = socket, assigns) do
     broadcast_poke(socket, nil, nil, assigns)
   end
@@ -539,9 +515,9 @@ defmodule Drab.Live do
   Like `broadcast_poke/2`, but limited only to the given partial name.
 
       iex> broadcast_poke(socket, "user.html", name: "Bożywój")
-      %Phoenix.Socket{ ...
+      {:ok, :broadcasted}
   """
-  @spec broadcast_poke(Drab.Core.subject(), String.t() | nil, Keyword.t()) :: result
+  @spec broadcast_poke(Drab.Core.subject(), String.t() | nil, Keyword.t()) :: result | no_return
   def broadcast_poke(%Phoenix.Socket{} = socket, partial, assigns) do
     broadcast_poke(socket, nil, partial, assigns)
   end
@@ -554,7 +530,7 @@ defmodule Drab.Live do
   Like `broadcast_poke/3`, but searches for the partial within the given view.
 
       iex> broadcast_poke(socket, MyApp.UserView, "user.html", name: "Bożywój")
-      %Phoenix.Socket{ ...
+      {:ok, :broadcasted}
 
   This function allow to use `subject` instead of `socket` to broadcast living assigns without
   having a `socket`. In this case, you need to provide **all other assigns** to the function,
@@ -567,7 +543,7 @@ defmodule Drab.Live do
   Hint: if you have functions using `@conn` assign, you may fake it with
   `%Plug.Conn{private: %{:phoenix_endpoint => MyAppWeb.Endpoint}}`
   """
-  @spec broadcast_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t()) :: result
+  @spec broadcast_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t()) :: result | no_return
   def broadcast_poke(%Phoenix.Socket{} = socket, view, partial, assigns) do
     do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
   end
@@ -583,7 +559,7 @@ defmodule Drab.Live do
   end
 
   @spec do_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t(), function) ::
-          result | no_return
+          integer | result | no_return
   defp do_poke(socket, view, partial_name, assigns, function) do
     raise_if_read_only(assigns)
     {assigns, options} = extract_options(assigns)
@@ -623,14 +599,6 @@ defmodule Drab.Live do
         else
           error
         end
-
-      # TODO: to be removed
-      {:timeout, description} = error ->
-        if function == (&Drab.Core.exec_js!/2) do
-          raise Drab.JSExecutionError, message: to_string(description)
-        else
-          error
-        end
     end
   end
 
@@ -653,28 +621,21 @@ defmodule Drab.Live do
 
     assign_updates = assign_updates_js(assigns_to_update, partial, drab_commander_id(subject))
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq() |> Enum.join(";")
-
+    all_javascripts = "var n=0;" <> all_javascripts <> ";n"
     # IO.inspect update_javascripts
     # IO.inspect(all_javascripts)
     # IO.inspect(function)
 
     case function.(subject, all_javascripts) do
       {:ok, :broadcasted} ->
-        subject
+        {:ok, :broadcasted}
 
-      {:ok, _} ->
+      {:ok, _} = ret ->
         update_assigns_cache(assigns_to_update, partial, drab_commander_id(subject), assigns_data)
-        subject
+        ret
 
-      {:error, _} = other ->
-        other
-
-      {:timeout, _} = other ->
-        other
-
-      # poke! with exec_js!
-      _ ->
-        subject
+      ret ->
+        ret
     end
   end
 
@@ -768,7 +729,7 @@ defmodule Drab.Live do
             nil
 
           {_, _} ->
-            "Drab.update_tag(#{encode_js(tag)}, #{encode_js(ampere)}, #{encode_js(new_value)})"
+            "n+=Drab.update_tag(#{encode_js(tag)},#{encode_js(ampere)},#{encode_js(new_value)})"
         end
 
       _ ->
@@ -779,7 +740,7 @@ defmodule Drab.Live do
   defp update_attr_js(html, ampere, attr) do
     case Floki.attribute(html, "[drab-ampere='#{ampere}']", attr) do
       [new_value] ->
-        "Drab.update_attribute(#{encode_js(ampere)}, #{encode_js(attr)}, #{encode_js(new_value)})"
+        "n+=Drab.update_attribute(#{encode_js(ampere)},#{encode_js(attr)},#{encode_js(new_value)})"
 
       _ ->
         nil
@@ -789,7 +750,7 @@ defmodule Drab.Live do
   defp update_prop_js(html, ampere, prop) do
     case Floki.attribute(html, "[drab-ampere='#{ampere}']", "@#{String.downcase(prop)}") do
       [new_value] ->
-        "Drab.update_property(#{encode_js(ampere)}, #{encode_js(prop)}, #{encode_js(new_value)})"
+        "n+=Drab.update_property(#{encode_js(ampere)},#{encode_js(prop)},#{encode_js(new_value)})"
 
       _ ->
         nil
@@ -874,7 +835,6 @@ defmodule Drab.Live do
   end
 
   @spec assign_updates_js(map, String.t(), String.t()) :: [String.t()]
-  # TODO: refactor
   defp assign_updates_js(assigns, partial, "document") do
     Enum.map(assigns, fn {k, v} ->
       "__drab.assigns[#{Drab.Core.encode_js(partial)}][#{Drab.Core.encode_js(k)}] = {document: '#{
@@ -968,11 +928,14 @@ defmodule Drab.Live do
     end
   end
 
-  # for broadcasting
-  defp assigns_and_nodrab(_), do: {:ok, %{}}
+  # for broadcasting - this is OK, because in case of subject we need to provide ALL the assigns
+  defp assigns_and_nodrab(_) do
+    {:ok, %{}}
+  end
 
   @spec update_assigns_cache(map, String.t(), String.t(), map) :: term() | nil
   defp update_assigns_cache(assigns_to_update, partial_hash, shared_commander_id, cache) do
+    # IO.inspect {assigns_to_update, partial_hash, shared_commander_id, cache}
     updated_assigns =
       for {assign_name, assign_value} <- assigns_to_update, into: %{} do
         {assign_name, %{shared_commander_id => assign_value}}

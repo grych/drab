@@ -18,6 +18,8 @@ Changes:
 * Also, instead of 'broadcasting' a change to all browsers, why not do what Phoenix.pubsub does? Allow you to override an outgoing message (then in your time broadcast example you could 'catch' the outgoing message and reformat it?)
 * should take Safe in all html related functions
 * [elixir 1.7] change deppie to @deprecated and @since
+* TODO: group callbacks in compile time
+
 
 Changes:
 * group JS commands to be launched in one step, if possible

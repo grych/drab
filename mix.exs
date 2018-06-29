@@ -1,6 +1,6 @@
 defmodule Drab.Mixfile do
   use Mix.Project
-  @version "0.8.3"
+  @version "0.9.0"
 
   def project do
     [
@@ -59,7 +59,7 @@ defmodule Drab.Mixfile do
       {:inch_ex, "~> 0.5", only: [:docs], runtime: false},
       {:deppie, "~> 1.0"},
       {:floki, ">= 0.20.2"},
-      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.2", only: [:dev, :test], runtime: false},
       {:jason, "~> 1.0"}
     ]
   end

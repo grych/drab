@@ -5,11 +5,11 @@ defmodule DrabTest do
   doctest Drab
 
   test "config" do
-    assert Drab.Config.get(:disable_controls_while_processing) == true
-    assert Drab.Config.get(:events_to_disable_while_processing) == ["click"]
-    assert Drab.Config.get(:disable_controls_when_disconnected) == true
-    assert Drab.Config.get(:socket) == "/socket"
-    assert Drab.Config.get(:drab_store_storage) == :session_storage
+    assert Drab.Config.get(DrabTestApp.Endpoint, :disable_controls_while_processing) == true
+    assert Drab.Config.get(DrabTestApp.Endpoint, :events_to_disable_while_processing) == ["click"]
+    assert Drab.Config.get(DrabTestApp.Endpoint, :disable_controls_when_disconnected) == true
+    assert Drab.Config.get(DrabTestApp.Endpoint, :socket) == "/socket"
+    assert Drab.Config.get(DrabTestApp.Endpoint, :drab_store_storage) == :session_storage
   end
 
   describe "helpers" do
@@ -41,8 +41,7 @@ defmodule DrabTest do
     end
 
     test "application config" do
-      assert Drab.Config.app_name() == :drab
-      assert Drab.Config.endpoint() == DrabTestApp.Endpoint
+      assert Drab.Config.app_name(DrabTestApp.Endpoint) == :drab
     end
 
     def function() do

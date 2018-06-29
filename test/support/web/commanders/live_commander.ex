@@ -5,12 +5,13 @@ defmodule DrabTestApp.LiveCommander do
   use Drab.Commander, modules: [Drab.Live, Drab.Element]
   onload(:page_loaded)
   broadcasting(:same_action)
-  # access_session(:some_id)
+  access_session(:current_user_id)
 
   def page_loaded(socket) do
     DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)
     DrabTestApp.IntegrationCase.add_pid(socket)
-    poke(socket, text: "set in the commander")
+    # poke(socket, text: "set in the commander")
+    put_store socket, :current_user_id, 44
   end
 
   defhandler update_both(socket, _) do
@@ -77,8 +78,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   defhandler add_item(socket, sender) do
-    items = socket |> peek(:list)
-    # new_item = socket |> Drab.Query.select(:val, from: "#drab_new_item")
+    items = peek!(socket, :list)
     new_item = sender["form"]["drab[new_item]"]
     new_list = items ++ ["#{new_item}"]
     Drab.Live.poke(socket, list: new_list)
@@ -106,7 +106,7 @@ defmodule DrabTestApp.LiveCommander do
   end
 
   defhandler update_excluded_and_users(socket, _sender) do
-    poke(socket, users: peek(socket, :users), excluded: "Hegemon")
+    poke(socket, users: peek!(socket, :users), excluded: "Hegemon")
   end
 
   defhandler update_excluded(socket, _sender) do

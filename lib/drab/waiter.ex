@@ -64,7 +64,6 @@ defmodule Drab.Waiter do
             timeout_function.()
         end
 
-      # TODO: remove token from with_tokens to save bandwitdh
       Drab.push(unquote(socket), self(), nil, "unregister_waiters", waiters: with_tokens)
 
       ret

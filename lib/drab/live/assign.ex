@@ -7,7 +7,7 @@ defmodule Drab.Live.Assign do
   (by default it is .private.phoenix_endpoint only).
   """
   def trim(%Plug.Conn{} = conn) do
-    filter = Drab.Config.get(:live_conn_pass_through)
+    filter = Drab.Config.get(Phoenix.Controller.endpoint_module(conn), :live_conn_pass_through)
     trim(conn, filter)
   end
 
@@ -19,7 +19,7 @@ defmodule Drab.Live.Assign do
   end
 
   def filter(%Plug.Conn{} = conn) do
-    filter = Drab.Config.get(:live_conn_pass_through)
+    filter = Drab.Config.get(Phoenix.Controller.endpoint_module(conn), :live_conn_pass_through)
     filter(conn, filter)
   end
 

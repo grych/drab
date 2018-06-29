@@ -1,5 +1,104 @@
 # CHANGELOG
 
+## v0.9.0 BREAKING RELEASE
+
+This release finally introduces the final API. There is no intention to change it, unless very
+significant errors are found.
+
+If you are using Drab already, prepare for the changes in the configuration and also in the code.
+
+
+### `Drab.Live` API changed
+
+As described in #127, API has changed. The most painful change is `Drab.Live.peek`, as it now
+returns `{:ok, value}` or `{:error, why}`. Raising `Drab.Live.peek` is for convinience.
+
+`Drab.Live.poke` returns tuple now as well, to catch update errors or disconnections.
+
+### Redesigned `Drab.Config`
+
+Since this version, Drab is no longer configured globally. This means that you may use it in the
+multiple endpoints environments.
+This requires configuration API change. Most of the Drab options are now located under
+the endpoint module:
+
+```elixir
+config :drab, MyAppWeb.Endpoint,
+  otp_app: :my_app_web,
+  ...
+```
+
+The endpoint and application name are mandatory.
+
+However, there are still few global options, like `:enable_live_scripts`. Please read
+[`Drab.Config`](https://hexdocs.pm/drab/Drab.Config.html#content) documentation
+for more information.
+
+[Do You Want to Know More?](https://hexdocs.pm/drab/Drab.Config.html)
+
+### More API changes
+
+All functions returning `{:timeout, description}` now return just `{:error, :timeout}`.
+
+### Undeclared handler or shared commander raises
+
+All handlers must now be strictly declared by using `Drab.Commander.defhandler` or
+`Drab.Commander.public` macro.
+
+```elixir
+defhandler my_handler(socket, payload), do: ..
+```
+
+or
+
+```elixir
+public :my_handler
+def my_handler(socket, payload), do: ...
+```
+
+The same is with shared commanders, if you want to use it, declare it with `Drab.Controller`:
+
+```elixir
+use Drab.Controller, commanders: [My.Shared.Commander]
+```
+
+### Hard depreciations of various functions
+
+* [x] Drab.Client.js/2
+* [x] Drab.run_handler()
+* [x] Drab.Browser.console!/2
+* [x] Drab.Browser.redirect_to!/2
+* [x] Drab.Core.broadcast_js!/2
+
+### `drab-event` and `drab-handler` combination no longer exists
+
+The existing syntax `drab-event` and `drab-handler` is removed. Please use the new syntax of:
+
+    <tag drab="event:handler">
+    <input drab="focus:input_focus blur:input_blur"
+    <input drab-focus="input_focus" drab-blur="input_blur">
+
+[Do You Want to Know More?](https://hexdocs.pm/drab/Drab.Core.html#module-events)
+
+### Updating from <= v0.8.3
+
+#### `config.exs`
+
+Replace:
+
+```elixir
+config :drab, main_phoenix_app: :my_app_web, endpoint: MyAppWeb.Endpoint
+```
+
+with:
+
+```elixir
+config :drab, MyAppWeb.Endpoint, otp_app: :my_app_web
+```
+
+Most of the configuration options now must be placed under the endpoint. Please read
+[`Drab.Config`](https://hexdocs.pm/drab/Drab.Config.html#content) documentation for more info.
+
 ## v0.8.3
 
 This version brings two useful features: presence and ability to subscribe to topics in the runtime.

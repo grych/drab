@@ -73,8 +73,6 @@ defmodule DrabTestApp.PageCommander do
     # socket |> Drab.Query.update(:text, set: get_store(socket, :counter), on: "#onconnect_counter")
   end
 
-  # TODO: find a way to test page disconnect
-
   ### Drab.Core ###
   defhandler core1_click(socket, _sender) do
     # emulate some longer work, to test if tester waits for a button to be enabled

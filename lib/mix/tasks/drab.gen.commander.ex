@@ -71,8 +71,7 @@ defmodule Mix.Tasks.Drab.Gen.Commander do
     if phoenix12?() do
       "web"
     else
-      # TODO: read web path from Phoenix View :root
-      app_name = Atom.to_string(Drab.Config.app_name())
+      app_name = Atom.to_string(Mix.Drab.app_name())
       if app_name =~ ~r/.*_web$/i, do: "lib/#{app_name}", else: "lib/#{app_name}_web"
     end
   end

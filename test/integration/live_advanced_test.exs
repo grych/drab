@@ -23,7 +23,7 @@ defmodule DrabTestApp.LiveAdvancedTest do
     end
 
     test "update both list and child should work", fixture do
-      poke(fixture.socket, users: peek(fixture.socket, :users), excluded: "Hegemon")
+      poke(fixture.socket, users: peek!(fixture.socket, :users), excluded: "Hegemon")
 
       assert query_one!(fixture.socket, "#users_list", :innerText) == %{
                "innerText" => "Mirmił Kokosz"
@@ -34,9 +34,6 @@ defmodule DrabTestApp.LiveAdvancedTest do
 
     @tag capture_log: true
     test "update child should not raise", fixture do
-      # Code.compiler_options(warnings_as_errors: true)
-      # IO.puts("\n--> the following warning is expected:")
-      # assert_raise CompileError, fn -> poke(fixture.socket, excluded: "Hegemon") end
       poke(fixture.socket, excluded: "Hegemon")
 
       assert query_one!(fixture.socket, "#users_list", :innerText) == %{
