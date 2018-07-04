@@ -5,9 +5,10 @@
 <div><%= @text %></div>
 <div id="<%= @current_week_monday %>" style="display: none;"></div>
 <div id="weekdays">
-    <img src="<%= @current_week_monday %>" class="arrow ar-right" drab="click:next_week">
-    <%= for day <- @weekdays do %>
-        <%= day %>
-    <% end %>
-    <img src="<%= static_path(@conn, "/images/arrow.svg") %>" class="arrow ar-right" drab="click:next_week">
+  <img>
+  <%= for day <- @weekdays do %>
+      <%= day %>
+  <% end %>
+  <img src="<%= @current_week_monday %>" class="arrow ar-right" drab="click:next_week">
+
 </div>

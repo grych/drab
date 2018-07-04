@@ -11,6 +11,12 @@ defmodule Drab.Live.HTML do
           tokenized: list
         }
 
+  @non_closing_tags ~w{
+    area base br col command embed hr img input keygen link meta param source track wbr
+    area/ base/ br/ col/ command/ embed/ hr/ img/ input/ keygen/ link/ meta/ param/ source/ track/
+    wbr/
+  }
+
   @doc """
   Simple html tokenizer. Works with nested lists.
 
@@ -105,7 +111,14 @@ defmodule Drab.Live.HTML do
         [{:comment, comment} | tokenize_string(Enum.join(tail))]
 
       [tag | tail] ->
-        [{:tag, trim_and_lower(tag)} | tokenize_string(Enum.join(tail))]
+        tag = trim_and_lower(tag)
+        case tag_name(tag) do
+          t when t in @non_closing_tags ->
+            [{:non_closing_tag, tag} | tokenize_string(Enum.join(tail))]
+
+          _ ->
+            [{:tag, tag} | tokenize_string(Enum.join(tail))]
+          end
     end
   end
 
@@ -206,6 +219,7 @@ defmodule Drab.Live.HTML do
   defp htmlize([]), do: []
   defp htmlize([head | tail]), do: [htmlize(head) | htmlize(tail)]
   defp htmlize({:tag, tag}), do: "<#{tag}>"
+  defp htmlize({:non_closing_tag, tag}), do: "<#{tag}>"
   defp htmlize({:naked, tag}), do: "<#{tag}"
   defp htmlize({:text, text}), do: text
   defp htmlize({:comment, comment}), do: "<!#{comment}>"
@@ -258,12 +272,6 @@ defmodule Drab.Live.HTML do
     end
   end
 
-  @non_closing_tags ~w{
-    area base br col command embed hr img input keygen link meta param source track wbr
-    area/ base/ br/ col/ command/ embed/ hr/ img/ input/ keygen/ link/ meta/ param/ source/ track/
-    wbr/
-  }
-
   defp do_inject([], _, opened, found, acc) do
     {opened, found, acc}
   end
@@ -314,9 +322,17 @@ defmodule Drab.Live.HTML do
       iex> tokenized_to_html(tked)
       "<img attr=2 src"
 
-      iex> {_closed, "attr=2", tked} = inject_to_html tokenize("<Img attr=2 src>"), "attr=1"
+      iex> {_closed, :not_found, tked} = inject_to_html tokenize("<Img attr=2 src>"), "attr=1"
       iex> tokenized_to_html(tked)
       "<img attr=2 src>"
+
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<div><Img src>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<div attr=1><img src>"
+
+      iex> {_closed, "attr=2", tked} = inject_to_html tokenize("<div attr=2><Img src>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<div attr=2><img src>"
 
       iex> {_closed, "attr=2", tokenized} = inject_to_html tokenize("<tag attr=2>"), "attr=1"
       iex> tokenized_to_html(tokenized)
@@ -358,6 +374,10 @@ defmodule Drab.Live.HTML do
       iex> tokenized_to_html(tked)
       "<img attr=1 src"
 
+      iex> {_closed, "attr=1", tked} = inject_to_html tokenize("<div><img src=''>"), "attr=1"
+      iex> tokenized_to_html(tked)
+      "<div attr=1><img src=''>"
+
       iex> {_closed, :not_found, tked} = inject_to_html tokenize("<hr>"), "attr=1"
       iex> tokenized_to_html(tked)
       "<hr>"
@@ -398,7 +418,7 @@ defmodule Drab.Live.HTML do
           inject_attribute(token, closed, attr, acc)
 
         # move on if this is non closing tag
-        {:tag, tag} = token, {closed, :not_found, acc} when tag in @non_closing_tags ->
+        {:non_closing_tag, _tag} = token, {closed, :not_found, acc} ->
           {closed, :not_found, [token | acc]}
 
         # closing tag, add it to the closed tags list
@@ -604,7 +624,8 @@ defmodule Drab.Live.HTML do
     tokenized
     |> Enum.filter(fn
       {:naked, _} -> true
-      {:tag, x} -> tag_name(x) not in @non_closing_tags
+      {:non_closing_tag, _} -> false
+      {:tag, _} -> true
       _ -> false
     end)
     |> Enum.reverse()
@@ -695,11 +716,13 @@ defmodule Drab.Live.HTML do
   def case_sensitive_prop_name(html, ampere, prop_name) do
     %HTML{tokenized: tokenized} = tokenize(html)
 
-    {:tag, body} =
+    {_, body} =
       Enum.find(tokenized, fn x ->
         case x do
-          {:tag, tag} -> String.contains?(tag, "drab-ampere=\"#{ampere}\"")
-          _ -> false
+          {gender, tag} when gender in [:tag, :non_closing_tag] ->
+            String.contains?(tag, "drab-ampere=\"#{ampere}\"")
+          _ ->
+            false
         end
       end)
 
