@@ -69,6 +69,9 @@ defmodule Drab.Config do
     these are to be used internally, see `Drab.Modal` for the example usage). Must start with
     "priv/".
 
+  #### :token_max_age *(default: `86_400`)*
+    Socket token max age in seconds.
+
   ### Global configuration options
   Those options are set globally and works in every endpoint.
 
@@ -362,6 +365,9 @@ defmodule Drab.Config do
 
   def get(endpoint, :templates_path),
     do: get_env(endpoint, :templates_path, "priv/templates/drab")
+
+  def get(endpoint, :token_max_age),
+    do: get_env(endpoint, :token_max_age, 86_400)
 
   def get(endpoint, :socket),
     do: get_env(endpoint, :socket, "/socket")

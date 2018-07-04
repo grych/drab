@@ -112,7 +112,7 @@ defmodule Drab.Socket do
                socket,
                "controller_and_action",
                controller_and_action_token,
-               max_age: 86_400
+               max_age: Drab.Config.get(socket.endpoint, :token_max_age)
              ) do
           {:ok,
            [
