@@ -244,6 +244,18 @@ defmodule Drab.Config do
     end
   end
 
+  @doc false
+  @spec secret_key_base(atom) :: String.t() | no_return
+  def secret_key_base(endpoint) do
+    with app <- app_name(endpoint),
+      config <- Application.get_env(app, endpoint),
+      {:ok, secret_key_base} <- Keyword.fetch(config, :secret_key_base) do
+        secret_key_base
+    else
+      _ -> raise_app_not_found()
+    end
+  end
+
   @doc """
   Returns configured Drab.Live.Engine Extension. String with dot at the begin.
 

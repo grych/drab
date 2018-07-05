@@ -506,25 +506,25 @@ defmodule Drab.Core do
   @doc false
   @spec tokenize_store(Phoenix.Socket.t() | Plug.Conn.t(), map) :: String.t()
   def tokenize_store(socket, store) do
-    Drab.tokenize(socket, store, "drab_store_token")
+    Drab.Live.Crypto.encrypt(store, endpoint(socket), "drab_store_token")
   end
 
   @doc false
   @spec detokenize_store(Phoenix.Socket.t() | Plug.Conn.t(), String.t()) :: map
-  # empty store
   def detokenize_store(_socket, drab_store_token) when drab_store_token == nil, do: %{}
 
   def detokenize_store(socket, drab_store_token) do
-    # we just ignore wrong token and defauklt the store to %{}
+    # we just ignore wrong token and default the store to %{}
     # this is because it is read on connect, and raising here would cause infinite reconnects
-    case Phoenix.Token.verify(socket, "drab_store_token", drab_store_token, max_age: 86_400) do
-      {:ok, drab_store} ->
-        drab_store
-
-      {:error, _reason} ->
-        %{}
+    case Drab.Live.Crypto.decrypt(drab_store_token, endpoint(socket), "drab_store_token") do
+      :error -> %{}
+      x -> x
     end
   end
+
+  @spec endpoint(Phoenix.Socket.t() | Plug.Conn.t()) :: atom
+  defp endpoint(%Phoenix.Socket{} = socket), do: socket.endpoint
+  defp endpoint(%Plug.Conn{} = conn), do: Phoenix.Controller.endpoint_module(conn)
 
   @doc """
   Returns the selector of object, which triggered the event. To be used only in event handlers.

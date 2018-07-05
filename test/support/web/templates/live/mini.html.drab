@@ -5,7 +5,7 @@
 <div><%= @text %></div>
 <div id="<%= @current_week_monday %>" style="display: none;"></div>
 <div id="weekdays">
-  <img>
+  <img x>
   <%= for day <- @weekdays do %>
       <%= day %>
   <% end %>

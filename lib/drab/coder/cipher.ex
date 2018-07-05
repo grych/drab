@@ -10,9 +10,7 @@ defmodule Drab.Coder.Cipher do
       true
   """
   def encode(term) do
-    term
-    |> Drab.Live.Crypto.encrypt()
-    |> Drab.Coder.Base64.encode()
+    {:ok, Drab.Live.Crypto.encrypt(term)}
   end
 
   @spec encode!(term) :: String.t()
@@ -23,9 +21,7 @@ defmodule Drab.Coder.Cipher do
       true
   """
   def encode!(term) do
-    term
-    |> Drab.Live.Crypto.encrypt()
-    |> Drab.Coder.Base64.encode!()
+    Drab.Live.Crypto.encrypt(term)
   end
 
   @spec decode(String.t()) :: Drab.Coder.return()
@@ -37,9 +33,9 @@ defmodule Drab.Coder.Cipher do
       {:ok, [1,2,3]}
   """
   def decode(string) do
-    case Drab.Coder.Base64.decode(string) do
-      {:ok, encrypted} -> {:ok, Drab.Live.Crypto.decrypt(encrypted)}
-      error -> error
+    case Drab.Live.Crypto.decrypt(string) do
+      :error -> {:error, "can't decrypt"}
+      decrypted -> {:ok, decrypted}
     end
   end
 
@@ -52,8 +48,9 @@ defmodule Drab.Coder.Cipher do
       %{a: 1}
   """
   def decode!(string) do
-    string
-    |> Drab.Coder.Base64.decode!()
-    |> Drab.Live.Crypto.decrypt()
+    case Drab.Live.Crypto.decrypt(string) do
+      :error -> raise "can't decrypt"
+      decrypted -> decrypted
+    end
   end
 end

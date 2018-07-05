@@ -176,12 +176,6 @@ defmodule Drab do
   def handle_cast({:onconnect, socket, payload}, %Drab{commander: commander} = state) do
     socket = transform_socket(payload["payload"], socket, state)
 
-    # Drab.Core.save_session(
-    #   socket,
-    #   Drab.Core.detokenize_store(socket, payload["drab_session_token"])
-    # )
-
-    # Drab.Core.save_store(socket, Drab.Core.detokenize_store(socket, payload["drab_store_token"]))
     Drab.Core.save_store(socket, socket.assigns[:__store])
     Drab.Core.save_socket(socket)
 
@@ -590,7 +584,8 @@ defmodule Drab do
   @spec detokenize(Phoenix.Socket.t() | Plug.Conn.t(), String.t(), String.t()) ::
           term() | no_return
   def detokenize(socket, token, salt \\ "drab token") do
-    case Phoenix.Token.verify(socket, salt, token, max_age: 86_400) do
+    max_age = Drab.Config.get(socket.endpoint, :browser_response_timeout) + 1000
+    case Phoenix.Token.verify(socket, salt, token, max_age: max_age) do
       {:ok, detokenized} ->
         detokenized
 

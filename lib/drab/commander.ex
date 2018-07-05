@@ -147,7 +147,7 @@ defmodule Drab.Commander do
           ...
         end
 
-        def connected(store, session) do
+        def disconnected(store, session) do
           # notice that this callback receives store and session, not socket
           # this is because socket is not available anymore (Channel is closed)
           ...
@@ -162,8 +162,8 @@ defmodule Drab.Commander do
         end
       end
 
-  Notice that `oload`, `onconnect` and `ondisconnect` callbacks are not working with Shared
-  Commander, they are only are invoked in the main one.
+  Notice that the order of callbacks is not guaranteed, they are all running in the separate
+  processes, and are processing in the same time.
 
   #### `onconnect`
   Launched every time client browser connects to the server, including reconnects after server

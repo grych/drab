@@ -32,8 +32,6 @@ defmodule DrabTestApp.PageCommander do
 
   def page_loaded(socket) do
     # socket |> Drab.Query.insert("<h3 id='page_loaded_indicator'>Page Loaded</h3>", after: "#begin")
-    DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)
-    DrabTestApp.IntegrationCase.add_pid(socket)
 
     s1 = get_session(socket, :test_session_value1) |> Drab.Core.encode_js()
     s2 = get_session(socket, :test_session_value2) |> Drab.Core.encode_js()
@@ -48,7 +46,6 @@ defmodule DrabTestApp.PageCommander do
       "var n = document.getElementById('test_session_value2'); if (n) n.innerText = #{s2}"
     )
 
-    # counter is to test load&connect order
     put_store(socket, :counter, get_store(socket, :counter, 0) + 1)
     s = get_store(socket, :counter) |> Drab.Core.encode_js()
 
@@ -57,8 +54,8 @@ defmodule DrabTestApp.PageCommander do
       "var n = document.getElementById('onload_counter'); if (n) n.innerText = #{s}"
     )
 
-    # socket |> Drab.Query.update(:text, set: get_store(socket, :counter), on: "#onload_counter")
-    # exec_js! socket, "document.getElementById('onload_counter').innerText = '" + get_store(socket, :counter) + "'"
+    DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)
+    DrabTestApp.IntegrationCase.add_pid(socket)
   end
 
   def page_connected(socket) do
@@ -69,8 +66,6 @@ defmodule DrabTestApp.PageCommander do
       socket,
       "var n = document.getElementById('onconnect_counter'); if (n) n.innerText = #{s}"
     )
-
-    # socket |> Drab.Query.update(:text, set: get_store(socket, :counter), on: "#onconnect_counter")
   end
 
   ### Drab.Core ###

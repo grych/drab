@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.9.1
+Changed the Drab store storage, now it is encrypted
+
 ## v0.9.0 BREAKING RELEASE
 
 This release finally introduces the final API. There is no intention to change it, unless very

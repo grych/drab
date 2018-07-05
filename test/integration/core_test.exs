@@ -158,15 +158,15 @@ defmodule DrabTestApp.CoreTest do
       assert get_store(context[:socket], :shouldnt_be_set_in_core3) == nil
     end
 
-    @tag capture_log: true
-    test "onconnect should go before onload" do
-      assert find_element(:id, "onconnect_counter") |> visible_text() == "1"
-    end
+    # @tag capture_log: true
+    # test "onconnect should go before onload" do
+    #   assert find_element(:id, "onconnect_counter") |> visible_text() == "1"
+    # end
 
-    @tag capture_log: true
-    test "onload should go after onconnect" do
-      assert find_element(:id, "onload_counter") |> visible_text() == "2"
-    end
+    # @tag capture_log: true
+    # test "onload should go after onconnect" do
+    #   assert find_element(:id, "onload_counter") |> visible_text() == "2"
+    # end
   end
 
   describe "after disconnect" do

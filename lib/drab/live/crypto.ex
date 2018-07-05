@@ -44,19 +44,47 @@ defmodule Drab.Live.Crypto do
   end
 
   @doc false
+  @spec encrypt(term, atom, String.t()) :: String.t()
+  def encrypt(term, endpoint, salt) do
+    {secret, sign_secret} = keys(endpoint, salt)
+    MessageEncryptor.encrypt(:erlang.term_to_binary(term), secret, sign_secret)
+  end
+
+  @doc false
   @spec decrypt(String.t()) :: term
   def decrypt(crypted) do
     {secret, sign_secret} = keys()
-    {:ok, decrypted} = MessageEncryptor.decrypt(crypted, secret, sign_secret)
-    :erlang.binary_to_term(decrypted)
+    case MessageEncryptor.decrypt(crypted, secret, sign_secret) do
+      {:ok, decrypted} -> :erlang.binary_to_term(decrypted)
+      :error -> :error
+    end
+  end
+
+  @doc false
+  @spec decrypt(String.t(), atom, String.t()) :: term
+  def decrypt(crypted, endpoint, salt) do
+    {secret, sign_secret} = keys(endpoint, salt)
+    case MessageEncryptor.decrypt(crypted, secret, sign_secret) do
+      {:ok, decrypted} -> :erlang.binary_to_term(decrypted)
+      :error -> :error
+    end
   end
 
   @doc false
   @spec keys :: {String.t(), String.t()}
-  defp keys() do
+  def keys() do
     secret_key_base = Drab.Config.secret_key_base()
     secret = KeyGenerator.generate(secret_key_base, "Drab.Live.Crypto salt")
     sign_secret = KeyGenerator.generate(secret_key_base, "Drab.Live.Crypto sign salt")
+    {secret, sign_secret}
+  end
+
+  @doc false
+  @spec keys(atom, String.t()) :: {String.t(), String.t()}
+  def keys(endpoint, salt) do
+    secret_key_base = Drab.Config.secret_key_base(endpoint)
+    secret = KeyGenerator.generate(secret_key_base, "#{salt} salt")
+    sign_secret = KeyGenerator.generate(secret_key_base, "#{salt} sign salt")
     {secret, sign_secret}
   end
 
