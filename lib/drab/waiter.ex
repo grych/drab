@@ -123,13 +123,15 @@ defmodule Drab.Waiter do
   @doc false
   @spec tokenize_waiter(Phoenix.Socket.t(), pid, reference) :: String.t()
   def tokenize_waiter(socket, pid, ref) do
-    Phoenix.Token.sign(socket, "drab_waiter_token", {pid, ref})
+    Drab.Live.Crypto.encrypt({pid, ref}, Drab.Core.endpoint(socket), "drab_waiter_token")
   end
 
   @doc false
   @spec detokenize_waiter(Phoenix.Socket.t(), String.t()) :: {pid, reference}
   def detokenize_waiter(socket, token) do
-    {:ok, {pid, ref}} = Phoenix.Token.verify(socket, "drab_waiter_token", token, max_age: 86_400)
-    {pid, ref}
+    case Drab.Live.Crypto.decrypt(token, Drab.Core.endpoint(socket), "drab_waiter_token") do
+      :error -> raise "Drab.Waiter token mismatch"
+      x -> x
+    end
   end
 end

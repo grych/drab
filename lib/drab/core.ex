@@ -522,9 +522,10 @@ defmodule Drab.Core do
     end
   end
 
+  @doc false
   @spec endpoint(Phoenix.Socket.t() | Plug.Conn.t()) :: atom
-  defp endpoint(%Phoenix.Socket{} = socket), do: socket.endpoint
-  defp endpoint(%Plug.Conn{} = conn), do: Phoenix.Controller.endpoint_module(conn)
+  def endpoint(%Phoenix.Socket{} = socket), do: socket.endpoint
+  def endpoint(%Plug.Conn{} = conn), do: Phoenix.Controller.endpoint_module(conn)
 
   @doc """
   Returns the selector of object, which triggered the event. To be used only in event handlers.
