@@ -391,11 +391,11 @@ defmodule Drab.Config do
     do: get_env(endpoint, :js_socket_constructor, "require(\"phoenix\").Socket")
 
   def get(endpoint, :access_session) do
-    # if get(:presence) do
-    #   [get(:presence, :id) | get_env(endpoint, :access_session, [])]
-    # else
+    if get(:presence) do
+      [presence_session_id() | get_env(endpoint, :access_session, [])]
+    else
       Application.get_env(endpoint, :access_session, [])
-    # end
+    end
   end
 
   def get(endpoint, :live_conn_pass_through) do
@@ -404,6 +404,10 @@ defmodule Drab.Config do
         phoenix_endpoint: true
       }
     })
+  end
+
+  defp presence_session_id() do
+    Keyword.get(get(:presence, :id), :session, nil)
   end
 
 end

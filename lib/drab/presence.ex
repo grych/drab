@@ -58,7 +58,13 @@ if Drab.Config.get(:presence) do
 
     The similar would be with the Drab Store:
 
-      config :drab, :presence, id: [store: :current_user_id]
+        config :drab, :presence, id: [store: :current_user_id]
+
+    There is also a possibility to specify both store and session. In this case the order matters:
+    if you put store first, it will take a value from the store, and it is not found, from session.
+
+        config :drab, :presence, id: [store: :current_user_id, session: :current_user_id]
+        config :drab, :presence, id: [session: :current_user_id, store: :current_user_id]
 
     ### Example
     Here we are going to show how to display number of connected users online. The solution is to
@@ -146,10 +152,25 @@ if Drab.Config.get(:presence) do
     @spec client_id(Phoenix.Socket.t()) :: String.t() | no_return
     defp client_id(socket) do
       case Drab.Config.get(:presence, :id) do
-        [session: session_key] -> Drab.Core.get_session(socket, session_key)
-        [store: store_key] -> Map.get(socket.assigns[:__store], store_key, nil)
-        session_key when is_atom(session_key) -> Drab.Core.get_session(socket, session_key)
-        _ -> nil
+        [store: store_key, session: session_key] ->
+          Map.get(socket.assigns[:__store], store_key, nil) ||
+            Drab.Core.get_session(socket, session_key)
+
+        [session: session_key, store: store_key] ->
+          Drab.Core.get_session(socket, session_key) ||
+            Map.get(socket.assigns[:__store], store_key, nil)
+
+        [session: session_key] ->
+          Drab.Core.get_session(socket, session_key)
+
+        [store: store_key] ->
+          Map.get(socket.assigns[:__store], store_key, nil)
+
+        session_key when is_atom(session_key) ->
+          Drab.Core.get_session(socket, session_key)
+
+        _ ->
+          nil
       end || Drab.Browser.id!(socket)
     end
 
