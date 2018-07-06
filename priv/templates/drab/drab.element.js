@@ -143,6 +143,12 @@ Drab.set_prop = function (selector, what, where) {
             element.setAttribute(p, value[p]);
           }
           break;
+        case "classList":
+          element.classList = "";
+          for (var p in value) {
+            element.classList.add(value[p]);
+          }
+          break;
         case "style":
           for (var p in value) {
             element[property][p] = value[p];

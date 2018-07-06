@@ -16,6 +16,7 @@ defmodule Drab.Element do
   * `style`
   * `dataset`
   * `options` (only when it is instance of `HTMLOptionsCollection`)
+  * `classList`
 
   Example:
 
