@@ -1,7 +1,7 @@
 defmodule DrabTestApp.QueryCommander do
   @moduledoc false
 
-  use Drab.Commander, modules: [Drab.Modal]
+  use Drab.Commander, modules: [Drab.Modal, Drab.Query, Drab.Element]
 
   onload(:page_loaded)
 
@@ -13,10 +13,14 @@ defmodule DrabTestApp.QueryCommander do
   end
 
   ### Drab.Modal ###
-  defp modal_out(socket, sender), do: select(socket, data: "modal", from: this(sender)) <> "_out"
+  defp modal_out(socket, sender) do
+    {:ok, %{"dataset" => %{"modal" => modal}}} = query_one(socket, this(sender), :dataset)
+    modal <> "_out"
+  end
 
-  defp update_out(socket, sender, ret),
-    do: socket |> update(:text, set: inspect(ret), on: "##{modal_out(socket, sender)}")
+  defp update_out(socket, sender, ret) do
+    set_prop socket, "##{modal_out(socket, sender)}", innerText: inspect(ret)
+  end
 
   defhandler show_modal1(socket, sender) do
     ret = socket |> alert("Title", "Message")

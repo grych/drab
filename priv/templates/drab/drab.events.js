@@ -19,6 +19,32 @@ Drab.disable_drab_objects = function (disable) {
   <% end %>
 };
 
+Drab.form_params = function(form) {
+  var params = {};
+  var inputs = form.querySelectorAll("input, textarea, select");
+  for (var i = 0; i < inputs.length; i++) {
+    var input = inputs[i];
+    var key = input.name || input.id || false;
+    if (key) {
+      if (input.type == "radio" || input.type == 'checkbox') {
+        if (input.checked) {
+          params[key] = input.value;
+        }
+      } else if (input.type == "select-multiple") {
+        var values = [];
+        for (var j = 0; j < input.options.length; j++) {
+          var option = input.options[j];
+          if (option.selected) values.push(option.value);
+        }
+        params[key] = values;
+      } else {
+        params[key] = input.value;
+      }
+    }
+  };
+  return params;
+}
+
 //http://davidwalsh.name/javascript-debounce-function
 function debounce(func, wait, immediate) {
   var timeout;
@@ -61,27 +87,7 @@ function default_payload(sender, event) {
     return el.nodeName == "FORM";
   });
   if (form) {
-    var inputs = form.querySelectorAll("input, textarea, select");
-    for (var i = 0; i < inputs.length; i++) {
-      var input = inputs[i];
-      var key = input.name || input.id || false;
-      if (key) {
-        if (input.type == "radio" || input.type == 'checkbox') {
-          if (input.checked) {
-            params[key] = input.value;
-          }
-        } else if (input.type == "select-multiple") {
-          var values=[];
-          for (var j = 0; j < input.options.length; j++) {
-            var option = input.options[j];
-            if (option.selected) values.push(option.value);
-          }
-          params[key] = values;
-        } else {
-          params[key] = input.value;
-        }
-      }
-    };
+    params = Drab.form_params(form);
   }
   return {
     // by default, we pass back some sender properties

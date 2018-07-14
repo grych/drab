@@ -17,7 +17,8 @@ defmodule Drab.Mixfile do
         main: "Drab",
         logo: "priv/static/drab-400.png",
         # , filter_prefix: "Drab."
-        extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"]
+        extras: ["README.md", "LICENSE.md", "CHANGELOG.md", "CONTRIBUTING.md"],
+        source_url: "https://github.com/grych/drab"
       ],
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       dialyzer: [plt_add_deps: :transitive, plt_add_apps: [:mix, :iex, :ex_unit]]

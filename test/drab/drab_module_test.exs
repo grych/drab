@@ -7,7 +7,7 @@ defmodule Drab.DrabModuleTest do
       assert DrabModule.all_modules_for([Drab.Query]) == [Drab.Query, Drab.Core]
       assert DrabModule.all_modules_for([Drab.Live]) == [Drab.Live, Drab.Core]
       assert DrabModule.all_modules_for([Drab.Waiter]) == [Drab.Waiter, Drab.Core]
-      assert DrabModule.all_modules_for([Drab.Modal]) == [Drab.Query, Drab.Modal, Drab.Core]
+      assert DrabModule.all_modules_for([Drab.Modal]) == [Drab.Modal, Drab.Core]
 
       assert DrabModule.all_modules_for([Drab.Query, Drab.Live]) == [
                Drab.Live,
@@ -17,7 +17,6 @@ defmodule Drab.DrabModuleTest do
 
       assert DrabModule.all_modules_for([Drab.Modal, Drab.Live]) == [
                Drab.Live,
-               Drab.Query,
                Drab.Modal,
                Drab.Core
              ]

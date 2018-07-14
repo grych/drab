@@ -1,27 +1,24 @@
 defmodule Drab.Modal do
   require Logger
-  import Drab.{Query, Template}
+  import Drab.Template
 
   @moduledoc """
-  Drab Module to launch Bootstrap Modals in the browser.
+  Drab Module to launch Bootstrap Modal in the browser.
 
   This module is optional and is not loaded by default. You need to explicitly declare it in the
   commander:
 
-      use Drab.Commander, modules: [Drab.Modal]
-
-  This module requires jQuery installed as global, see
-  [README](https://hexdocs.pm/drab/readme.html#installation).
+      use Drab.Commander, modules: [Drab.Modal, Drab.Element, Drab.Live]
   """
 
   use DrabModule
-  @impl true
-  def prerequisites(), do: [Drab.Query]
+  # @impl true
+  # def prerequisites(), do: [Drab.Query]
   @impl true
   def js_templates(), do: ["drab.modal.js"]
 
   @doc """
-  Modal, synchronous alert box. This function shows bootstrap modal window on the browser and waits
+  Modal, synchronous alert box. This function shows Bootstrap modal window on the browser and waits
   for the user input.
 
   Parameters:
@@ -38,10 +35,10 @@ defmodule Drab.Modal do
 
   Returns a tuple {clicked_button, params}, where:
   * clicked_button is an atom of `:ok` or `:cancel`. Notice that pressing `esc` or closing
-    the modal window will return :cancel, while pressing `enter` returns :ok
+    the modal window will return `:cancel`, while pressing `enter` returns `:ok`
   * params: Map `%{name|id => value}` of all inputs, selects, etc which are in the alert box body.
-    Uses `name` attribute as a key, or `id`, when there is no `name`, or `__undefined_[number]`,
-    when neither `id` or `name` are specified.
+    Uses `name` attribute as a key, or `id`, when there is no `name`. If there is no `id` or
+    `name`, this form value will not be included to the output.
 
   Examples:
 
@@ -90,12 +87,8 @@ defmodule Drab.Modal do
 
     html = render_template(socket.endpoint, "modal.alert.html.eex", bindings)
 
-    socket
-    |> delete("#_drab_modal")
-    |> insert(html, append: "body")
-
     {:ok, result} =
-      Drab.push_and_wait_forever(socket, self(), "modal", timeout: options[:timeout])
+      Drab.push_and_wait_forever(socket, self(), "modal", timeout: options[:timeout], html: html)
 
     result
   end
