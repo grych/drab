@@ -78,7 +78,11 @@ defmodule Drab.Config do
       config :drab, option: value, option: value
 
   #### :default_encoder *(default: `Drab.Coder.Cipher`)*
-    Sets the default encoder/decoder for the various functions, like `Drab.Browser.set_cookie/3`
+    Sets the default encoder/decoder for the various functions, like `Drab.Browser.set_cookie/3`.
+
+  #### :default_modules *(default: `[Drab.Live, Drab.Element]`)*
+    Sets the default Drab Modules. May be overwritten individually in the commander with
+    `use Drab.Commander, modules: [...]`.
 
   #### :enable_live_scripts *(default: `false`)*
     Re-evaluation of JavaScripts containing living assigns is disabled by default.
@@ -170,10 +174,10 @@ defmodule Drab.Config do
   @spec pubsub(atom) :: atom | no_return
   def pubsub(endpoint) do
     with app <- app_name(endpoint),
-      config <- Application.get_env(app, endpoint),
-      {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
-      {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
-        name
+         config <- Application.get_env(app, endpoint),
+         {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
+         {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
+      name
     else
       _ -> raise_app_not_found()
     end
@@ -185,13 +189,14 @@ defmodule Drab.Config do
     case app_endpoints() do
       [endpoint] ->
         with app <- app_name(endpoint),
-          config <- Application.get_env(app, endpoint),
-          {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
-          {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
-            name
+             config <- Application.get_env(app, endpoint),
+             {:ok, pubsub_conf} <- Keyword.fetch(config, :pubsub),
+             {:ok, name} <- Keyword.fetch(pubsub_conf, :name) do
+          name
         else
           _ -> raise_app_not_found()
         end
+
       _ ->
         raise """
         Can't find the default PubSub module. Please ensure that it is set in config.exs.
@@ -210,6 +215,7 @@ defmodule Drab.Config do
     case app_endpoints() do
       [endpoint] ->
         endpoint
+
       _ ->
         raise """
         Can't find the default Endpoint module. Please ensure that it is set in config.exs.
@@ -224,33 +230,35 @@ defmodule Drab.Config do
   @doc false
   @spec secret_key_base() :: String.t() | no_return
   def secret_key_base() do
-    get(:secret_key_base) || case app_endpoints() do
-      [endpoint] ->
-        with app <- app_name(endpoint),
-          config <- Application.get_env(app, endpoint),
-          {:ok, secret_key_base} <- Keyword.fetch(config, :secret_key_base) do
+    get(:secret_key_base) ||
+      case app_endpoints() do
+        [endpoint] ->
+          with app <- app_name(endpoint),
+               config <- Application.get_env(app, endpoint),
+               {:ok, secret_key_base} <- Keyword.fetch(config, :secret_key_base) do
             secret_key_base
-        else
-          _ -> raise_app_not_found()
-        end
-      _ ->
-        raise """
-        Can't find the default secret key base. Please ensure that it is set in config.exs.
+          else
+            _ -> raise_app_not_found()
+          end
 
-        In multiple endpoint environments, you must specify it globally for Drab:
+        _ ->
+          raise """
+          Can't find the default secret key base. Please ensure that it is set in config.exs.
 
-            config :drab, secret_key_base: "remember to put it in prod_secret.exs"
-        """
-    end
+          In multiple endpoint environments, you must specify it globally for Drab:
+
+              config :drab, secret_key_base: "remember to put it in prod_secret.exs"
+          """
+      end
   end
 
   @doc false
   @spec secret_key_base(atom) :: String.t() | no_return
   def secret_key_base(endpoint) do
     with app <- app_name(endpoint),
-      config <- Application.get_env(app, endpoint),
-      {:ok, secret_key_base} <- Keyword.fetch(config, :secret_key_base) do
-        secret_key_base
+         config <- Application.get_env(app, endpoint),
+         {:ok, secret_key_base} <- Keyword.fetch(config, :secret_key_base) do
+      secret_key_base
     else
       _ -> raise_app_not_found()
     end
@@ -330,6 +338,9 @@ defmodule Drab.Config do
 
   def get(:presence), do: Application.get_env(:drab, :presence, false)
 
+  def get(:default_modules),
+    do: Application.get_env(:drab, :default_modules, [Drab.Live, Drab.Element])
+
   @doc """
   Returns Drab configuration for the given endpoint and atom.
 
@@ -341,7 +352,7 @@ defmodule Drab.Config do
 
   def get(:presence, :id) do
     case get(:presence) do
-      options when is_list(options) -> Keyword.get(options, :id, [session: :user_id])
+      options when is_list(options) -> Keyword.get(options, :id, session: :user_id)
       _ -> nil
     end
   end
@@ -378,11 +389,9 @@ defmodule Drab.Config do
   def get(endpoint, :templates_path),
     do: get_env(endpoint, :templates_path, "priv/templates/drab")
 
-  def get(endpoint, :token_max_age),
-    do: get_env(endpoint, :token_max_age, 86_400)
+  def get(endpoint, :token_max_age), do: get_env(endpoint, :token_max_age, 86_400)
 
-  def get(endpoint, :socket),
-    do: get_env(endpoint, :socket, "/socket")
+  def get(endpoint, :socket), do: get_env(endpoint, :socket, "/socket")
 
   def get(endpoint, :browser_response_timeout),
     do: get_env(endpoint, :browser_response_timeout, 5000)
@@ -409,5 +418,4 @@ defmodule Drab.Config do
   defp presence_session_id() do
     Keyword.get(get(:presence, :id), :session, nil)
   end
-
 end

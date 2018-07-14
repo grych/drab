@@ -7,7 +7,7 @@ defmodule Drab.Commander.Config do
             onload: nil,
             onconnect: nil,
             ondisconnect: nil,
-            modules: [Drab.Live, Drab.Element],
+            modules: Drab.Config.get(:default_modules),
             access_session: [],
             before_handler: [],
             after_handler: [],

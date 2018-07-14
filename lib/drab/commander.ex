@@ -228,7 +228,12 @@ defmodule Drab.Commander do
 
   will override default modules, so only `Drab.Core` and `Drab.Query` will be available.
 
-  Every module has its corresponding JS template, which is loaded only when module is enabled.
+  Every module has its corresponding JS template, which is loaded only when module is enabled. This
+  is why it is good to keep the module list as short as it is possible.
+
+  You may override the default modules list with the `:default_modules` config option:
+
+      config :drab, :default_modules, [Drab.Query]
 
   ## Using templates
 

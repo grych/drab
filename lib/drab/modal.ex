@@ -12,8 +12,6 @@ defmodule Drab.Modal do
   """
 
   use DrabModule
-  # @impl true
-  # def prerequisites(), do: [Drab.Query]
   @impl true
   def js_templates(), do: ["drab.modal.js"]
 
