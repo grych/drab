@@ -74,7 +74,7 @@ defmodule Drab.Modal do
   @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) ::
           Drab.Core.return() | no_return
   @spec alert(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
-  def alert(socket, title, body, options \\ []) do
+  def alert(%Phoenix.Socket{} = socket, title, body, options \\ []) do
     buttons = options[:buttons] || [ok: "OK"]
 
     bindings = [
