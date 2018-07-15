@@ -9,6 +9,15 @@ defmodule Drab.Modal do
   commander:
 
       use Drab.Commander, modules: [Drab.Modal, Drab.Element, Drab.Live]
+
+  Or set the it globally in `config.exs`:
+
+      config :drab, :default_modules, [Drab.Modal, Drab.Element, Drab.Live]
+
+  Requires Bootstrap to work. Because there are differences beetween Bootstrap 3 and 4, you should
+  configure which version you use (by default it is `:bootstrap3`):
+
+      config :drab, :modal_css, :bootstrap4
   """
 
   use DrabModule
@@ -71,7 +80,8 @@ defmodule Drab.Modal do
                   buttons: [ok: "Yes", cancel: "No", unspecified: "Don't know"])
 
   """
-  @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) :: Drab.Core.return() | no_return
+  @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) ::
+          Drab.Core.return() | no_return
   @spec alert(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
   def alert(socket, title, body, options \\ []) do
     buttons = options[:buttons] || [ok: "OK"]
@@ -83,7 +93,12 @@ defmodule Drab.Modal do
       buttons: buttons_html(socket, buttons)
     ]
 
-    html = render_template(socket.endpoint, "modal.alert.html.eex", bindings)
+    html =
+      render_template(
+        socket.endpoint,
+        "modal.alert.#{Drab.Config.get(:modal_css)}.html.eex",
+        bindings
+      )
 
     {:ok, result} =
       Drab.push_and_wait_forever(socket, self(), "modal", timeout: options[:timeout], html: html)
@@ -95,7 +110,11 @@ defmodule Drab.Modal do
   defp buttons_html(socket, buttons) do
     buttons
     |> Enum.map(fn {button, label} ->
-      render_template(socket.endpoint, "modal.alert.button.#{Atom.to_string(button)}.html.eex", label: label)
+      render_template(
+        socket.endpoint,
+        "modal.alert.button.#{Atom.to_string(button)}.html.eex",
+        label: label
+      )
     end)
     |> Enum.join("\n")
   end

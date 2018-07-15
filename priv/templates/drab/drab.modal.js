@@ -30,7 +30,10 @@ Drab.on_connect(function (resp, drab) {
     modal = document.getElementById(MODAL);
     var form = modal.querySelector("form");
     setTimeout(function () {
-      modal.classList.add("in", "show");
+      <%= case Drab.Config.get(:modal_css) do %>
+        <% :bootstrap3 -> %> modal.classList.add("in");
+        <% :bootstrap4 -> %> modal.classList.add("show");
+      <% end %>
       form.querySelector("input, textarea, select").focus();
     }, 50);
 

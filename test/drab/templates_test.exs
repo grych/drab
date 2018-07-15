@@ -17,7 +17,7 @@ defmodule Drab.TemplateTest do
     assert String.contains?(
              render_template(
                DrabTestApp.Endpoint,
-               "modal.alert.html.eex",
+               "modal.alert.bootstrap3.html.eex",
                title: "TITLE",
                class: "CLASS",
                body: "BODY",

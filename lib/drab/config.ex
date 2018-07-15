@@ -87,6 +87,9 @@ defmodule Drab.Config do
   #### :enable_live_scripts *(default: `false`)*
     Re-evaluation of JavaScripts containing living assigns is disabled by default.
 
+  #### :modal_css *(default: `:bootstrap3`)*
+    A CSS framework used to show `Drab.Modal`. Available: `:bootstrap3`, `:bootstrap4`.
+
   #### :phoenix_channel_options *(default: `[]`)*
     An options passed to `use Phoenix.Channel`, for example: `[log_handle_in: false]`.
 
@@ -340,6 +343,8 @@ defmodule Drab.Config do
 
   def get(:default_modules),
     do: Application.get_env(:drab, :default_modules, [Drab.Live, Drab.Element])
+
+  def get(:modal_css), do: Application.get_env(:drab, :modal_css, :bootstrap3)
 
   @doc """
   Returns Drab configuration for the given endpoint and atom.
