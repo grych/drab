@@ -55,13 +55,13 @@ end
 
   First at all, you need to have a Phoenix application, on top of which you will install Drab. If this is a standard app, generated with `mix phx.new`, you may use Drab Installer to make it running in one, simple step. Otherwise, see [Manual Installation](#manual-installation) section below.
 
-  1. Edit `mix.exs` in the main folder in your web application (if you have multiple application under an umbrella, this is the one ending with `_web`). Locate function `deps` (search for `def deps` string). Add an entry `{:drab, "~> 0.9.0"}` to the list. Don't forget about comma!
+  1. Edit `mix.exs` in the main folder in your web application (if you have multiple application under an umbrella, this is the one ending with `_web`). Locate function `deps` (search for `def deps` string). Add an entry `{:drab, "~> 0.9.1"}` to the list. Don't forget about comma!
 
 ```elixir
 def deps do
   [
     {...},
-    {:drab, "~> 0.9.0"}
+    {:drab, "~> 0.9.1"}
   ]
 end
 ```
@@ -165,6 +165,9 @@ socket |> poke(count: 42)
 As instructed, copy and paste those to lines, and check out yourself how could you remote control the displayed page:
 
 ```elixir
+iex> alert socket, "Alert title", "Do you like modals?", buttons: [ok: "A juści", cancel: "Poniechaj"]
+{:ok, %{}}
+
 iex> poke socket, welcome_text: "WOW, this is nice"
 %Phoenix.Socket{...}
 
