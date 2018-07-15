@@ -2,7 +2,7 @@
 
 ## v0.9.1 jQueryless Modal
 
-`Drab.Modal` is not dependent on `Drab.Modal` anymore, and does not require jQuery to run! You
+`Drab.Modal` is not dependent on `Drab.Query` anymore, and does not require jQuery to run! You
 may now use it out of the box, with standard Phoenix installation. Works with both Bootstrap 3
 and 4, while Bootstrap 3 is used by default. In case you want to use Bootstrap 4, configure it with:
 
