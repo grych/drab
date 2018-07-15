@@ -55,17 +55,6 @@ defmodule Drab do
   All you need to do is to copy/paste the line with `socket = ...` and now you can run Drab function
   directly from IEx, observing the results on the running browser in the realtime.
 
-  ## Handling Exceptions
-
-  Drab intercepts all exceptions from event handler function and let it die, but before it presents
-  the error message in the logs and an alert for a user on the page.
-
-  By default it is just an `alert()`, but you can easly override it by creating the template in the
-  `priv/templates/drab/drab.error_handler.js` folder with your own javascript presenting the
-  message. You may use the local variable `message` there to get the exception description, like:
-
-      alert(<%= message %>);
-
   ## Modules
 
   Drab is modular. You may choose which modules to use in the specific Commander by using `:module`
@@ -118,6 +107,17 @@ defmodule Drab do
   This module is standalone (does not contain its own JS), so it does not have to be listed in
   `use Drab.Commander` or in the setup. Contains browser related functions, like get the local
   time, language or set the url in the browser bar.
+
+  ## Handling Exceptions
+
+  Drab intercepts all exceptions from event handler function and let it die, but before it presents
+  the error message in the logs and an alert for a user on the page.
+
+  By default it is just an `alert()`, but you can easly override it by creating the template in the
+  `priv/templates/drab/drab.error_handler.js` folder with your own javascript presenting the
+  message. You may use the local variable `message` there to get the exception description, like:
+
+      alert(<%= message %>);
 
   ## Drab in production and behind a proxy
 
