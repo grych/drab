@@ -80,7 +80,7 @@ defmodule Drab.Config do
   #### :default_encoder *(default: `Drab.Coder.Cipher`)*
     Sets the default encoder/decoder for the various functions, like `Drab.Browser.set_cookie/3`.
 
-  #### :default_modules *(default: `[Drab.Live, Drab.Element]`)*
+  #### :default_modules *(default: `[Drab.Live, Drab.Element, Drab.Modal]`)*
     Sets the default Drab Modules. May be overwritten individually in the commander with
     `use Drab.Commander, modules: [...]`.
 
@@ -342,7 +342,7 @@ defmodule Drab.Config do
   def get(:presence), do: Application.get_env(:drab, :presence, false)
 
   def get(:default_modules),
-    do: Application.get_env(:drab, :default_modules, [Drab.Live, Drab.Element])
+    do: Application.get_env(:drab, :default_modules, [Drab.Live, Drab.Element, Drab.Modal])
 
   def get(:modal_css), do: Application.get_env(:drab, :modal_css, :bootstrap3)
 

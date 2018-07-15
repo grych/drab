@@ -69,13 +69,55 @@ defmodule Drab do
   ## Modules
 
   Drab is modular. You may choose which modules to use in the specific Commander by using `:module`
-  option in `use Drab.Commander` directive. By default, `Drab.Live` and `Drab.Element` are loaded,
-  but you may override it using  `modules` option with `use Drab.Commander` directive.
+  option in `use Drab.Commander` directive or set it globally by `:default_modules` config option.
+  By default, `Drab.Live`, `Drab.Element` and `Drab.Modal` are loaded.
 
   Every module must have the corresponding javascript template, which is added to the client code
-  in case the module is loaded.
+  in case the module is loaded. This is why it is good to keep the modules list small, if you are
+  not using all modules.
 
   `Drab.Core` module is always loaded.
+
+  ### List of Drab Modules
+
+  #### `Drab.Core`
+
+  Contains core functions, like `exec_js`. It is always loaded, as it is essential for the rest of
+  Drab.
+
+  #### `Drab.Live`, the living assigns
+
+  This module is responsible for the living assigns. Contains function to push (`poke`) and pull
+  (`peek`) new assign values to the browser, live. Works only with pages compiled with
+  `Drab.Live.EExEngine` (pages with `.drab` extension).
+
+  #### `Drab.Element`, DOM element manipulation
+
+  Use functions from this module to get (`query`) or set (`set_prop`) properties or attributes
+  of DOM elements. All functions are based on CSS selectors.
+
+  #### `Drab.Modal`, Bootstrap modal window
+
+  This module contains only one function, `modal`, which shows synchronous modal windows. It
+  requires Bootstrap to work. Good to ask for a customer input.
+
+  #### `Drab.Waiter`, waits for the user input
+
+  This is an optional module, so must be listed in `:module` option in `use Drab.Commander`
+  directive or in `:default_modules` config option. Analogically to modal, waits for the user input.
+
+  #### `Drab.Query`, the jQuery module
+
+  This is an optional module, so must be listed in `:module` option in `use Drab.Commander`
+  directive or in `:default_modules` config option. Also, jQuery must be available as a global
+  (see "Manuall Installation" in `README`). `Drab.Query` has a number of useful functions, brings
+  jQuery to the server side.
+
+  #### `Drab.Browser`, browser related functions
+
+  This module is standalone (does not contain its own JS), so it does not have to be listed in
+  `use Drab.Commander` or in the setup. Contains browser related functions, like get the local
+  time, language or set the url in the browser bar.
 
   ## Drab in production and behind a proxy
 

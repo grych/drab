@@ -5,15 +5,6 @@ defmodule Drab.Modal do
   @moduledoc """
   Drab Module to launch Bootstrap Modal in the browser.
 
-  This module is optional and is not loaded by default. You need to explicitly declare it in the
-  commander:
-
-      use Drab.Commander, modules: [Drab.Modal, Drab.Element, Drab.Live]
-
-  Or set the it globally in `config.exs`:
-
-      config :drab, :default_modules, [Drab.Modal, Drab.Element, Drab.Live]
-
   Requires Bootstrap to work. Because there are differences beetween Bootstrap 3 and 4, you should
   configure which version you use (by default it is `:bootstrap3`):
 

@@ -222,14 +222,14 @@ defmodule Drab.Commander do
   Drab is modular. You my choose which modules to use in the specific Commander by using `:module`
   option in `use Drab.Commander` directive.
   There is one required module, which is loaded always and can't be disabled: `Drab.Code`.
-  By default, modules `Drab.Live` and `Drab.Element` are loaded. The following code:
+  By default, modules `Drab.Live`, `Drab.Element` and `Drab.Modal` are loaded. The following code:
 
       use Drab.Commander, modules: [Drab.Query]
 
   will override default modules, so only `Drab.Core` and `Drab.Query` will be available.
 
   Every module has its corresponding JS template, which is loaded only when module is enabled. This
-  is why it is good to keep the module list as short as it is possible.
+  is why it is good to keep the module list as short as it is possible, if you are not using them.
 
   You may override the default modules list with the `:default_modules` config option:
 
