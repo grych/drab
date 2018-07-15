@@ -235,7 +235,7 @@ iex> query socket, "h3", :innerText
 iex> set_prop socket, "h3", innerText: "Updated from IEx"
 {:ok, 2}
 
-iex> exec_js socket, "alert('You do like alerts!')"
+iex> exec_js socket, "alert('You do like alerts?')"
 {:ok, nil}
 ```
 
