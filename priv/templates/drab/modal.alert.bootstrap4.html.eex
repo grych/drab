@@ -1,5 +1,5 @@
-<div id="_drab_modal_wrapper">
-  <div id="_drab_modal" class="modal fade" tabindex="-1" role="dialog">
+<div id="_drab_modal_wrapper_<%= id %>">
+  <div class="modal fade" tabindex="-1" role="dialog">
     <style type="text/css">
       .modal {
         display: block;
@@ -14,7 +14,7 @@
         <div class="modal-body">
           <form>
             <p><%= body %></p>
-            <input id="__drab_modal_hidden_input" type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;">
+            <input name="__drab_modal_hidden_input" type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;">
           </form>
         </div>
         <div class="modal-footer">
@@ -23,5 +23,5 @@
       </div>
     </div>
   </div>
-  <div id="_drab_modal_backdrop" class="modal-backdrop fade"></div>
+  <div class="modal-backdrop fade"></div>
 </div>

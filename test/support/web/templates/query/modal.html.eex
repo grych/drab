@@ -12,3 +12,6 @@
 
 <button id="modal4_button" drab-click='show_modal4' data-modal="modal4">Modal4</button>
 <div id="modal4_out"></div>
+
+<button id="modal5_button" drab-click='show_modal5' data-modal="modal5">Modal5</button>
+<div id="modal5_out"></div>

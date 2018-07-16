@@ -49,7 +49,7 @@ defmodule DrabTestApp.ModalTest do
     end
 
     test "basic modal with default OK button - click OK" do
-      button_click_test("modal1", "#_drab_modal_button_ok", "{:ok, %{}}")
+      button_click_test("modal1", "[name='ok']", "{:ok, %{}}")
     end
 
     test "basic modal with default OK button - click CLOSE" do
@@ -75,7 +75,7 @@ defmodule DrabTestApp.ModalTest do
       find_element(:name, "first") |> fill_field("First")
       find_element(:id, "second") |> fill_field("Second")
       # there is no difference which button we click, should return values from the form
-      find_element(:css, "#_drab_modal_button_cancel") |> click()
+      find_element(:css, "[name='cancel']") |> click()
       check_if_closed()
 
       assert visible_text(find_element(:id, "modal3_out")) ==
@@ -87,6 +87,15 @@ defmodule DrabTestApp.ModalTest do
       find_element(:id, "_drab_modal_button_addtional") |> click()
       check_if_closed()
       assert visible_text(find_element(:id, "modal4_out")) == "{:additional, %{}}"
+    end
+
+    test "modal over modal" do
+      open_modal("modal5")
+      find_element(:id, "_drab_modal_button_addtional") |> click()
+      Process.sleep(500)
+      assert visible_text(find_element(:id, "modal5_out")) == "{:additional, %{}}"
+      find_element(:css, "[name='ok']") |> click()
+      assert visible_text(find_element(:id, "modal5_out")) == "{:ok, %{}}"
     end
   end
 end

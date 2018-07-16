@@ -76,11 +76,13 @@ defmodule Drab.Modal do
   @spec alert(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
   def alert(%Phoenix.Socket{} = socket, title, body, options \\ []) do
     buttons = options[:buttons] || [ok: "OK"]
+    id = Drab.Live.Crypto.uuid("m")
 
     bindings = [
       title: title,
       body: body,
       class: options[:class],
+      id: id,
       buttons: buttons_html(socket, buttons)
     ]
 
@@ -92,7 +94,14 @@ defmodule Drab.Modal do
       )
 
     {:ok, result} =
-      Drab.push_and_wait_forever(socket, self(), "modal", timeout: options[:timeout], html: html)
+      Drab.push_and_wait_forever(
+        socket,
+        self(),
+        "modal",
+        timeout: options[:timeout],
+        html: html,
+        id: id
+      )
 
     result
   end

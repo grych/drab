@@ -43,6 +43,15 @@ defmodule DrabTestApp.QueryCommander do
     update_out(socket, sender, ret)
   end
 
+  defhandler show_modal5(socket, sender) do
+    spawn_link fn ->
+      ret = socket |> alert("Title", "Message")
+      update_out(socket, sender, ret)
+    end
+    ret = socket |> alert("Title", "Message", buttons: [additional: "Second"])
+    update_out(socket, sender, ret)
+  end
+
   defhandler sender_test(socket, sender) do
     socket |> update(:text, set: is_number(sender["data"]["integer"]), on: "#data_test_div_out1")
     socket |> update(:text, set: is_binary(sender["data"]["string"]), on: "#data_test_div_out2")

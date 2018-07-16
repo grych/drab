@@ -1,1 +1,1 @@
-<button id="_drab_modal_button_cancel" type="button" name="cancel" class="btn btn-danger drab-modal-button"><%= label %></button>
+<button type="button" name="cancel" class="btn btn-danger drab-modal-button"><%= label %></button>
