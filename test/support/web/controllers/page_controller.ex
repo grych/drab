@@ -11,6 +11,7 @@ defmodule DrabTestApp.PageController do
   def core(conn, _params) do
     conn = put_session(conn, :test_session_value1, "test session value 1")
     conn = put_session(conn, :test_session_value2, "test session value 2")
+    conn = put_session(conn, :another_session, 42)
     render(conn, "core.html")
   end
 

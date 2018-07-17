@@ -90,6 +90,10 @@ defmodule DrabTestApp.CoreTest do
       assert visible_text(session_value) == ""
     end
 
+    test "session, set in config.exs", fixture do
+      assert Drab.Core.get_session(fixture.socket, :another_session) == 42
+    end
+
     @tag capture_log: true
     test "store" do
       # test if the store is set up correctly

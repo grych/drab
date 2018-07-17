@@ -476,7 +476,7 @@ defmodule Drab.Core do
   `use Drab.Commander` or globally, in `config.exs`:
 
       config :drab, MyAppWeb.Endpoint,
-        :access_session, [:user_id]
+        access_session: [:user_id]
   """
   @spec get_session(Phoenix.Socket.t(), atom) :: term
   def get_session(socket, key) do
