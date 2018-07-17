@@ -89,7 +89,9 @@ defmodule DrabTestApp.LiveController do
       in_partial: "in partial before",
       my_list: [],
       weekdays: ["Pon", "Wt", "Sr"],
-      current_week_monday: "MONDAY"
+      current_week_monday: "MONDAY",
+      shorten_url: "short url",
+      long_url: "long url"
     )
   end
 

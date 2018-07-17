@@ -92,12 +92,17 @@ defmodule DrabTestApp.LiveCommander do
     poke(socket, text: "changed")
   end
 
-  defhandler update_mini(socket, _sender, additional) do
+  defhandler shorten_url(socket, _sender) do
+    # IO.inspect sender.params["long_url_textarea"]
+    poke socket, shorten_url: "SHORT", long_url: "LONG"
+  end
+
+  defhandler update_mini(socket, _sender, _additional) do
     # IO.inspect sender
     # IO.inspect(sender.params)
     # poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
     # poke socket, text: "changed", color: "red", class2: "btn-danger"
-    IO.inspect additional
+    # IO.inspect additional
     poke(socket, color: "grey")
   end
 
