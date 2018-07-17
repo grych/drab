@@ -622,7 +622,7 @@ defmodule Drab.Live do
     assign_updates = assign_updates_js(assigns_to_update, partial, drab_commander_id(subject))
     all_javascripts = (assign_updates ++ update_javascripts) |> Enum.uniq() |> Enum.join(";")
     all_javascripts = "var n=0;" <> all_javascripts <> ";n"
-    IO.inspect update_javascripts
+    # IO.inspect update_javascripts
     # IO.inspect(all_javascripts)
     # IO.inspect(function)
 
