@@ -125,6 +125,15 @@ Drab.update_property = function (ampere, property, new_value) {
   return n;
 }
 
+function set_inner_html(node, tag, new_value) {
+  switch (tag) {
+    case "textarea":
+      node.value = new_value;
+    default:
+      node.innerHTML = new_value;
+  }
+}
+
 Drab.update_tag = function(tag, ampere, new_value) {
   var n = 0;
   switch(tag) {
@@ -134,10 +143,11 @@ Drab.update_tag = function(tag, ampere, new_value) {
     default:
       var s = selector(ampere);
       var nodes = document.querySelectorAll(s);
+      console.log(nodes);
 
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
-        node.innerHTML = new_value;
+        set_inner_html(node, tag, new_value);
         n++;
       }
       Drab.enable_drab_on(s);

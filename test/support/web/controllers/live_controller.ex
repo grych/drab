@@ -90,8 +90,8 @@ defmodule DrabTestApp.LiveController do
       my_list: [],
       weekdays: ["Pon", "Wt", "Sr"],
       current_week_monday: "MONDAY",
-      shorten_url: "short url",
-      long_url: "long url"
+      shorten_url: nil,
+      long_url: nil
     )
   end
 

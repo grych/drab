@@ -50,7 +50,7 @@
 			<div class="row">
 				<div class="input-field col s12">
 					<label for="long_url">Type long URL here.</label>
-					<textarea class="materialize-textarea" id="long-url-textarea" name="long_url_textarea"><%= @long_url %> </textarea>
+					<textarea class="materialize-textarea" id="long-url-textarea" name="long_url_textarea"><%= @long_url %></textarea>
           <%= @long_url %>
 					<p id="long-url-error"></p>
 				</div>
