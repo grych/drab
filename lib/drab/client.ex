@@ -163,11 +163,11 @@ defmodule Drab.Client do
         Phoenix.Token.sign(
           conn,
           "controller_and_action",
-          __controller: controller,
-          __commander: commander,
-          __view: view,
-          __action: action,
-          __assigns: assigns
+          controller: controller,
+          commander: commander,
+          view: view,
+          action: action,
+          assigns: assigns
         )
 
       broadcast_topic =

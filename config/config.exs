@@ -33,7 +33,7 @@ config :drab, :phoenix_channel_options, log_handle_in: false
 
 config :drab, :presence, id: [store: :current_user_id]
 
-config :drab, DrabTestApp.Endpoint, access_session: [:another_session]
+config :drab, DrabTestApp.Endpoint, access_session: [:another_session, :should_be_nil]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

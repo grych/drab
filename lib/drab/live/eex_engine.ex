@@ -74,20 +74,6 @@ defmodule Drab.Live.EExEngine do
       <script>
         <%= if clause, do: expression %>
       </script>
-
-  #### Parent/child Expression Detection
-  Drab is able to detect when updating both parent and child expression (child is the one inside
-  the block). In the case above, the parent expression is the `for` comprehension with `@users`
-  assign, and the child is the `if` containing only `@user`. When you update both assigns with
-  the same `poke`, Drab would be able to detect that the `if` is inside `for`, and should not
-  be refreshed.
-
-  This means that you may solve the case above with:
-
-      poke socket, users: peek(socket, :users), user: "Changed"
-
-  This statement will update the whole `for` loop, without any changes to `@users`, but with changed
-  `@user` assign.
   """
 
   import Drab.Live.{Crypto, HTML}

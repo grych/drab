@@ -116,11 +116,11 @@ defmodule Drab.Socket do
              ) do
           {:ok,
            [
-             __controller: controller,
-             __commander: commander,
-             __view: view,
-             __action: action,
-             __assigns: assigns
+             controller: controller,
+             commander: commander,
+             view: view,
+             action: action,
+             assigns: assigns
            ]} ->
             own_plus_external_assigns = Map.merge(Enum.into(assigns, %{}), socket.assigns)
 
@@ -155,4 +155,9 @@ defmodule Drab.Socket do
   def verify(_, _) do
     :error
   end
+
+  # TODO: use private, https://github.com/phoenixframework/phoenix/issues/2967
+  # defp put_private(%Phoenix.Socket{private: private} = socket, key, value) when is_atom(key) do
+  #   %{socket | private: Map.put(private, key, value)}
+  # end
 end
