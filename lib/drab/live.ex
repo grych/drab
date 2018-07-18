@@ -997,6 +997,7 @@ defmodule Drab.Live do
   end
 
   @spec raise_partial_not_found(String.t() | nil) :: no_return
+  @doc false
   def raise_partial_not_found(path) do
     raise ArgumentError,
       message: """
