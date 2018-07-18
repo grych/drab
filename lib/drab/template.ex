@@ -7,8 +7,7 @@ defmodule Drab.Template do
   @moduledoc false
 
   # compiling internal templates only
-  # TODO: compile also user additional templates
-  Logger.info("Compiling Drab Templates")
+  # Logger.debug("Compiling Drab Templates")
 
   drab_templates =
     [:drab |> :code.priv_dir() |> to_string(), @drab_templates, "*"]

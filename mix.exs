@@ -61,8 +61,8 @@ defmodule Drab.Mixfile do
       {:deppie, "~> 1.0"},
       {:floki, ">= 0.20.2"},
       {:dialyxir, "~> 1.0.0-rc.2", only: [:dev, :test], runtime: false},
-      {:jason, "~> 1.0"},
-      {:credo, "~> 0.9.3", only: [:dev, :test], runtime: false}
+      # {:credo, "~> 0.9.3", only: [:dev, :test], runtime: false},
+      {:jason, "~> 1.0"}
     ]
   end
 

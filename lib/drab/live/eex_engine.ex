@@ -107,7 +107,7 @@ defmodule Drab.Live.EExEngine do
 
     partial = opts[:file]
     partial_hash = hash(partial)
-    Logger.info("Compiling Drab partial: #{partial} (#{partial_hash})")
+    # Logger.info("Compiling Drab partial: #{partial} (#{partial_hash})")
 
     buffer = ["{{{{@drab-partial:#{partial_hash}}}}}"]
     %Safe{safe: buffer, partial: %Partial{path: partial, hash: partial_hash}}
