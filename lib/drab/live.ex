@@ -388,7 +388,9 @@ defmodule Drab.Live do
   def peek!(socket, view, partial, assign) when is_atom(assign) do
     case assigns_and_nodrab(socket) do
       {:ok, assigns_data} ->
-        Drab.JSExecutionError.result_or_raise(do_peek(socket, view, partial, assign, assigns_data))
+        Drab.JSExecutionError.result_or_raise(
+          do_peek(socket, view, partial, assign, assigns_data)
+        )
 
       {:error, description} ->
         raise Drab.JSExecutionError, message: to_string(description)
@@ -481,7 +483,8 @@ defmodule Drab.Live do
       iex> poke!(socket, MyApp.UserView, "user.html", name: "Bożywój")
       0
   """
-  @spec poke!(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) :: integer | no_return
+  @spec poke!(Phoenix.Socket.t(), atom | nil, String.t() | nil, Keyword.t()) ::
+          integer | no_return
   def poke!(socket, view, partial, assigns) do
     socket
     |> do_poke(view, partial, assigns, &Drab.Core.exec_js!/2)
@@ -543,7 +546,8 @@ defmodule Drab.Live do
   Hint: if you have functions using `@conn` assign, you may fake it with
   `%Plug.Conn{private: %{:phoenix_endpoint => MyAppWeb.Endpoint}}`
   """
-  @spec broadcast_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t()) :: result | no_return
+  @spec broadcast_poke(Drab.Core.subject(), atom | nil, String.t() | nil, Keyword.t()) ::
+          result | no_return
   def broadcast_poke(%Phoenix.Socket{} = socket, view, partial, assigns) do
     do_poke(socket, view, partial, assigns, &Drab.Core.broadcast_js/2)
   end

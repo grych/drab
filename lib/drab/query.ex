@@ -450,7 +450,7 @@ defmodule Drab.Query do
       socket |> delete(from: "code") # empty all `<code>`, but node remains
       socket |> delete(class: "btn-success", from: "#button")
   """
-  @spec delete(Phoenix.Socket.t(),  Keyword.t() | String.t()) :: Phoenix.Socket.t() | no_return
+  @spec delete(Phoenix.Socket.t(), Keyword.t() | String.t()) :: Phoenix.Socket.t() | no_return
   def delete(socket, options) do
     do_delete(socket, @no_broadcast, options)
     socket

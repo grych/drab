@@ -17,18 +17,18 @@ defmodule DrabTestApp.SharedTest do
   describe "not defined handler" do
     @tag capture_log: true
     test "should raise" do
-      assert_raise RuntimeError,
-        ~r/must be declared as public in the commander/s,
-        fn -> click_and_wait("not-defined-handler-button") end
+      assert_raise RuntimeError, ~r/must be declared as public in the commander/s, fn ->
+        click_and_wait("not-defined-handler-button")
+      end
     end
   end
 
   describe "not declared controller" do
     @tag capture_log: true
     test "should raise" do
-      assert_raise RuntimeError,
-        ~r/is not declared in DrabTestApp.ShareController/s,
-        fn -> click_and_wait("not-defined-controller-button") end
+      assert_raise RuntimeError, ~r/is not declared in DrabTestApp.ShareController/s, fn ->
+        click_and_wait("not-defined-controller-button")
+      end
     end
   end
 

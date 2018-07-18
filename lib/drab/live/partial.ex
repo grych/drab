@@ -48,7 +48,7 @@ defmodule Drab.Live.Partial do
   """
   @spec template_filename(atom, String.t()) :: String.t()
   def template_filename(view, hash) do
-    template = Path.relative_to module(hash).path(), templates_path(view)
+    template = Path.relative_to(module(hash).path(), templates_path(view))
     Path.rootname(template, Drab.Config.drab_extension())
   end
 

@@ -11,6 +11,7 @@ defmodule Drab.LiveTest do
   describe "Drab.Live non-compilable cases" do
     test "with restricted words as assigns" do
       reserved_words = "<html><%= @using_assigns %></html>"
+
       assert_raise EEx.SyntaxError, fn ->
         EEx.compile_string(reserved_words, engine: Drab.Live.EExEngine, file: "path.html.drab")
       end
@@ -22,6 +23,7 @@ defmodule Drab.LiveTest do
         <div @property="not allowed <%= @assign %>">
       </html>
       """
+
       assert_raise EEx.SyntaxError, fn ->
         EEx.compile_string(wrong_property, engine: Drab.Live.EExEngine, file: "path.html.drab")
       end
@@ -33,6 +35,7 @@ defmodule Drab.LiveTest do
         <div @property="<%= @assign %><%= @assign2 %>">
       </html>
       """
+
       assert_raise EEx.SyntaxError, fn ->
         EEx.compile_string(wrong_property, engine: Drab.Live.EExEngine, file: "path.html.drab")
       end
@@ -44,6 +47,7 @@ defmodule Drab.LiveTest do
         <div @property="<%= @assign %>">
       </html>
       """
+
       assert_raise EEx.SyntaxError, fn ->
         EEx.compile_string(wrong_property, engine: Drab.Live.EExEngine, file: "path.html.drab")
       end
@@ -55,6 +59,7 @@ defmodule Drab.LiveTest do
         <div @property='<%= @assign %>'>
       </html>
       """
+
       assert_raise EEx.SyntaxError, fn ->
         EEx.compile_string(wrong_property, engine: Drab.Live.EExEngine, file: "path.html.drab")
       end

@@ -192,9 +192,9 @@ defmodule DrabTestApp.PageCommander do
   end
 
   defhandler disconnection_click(socket, _) do
-    spawn fn ->
+    spawn(fn ->
       Process.sleep(500)
       IO.inspect(exec_js!(socket, "2+2"))
-    end
+    end)
   end
 end

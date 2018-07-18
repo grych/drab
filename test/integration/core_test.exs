@@ -177,11 +177,13 @@ defmodule DrabTestApp.CoreTest do
   describe "after disconnect" do
     @tag capture_log: true
     test "should return disconnection error" do
-      log = capture_log(fn ->
-        click_and_wait("disconnect_button")
-        navigate_to(index_url(DrabTestApp.Endpoint, :index))
-        Process.sleep(1000)
-      end)
+      log =
+        capture_log(fn ->
+          click_and_wait("disconnect_button")
+          navigate_to(index_url(DrabTestApp.Endpoint, :index))
+          Process.sleep(1000)
+        end)
+
       assert String.contains?(log, "(Drab.ConnectionError) Disconnected")
     end
   end
@@ -194,7 +196,7 @@ defmodule DrabTestApp.CoreTest do
 
     @tag capture_log: true
     test "should remain disabled after close", fixture do
-      broadcast_js fixture.socket, "Drab.socket.conn.close()"
+      broadcast_js(fixture.socket, "Drab.socket.conn.close()")
       Process.sleep(100)
       refute element_enabled?(find_element(:id, "disabled_button"))
     end
@@ -208,7 +210,7 @@ defmodule DrabTestApp.CoreTest do
 
     @tag capture_log: true
     test "should disable after close", fixture do
-      broadcast_js fixture.socket, "Drab.socket.conn.close()"
+      broadcast_js(fixture.socket, "Drab.socket.conn.close()")
       Process.sleep(100)
       refute element_enabled?(find_element(:id, "core1_button"))
     end
@@ -221,6 +223,7 @@ defmodule DrabTestApp.CoreTest do
 
       change_to_secondary_session()
       core_index() |> navigate_to()
+
       unless System.get_env("TRAVIS") do
         # for some stupid reasons it does not work with travis
         assert Drab.Presence.count_connections(feature.socket) == 2
@@ -240,6 +243,7 @@ defmodule DrabTestApp.CoreTest do
 
       socket = drab_socket()
       Drab.Commander.subscribe(socket, topic)
+
       unless System.get_env("TRAVIS") do
         assert Drab.Presence.count_connections(topic) == 2
       end

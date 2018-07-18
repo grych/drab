@@ -67,6 +67,7 @@ defmodule DrabTestApp.LiveController do
     conn = assign(conn, :current_user_id, 42)
     conn = put_session(conn, :current_user_id, 43)
     conn = put_session(conn, :user_id, 66)
+
     render(
       conn,
       "mini.html",

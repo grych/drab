@@ -1,6 +1,7 @@
-#TODO: remove in 1.0
+# TODO: remove in 1.0
 if Application.get_env(:drab, :main_phoenix_app) do
-  raise CompileError, description: """
+  raise CompileError,
+    description: """
     Drab configuration has changed.
     Instead of specyfing :main_phoenix_app, use config for the particular endpoints:
 

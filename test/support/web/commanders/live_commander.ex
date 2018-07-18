@@ -11,7 +11,7 @@ defmodule DrabTestApp.LiveCommander do
     DrabTestApp.IntegrationCase.add_page_loaded_indicator(socket)
     DrabTestApp.IntegrationCase.add_pid(socket)
     poke(socket, text: "set in the commander")
-    put_store socket, :current_user_id, 44
+    put_store(socket, :current_user_id, 44)
   end
 
   defhandler update_both(socket, _) do
@@ -94,7 +94,7 @@ defmodule DrabTestApp.LiveCommander do
 
   defhandler shorten_url(socket, _sender) do
     # IO.inspect sender.params["long_url_textarea"]
-    poke socket, shorten_url: "SHORT", long_url: "LONG"
+    poke(socket, shorten_url: "SHORT", long_url: "LONG")
   end
 
   defhandler update_mini(socket, _sender, _additional) do

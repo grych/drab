@@ -26,6 +26,17 @@ defmodule DrabTestApp.NakedTest do
                "argument" => "clickety-click"
              }
     end
+
+    test "exec_elixir should run the correct callback", fixture do
+      exec_js!(
+        fixture.socket, """
+        Drab.exec_elixir('empty_handler', 42,
+          function() {document.getElementById('run_handler_test').innerHTML = 'called back'});
+        """
+      )
+
+      assert inner_text(find_element(:id, "run_handler_test")) == "called back"
+    end
   end
 
   describe "Handler function in the shared commander" do

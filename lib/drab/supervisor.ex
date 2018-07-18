@@ -9,8 +9,12 @@ defmodule Drab.Supervisor do
     # Run Drab Test App endpoint, when running tests or development
     children =
       case Code.ensure_compiled(DrabTestApp) do
-        {:error, _} -> []
-        {:module, DrabTestApp} -> [supervisor(DrabTestApp.Endpoint, []), Drab.Presence]
+        {:error, _} ->
+          []
+
+        {:module, DrabTestApp} ->
+          [supervisor(DrabTestApp.Endpoint, []), Drab.Presence]
+
           if Drab.Config.get(:presence) do
             [supervisor(DrabTestApp.Endpoint, []), Drab.Presence]
           else

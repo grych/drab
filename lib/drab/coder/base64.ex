@@ -39,6 +39,7 @@ defmodule Drab.Coder.Base64 do
       result -> result
     end
   end
+
   def decode(_), do: @invalid_argument
 
   @doc """

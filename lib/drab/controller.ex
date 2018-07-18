@@ -12,11 +12,10 @@ defmodule Drab.Controller do
   """
 
   require Logger
+
   defmacro __using__(options) do
     if options == [] do
-      Logger.warn(
-        "`use Drab.Controller` without options is not mandatory (#{__CALLER__.module})"
-      )
+      Logger.warn("`use Drab.Controller` without options is not mandatory (#{__CALLER__.module})")
     end
 
     quote bind_quoted: [options: options] do

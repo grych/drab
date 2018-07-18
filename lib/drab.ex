@@ -329,7 +329,8 @@ defmodule Drab do
         argument = payload["__additional_argument"]
         payload = Map.delete(payload, "__additional_argument")
 
-        {commander_module, event_handler} = event_handler(commander_module, event_handler_function)
+        {commander_module, event_handler} =
+          event_handler(commander_module, event_handler_function)
 
         raise_if_handler_is_not_public(commander_module, event_handler)
         raise_if_commander_is_not_shared(commander_module, controller_module)
@@ -400,28 +401,34 @@ defmodule Drab do
   @spec raise_if_handler_is_not_public(atom, atom) :: {atom, atom} | no_return
   defp raise_if_handler_is_not_public(module, function) do
     unless is_public?(module, function) do
-      raise Drab.ConfigurationError, message: """
-      handler #{inspect(module)}.#{function} must be declared as public in the commander.
+      raise Drab.ConfigurationError,
+        message: """
+        handler #{inspect(module)}.#{function} must be declared as public in the commander.
 
-      Please use Drab.Commander.public or Drab.Commander.defhandler macro as following:
-          defhandler #{function}(socket, sender) do
-            ...
-          end
-      """
+        Please use Drab.Commander.public or Drab.Commander.defhandler macro as following:
+            defhandler #{function}(socket, sender) do
+              ...
+            end
+        """
     end
+
     {module, function}
   end
 
   @spec raise_if_commander_is_not_shared(atom, atom) :: {atom, atom} | no_return
   defp raise_if_commander_is_not_shared(commander_module, controller_module) do
     unless is_commander_declared?(commander_module, controller_module) do
-      raise Drab.ConfigurationError, message: """
-      shared commander #{inspect(commander_module)} is not declared in #{inspect(controller_module)}
+      raise Drab.ConfigurationError,
+        message: """
+        shared commander #{inspect(commander_module)} is not declared in #{
+          inspect(controller_module)
+        }
 
-      Please whitelist all shared commanders in the controller:
-          use Drab.Controller, commanders: [#{inspect(commander_module)}]
-      """
+        Please whitelist all shared commanders in the controller:
+            use Drab.Controller, commanders: [#{inspect(commander_module)}]
+        """
     end
+
     {commander_module, controller_module}
   end
 
@@ -431,9 +438,10 @@ defmodule Drab do
       options = apply(module, :__drab__, [])
       function in Map.get(options, :public_handlers, [])
     else
-      raise Drab.ConfigurationError, message: """
-      #{module} is not a Drab module.
-      """
+      raise Drab.ConfigurationError,
+        message: """
+        #{module} is not a Drab module.
+        """
     end
   end
 
@@ -576,7 +584,8 @@ defmodule Drab do
     do_push_or_broadcast(socket, pid, nil, message, payload, &Phoenix.Channel.broadcast/3)
   end
 
-  def broadcast({endpoint, subject}, _pid, message, payload) when is_binary(subject) and is_atom(endpoint) do
+  def broadcast({endpoint, subject}, _pid, message, payload)
+      when is_binary(subject) and is_atom(endpoint) do
     Phoenix.Channel.Server.broadcast(
       Drab.Config.pubsub(endpoint),
       subject,
@@ -627,6 +636,7 @@ defmodule Drab do
           term() | no_return
   def detokenize(socket, token, salt \\ "drab token") do
     max_age = Drab.Config.get(socket.endpoint, :browser_response_timeout) + 1000
+
     case Phoenix.Token.verify(socket, salt, token, max_age: max_age) do
       {:ok, detokenized} ->
         detokenized

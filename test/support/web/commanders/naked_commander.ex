@@ -22,6 +22,8 @@ defmodule DrabTestApp.NakedCommander do
     )
   end
 
+  defhandler empty_handler(_, _), do: :nothing
+
   defhandler run_handler_test(socket, payload, argument) do
     argument = argument || "empty"
     argument = if is_map(argument), do: "map", else: argument
@@ -36,4 +38,6 @@ defmodule DrabTestApp.NakedCommander do
       "document.getElementById('run_handler_test').payload = #{encode_js(payload)};"
     )
   end
+
+  defhandler exec_elixir(_socket, payload), do: IO.inspect payload
 end

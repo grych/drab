@@ -103,6 +103,8 @@
     //   execute_after - callback to function executes after event finish
     exec_elixir: function (event_handler, payload, execute_after) {
       var reply_to = did();
+      if (!(payload !== null && typeof payload === 'object' && Array.isArray(payload) === false))
+        payload = {payload: payload};
       if (execute_after) {
         Drab.event_reply_table[reply_to] = execute_after;
       }

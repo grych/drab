@@ -3,7 +3,7 @@ defmodule Drab.Channel do
 
   use Phoenix.Channel, Drab.Config.get(:phoenix_channel_options)
 
-  intercept ["subscribe", "unsubscribe"]
+  intercept(["subscribe", "unsubscribe"])
 
   @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}
   def join("__drab:" <> _broadcast_topic, _, socket) do
@@ -95,9 +95,7 @@ defmodule Drab.Channel do
 
       IO.puts("""
 
-          Started Drab for #{socket.topic}, handling events in #{
-        inspect(commander)
-      }
+          Started Drab for #{socket.topic}, handling events in #{inspect(commander)}
           You may debug Drab functions in IEx by copy/paste the following:
       import Drab.{#{grouped}}
       socket = Drab.get_socket(pid("#{pid_string}"))
@@ -148,7 +146,7 @@ defmodule Drab.Channel do
   # end
 
   def handle_info(%Phoenix.Socket.Broadcast{topic: _, event: ev, payload: payload}, socket) do
-    push socket, ev, payload
+    push(socket, ev, payload)
     {:noreply, socket}
   end
 

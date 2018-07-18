@@ -54,6 +54,7 @@ defmodule Drab.Live.Crypto do
   @spec decrypt(String.t()) :: term
   def decrypt(crypted) do
     {secret, sign_secret} = keys()
+
     case MessageEncryptor.decrypt(crypted, secret, sign_secret) do
       {:ok, decrypted} -> :erlang.binary_to_term(decrypted)
       :error -> :error
@@ -64,6 +65,7 @@ defmodule Drab.Live.Crypto do
   @spec decrypt(String.t(), atom, String.t()) :: term
   def decrypt(crypted, endpoint, salt) do
     {secret, sign_secret} = keys(endpoint, salt)
+
     case MessageEncryptor.decrypt(crypted, secret, sign_secret) do
       {:ok, decrypted} -> :erlang.binary_to_term(decrypted)
       :error -> :error

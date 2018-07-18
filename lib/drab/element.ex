@@ -299,8 +299,10 @@ defmodule Drab.Element do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
-  @spec broadcast_style(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.bcast_result()
-  def broadcast_style(subject, selector, properties) when is_list(properties) or is_map(properties) do
+  @spec broadcast_style(Drab.Core.subject(), String.t(), map | Keyword.t()) ::
+          Drab.Core.bcast_result()
+  def broadcast_style(subject, selector, properties)
+      when is_list(properties) or is_map(properties) do
     broadcast_js(subject, set_js(selector, %{"style" => Map.new(properties)}))
   end
 
@@ -338,8 +340,10 @@ defmodule Drab.Element do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
-  @spec broadcast_attr(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.bcast_result()
-  def broadcast_attr(subject, selector, attributes) when is_list(attributes) or is_map(attributes) do
+  @spec broadcast_attr(Drab.Core.subject(), String.t(), map | Keyword.t()) ::
+          Drab.Core.bcast_result()
+  def broadcast_attr(subject, selector, attributes)
+      when is_list(attributes) or is_map(attributes) do
     # set_prop(socket, selector, %{"attributes" => Map.new(attributes)})
     broadcast_js(subject, set_js(selector, %{"attributes" => Map.new(attributes)}))
   end
@@ -378,7 +382,8 @@ defmodule Drab.Element do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
-  @spec broadcast_data(Drab.Core.subject(), String.t(), map | Keyword.t()) :: Drab.Core.bcast_result()
+  @spec broadcast_data(Drab.Core.subject(), String.t(), map | Keyword.t()) ::
+          Drab.Core.bcast_result()
   def broadcast_data(subject, selector, dataset) when is_list(dataset) or is_map(dataset) do
     broadcast_js(subject, set_js(selector, %{"dataset" => Map.new(dataset)}))
   end
@@ -452,17 +457,17 @@ defmodule Drab.Element do
   """
   @spec set_html(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.result()
   def set_html(socket, selector, html) do
-    set_prop socket, selector, innerHTML: html
+    set_prop(socket, selector, innerHTML: html)
   end
 
- @doc """
+  @doc """
   Bang version of `set_html/3`, raises exception on error.
 
   Returns number of updated element.
   """
   @spec set_html!(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
   def set_html!(socket, selector, html) do
-    set_prop! socket, selector, innerHTML: html
+    set_prop!(socket, selector, innerHTML: html)
   end
 
   @doc """
@@ -479,5 +484,4 @@ defmodule Drab.Element do
   def broadcast_html(subject, selector, html) do
     broadcast_js(subject, set_js(selector, %{"innerHTML" => html}))
   end
-
 end

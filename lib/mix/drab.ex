@@ -3,13 +3,17 @@ defmodule Mix.Drab do
 
   def app_name() do
     app = Mix.Project.config()[:app]
+
     unless app do
       Mix.shell().error("Can't find the application name.")
+
       Mix.shell().info("""
       If your web application is under an umbrella, please change directory there and try again.
       """)
+
       Mix.raise("Giving up.")
     end
+
     app
   end
 

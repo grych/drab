@@ -202,15 +202,13 @@ defmodule DrabTestApp.LiveTest do
       assert peek!(fixture.socket, :color) == "red"
 
       assert_raise ArgumentError, fn ->
-      broadcast_poke(
-        Drab.Core.same_action(DrabTestApp.LiveController, :index),
-        DrabTestApp.LiveView,
-        "index.html",
-        color: "red"
+        broadcast_poke(
+          Drab.Core.same_action(DrabTestApp.LiveController, :index),
+          DrabTestApp.LiveView,
+          "index.html",
+          color: "red"
         )
       end
     end
   end
-
-
 end

@@ -19,7 +19,7 @@ defmodule DrabTestApp.QueryCommander do
   end
 
   defp update_out(socket, sender, ret) do
-    set_prop socket, "##{modal_out(socket, sender)}", innerText: inspect(ret)
+    set_prop(socket, "##{modal_out(socket, sender)}", innerText: inspect(ret))
   end
 
   defhandler show_modal1(socket, sender) do
@@ -44,10 +44,11 @@ defmodule DrabTestApp.QueryCommander do
   end
 
   defhandler show_modal5(socket, sender) do
-    spawn_link fn ->
+    spawn_link(fn ->
       ret = socket |> alert("Title", "Message")
       update_out(socket, sender, ret)
-    end
+    end)
+
     ret = socket |> alert("Title", "Message", buttons: [additional: "Second"])
     update_out(socket, sender, ret)
   end

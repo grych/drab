@@ -143,6 +143,7 @@ defmodule Drab.Live.EExEngine do
     partial = %Partial{partial | amperes: partial_amperes}
 
     found_assigns = Partial.all_assigns(partial)
+
     if Drab.Live.reserved_assigns?(found_assigns) do
       raise EEx.SyntaxError,
         message: """
@@ -151,6 +152,7 @@ defmodule Drab.Live.EExEngine do
         Reserved assign names: #{Enum.join(Drab.Live.drab_options_list(), ", ")}
         """
     end
+
     all_assigns = find_assigns(body)
     nodrab_assigns = all_assigns -- found_assigns
 
@@ -374,9 +376,11 @@ defmodule Drab.Live.EExEngine do
 
     attr = find_attr_in_html(html)
     is_property = Regex.match?(~r/<\S+/s, no_tags(html)) && attr && String.starts_with?(attr, "@")
+
     if is_property && !String.ends_with?(String.trim_trailing(html), "=") do
       raise_property_syntax_error(attr)
     end
+
     expr = if is_property, do: encoded_expr(expr), else: to_safe(expr, line)
 
     span_begin = "<span #{attribute}>"

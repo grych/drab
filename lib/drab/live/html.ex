@@ -112,13 +112,14 @@ defmodule Drab.Live.HTML do
 
       [tag | tail] ->
         tag = trim_and_lower(tag)
+
         case tag_name(tag) do
           t when t in @non_closing_tags ->
             [{:non_closing_tag, tag} | tokenize_string(Enum.join(tail))]
 
           _ ->
             [{:tag, tag} | tokenize_string(Enum.join(tail))]
-          end
+        end
     end
   end
 
@@ -721,6 +722,7 @@ defmodule Drab.Live.HTML do
         case x do
           {gender, tag} when gender in [:tag, :non_closing_tag] ->
             String.contains?(tag, "drab-ampere=\"#{ampere}\"")
+
           _ ->
             false
         end

@@ -110,7 +110,8 @@ defmodule DrabTestApp.ElementTest do
       assert ret["style"]["cssText"] == "background-color: red; width: 200px;"
 
       assert {:ok, :broadcasted} ==
-                broadcast_style(socket, "button", %{"backgroundColor" => "red", "width" => "200px"})
+               broadcast_style(socket, "button", %{"backgroundColor" => "red", "width" => "200px"})
+
       {:ok, ret} = query_one(socket, "button", :style)
       assert ret["style"]["cssText"] == "background-color: red; width: 200px;"
     end
@@ -122,8 +123,7 @@ defmodule DrabTestApp.ElementTest do
       {:ok, ret} = query_one(socket, "a", :attributes)
       assert ret["attributes"]["href"] == "https://tg.pl/drab"
 
-      assert {:ok, :broadcasted} ==
-                broadcast_attr(socket, "a", href: "https://tg.pl/drab")
+      assert {:ok, :broadcasted} == broadcast_attr(socket, "a", href: "https://tg.pl/drab")
       {:ok, ret} = query_one(socket, "a", :attributes)
       assert ret["attributes"]["href"] == "https://tg.pl/drab"
     end
@@ -135,8 +135,7 @@ defmodule DrabTestApp.ElementTest do
       {:ok, ret} = query_one(socket, "button", :dataset)
       assert ret["dataset"]["foo"] == "bar"
 
-      assert {:ok, :broadcasted} ==
-                broadcast_data(socket, "button", foo: "bar")
+      assert {:ok, :broadcasted} == broadcast_data(socket, "button", foo: "bar")
       {:ok, ret} = query_one(socket, "button", :dataset)
       assert ret["dataset"]["foo"] == "bar"
     end
@@ -200,9 +199,7 @@ defmodule DrabTestApp.ElementTest do
     assert {:ok, 1} == set_html(socket, "#my_element", html)
     assert %{"innerHTML" => html} == query_one!(socket, "#my_element", :innerHTML)
 
-    assert {:ok, :broadcasted} ==
-              broadcast_html(socket, "#my_element", html)
+    assert {:ok, :broadcasted} == broadcast_html(socket, "#my_element", html)
     assert %{"innerHTML" => html} == query_one!(socket, "#my_element", :innerHTML)
   end
-
 end

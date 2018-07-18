@@ -30,8 +30,11 @@ defmodule DrabTestApp.LiveFormForTest do
     test "CSRF token should be preserved after re-rendering the form or button", fixture do
       hidden = find_element(:css, "input[name='_csrf_token']")
       csrf_token = attribute_value(hidden, "value")
-      Drab.Live.poke fixture.socket, text: "should re-render form and token"
-      assert attribute_value(find_element(:css, "input[name='_csrf_token']"), "value") == csrf_token
+      Drab.Live.poke(fixture.socket, text: "should re-render form and token")
+
+      assert attribute_value(find_element(:css, "input[name='_csrf_token']"), "value") ==
+               csrf_token
+
       assert attribute_value(find_element(:id, "button1"), "data-csrf") == csrf_token
     end
   end

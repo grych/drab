@@ -24,12 +24,10 @@ defmodule DrabTestApp.Broadcast31Test do
 
     click_and_wait("broadcast3_button")
 
-    assert visible_text(find_element(:id, "broadcast_out")) ==
-             "Broadcasted Text to the topic"
+    assert visible_text(find_element(:id, "broadcast_out")) == "Broadcasted Text to the topic"
 
     change_to_secondary_session()
 
-    assert visible_text(find_element(:id, "broadcast_out")) ==
-             "Broadcasted Text to the topic"
+    assert visible_text(find_element(:id, "broadcast_out")) == "Broadcasted Text to the topic"
   end
 end

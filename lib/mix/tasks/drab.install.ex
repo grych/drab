@@ -31,13 +31,14 @@ defmodule Mix.Tasks.Drab.Install do
       update("user_socket.ex", user_socket)
       update("config.exs", config, app)
       update("dev.exs", dev_config)
-      Mix.shell().info """
+
+      Mix.shell().info("""
       Drab has been successfully installed in your Phoenix application.
 
       Now it is time to create your first commander, for example, for PageController:
 
           mix drab.gen.commander Page
-      """
+      """)
     end
   end
 
@@ -55,20 +56,21 @@ defmodule Mix.Tasks.Drab.Install do
 
   defp update("dev.exs", file, _app) do
     inject = "templates/.*(eex|drab)$"
-    inject_to_file file, "templates/.*(eex)$", inject
+    inject_to_file(file, "templates/.*(eex)$", inject)
   end
 
   defp update("config.exs", file, app) do
     phoenix = """
-              \n# Configures default Drab file extension
-              config :phoenix, :template_engines,
-                drab: Drab.Live.Engine\n
-              """
+    \n# Configures default Drab file extension
+    config :phoenix, :template_engines,
+      drab: Drab.Live.Engine\n
+    """
+
     drab = """
-           # Configures Drab
-           config :drab, #{inspect(Mix.Drab.find_endpoint_in_config_exs(app))},
-             otp_app: #{inspect(app)}
-           """
+    # Configures Drab
+    config :drab, #{inspect(Mix.Drab.find_endpoint_in_config_exs(app))},
+      otp_app: #{inspect(app)}
+    """
 
     unless inject_string_already_there(file, drab) do
       # File.write!(file, phoenix <> drab, [:append])
@@ -81,6 +83,7 @@ defmodule Mix.Tasks.Drab.Install do
     unless inject_string_already_there(file, replace_with) do
       f = File.read!(file)
       replaced = String.replace(f, search_for, replace_with)
+
       if replaced == f do
         Mix.shell().error("Installer could not update #{file}. Please install Drab manually.")
       else
@@ -92,25 +95,30 @@ defmodule Mix.Tasks.Drab.Install do
   defp inject_string_already_there(file, inject) do
     f = File.read!(file)
     contains = String.contains?(f, inject)
+
     if contains do
       Mix.shell().info("  Drab is already installed in #{file}, skipping.")
     end
+
     contains
   end
 
   defp find_file(dir, name) do
-    file = case Path.wildcard("#{dir}/**/#{name}") do
-      [] -> ask_for_file_path(name)
-      [filename] -> filename
-      names -> choose_file(names, name)
-    end
-    Mix.shell().info "  #{file}"
+    file =
+      case Path.wildcard("#{dir}/**/#{name}") do
+        [] -> ask_for_file_path(name)
+        [filename] -> filename
+        names -> choose_file(names, name)
+      end
+
+    Mix.shell().info("  #{file}")
     file
   end
 
   defp ask_for_file_path(name) do
     Mix.shell().error("Can't find #{name}. Please specify the full path.")
     path = String.trim(Mix.shell().prompt(">"))
+
     if File.exists?(path) do
       path
     else
@@ -122,6 +130,7 @@ defmodule Mix.Tasks.Drab.Install do
     Mix.shell().error("Multiple #{name} found, please copy/paste the full path of correct one.")
     Mix.shell().info(Enum.join(names, "\n"))
     path = String.trim(Mix.shell().prompt(">"))
+
     if File.exists?(path) do
       path
     else
@@ -131,9 +140,9 @@ defmodule Mix.Tasks.Drab.Install do
 
   defp validate_phoenix_version do
     unless phoenix13?() do
-      Mix.raise """
+      Mix.raise("""
       Only Phoenix 1.3 is supported with the installer, please proceed with manual install.
-      """
+      """)
     end
   end
 
