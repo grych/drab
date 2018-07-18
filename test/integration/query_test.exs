@@ -336,7 +336,7 @@ defmodule DrabTestApp.QueryTest do
       assert visible_text(wrapper) == "Insert DIV appended"
       assert visible_text(div) == "Insert DIV appended"
 
-      assert inner_html(wrapper) |> String.trim() ==
+      assert wrapper |> inner_html() |> String.trim() ==
                "<div id=\"insert1_div\">Insert DIV appended</div>"
     end
 
@@ -347,7 +347,7 @@ defmodule DrabTestApp.QueryTest do
       assert visible_text(wrapper) == "Prepended Insert DIV"
       assert visible_text(div) == "Prepended Insert DIV"
 
-      assert inner_html(wrapper) |> String.trim() ==
+      assert wrapper |> inner_html() |> String.trim() ==
                "<div id=\"insert1_div\">Prepended Insert DIV</div>"
     end
 
@@ -358,7 +358,7 @@ defmodule DrabTestApp.QueryTest do
       assert visible_text(wrapper) == "Insert DIV\nappended"
       assert visible_text(div) == "Insert DIV"
 
-      assert inner_html(wrapper) |> String.trim() ==
+      assert wrapper |> inner_html() |> String.trim() ==
                "<div id=\"insert1_div\">Insert DIV</div> appended"
     end
 
@@ -369,7 +369,7 @@ defmodule DrabTestApp.QueryTest do
       assert visible_text(wrapper) == "Prepended\nInsert DIV"
       assert visible_text(div) == "Insert DIV"
 
-      assert inner_html(wrapper) |> String.trim() ==
+      assert wrapper |> inner_html() |> String.trim() ==
                "Prepended <div id=\"insert1_div\">Insert DIV</div>"
     end
   end

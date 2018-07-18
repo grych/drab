@@ -4,6 +4,7 @@ defmodule Drab.Live.CryptoTest do
   import Drab.Live.Crypto
 
   test "uuid should be uniqe" do
+    # credo:disable-for-next-line
     refute uuid() == uuid()
   end
 
@@ -14,7 +15,7 @@ defmodule Drab.Live.CryptoTest do
         to_string(z)
       end
 
-    assert encode32(quoted) |> decode32() == quoted
-    assert encode64(quoted) |> decode64() == quoted
+    assert quoted |> encode32() |> decode32() == quoted
+    assert quoted |> encode64() |> decode64() == quoted
   end
 end

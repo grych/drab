@@ -18,7 +18,7 @@ defmodule DrabTestApp.Broadcast2Commander do
     )
 
     p = inspect(socket.assigns.__drab_pid)
-    pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
+    pid_string = ~r/#PID<(?<pid>.*)>/ |> Regex.named_captures(p) |> Map.get("pid")
     socket |> Drab.Query.update(:text, set: pid_string, on: "#drab_pid")
   end
 

@@ -33,8 +33,8 @@ defmodule DrabTestApp.PageCommander do
   def page_loaded(socket) do
     # socket |> Drab.Query.insert("<h3 id='page_loaded_indicator'>Page Loaded</h3>", after: "#begin")
 
-    s1 = get_session(socket, :test_session_value1) |> Drab.Core.encode_js()
-    s2 = get_session(socket, :test_session_value2) |> Drab.Core.encode_js()
+    s1 = socket |> get_session(:test_session_value1) |> Drab.Core.encode_js()
+    s2 = socket |> get_session(:test_session_value2) |> Drab.Core.encode_js()
 
     exec_js!(
       socket,
@@ -47,7 +47,7 @@ defmodule DrabTestApp.PageCommander do
     )
 
     put_store(socket, :counter, get_store(socket, :counter, 0) + 1)
-    s = get_store(socket, :counter) |> Drab.Core.encode_js()
+    s = socket |> get_store(:counter) |> Drab.Core.encode_js()
 
     exec_js!(
       socket,
@@ -60,7 +60,7 @@ defmodule DrabTestApp.PageCommander do
 
   def page_connected(socket) do
     put_store(socket, :counter, get_store(socket, :counter, 0) + 1)
-    s = get_store(socket, :counter) |> Drab.Core.encode_js()
+    s = socket |> get_store(:counter) |> Drab.Core.encode_js()
 
     exec_js!(
       socket,
@@ -157,7 +157,7 @@ defmodule DrabTestApp.PageCommander do
   end
 
   defhandler get_store_click(socket, _sender) do
-    s = get_store(socket, :test_store_value) |> Drab.Core.encode_js()
+    s = socket |> get_store(:test_store_value) |> Drab.Core.encode_js()
     exec_js!(socket, "var n = document.getElementById('store1_out'); if (n) n.innerText = #{s}")
 
     # socket |> Drab.Query.update(:text, set: get_store(socket, :test_store_value), on: "#store1_out")
@@ -194,6 +194,7 @@ defmodule DrabTestApp.PageCommander do
   defhandler disconnection_click(socket, _) do
     spawn(fn ->
       Process.sleep(500)
+      # credo:disable-for-next-line
       IO.inspect(exec_js!(socket, "2+2"))
     end)
   end

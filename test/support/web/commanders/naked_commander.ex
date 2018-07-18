@@ -38,6 +38,4 @@ defmodule DrabTestApp.NakedCommander do
       "document.getElementById('run_handler_test').payload = #{encode_js(payload)};"
     )
   end
-
-  defhandler exec_elixir(_socket, payload), do: IO.inspect payload
 end

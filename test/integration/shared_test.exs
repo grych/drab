@@ -207,7 +207,8 @@ defmodule DrabTestApp.SharedTest do
   end
 
   defp all_elements?({type, x}, function, value) do
-    find_all_elements(type, x)
+    type
+    |> find_all_elements(x)
     |> Enum.map(function)
     |> Enum.all?(&(&1 == value))
   end

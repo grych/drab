@@ -502,7 +502,8 @@ defmodule Drab do
 
   @doc false
   def callbacks_for(event_handler_function, handler_config) do
-    Enum.map(handler_config, fn {callback_name, callback_filter} ->
+    handler_config
+    |> Enum.map(fn {callback_name, callback_filter} ->
       case callback_filter do
         [] ->
           callback_name

@@ -30,7 +30,7 @@ defmodule DrabTestApp.ElementTest do
     test "query unnamed" do
       socket = drab_socket()
       {:ok, ret} = query(socket, "input", [:id, :value])
-      assert Map.keys(ret) |> Enum.count() == 3
+      assert ret |> Map.keys() |> Enum.count() == 3
       assert Enum.find(Map.keys(ret), fn x -> x == "#input1" end)
       assert Enum.find(Map.keys(ret), fn x -> x == "#input2" end)
       assert Enum.find(Map.keys(ret), fn x -> String.contains?(x, "[drab-id=") end)

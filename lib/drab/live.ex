@@ -770,8 +770,7 @@ defmodule Drab.Live do
 
   @spec intersection(list, list) :: list
   defp intersection(list1, list2) do
-    MapSet.intersection(MapSet.new(list1), MapSet.new(list2))
-    |> MapSet.to_list()
+    MapSet.to_list(MapSet.intersection(MapSet.new(list1), MapSet.new(list2)))
   end
 
   @spec update_csrf_token(String.t(), String.t() | nil) :: Floki.html_tree() | String.t()

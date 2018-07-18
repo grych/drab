@@ -128,6 +128,7 @@ defmodule Mix.Tasks.Drab.Install do
 
   defp choose_file(names, name) do
     Mix.shell().error("Multiple #{name} found, please copy/paste the full path of correct one.")
+    # credo:disable-for-next-line
     Mix.shell().info(Enum.join(names, "\n"))
     path = String.trim(Mix.shell().prompt(">"))
 

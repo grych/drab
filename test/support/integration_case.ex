@@ -98,7 +98,7 @@ defmodule DrabTestApp.IntegrationCase do
 
   def add_pid(socket) do
     p = inspect(socket.assigns.__drab_pid)
-    pid_string = Regex.named_captures(~r/#PID<(?<pid>.*)>/, p) |> Map.get("pid")
+    pid_string = ~r/#PID<(?<pid>.*)>/ |> Regex.named_captures(p) |> Map.get("pid")
 
     js = """
     var pid = document.getElementById("drab_pid")

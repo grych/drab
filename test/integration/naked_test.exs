@@ -148,7 +148,7 @@ defmodule DrabTestApp.NakedTest do
       assert inner_text(find_element(:id, "run_handler_test")) == ""
 
       click_and_wait("handler_with_null_param")
-      assert inner_text(find_element(:id, "run_handler_test")) |> String.contains?(":params")
+      assert :id |> find_element("run_handler_test") |> inner_text() |> String.contains?(":params")
 
       click_and_wait("handler_with_param_1")
       assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text"
@@ -157,7 +157,7 @@ defmodule DrabTestApp.NakedTest do
       assert inner_text(find_element(:id, "run_handler_test")) == "with argument: [object Object]"
 
       click_and_wait("shared_handler_with_null_param")
-      assert inner_text(find_element(:id, "run_handler_test")) |> String.contains?(":params")
+      assert :id |> find_element("run_handler_test") |> inner_text() |> String.contains?(":params")
 
       click_and_wait("shared_handler_with_param_1")
       assert inner_text(find_element(:id, "run_handler_test")) == "with argument: text:text"
