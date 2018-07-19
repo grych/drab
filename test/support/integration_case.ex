@@ -13,7 +13,7 @@ defmodule DrabTestApp.IntegrationCase do
       import DrabTestApp.IntegrationCase
 
       # The default endpoint for testing
-      @endpoint DrabTestApp.Endpoint
+      # @endpoint DrabTestApp.Endpoint
 
       hound_session(
         driver: %{

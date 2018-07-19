@@ -70,4 +70,40 @@ defmodule DrabTestApp.BrowserTest do
       assert Drab.Core.exec_js!(socket, "window.location.href") =~ "/other/path"
     end
   end
+
+  describe "Browser cookies" do
+    test "simple" do
+      socket = drab_socket()
+      set_cookie!(socket, "my_cookie", "ciacho")
+      assert cookies!(socket) == %{"my_cookie" => "ciacho"}
+    end
+
+    test "with default encoding" do
+      socket = drab_socket()
+      set_cookie!(socket, "my cookie", "ciacho!")
+      assert cookies!(socket) == %{"my cookie" => "ciacho!"}
+    end
+
+    test "with ciphering" do
+      socket = drab_socket()
+      set_cookie!(socket, "my cookie", 42, encoder: Drab.Coder.Cipher)
+      assert cookies!(socket, decoder: Drab.Coder.Cipher) == %{"my cookie" => 42}
+    end
+
+    test "with the same name, should return the one with longer path" do
+      socket = drab_socket()
+      set_cookie!(socket, "my cookie", "ciacho1")
+      set_cookie!(socket, "my cookie", "ciacho2", path: "/tests/browser")
+      set_cookie!(socket, "my cookie", "ciacho3", path: "/tests")
+      assert cookies!(socket) == %{"my cookie" => "ciacho2"}
+    end
+
+    test "expiring" do
+      socket = drab_socket()
+      set_cookie!(socket, "my cookie", "ciacho1", max_age: 1)
+      assert cookies!(socket) == %{"my cookie" => "ciacho1"}
+      Process.sleep(1000)
+      assert cookies(socket) == {:ok, %{}}
+    end
+  end
 end
