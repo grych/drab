@@ -91,6 +91,8 @@ Now it is time to create your first commander, for example, for PageController:
 
 Congratulations! You have installed Drab and you can proceed with your own commander.
 
+Please notice that Drab will run only on pages, which have the corresponding commander.
+
 ## Usage
 
 All the Drab functions (callbacks, event handlers) are placed in the module called `Commander`.
