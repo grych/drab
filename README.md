@@ -275,9 +275,10 @@ Randomized with seed 934572
 ```
 
 ## Manual Installation
+
   1. Add Drab to the dependencies in `mix.exs`.
 
-  2. Initialize Drab client library by adding to the layout page (`app.html.eex`)
+  2. Initialize Drab client library by adding to the layout page (`app.html.eex` - or any other layout you use).
 
 ```html
 <%= Drab.Client.run(@conn) %>
@@ -329,6 +330,22 @@ config :my_app, MyApp.Endpoint,
     ]
   ]
 ```
+
+  7. If you are not using webpack, you will get `require is not defined` error. You need to provide `Socket`:
+
+  In the `app.js` add a global variable, which will be passed to Drab later:
+
+```elixir
+  window.__socket = require("phoenix").Socket;
+```
+
+  Then, tell Drab to use this instead of default `require("phoenix").Socket`. Add to `config.exs`:
+
+```elixir
+config :drab, MyAppWeb.Endpoint,
+  js_socket_constructor: "window.__socket"
+```
+
 
 #### If you want to use Drab.Query (jQuery based module):
 
