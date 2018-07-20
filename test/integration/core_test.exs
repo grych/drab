@@ -210,7 +210,7 @@ defmodule DrabTestApp.CoreTest do
 
     @tag capture_log: true
     test "should disable after close", fixture do
-      broadcast_js(fixture.socket, "Drab.socket.conn.close()")
+      broadcast_js(fixture.socket, "Drab.disconnect()")
       Process.sleep(100)
       refute element_enabled?(find_element(:id, "core1_button"))
     end

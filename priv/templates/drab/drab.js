@@ -59,14 +59,14 @@
         __client_lib_version: Drab.client_lib_version,
         __client_id: Drab.myid
       });
-      this.socket = new this.Socket("<%= Drab.Config.get(endpoint, :socket) %>", {
+      var socket = new this.Socket("<%= Drab.Config.get(endpoint, :socket) %>", {
         params: params
       });
       // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
       // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
 
-      this.socket.connect();
-      this.channel = this.socket.channel(this.drab_topic, {});
+      socket.connect();
+      this.channel = socket.channel(this.drab_topic, {});
 
       this.channel.join().receive("error", function (resp) {
         console.log("Unable to join the Drab Channel", resp);
@@ -87,7 +87,7 @@
         });
       });
 
-      this.socket.onClose(function (event) {
+      socket.onClose(function (event) {
         if (!drab.already_disconnected) {
           drab.already_disconnected = true;
           for (var di = 0; di < drab.disconnected.length; di++) {
@@ -96,6 +96,8 @@
           }
         }
       });
+
+      this.disconnect = function () { socket.conn.close();}
     },
     //
     //   event_handler -  string - function name in Phoenix Commander
