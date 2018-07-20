@@ -35,7 +35,7 @@
     create: function (drab_return_token, drab_session_token, broadcast_topic) {
       this.Socket = <%= Drab.Config.get(endpoint, :js_socket_constructor) %>;
 
-      this.drab_return_token = drab_return_token;
+      // this.drab_return_token = drab_return_token;
       this.drab_session_token = drab_session_token;
       this.self = this;
       this.counter = 0;
@@ -44,60 +44,59 @@
       this.already_connected = false;
       this.drab_topic = broadcast_topic;
       this.client_lib_version = <%= client_lib_version %>;
-    },
-    connect: function (additional_token) {
+      this.connect = function (additional_token) {
+        var drab = this;
 
-      var drab = this;
-
-      for (var i = 0; i < drab.load.length; i++) {
-        var fx = drab.load[i];
-        fx(drab);
-      }
-
-      var params = Object.assign({ __drab_return: this.drab_return_token }, additional_token);
-      params = Object.assign(params, {
-        __client_lib_version: Drab.client_lib_version,
-        __client_id: Drab.myid
-      });
-      var socket = new this.Socket("<%= Drab.Config.get(endpoint, :socket) %>", {
-        params: params
-      });
-      // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
-      // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
-
-      socket.connect();
-      this.channel = socket.channel(this.drab_topic, {});
-
-      this.channel.join().receive("error", function (resp) {
-        console.log("Unable to join the Drab Channel", resp);
-      }).receive("ok", function (resp) {
-        // launch on_connect
-        for (var c = 0; c < drab.connected.length; c++) {
-          var fxc = drab.connected[c];
-          fxc(resp, drab);
+        for (var i = 0; i < drab.load.length; i++) {
+          var fx = drab.load[i];
+          fx(drab);
         }
-        drab.already_connected = true;
-        drab.already_disconnected = false;
-        // event is sent after Drab finish processing the event
-        drab.channel.on("event", function (message) {
-          if (message.finished && drab.event_reply_table[message.finished]) {
-            drab.event_reply_table[message.finished]();
-            delete drab.event_reply_table[message.finished];
+
+        var params = Object.assign({ __drab_return: drab_return_token }, additional_token);
+        params = Object.assign(params, {
+          __client_lib_version: Drab.client_lib_version,
+          __client_id: Drab.myid
+        });
+        var socket = new this.Socket("<%= Drab.Config.get(endpoint, :socket) %>", {
+          params: params
+        });
+        // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
+        // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
+
+        socket.connect();
+        this.channel = socket.channel(this.drab_topic, {});
+
+        this.channel.join().receive("error", function (resp) {
+          console.log("Unable to join the Drab Channel", resp);
+        }).receive("ok", function (resp) {
+          // launch on_connect
+          for (var c = 0; c < drab.connected.length; c++) {
+            var fxc = drab.connected[c];
+            fxc(resp, drab);
+          }
+          drab.already_connected = true;
+          drab.already_disconnected = false;
+          // event is sent after Drab finish processing the event
+          drab.channel.on("event", function (message) {
+            if (message.finished && drab.event_reply_table[message.finished]) {
+              drab.event_reply_table[message.finished]();
+              delete drab.event_reply_table[message.finished];
+            }
+          });
+        });
+
+        socket.onClose(function (event) {
+          if (!drab.already_disconnected) {
+            drab.already_disconnected = true;
+            for (var di = 0; di < drab.disconnected.length; di++) {
+              var fxd = drab.disconnected[di];
+              fxd(drab);
+            }
           }
         });
-      });
 
-      socket.onClose(function (event) {
-        if (!drab.already_disconnected) {
-          drab.already_disconnected = true;
-          for (var di = 0; di < drab.disconnected.length; di++) {
-            var fxd = drab.disconnected[di];
-            fxd(drab);
-          }
-        }
-      });
-
-      this.disconnect = function () { socket.conn.close();}
+        this.disconnect = function () { socket.conn.close(); }
+      }
     },
     //
     //   event_handler -  string - function name in Phoenix Commander
