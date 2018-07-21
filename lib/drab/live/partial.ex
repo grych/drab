@@ -130,7 +130,8 @@ defmodule Drab.Live.Partial do
       iex> all_assigns("gm2dgnjygm2dgnjt") |> Enum.sort()
       [:color, :text]
   """
-  @spec all_assigns(t | String.t()) :: [atom]
+  @spec all_assigns(t | String.t()) :: [atom] | no_return
+  def all_assigns(nil), do: Drab.Live.raise_partial_not_found(nil)
   def all_assigns(%Partial{} = partial) do
     for {_ampere_id, amperes} <- partial.amperes,
         ampere <- amperes do

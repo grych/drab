@@ -938,7 +938,6 @@ defmodule Drab.Live do
 
   @spec update_assigns_cache(map, String.t(), String.t(), map) :: term() | nil
   defp update_assigns_cache(assigns_to_update, partial_hash, shared_commander_id, cache) do
-    # IO.inspect {assigns_to_update, partial_hash, shared_commander_id, cache}
     updated_assigns =
       for {assign_name, assign_value} <- assigns_to_update, into: %{} do
         {assign_name, %{shared_commander_id => assign_value}}
@@ -967,6 +966,7 @@ defmodule Drab.Live do
   end
 
   @spec decrypted_assigns(map) :: map
+  defp decrypted_assigns(nil), do: %{}
   defp decrypted_assigns(assigns) do
     for {partial, partial_assigns} <- assigns, into: %{} do
       {partial,
