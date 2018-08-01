@@ -6,7 +6,7 @@ defmodule Drab.Mixfile do
     [
       app: :drab,
       version: @version,
-      elixir: "~> 1.6.0",
+      elixir: "~> 1.6",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -57,7 +57,7 @@ defmodule Drab.Mixfile do
       {:cowboy, "~> 1.0 or ~> 2.2.2 or ~> 2.3"},
       {:ex_doc, "~> 0.18", only: :dev, runtime: false},
       {:hound, "~> 1.0", only: [:dev, :test]},
-      {:inch_ex, "~> 0.5", only: [:docs], runtime: false},
+      {:inch_ex, "~> 1.0", only: [:docs], runtime: false},
       {:deppie, "~> 1.0"},
       {:floki, ">= 0.20.2"},
       {:dialyxir, "~> 1.0.0-rc.2", only: [:dev, :test], runtime: false},

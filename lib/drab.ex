@@ -286,7 +286,7 @@ defmodule Drab do
           apply(commander, callback, [socket])
         rescue
           e ->
-            failed(socket, e)
+            failed(socket, e, Exception.format_stacktrace(System.stacktrace()))
         end
       end)
     end
@@ -368,7 +368,7 @@ defmodule Drab do
         end
       rescue
         e ->
-          failed(socket, e)
+          failed(socket, e, Exception.format_stacktrace(System.stacktrace()))
       after
         # push reply to the browser, to re-enable controls
         push_reply(socket, reply_to, commander_module, event_handler_function)
@@ -463,11 +463,11 @@ defmodule Drab do
   end
 
   @spec failed(Phoenix.Socket.t(), Exception.t()) :: :ok
-  defp failed(socket, e) do
+  defp failed(socket, e, stacktrace \\ "") do
     error = """
     Drab Handler failed with the following exception:
     #{Exception.format_banner(:error, e)}
-    #{Exception.format_stacktrace(System.stacktrace())}
+    #{stacktrace}
     """
 
     Logger.error(error)

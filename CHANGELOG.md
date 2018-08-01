@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.9.2
+
+* Cookies function in `Drab.Modal`
+* Tested with Elixir 1.7.1
+
 ## v0.9.1 jQueryless Modal
 
 `Drab.Modal` is not dependent on `Drab.Query` anymore, and does not require jQuery to run! You
