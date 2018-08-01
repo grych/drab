@@ -14,10 +14,11 @@ before_install:
  - sudo apt-get install chromium-chromedriver
 
 elixir:
-  - 1.6.0
+  - 1.6.6
   - 1.7.1
 otp_release:
   - 20.0
+  - 21.0
 
 env:
   - MIX_ENV=test
