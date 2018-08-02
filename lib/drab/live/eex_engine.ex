@@ -502,7 +502,7 @@ defmodule Drab.Live.EExEngine do
     ["#{@jsvar}.#{name}['#{partial}']['#{assign}'] = {document: '", encoded_assign(assign), "'};"]
   end
 
-  @spec property_js(String.t(), atom, Macro.t()) :: [String.t()]
+  @spec property_js(String.t(), String.t() | atom, Macro.t()) :: [String.t()]
   defp property_js(ampere, property, expr) do
     ["#{@jsvar}.properties['#{ampere}']['#{property}'] = ", encoded_expr(expr), ";"]
   end
