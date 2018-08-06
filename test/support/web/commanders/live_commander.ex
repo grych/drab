@@ -90,11 +90,10 @@ defmodule DrabTestApp.LiveCommander do
     poke(socket, shorten_url: "SHORT", long_url: "LONG")
   end
 
-  # defhandler update_mini(socket, _sender) do
-  #   poke(socket, text: "changed")
-  # end
-
-  # public :update_mini
+  defhandler update_mini(socket, _sender) do
+    Process.sleep(2000)
+    poke(socket, text: "changed")
+  end
 
   defhandler update_mini(socket, _sender, argument) when is_integer(argument) do
     poke(socket, text: "integer")

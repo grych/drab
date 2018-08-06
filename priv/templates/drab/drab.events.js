@@ -14,7 +14,9 @@ Drab.disable_drab_objects = function (disable) {
     var found =  document.querySelectorAll("[drab]");
     for (var i = 0; i < found.length; i++) {
       var element = found[i];
-      element.disabled = disable || element.drab_disable_state;
+      if (element.getAttribute("drab-no-disable") == null) {
+        element.disabled = disable || element.drab_disable_state;
+      }
     };
   <% end %>
 };
@@ -334,7 +336,7 @@ Drab.set_event_handlers = function (node) {
           // disable current control - will be re-enabled after finish
           var n = this;
           <%= if Drab.Config.get(endpoint, :disable_controls_while_processing) do %>
-            if (events_to_disable.indexOf(event.type) >= 0) {
+            if (events_to_disable.indexOf(event.type) >= 0 && n.getAttribute("drab-no-disable") == null) {
               n['disabled'] = true;
             }
           <% end %>
@@ -350,7 +352,8 @@ Drab.set_event_handlers = function (node) {
             payload(n, event, argument)
             <%= if Drab.Config.get(endpoint, :disable_controls_while_processing) do %>
               , function() {
-                  n['disabled'] = false
+                if (n.getAttribute("drab-no-disable") == null)
+                  n['disabled'] = false;
                 }
             <% end %>
           );
