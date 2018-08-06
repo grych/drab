@@ -98,7 +98,7 @@ defmodule Drab.Client do
 
   # changing the client API version will cause reload browsers with the different version
   # must be a string
-  @client_lib_version "12"
+  @client_lib_version "13"
 
   @doc """
   Generates JS code and runs Drab.

@@ -33,6 +33,10 @@
 <span id="core8_out"></span>
 <br>
 
+<button id="core9_button" class="btn btn-primary" drab-click="core1_click" drab-no-disable>core9 (drab-no-disable)</button>
+<span id="core9_out"></span>
+<br>
+
 <button id="set_store_button" class="btn btn-primary"  drab-click="set_store_click">set store</button><br>
 <button id="get_store_button" class="btn btn-primary"  drab-click="get_store_click">get store</button><br>
 <span id="store1_out"></span>
