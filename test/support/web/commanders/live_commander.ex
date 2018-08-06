@@ -84,26 +84,24 @@ defmodule DrabTestApp.LiveCommander do
     Drab.Live.poke(socket, list: new_list)
   end
 
-  defhandler update_mini(socket, _sender) do
-    # IO.inspect sender
-    # IO.inspect(sender.params)
-    # poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
-    # poke socket, text: "changed", color: "red", class2: "btn-danger"
-    poke(socket, text: "changed")
-  end
 
   defhandler shorten_url(socket, _sender) do
     # IO.inspect sender.params["long_url_textarea"]
     poke(socket, shorten_url: "SHORT", long_url: "LONG")
   end
 
-  defhandler update_mini(socket, _sender, _additional) do
-    # IO.inspect sender
-    # IO.inspect(sender.params)
-    # poke(socket, users: ["Mirmił", "Hegemon", "Kokosz", "Kajko"])
-    # poke socket, text: "changed", color: "red", class2: "btn-danger"
-    # IO.inspect additional
-    poke(socket, color: "grey")
+  # defhandler update_mini(socket, _sender) do
+  #   poke(socket, text: "changed")
+  # end
+
+  # public :update_mini
+
+  defhandler update_mini(socket, _sender, argument) when is_integer(argument) do
+    poke(socket, text: "integer")
+  end
+
+  defhandler update_mini(socket, _sender, argument) when is_binary(argument) do
+    poke(socket, text: "any")
   end
 
   defhandler update_users(socket, _sender) do
