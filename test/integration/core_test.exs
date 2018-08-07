@@ -216,6 +216,29 @@ defmodule DrabTestApp.CoreTest do
     end
   end
 
+  describe "enable/disable state" do
+    @tag capture_log: true
+    test "element should not disable after close, when drab-no-disable is set", fixture do
+      broadcast_js(fixture.socket, "Drab.disconnect()")
+      Process.sleep(100)
+      assert element_enabled?(find_element(:id, "core9_button"))
+    end
+
+    @tag capture_log: true
+    test "should be disabled after click" do
+      button = find_element(:id, "core1_button")
+      click(button)
+      refute element_enabled?(find_element(:id, "core1_button"))
+    end
+
+    @tag capture_log: true
+    test "should not be disabled after click, when drab-no-disable is set" do
+      button = find_element(:id, "core9_button")
+      click(button)
+      assert element_enabled?(find_element(:id, "core9_button"))
+    end
+  end
+
   describe "presence" do
     @tag capture_log: true
     test "presence should be started", feature do

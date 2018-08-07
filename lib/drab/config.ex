@@ -57,7 +57,8 @@ defmodule Drab.Config do
   #### :js_socket_constructor, *(default: `"require(\"phoenix\").Socket"`)*
     Javascript constructor for the Socket; more info in Drab.Client.
 
-  #### :live_conn_pass_through, *(default: `%{private: %{phoenix_endpoint: true}}`)*
+  #### :live_conn_pass_through, *(default: `%{private: %{phoenix_endpoint: true,
+                                  phoenix_controller: true, phoenix_action: true}}`)*
     A deep map marking fields which should be preserved in the fake `@conn` assign. See `Drab.Live`
     for more detailed explanation on conn case.
 
@@ -415,7 +416,9 @@ defmodule Drab.Config do
   def get(endpoint, :live_conn_pass_through) do
     get_env(endpoint, :live_conn_pass_through, %{
       private: %{
-        phoenix_endpoint: true
+        phoenix_endpoint: true,
+        phoenix_controller: true,
+        phoenix_action: true
       }
     })
   end

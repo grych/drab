@@ -340,7 +340,10 @@ defmodule Drab.Commander do
   Trying to run non-handler function from the browser raises the exception on the Phoenix side.
   """
   defmacro defhandler(handler, do: block) do
-    {handler_name, _, _} = handler
+    handler_name = case handler do
+      {:when, _, [{handler_name, _, _} | _]} -> handler_name
+      {handler_name, _, _} -> handler_name
+    end
 
     quote do
       public(unquote(handler_name))

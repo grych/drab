@@ -110,6 +110,19 @@ defmodule Drab.Core do
   if not found, an "id" attribute. If neither "name" or "id" is given, the value of the form is
   not included.
 
+  ## Control of element enabled/disabled state of element
+
+  By default, Drab takes control of enabled/disabled state of the Drab element. It disables the
+  element when the handler is still running, to prevent multiple clicks. Element is back to the
+  previous (enabled) state after the handler finish. Also in case of disconnection, Drab-controlled
+  elements are disabled.
+
+  You may turn off this behaviour globally using the config options, see `Drab.Config`.
+
+  There is also a possibility to turn it off individually, using `drab-no-disable` attribute:
+
+      <button drab-click="clickety" drab-no-disable>Button</button>
+
   ## Running Elixir code from the Browser
 
   There is the Javascript method
