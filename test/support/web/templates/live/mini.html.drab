@@ -7,3 +7,7 @@
 <br>
 <button class="btn btn-success" drab-click='update_mini(1)'>integer</button><br>
 <button class="btn btn-success" drab-click='update_mini("string")'>string</button><br>
+
+<br>
+<br>
+<div><%= inspect @conn.assigns.current_user %></div>

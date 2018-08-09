@@ -64,10 +64,13 @@ defmodule Drab.Live.Assign do
   end
 
   defp deep_merge_map(base, to_merge) do
-    to_merge
-    |> Enum.reduce(base, fn
+    Enum.reduce(to_merge, base, fn
+      {key, %{__struct__: _} = value}, base ->
+        Map.put(base, key, value)
+
       {key, %{} = value}, base ->
         sub = base[key] || %{}
+
         sub = if is_map(sub), do: deep_merge_map(sub, value), else: sub
         Map.put(base, key, sub)
 

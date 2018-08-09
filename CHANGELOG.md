@@ -1,9 +1,32 @@
 # CHANGELOG
 
-## v0.9.2
+## v0.9.2 Cookies and Safe
 
-* Cookies function in `Drab.Modal`
-* Tested with Elixir 1.7.1
+This is a slow evolution release, containing a number of bug fixes and a few new features:
+
+* Cookies function in `Drab.Browser`
+
+```elixir
+iex> set_cookie(socket, "mycookie", "value", max_age: 10)
+{:ok, "mycookie=value; expires=Thu, 19 Jul 2018 19:47:09 GMT"}
+
+
+iex> Drab.Browser.cookies(socket, decoder: Drab.Coder.Cipher)
+{:ok, %{"other" => 42, "mycookie" => "value"}}
+```
+
+* `Drab.{Live, Core, Element, Modal}` functions accept `%Phoenix.HTML.Safe{}`
+
+That means you don't need to call `safe_to_string/1` anymore, just pass the safe:
+
+```elixir
+html = ~E"<strong><%= nick %>:</strong> <%= message %><br>"
+broadcast_insert socket, "#chat", :beforeend, html
+```
+
+* Tested with Elixir 1.7
+
+Drab is now blessed to work with Elixir 1.7 and OTP 21.
 
 ## v0.9.1 jQueryless Modal
 
