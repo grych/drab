@@ -2,6 +2,7 @@ defmodule DrabTestApp.CoreTest do
   use DrabTestApp.IntegrationCase
   import Drab.Core
   import ExUnit.CaptureLog
+  import Phoenix.HTML
 
   defp core_index do
     core_url(DrabTestApp.Endpoint, :core)
@@ -273,6 +274,16 @@ defmodule DrabTestApp.CoreTest do
 
       Drab.Commander.unsubscribe(socket, topic)
       assert Drab.Presence.count_connections(topic) == 1
+    end
+  end
+
+  describe "safe" do
+    @tag capture_log: true
+    test "core function should accept safe", fixture do
+      dwa = 2
+      assert exec_js(fixture.socket, ~E/<%= dwa %>+2/) == {:ok, 4}
+      assert exec_js!(fixture.socket, ~E/<%= dwa %>+2/) == 4
+      assert broadcast_js(fixture.socket, ~E/<%= dwa %>+2/) == {:ok, :broadcasted}
     end
   end
 end

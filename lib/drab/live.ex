@@ -18,7 +18,7 @@ defmodule Drab.Live do
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
 
-  ### Avoiding using Drab
+  ## Avoiding using Drab
   If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function.
   Such expressions will be treated as a "normal" Phoenix expressions and will not be updatable
   by `poke/2`.
@@ -29,7 +29,7 @@ defmodule Drab.Live do
 
       <p>Chapter <%/ @chapter_no %>.</p>
 
-  #### The `@conn` case
+  ### The `@conn` case
   The `@conn` assign is often used in Phoenix templates. Drab considers it read-only, you can not
   update it with `poke/2`. And, because it is often quite hudge, may significantly increase
   the number of data sent to and back from the browser. This is why by default Drab trims `@conn`,
@@ -48,7 +48,7 @@ defmodule Drab.Live do
           }
         }
 
-  ### Shared Commanders
+  ## Shared Commanders
   When the event is triggered inside the Shared Commander, defined with `drab-commander` attribute,
   all the updates will be done only withing this region. For example:
 
@@ -70,7 +70,7 @@ defmodule Drab.Live do
   Please notice it works also for `peek` - it will return the proper value, depends where the event
   is triggered.
 
-  ### Caching
+  ## Caching
   Browser communication is the time consuming operation and depends on the network latency. Because
   of this, Drab caches the values of assigns in the current event handler process, so they don't
   have to be re-read from the browser on every `poke` or `peek` operation. The cache is per
@@ -81,7 +81,7 @@ defmodule Drab.Live do
   functions, when your event handler is still running. If you want to re-read the assigns cache,
   run `clean_cache/0`.
 
-  ### Partials
+  ## Partials
   Function `poke/2` and `peek/2` works on the default template - the one rendered with
   the Controller. In case there are some child templates, rendered inside the main one, you need
   to specify the template name as a second argument of `poke/3` and `peek/3` functions.
@@ -93,7 +93,7 @@ defmodule Drab.Live do
   lives will raise `ArgumentError`. *Partials are not hierachical*, eg. modifying the assign
   in the main partial will not update assigns in the child partials, even if they exist there.
 
-  #### Rendering partial templates in a runtime
+  ### Rendering partial templates in a runtime
   There is a possibility add the partial to the DOM tree in a runtime, using `render_to_string/2`
   helper:
 
@@ -109,14 +109,14 @@ defmodule Drab.Live do
   is valid. There are also some limits for defining properties. See `Drab.Live.EExEngine` for
   a full description.
 
-  ### Update Behaviours
+  ## Update Behaviours
   There are different behaviours of `Drab.Live`, depends on where the expression with the updated
   assign lives. For example, if the expression defines tag attribute, like
   `<span class="<%= @class %>">`, we don't want to re-render the whole tag, as it might override
   changes you made with other Drab module, or even with Javascript. Because of this, Drab finds
   the tag and updates only the required attributes.
 
-  #### Plain Text
+  ### Plain Text
   If the expression in the template is given in any tag body, Drab will try to find the sourrounding
   tag and mark it with the attribute called `drab-ampere`. The attribute value is a hash of the
   previous buffer and the expression itself.
@@ -144,7 +144,7 @@ defmodule Drab.Live do
   This is possible because during the compile phase, Drab stores the `drab-ampere` and
   the corresponding pattern in the cache DETS file (located in `priv/`).
 
-  #### Injecting `<span>`
+  ### Injecting `<span>`
   In case, when Drab can't find the parent tag, it injects `<span>` in the generated html. For
   example, template like:
 
@@ -154,7 +154,7 @@ defmodule Drab.Live do
 
       Chapter <span drab-ampere="someid">1</span>.
 
-  #### Attributes
+  ### Attributes
   When the expression is defining the attribute of the tag, the behaviour if different. Let's
   assume there is a template with following html, rendered in the Controller with value of
   `@button` set to string `"btn-danger"`.
@@ -176,11 +176,11 @@ defmodule Drab.Live do
   Notice that the pattern where your expression lives is preserved: you may update only the partials
   of the attribute value string.
 
-  ##### Updating `value` attribute for `<input>` and `<textarea>`
+  #### Updating `value` attribute for `<input>` and `<textarea>`
   There is a special case for `<input>` and `<textarea>`: when poking attribute of `value`, Drab
   updates the corresponding `value` property as well.
 
-  #### Properties
+  ### Properties
   Nowadays we deal more with node properties than attributes. This is why `Drab.Live` introduces
   the special syntax. When using the `@` sign at the beginning of the attribute name, it will
   be treated as a property.
@@ -206,7 +206,7 @@ defmodule Drab.Live do
   The expression binded with the property **must be encodable to JSON**, so, for example, tuples
   are not allowed here. Please refer to `Jason` docs for more information about encoding JS.
 
-  #### Scripts
+  ### Scripts
   When the assign we want to change is inside the `<script></script>` tag, Drab will re-evaluate
   the whole script after assigment change. Let's say you don't want to use
   `@property=<%=expression%>` syntax to define the object property. You may want to render
@@ -233,7 +233,7 @@ defmodule Drab.Live do
 
       config :drab, enable_live_scripts: true
 
-  ### Broadcasting
+  ## Broadcasting
   There is a function `broadcast_poke` to broadcast living assigns to more than one browser.
 
   For broadcasting using a `subject` instead of `socket` (like `same_action/1`), Drab is unable
@@ -416,6 +416,14 @@ defmodule Drab.Live do
 
       iex> poke(socket, count: 42)
       {:ok, 3}
+
+  Passed values could be any JSON serializable term, or Phoenix safe html. It is recommended to
+  use safe html, when dealing with values which are coming from the outside world, like user inputs.
+
+      import Phoenix.HTML # for sigil_E
+      username = sender.params["username"]
+      html = ~E"User: <%= username %>"
+      poke socket, username: html
   """
   @spec poke(Phoenix.Socket.t(), Keyword.t()) :: result
   def poke(socket, assigns) do
@@ -569,7 +577,7 @@ defmodule Drab.Live do
     {assigns, options} = extract_options(assigns)
     predefined_assigns = options[:using_assigns]
 
-    assigns = Enum.into(assigns, %{})
+    assigns = desafe_values(assigns)
     view = view || Drab.get_view(socket)
 
     partial =

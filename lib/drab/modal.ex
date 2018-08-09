@@ -71,10 +71,25 @@ defmodule Drab.Modal do
                   buttons: [ok: "Yes", cancel: "No", unspecified: "Don't know"])
 
   """
-  @spec alert(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) ::
+  @spec alert(Phoenix.Socket.t(), Drab.Core.input(), Drab.Core.input(), Keyword.t()) ::
           Drab.Core.return() | no_return
-  @spec alert(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
-  def alert(%Phoenix.Socket{} = socket, title, body, options \\ []) do
+  @spec alert(Phoenix.Socket.t(), Drab.Core.input(), Drab.Core.input()) ::
+          Drab.Core.return() | no_return
+  def alert(socket, title, body, options \\ [])
+
+  def alert(%Phoenix.Socket{} = socket, {:safe, _} = title, {:safe, _} = body, options) do
+    alert(socket, Phoenix.HTML.safe_to_string(title), Phoenix.HTML.safe_to_string(body), options)
+  end
+
+  def alert(%Phoenix.Socket{} = socket, title, {:safe, _} = body, options) do
+    alert(socket, title, Phoenix.HTML.safe_to_string(body), options)
+  end
+
+  def alert(%Phoenix.Socket{} = socket, {:safe, _} = title, body, options) do
+    alert(socket, Phoenix.HTML.safe_to_string(title), body, options)
+  end
+
+  def alert(%Phoenix.Socket{} = socket, title, body, options) do
     buttons = options[:buttons] || [ok: "OK"]
     id = Drab.Live.Crypto.uuid("m")
 

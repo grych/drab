@@ -1,5 +1,6 @@
 defmodule DrabTestApp.LiveTest do
   import Drab.Live
+  import Phoenix.HTML
   use DrabTestApp.IntegrationCase
 
   defp live_index do
@@ -18,6 +19,13 @@ defmodule DrabTestApp.LiveTest do
     test "simple poke and peek on global", fixture do
       poke(fixture.socket, count: 42)
       assert peek(fixture.socket, :count) == {:ok, 42}
+    end
+
+    test "poke safe html", fixture do
+      t = "<b>bold</b>"
+      html = ~E"<i><%=t%></i>"
+      poke(fixture.socket, text: html)
+      assert peek(fixture.socket, :text) == {:ok, "<i>&lt;b&gt;bold&lt;/b&gt;</i>"}
     end
 
     test "poke onload", fixture do

@@ -1,5 +1,6 @@
 defmodule DrabTestApp.ElementTest do
   import Drab.Element
+  import Phoenix.HTML
   use DrabTestApp.IntegrationCase
 
   defp element_index do
@@ -148,16 +149,16 @@ defmodule DrabTestApp.ElementTest do
       assert query_one!(
                socket,
                "button",
-               :innerHTML == %{"innerHTML" => "<b>afterbegin</b> \n  Button\n"}
-             )
+               :innerHTML) == %{"innerHTML" => "<b>afterbegin</b> \n  Button\n"}
+
 
       assert {:ok, 1} == insert_html(socket, "button", :beforeend, "<b>beforeend</b> ")
 
       assert query_one!(
                socket,
                "button",
-               :innerText == %{"innerText" => "afterbegin Button beforeend"}
-             )
+               :innerText) == %{"innerText" => "afterbegin Button beforeend"}
+
 
       assert {:ok, :broadcasted} ==
                broadcast_insert(socket, "button", :beforebegin, "<p id='p1'></p>")
@@ -168,11 +169,23 @@ defmodule DrabTestApp.ElementTest do
       assert query_one!(
                socket,
                "button",
-               :innerText == %{"innerText" => "afterbegin Button beforeend"}
-             )
+               :innerText) == %{"innerText" => "afterbegin Button beforeend"}
+
 
       assert query(socket, "#p1", :anything) == {:ok, %{"#p1" => %{}}}
       assert query(socket, "#p2", :anything) == {:ok, %{"#p2" => %{}}}
+    end
+
+    test "insert safe html", fixture do
+      afterbegin = "<i>afterbegin</i>"
+      safe = ~E"<b><%= afterbegin %></b>"
+      assert {:ok, 1} == insert_html(fixture.socket, "button", :afterbegin, safe)
+
+      assert query_one!(
+               fixture.socket,
+               "button",
+               :innerHTML) == %{"innerHTML" => "<b>&lt;i&gt;afterbegin&lt;/i&gt;</b>\n  Button\n"}
+
     end
 
     test "adding an element with innerHTML should allow Drab events", fixture do
@@ -201,5 +214,20 @@ defmodule DrabTestApp.ElementTest do
 
     assert {:ok, :broadcasted} == broadcast_html(socket, "#my_element", html)
     assert %{"innerHTML" => html} == query_one!(socket, "#my_element", :innerHTML)
+  end
+
+  test "set_html safe" do
+    socket = drab_socket()
+    hello = "<Hello, World>"
+    html = ~E"<p><%= hello %></p>"
+    assert {:ok, 1} == set_html(socket, "#my_element", html)
+
+    assert %{"innerHTML" => "<p>&lt;Hello, World&gt;</p>"} ==
+             query_one!(socket, "#my_element", :innerHTML)
+
+    assert {:ok, :broadcasted} == broadcast_html(socket, "#my_element", html)
+
+    assert %{"innerHTML" => "<p>&lt;Hello, World&gt;</p>"} ==
+             query_one!(socket, "#my_element", :innerHTML)
   end
 end

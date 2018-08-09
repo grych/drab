@@ -2,8 +2,16 @@ defmodule Drab.Element do
   @moduledoc """
   HTML element query and manipulation library.
 
-  All functions are based on the CSS selectors. `query/3` runs `document.querySelector` and returns
-  selected properties of found HTML elements.
+  All functions are based on the CSS selectors, for example `query/3` runs `document.querySelector`
+  and returns selected properties of found HTML elements.
+
+  Passed values could be a string or Phoenix safe html. It is recommended to use safe html, when
+  dealing with values which are coming from outside world, like user inputs.
+
+      import Phoenix.HTML # for sigil_E
+      username = sender.params["username"]
+      html = ~E"User: <%= username %>"
+      set_prop socket, "#div1", innerHTML: html
 
   `set_prop/3` is a general function for update elements properties. There are also a bunch of
   helpers (`set_style/3` or `set_attr/3`), for updating a style of attributes of an element.
@@ -222,10 +230,15 @@ defmodule Drab.Element do
       {:ok, 1}
       iex> query_one socket, "#button1", :custom
       {:ok, %{"custom" => %{"example" => [1, 2, 3]}}}
+
+  The value of the property may be either a string, or a safe html. It is recommended to use
+  safe html in case of using values from outside the application, like user inputs.
+
+      set_prop socket, "#div1", value: ~E/<%=first_name%> <%=last_name%>/
   """
   @spec set_prop(Phoenix.Socket.t(), String.t(), Keyword.t() | map) :: Drab.Core.result()
   def set_prop(socket, selector, properties) when is_map(properties) or is_list(properties) do
-    exec_js(socket, set_js(selector, Map.new(properties)))
+    exec_js(socket, set_js(selector, desafe_values(properties)))
   end
 
   @doc """
@@ -236,7 +249,7 @@ defmodule Drab.Element do
   @spec set_prop!(Phoenix.Socket.t(), String.t(), Keyword.t() | map) ::
           Drab.Core.return() | no_return
   def set_prop!(socket, selector, properties) when is_map(properties) or is_list(properties) do
-    exec_js!(socket, set_js(selector, Map.new(properties)))
+    exec_js!(socket, set_js(selector, desafe_values(properties)))
   end
 
   @spec set_js(String.t(), Keyword.t() | map) :: String.t()
@@ -258,7 +271,7 @@ defmodule Drab.Element do
           Drab.Core.bcast_result()
   def broadcast_prop(subject, selector, properties)
       when is_map(properties) or is_list(properties) do
-    broadcast_js(subject, set_js(selector, Map.new(properties)))
+    broadcast_js(subject, set_js(selector, desafe_values(properties)))
   end
 
   @doc """
@@ -277,7 +290,7 @@ defmodule Drab.Element do
   """
   @spec set_style(Phoenix.Socket.t(), String.t(), map | Keyword.t()) :: Drab.Core.result()
   def set_style(socket, selector, properties) when is_list(properties) or is_map(properties) do
-    set_prop(socket, selector, %{"style" => Map.new(properties)})
+    set_prop(socket, selector, %{"style" => desafe_values(properties)})
   end
 
   @doc """
@@ -286,7 +299,7 @@ defmodule Drab.Element do
   @spec set_style!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) ::
           Drab.Core.return() | no_return
   def set_style!(socket, selector, properties) when is_list(properties) or is_map(properties) do
-    set_prop!(socket, selector, %{"style" => Map.new(properties)})
+    set_prop!(socket, selector, %{"style" => desafe_values(properties)})
   end
 
   @doc """
@@ -303,7 +316,7 @@ defmodule Drab.Element do
           Drab.Core.bcast_result()
   def broadcast_style(subject, selector, properties)
       when is_list(properties) or is_map(properties) do
-    broadcast_js(subject, set_js(selector, %{"style" => Map.new(properties)}))
+    broadcast_js(subject, set_js(selector, %{"style" => desafe_values(properties)}))
   end
 
   @doc """
@@ -318,7 +331,7 @@ defmodule Drab.Element do
   """
   @spec set_attr(Phoenix.Socket.t(), String.t(), map | Keyword.t()) :: Drab.Core.result()
   def set_attr(socket, selector, attributes) when is_list(attributes) or is_map(attributes) do
-    set_prop(socket, selector, %{"attributes" => Map.new(attributes)})
+    set_prop(socket, selector, %{"attributes" => desafe_values(attributes)})
   end
 
   @doc """
@@ -327,7 +340,7 @@ defmodule Drab.Element do
   @spec set_attr!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) ::
           Drab.Core.return() | no_return
   def set_attr!(socket, selector, attributes) when is_list(attributes) or is_map(attributes) do
-    set_prop!(socket, selector, %{"attributes" => Map.new(attributes)})
+    set_prop!(socket, selector, %{"attributes" => desafe_values(attributes)})
   end
 
   @doc """
@@ -344,8 +357,7 @@ defmodule Drab.Element do
           Drab.Core.bcast_result()
   def broadcast_attr(subject, selector, attributes)
       when is_list(attributes) or is_map(attributes) do
-    # set_prop(socket, selector, %{"attributes" => Map.new(attributes)})
-    broadcast_js(subject, set_js(selector, %{"attributes" => Map.new(attributes)}))
+    broadcast_js(subject, set_js(selector, %{"attributes" => desafe_values(attributes)}))
   end
 
   @doc """
@@ -360,7 +372,7 @@ defmodule Drab.Element do
   """
   @spec set_data(Phoenix.Socket.t(), String.t(), map | Keyword.t()) :: Drab.Core.result()
   def set_data(socket, selector, dataset) when is_list(dataset) or is_map(dataset) do
-    set_prop(socket, selector, %{"dataset" => Map.new(dataset)})
+    set_prop(socket, selector, %{"dataset" => desafe_values(dataset)})
   end
 
   @doc """
@@ -369,7 +381,7 @@ defmodule Drab.Element do
   @spec set_data!(Phoenix.Socket.t(), String.t(), map | Keyword.t()) ::
           Drab.Core.return() | no_return
   def set_data!(socket, selector, dataset) when is_list(dataset) or is_map(dataset) do
-    set_prop!(socket, selector, %{"dataset" => Map.new(dataset)})
+    set_prop!(socket, selector, %{"dataset" => desafe_values(dataset)})
   end
 
   @doc """
@@ -385,7 +397,7 @@ defmodule Drab.Element do
   @spec broadcast_data(Drab.Core.subject(), String.t(), map | Keyword.t()) ::
           Drab.Core.bcast_result()
   def broadcast_data(subject, selector, dataset) when is_list(dataset) or is_map(dataset) do
-    broadcast_js(subject, set_js(selector, %{"dataset" => Map.new(dataset)}))
+    broadcast_js(subject, set_js(selector, %{"dataset" => desafe_values(dataset)}))
   end
 
   @doc """
@@ -410,7 +422,11 @@ defmodule Drab.Element do
       ex> insert_html(socket, "div", :beforebegin, "<b>MORE</b>")
       {:ok, 3}
   """
-  @spec insert_html(Phoenix.Socket.t(), String.t(), atom, String.t()) :: Drab.Core.result()
+  @spec insert_html(Phoenix.Socket.t(), String.t(), atom, Drab.Core.input()) :: Drab.Core.result()
+  def insert_html(socket, selector, position, {:safe, _} = safe) do
+    insert_html(socket, selector, position, Phoenix.HTML.safe_to_string(safe))
+  end
+
   def insert_html(socket, selector, position, html) do
     exec_js(socket, insert_js(selector, position, html))
   end
@@ -418,7 +434,7 @@ defmodule Drab.Element do
   @doc """
   Exception-throwing version of `insert_html/4`
   """
-  @spec insert_html!(Phoenix.Socket.t(), String.t(), atom, String.t()) ::
+  @spec insert_html!(Phoenix.Socket.t(), String.t(), atom, Drab.Core.input()) ::
           Drab.Core.return() | no_return
   def insert_html!(socket, selector, position, html) do
     exec_js!(socket, insert_js(selector, position, html))
@@ -434,7 +450,7 @@ defmodule Drab.Element do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
-  @spec broadcast_insert(Drab.Core.subject(), String.t(), atom, String.t()) ::
+  @spec broadcast_insert(Drab.Core.subject(), String.t(), atom, Drab.Core.input()) ::
           Drab.Core.bcast_result()
   def broadcast_insert(subject, selector, position, html) do
     broadcast_js(subject, insert_js(selector, position, html))
@@ -446,7 +462,8 @@ defmodule Drab.Element do
   end
 
   @doc """
-  Finds all html elements using `selector` and sets their `innerHTML` property.
+  Finds all html elements using `selector` and sets their `innerHTML` property. Html may be
+  a plain string or safe html.
 
   Returns tuple `{:ok, number}` with number of updated elements or `{:error, description}`.
 
@@ -455,7 +472,7 @@ defmodule Drab.Element do
       iex> set_html socket, "#my_element", "<p>Hello, World!</p>"
       {:ok, 1}
   """
-  @spec set_html(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.result()
+  @spec set_html(Phoenix.Socket.t(), String.t(), Drab.Core.input()) :: Drab.Core.result()
   def set_html(socket, selector, html) do
     set_prop(socket, selector, innerHTML: html)
   end
@@ -465,7 +482,7 @@ defmodule Drab.Element do
 
   Returns number of updated element.
   """
-  @spec set_html!(Phoenix.Socket.t(), String.t(), String.t()) :: Drab.Core.return() | no_return
+  @spec set_html!(Phoenix.Socket.t(), String.t(), Drab.Core.input()) :: Drab.Core.return() | no_return
   def set_html!(socket, selector, html) do
     set_prop!(socket, selector, innerHTML: html)
   end
@@ -480,8 +497,8 @@ defmodule Drab.Element do
 
   See `Drab.Core.broadcast_js/2` for broadcasting options.
   """
-  @spec broadcast_html(Drab.Core.subject(), String.t(), String.t()) :: Drab.Core.bcast_result()
+  @spec broadcast_html(Drab.Core.subject(), String.t(), Drab.Core.input()) :: Drab.Core.bcast_result()
   def broadcast_html(subject, selector, html) do
-    broadcast_js(subject, set_js(selector, %{"innerHTML" => html}))
+    broadcast_js(subject, set_js(selector, desafe_values(%{"innerHTML" => html})))
   end
 end

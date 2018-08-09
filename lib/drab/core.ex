@@ -213,6 +213,9 @@ defmodule Drab.Core do
   @typedoc "Subject for broadcasting"
   @type subject :: Phoenix.Socket.t() | String.t() | {atom, String.t()} | list
 
+  @typedoc "Input: binary string or safe"
+  @type input :: String.t() | Phoenix.HTML.safe()
+
   @impl true
   def js_templates(), do: ["drab.core.js", "drab.events.js"]
 
@@ -255,8 +258,14 @@ defmodule Drab.Core do
       {:error, :timeout}
 
   """
-  @spec exec_js(Phoenix.Socket.t(), String.t(), Keyword.t()) :: result
-  def exec_js(socket, js, options \\ []) do
+  @spec exec_js(Phoenix.Socket.t(), input, Keyword.t()) :: result
+  def exec_js(socket, javascript, options \\ [])
+
+  def exec_js(socket, {:safe, _} = safe, options) do
+    exec_js(socket, Phoenix.HTML.safe_to_string(safe), options)
+  end
+
+  def exec_js(socket, js, options) do
     Drab.push_and_wait_for_response(socket, self(), "execjs", [js: js], options)
   end
 
@@ -281,8 +290,14 @@ defmodule Drab.Core do
             lib/drab/core.ex:114: Drab.Core.exec_js!/3
 
   """
-  @spec exec_js!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: return | no_return
-  def exec_js!(socket, js, options \\ []) do
+  @spec exec_js!(Phoenix.Socket.t(), input, Keyword.t()) :: return | no_return
+  def exec_js!(socket, javascript, options \\ [])
+
+  def exec_js!(socket, {:safe, _} = safe, options) do
+    exec_js!(socket, Phoenix.HTML.safe_to_string(safe), options)
+  end
+
+  def exec_js!(socket, js, options) do
     case exec_js(socket, js, options) do
       {:error, :disconnected} -> raise Drab.ConnectionError
       other -> Drab.JSExecutionError.result_or_raise(other)
@@ -325,8 +340,14 @@ defmodule Drab.Core do
 
   Returns `{:ok, :broadcasted}`
   """
-  @spec broadcast_js(subject, String.t(), Keyword.t()) :: bcast_result
-  def broadcast_js(subject, js, _options \\ []) do
+  @spec broadcast_js(subject, input, Keyword.t()) :: bcast_result
+  def broadcast_js(socket, javascript, options \\ [])
+
+  def broadcast_js(socket, {:safe, _} = safe, options) do
+    broadcast_js(socket, Phoenix.HTML.safe_to_string(safe), options)
+  end
+
+  def broadcast_js(subject, js, _options) do
     ret = Drab.broadcast(subject, self(), "broadcastjs", js: js)
     {ret, :broadcasted}
   end
@@ -599,6 +620,17 @@ defmodule Drab.Core do
     case sender["drab_commander_id"] do
       nil -> ""
       drab_commander_id -> "[drab-id=#{Drab.Core.encode_js(drab_commander_id)}]"
+    end
+  end
+
+  @doc false
+  @spec desafe_values(map | Keyword.t()) :: map
+  def desafe_values(properties) do
+    for {k, v} <- properties, into: %{} do
+      case v do
+        {:safe, _} -> {k, Phoenix.HTML.safe_to_string(v)}
+        _ -> {k, v}
+      end
     end
   end
 end
