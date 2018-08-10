@@ -37,7 +37,7 @@ defmodule Drab.Live.Assign do
   def merge(other), do: other
 
   # all hails to @OvermindDL1 for this idea and the following functions
-  defp deep_filter_map(%{__struct__: _} = struct, map_filter) do
+  defp deep_filter_map(%_{} = struct, map_filter) do
     deep_filter_map(Map.from_struct(struct), map_filter)
   end
 
