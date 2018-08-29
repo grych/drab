@@ -53,6 +53,11 @@ defmodule DrabTestApp.QueryCommander do
     update_out(socket, sender, ret)
   end
 
+  defhandler show_big_modal(socket, _sender) do
+    body = "<div style='height: 800px;'><p>FIRST ROW</p><div style=''><p style='position: absolute; top: 50%; bottom: 50%;'>I'M A VERY LONG DIV</p></div><p>LAST ROW</p></div>"
+    Drab.Modal.alert(socket, "Message", body, buttons: [ok: "OK", cancel: "CANCEL"])
+  end
+
   defhandler sender_test(socket, sender) do
     socket |> update(:text, set: is_number(sender["data"]["integer"]), on: "#data_test_div_out1")
     socket |> update(:text, set: is_binary(sender["data"]["string"]), on: "#data_test_div_out2")

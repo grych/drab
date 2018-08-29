@@ -42,6 +42,10 @@ config :drab, :modal_css, :boostrap4
 
 Also changed the Drab store storage, now it is encrypted, not only signed.
 
+### Templates for modal and buttons have been changed!
+
+If you are already using the custom templates for modal of for the button, please read the documentation and update them.
+
 ## v0.9.0 BREAKING RELEASE
 
 This release finally introduces the final API. There is no intention to change it, unless very

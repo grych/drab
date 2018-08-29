@@ -15,3 +15,6 @@
 
 <button id="modal5_button" drab-click='show_modal5' data-modal="modal5">Modal5</button>
 <div id="modal5_out"></div>
+
+<button id="big_modal_button" drab-click='show_big_modal' data-modal="big_modal">Big Modal</button>
+<div id="big_modal_out"></div>

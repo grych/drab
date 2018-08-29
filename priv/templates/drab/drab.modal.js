@@ -30,6 +30,7 @@ Drab.on_connect(function (resp, drab) {
       mod.modal.className = "modal fade";
       mod.modal_backdrop.className = "modal-backdrop fade";
       setTimeout(function () {
+        document.querySelector("body").classList.remove("modal-open");
         mod.modal_wrapper.outerHTML = "";
       }, 100);
     }
@@ -38,7 +39,8 @@ Drab.on_connect(function (resp, drab) {
   drab.channel.on("modal", function (message) {
     var mod = modal_elems(message.id);
     if (mod) mod.modal_wrapper.outerHTML = "";
-    document.querySelector("body").insertAdjacentHTML("beforeend", message.html);
+    var body = document.querySelector("body");
+    body.insertAdjacentHTML("beforeend", message.html);
 
     mod = modal_elems(message.id);
     setTimeout(function () {
@@ -46,6 +48,7 @@ Drab.on_connect(function (resp, drab) {
         <% :bootstrap3 -> %> mod.modal.classList.add("in"); mod.modal_backdrop.classList.add("in");
         <% :bootstrap4 -> %> mod.modal.classList.add("show"); mod.modal_backdrop.classList.add("show");
       <% end %>
+      body.classList.add("modal-open");
       mod.form.querySelector("input, textarea, select").focus();
     }, 50);
 
