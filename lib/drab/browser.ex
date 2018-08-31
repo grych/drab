@@ -353,6 +353,67 @@ defmodule Drab.Browser do
     Drab.JSExecutionError.result_or_raise(cookies(socket, options))
   end
 
+#### NEW ################################################################
+
+  @doc """
+  Gets a named cookie from the browser.
+
+  Values are decoded using, by default, `Drab.Coder.URL`. You may change this by giving `:decoder`
+  option:
+
+      iex> Drab.Browser.set_cookie(socket, "mycookie", "42", max_age: 10, encoder: Drab.Coder.Cipher)
+      iex> Drab.Browser.cookie(socket, "mycookie", decoder: Drab.Coder.Cipher)
+      {:ok, "42"}
+  """
+  @spec cookie(Phoenix.Socket.t(), String.t(), Keyword.t()) :: Drab.Core.result()
+  def cookie(socket, name, options \\ []) do
+    decoder = Keyword.get(options, :decoder, Drab.Coder.URL)
+    case Drab.Browser.cookies(socket) do
+      {:ok, cookies} ->
+        cookies
+        |> Map.get(name)
+      |> (&(&1 && decoder.decode(&1) || {:error, "Cookie #{inspect name} not found."})).()
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  @doc """
+  Exception raising version of `cookie/3`
+  """
+  @spec cookie!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: map | no_return
+  def cookie!(socket, name, options \\ []) do
+    decoder = Keyword.get(options, :decoder, Drab.Coder.URL)
+    Drab.Browser.cookies!(socket)
+    |> Map.get(name)
+    |> (&(&1 && decoder.decode!(&1)) || raise "Cookie #{inspect name} not found.").()
+  end
+
+
+  @doc """
+  Delete the named cookie.
+
+      iex> Drab.Browser.set_cookie(socket, "mycookie", "42")
+      iex> Drab.Browser.cookie(socket, "mycookie")
+      {:ok, "42"}
+      iex> Drab.Browser.delete_cookie(socket, "mycookie")
+      iex> Drab.Browser.cookie(socket, "mycookie")
+      {:error, _}
+  """
+  @spec delete_cookie(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
+  def delete_cookie(socket, name) do
+    Drab.Browser.set_cookie(socket, name, "", max_age: -1)
+  end
+
+  @doc """
+  Exception raising version of `delete_cookie/2`
+  """
+  @spec delete_cookie!(Phoenix.Socket.t(), String.t()) :: map | no_return
+  def delete_cookie!(socket, name) do
+    Drab.Browser.set_cookie!(socket, name, "", max_age: -1)
+  end
+
+#### /NEW ################################################################
+
   @spec decode_cookies(String.t(), atom) :: map
   defp decode_cookies("", _), do: %{}
 
