@@ -115,7 +115,7 @@ defmodule DrabTestApp.BrowserTest do
     test "delete cookie" do
       socket = drab_socket()
       set_cookie!(socket, "my cookie", "ciacho!")
-      assert delete_cookie("my cookie")
+      assert delete_cookie(socket, "my cookie")
     end
   end
 end
