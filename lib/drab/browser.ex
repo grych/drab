@@ -382,7 +382,8 @@ defmodule Drab.Browser do
   @spec cookie!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: map | no_return
   def cookie!(socket, name, options \\ []) do
     decoder = Keyword.get(options, :decoder, Drab.Coder.URL)
-    Drab.Browser.cookies!(socket)
+    socket
+    |> Drab.Browser.cookies!()
     |> Map.get(name)
     |> (&(&1 && decoder.decode!(&1)) || raise "Cookie #{inspect name} not found.").()
   end
