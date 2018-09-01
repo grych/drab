@@ -366,7 +366,7 @@ defmodule Drab.Browser do
   """
   @spec cookie(Phoenix.Socket.t(), String.t(), Keyword.t()) :: Drab.Core.result()
   def cookie(socket, name, options \\ []) do
-    case Drab.Browser.cookies(socket, options) do
+    case cookies(socket, options) do
       {:ok, cookies} ->
           (c = Map.get(cookies, name)) && {:ok, c} || {:error, "Cookie #{inspect name} not found."}
       other -> 
@@ -380,7 +380,7 @@ defmodule Drab.Browser do
   @spec cookie!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: any | no_return
   def cookie!(socket, name, options \\ []) do
     socket
-    |> Drab.Browser.cookies!(options)
+    |> cookies!(options)
     |> Map.get(name)
     |> (&(&1) || raise "Cookie #{inspect name} not found.").()
   end
@@ -399,7 +399,7 @@ defmodule Drab.Browser do
   """
   @spec delete_cookie(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
   def delete_cookie(socket, name) do
-    Drab.Browser.set_cookie(socket, name, "", max_age: -1)
+    set_cookie(socket, name, "", max_age: -1)
   end
 
   @doc """
