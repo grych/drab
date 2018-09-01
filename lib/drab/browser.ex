@@ -369,7 +369,7 @@ defmodule Drab.Browser do
     case cookies(socket, options) do
       {:ok, cookies} ->
           (c = Map.get(cookies, name)) && {:ok, c} || {:error, "Cookie #{inspect name} not found."}
-      other -> 
+      other ->
         other
     end
   end
