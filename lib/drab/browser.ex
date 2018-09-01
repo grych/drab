@@ -366,26 +366,23 @@ defmodule Drab.Browser do
   """
   @spec cookie(Phoenix.Socket.t(), String.t(), Keyword.t()) :: Drab.Core.result()
   def cookie(socket, name, options \\ []) do
-    decoder = Keyword.get(options, :decoder, Drab.Coder.URL)
-    case Drab.Browser.cookies(socket) do
+    case Drab.Browser.cookies(socket, options) do
       {:ok, cookies} ->
-        cookies
-        |> Map.get(name)
-      |> (&(&1 && decoder.decode(&1) || {:error, "Cookie #{inspect name} not found."})).()
-      {:error, error} -> {:error, error}
+          (c = Map.get(cookies, name)) && {:ok, c} || {:error, "Cookie #{inspect name} not found."}
+      other -> 
+        other
     end
   end
 
   @doc """
   Exception raising version of `cookie/3`
   """
-  @spec cookie!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: map | no_return
+  @spec cookie!(Phoenix.Socket.t(), String.t(), Keyword.t()) :: any | no_return
   def cookie!(socket, name, options \\ []) do
-    decoder = Keyword.get(options, :decoder, Drab.Coder.URL)
     socket
-    |> Drab.Browser.cookies!()
+    |> Drab.Browser.cookies!(options)
     |> Map.get(name)
-    |> (&(&1 && decoder.decode!(&1)) || raise "Cookie #{inspect name} not found.").()
+    |> (&(&1) || raise "Cookie #{inspect name} not found.").()
   end
 
   @doc """
@@ -408,7 +405,7 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `delete_cookie/2`
   """
-  @spec delete_cookie!(Phoenix.Socket.t(), String.t()) :: map | no_return
+  @spec delete_cookie!(Phoenix.Socket.t(), String.t()) :: String.t() | no_return
   def delete_cookie!(socket, name) do
     Drab.Browser.set_cookie!(socket, name, "", max_age: -1)
   end
