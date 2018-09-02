@@ -497,4 +497,214 @@ defmodule Drab.Browser do
   def set_cookie!(socket, name, value, options \\ []) do
     Drab.JSExecutionError.result_or_raise(set_cookie(socket, name, value, options))
   end
+
+## Web Storage
+
+  @doc """
+  Save item to Web Storage.
+
+  Parameters:
+    * `socket` - the Drab socket
+    * `storage_kind` - an atom which specifies the way the data will persist in the browser, can be:
+                      `:local`    persist data in the browser even when the browser is closed and reopened; 
+                       `:session` persist in the browser for the current session only 
+                                  (data is lost when the browser window/tab is closed);
+    * `key` - a string with the name of the key for the associated data 
+    * `data` - the data to be persisted
+    * `options` - see Options 
+
+  Returns `{:ok, nil}` after success, or
+          `{:error, reason}` if something goes wrong.
+
+  Data is encoded using, by default, `Drab.Coder.URL`. You may change this by giving `:encoder`
+  option. Notice that some encoders (`Drab.Coder.URL` and `Drab.Coder.Base64`) accept only
+  string as an argument. To any kind of data, use `Drab.Coder.String` or
+  `Drab.Coder.Cipher`.
+
+  Options:
+    * `:encoder` (default `Drab.Coder.URL`) - encode the data with the given coder
+
+  Examples:
+      iex> Drab.Browser.set_web_storage_item(socket, :session, "Answer", 42)
+      {:ok, nil}
+
+      iex> data = [%{name: "John", age: 42}, %{name: "Paul", age: 20}]
+      iex> Drab.Browser.set_web_storage_item(socket, :session, "Persons", data, encoder: Drab.Coder.Cipher)
+      {:ok, nil}
+  """
+  @spec set_web_storage_item(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
+    :: Drab.Core.result()
+  def set_web_storage_item(socket, storage_kind, key, data, options \\ [])
+  def set_web_storage_item(socket, :local, key, data, options),
+    do: do_set_web_storage_item(socket, :local, key, data, options)
+  def set_web_storage_item(socket, :session, key, data, options),
+    do: do_set_web_storage_item(socket, :session, key, data, options)
+
+  @spec do_set_web_storage_item(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
+    :: Drab.Core.result()
+  defp do_set_web_storage_item(socket, storage_kind, key, data, options) do
+    encoder = options[:encoder] || Drab.Coder.URL
+
+    case encoder.encode(data) do
+      {:ok, encoded_data} ->
+          Drab.Core.exec_js(socket, """
+            window.#{web_storage_object(storage_kind)}.setItem("#{key}", "#{encoded_data}");
+          """)
+      other -> other
+    end
+  end
+
+  @doc """
+  Exception raising version of `do_set_web_storage_item/5`.
+  """
+  @spec set_web_storage_item!(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
+    :: nil | no_return
+  def set_web_storage_item!(socket, storage_kind, key, data, options \\ [])
+  def set_web_storage_item!(socket, :local, key, data, options),
+    do: do_set_web_storage_item!(socket, :local, key, data, options)
+  def set_web_storage_item!(socket, :session, key, data, options),
+    do: do_set_web_storage_item!(socket, :session, key, data, options)
+
+  @spec do_set_web_storage_item!(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
+    :: nil | no_return
+  defp do_set_web_storage_item!(socket, storage_kind, key, data, options) do
+    socket
+    |> do_set_web_storage_item(storage_kind, key, data, options)
+    |> Drab.JSExecutionError.result_or_raise()
+  end
+
+  @doc """
+  Retrieve item from Web Storage
+
+  Options:
+  * `:decoder` (default `Drab.Coder.URL`) - decode the stored data with the given coder, default `Drab.Coder.URL`
+
+  Returns `{:ok, data}` after success, or
+          `{:error, reason}` if something goes wrong.
+
+  Examples:
+      # Save data encoded
+      iex> data = [%{name: "John", age: 42}, %{name: "Paul", age: 20}]
+      iex> Drab.Browser.set_web_storage_item(socket, :session, "Persons", data, encoder: Drab.Coder.Cipher)
+      {:ok, nil}
+
+      # Retrieve saved encoded data withoud decoding
+      iex> Drab.Browser.get_web_storage_item(socket, :session, "Persons")
+      {:ok,
+       "QTEyOEdDTQ.rXEw18jR5uBgzn2PRTI8-WlwHq57tV815HKVwjhbItb__Vf20v_xnAjuJmY.FXdqERie8jE4PrOp.dpTVHCIUzE67uTwB7rDzGgrZPWi372b2_vJZDa3unWMaDTkKQuWidwq02JwskYkMOEXiTP8o5x8spszEzd8wG68.HkB4bKkdIVqBal-2F7z5pw"}
+
+      # Retrieve and decode saved data
+      iex> Drab.Browser.get_web_storage_item(socket, :session, "Persons", decoder: Drab.Coder.Cipher)
+      {:ok, [%{age: 42, name: "John"}, %{age: 20, name: "Paul"}]}
+  """
+  @spec get_web_storage_item(Phoenix.Socket.t(), atom, String.t(), Keyword.t())
+    :: Drab.Core.result()
+  def get_web_storage_item(socket, storage_kind, key, options \\ [])
+  def get_web_storage_item(socket, :local, key, options),
+    do: do_get_web_storage_item(socket, :local, key, options)
+  def get_web_storage_item(socket, :session, key, options),
+    do: do_get_web_storage_item(socket, :session, key, options)
+
+  @spec get_web_storage_item(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t())
+    :: Drab.Core.result()
+  defp do_get_web_storage_item(socket, storage_kind, key, options) do
+    decoder = options[:decoder] || Drab.Coder.URL
+
+    socket
+    |> exec_js("""
+        window.#{web_storage_object(storage_kind)}.getItem("#{key}");
+        """)
+    |> case do
+        {:ok, nil} -> {:error, "key #{inspect key} not found"}
+        {:ok, data} -> decoder.decode(data)
+        other -> other
+      end
+  end
+
+  @doc """
+  Exception raising version of `get_web_storage_item/4`.
+  """
+  @spec get_web_storage_item!(Phoenix.Socket.t(), atom, String.t(), Keyword.t())
+    :: any | no_return
+  def get_web_storage_item!(socket, storage_kind, key, options \\ [])
+  def get_web_storage_item!(socket, :local, key, options),
+    do: do_get_web_storage_item!(socket, :local, key, options)
+  def get_web_storage_item!(socket, :session, key, options),
+    do: do_get_web_storage_item!(socket, :session, key, options)
+
+  @spec get_web_storage_item!(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t())
+    :: any | no_return
+  defp do_get_web_storage_item!(socket, storage_kind, key, options) do
+    socket
+    |> get_web_storage_item(storage_kind, key, options)
+    |> Drab.JSExecutionError.result_or_raise()
+  end
+
+  # Returns a string with the name of the Web Store object to use in the JS call
+  @spec web_storage_object(atom)  :: String.t()
+  defp web_storage_object(:local), do: "localStorage"
+  defp web_storage_object(:session), do: "sessionStorage"
+
+  @doc """
+  Removes a localStorage item.
+
+  Returns `{:ok, nil}` after successful action, and also when doesn't exist any item item associated with `key`
+
+  Examples:
+
+      iex> Drab.Browser.remove_web_storage_item(socket, "MyItem")
+      {:ok, nil}
+  """
+  @spec remove_web_storage_item(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
+  def remove_web_storage_item(socket, key) do
+    exec_js(socket, """
+        window.localStorage.removeItem("#{key}");
+        """)
+  end
+
+  @doc """
+  Exception raising version of `remove_web_storage_item/2`
+  """
+  @spec remove_web_storage_item!(Phoenix.Socket.t(), String.t()) :: nil | no_return
+  def remove_web_storage_item!(socket, key) do
+    socket
+    |> remove_web_storage_item(key)
+    |> Drab.JSExecutionError.result_or_raise()
+  end
+
+  @doc """
+  Check check browser support for localStorage and sessionStorage.
+
+  Returns `{:ok, true}` if supported, `{:ok, false}` otherwise, or `{:error, error}` on errors.
+
+  Examples:
+
+      iex> Drab.Browser.check_web_storage_support(socket)
+      {:ok, true}
+  """
+  @spec check_web_storage_support(Phoenix.Socket.t()) :: Drab.Core.result()
+  def check_web_storage_support(socket) do
+    result =
+      exec_js(socket, """
+        typeof(Storage);
+        """)
+      case result do
+        {:ok, "function"} -> {:ok, true}
+        {:ok, "undefined"} -> {:ok, false}
+        other -> other
+      end
+  end
+
+  @doc """
+  Exception raising version of check_web_storage_support/1
+
+  Returns `true` if supported, `false` otherwise.
+  """
+  @spec check_web_storage_support!(Phoenix.Socket.t()) :: true | false | no_return
+  def check_web_storage_support!(socket) do
+    socket
+    |> check_web_storage_support()
+    |> Drab.JSExecutionError.result_or_raise()
+  end
+
 end

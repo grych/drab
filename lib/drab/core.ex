@@ -202,7 +202,7 @@ defmodule Drab.Core do
   @type status :: :ok | :error
 
   @typedoc "Types returned from the browser"
-  @type return :: String.t() | map | float | integer | list
+  @type return :: String.t() | map | float | integer | list | nil
 
   @typedoc "Return value of `exec_js/2`"
   @type result :: {status, return | :disconnected | :timeout}
