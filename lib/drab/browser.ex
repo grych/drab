@@ -562,7 +562,7 @@ defmodule Drab.Browser do
     do: do_set_web_storage_item!(socket, :session, key, data, options)
 
   @spec set_web_storage_item!(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
-    :: nil | no_return 
+    :: nil | no_return
   defp do_set_web_storage_item!(socket, storage_kind, key, data, options) do
     socket
     |> do_set_web_storage_item(storage_kind, key, data, options)
@@ -617,15 +617,16 @@ defmodule Drab.Browser do
   @doc """
   Exception raising version of `get_web_storage_item/4`.
   """
-  @spec get_web_storage_item!(Phoenix.Socket.t(), atom, String.t(), Keyword.t()) :: any | no_return
+  @spec get_web_storage_item!(Phoenix.Socket.t(), atom, String.t(), Keyword.t())
+    :: any | no_return
   def get_web_storage_item!(socket, storage_kind, key, options \\ [])
   def get_web_storage_item!(socket, :local, key, options),
     do: do_get_web_storage_item!(socket, :local, key, options)
   def get_web_storage_item!(socket, :session, key, options),
     do: do_get_web_storage_item!(socket, :session, key, options)
-  # def get_web_storage_item!(_, storage_kind, _), do: raise "#{inspect storage_kind} is an invalid storage kind."
 
-  @spec get_web_storage_item!(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t())  :: any | no_return
+  @spec get_web_storage_item!(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t())
+    :: any | no_return
   defp do_get_web_storage_item!(socket, storage_kind, key, options) do
     socket
     |> get_web_storage_item(storage_kind, key, options)

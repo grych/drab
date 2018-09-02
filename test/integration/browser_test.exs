@@ -128,8 +128,10 @@ defmodule DrabTestApp.BrowserTest do
     test ":session storage, with ciphering" do
       socket = drab_socket()
       data = [%{name: "John", age: 42}, %{name: "Paul", age: 20}]
-      Drab.Browser.set_web_storage_item(socket, :session, "TEST", data, encoder: Drab.Coder.Cipher)
-      assert Drab.Browser.get_web_storage_item(socket, :session, "TEST", decoder: Drab.Coder.Cipher) == {:ok, data}
+      Drab.Browser.set_web_storage_item(socket, :session, "TEST", data,
+        encoder: Drab.Coder.Cipher)
+      assert Drab.Browser.get_web_storage_item(socket, :session, "TEST",
+        decoder: Drab.Coder.Cipher) == {:ok, data}
     end
     test ":local storage, plain" do
       socket = drab_socket()
@@ -139,8 +141,10 @@ defmodule DrabTestApp.BrowserTest do
     test ":local storage, with ciphering" do
       socket = drab_socket()
       data = [%{name: "John", age: 42}, %{name: "Paul", age: 20}]
-      Drab.Browser.set_web_storage_item(socket, :local, "TEST", data, encoder: Drab.Coder.Cipher)
-      assert Drab.Browser.get_web_storage_item(socket, :local, "TEST", decoder: Drab.Coder.Cipher) == {:ok, data}
+      Drab.Browser.set_web_storage_item(socket, :local, "TEST", data,
+        encoder: Drab.Coder.Cipher)
+      assert Drab.Browser.get_web_storage_item(socket, :local, "TEST",
+        decoder: Drab.Coder.Cipher) == {:ok, data}
     end
     test "remove item" do
       socket = drab_socket()
