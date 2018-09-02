@@ -118,7 +118,7 @@ defmodule DrabTestApp.BrowserTest do
       assert delete_cookie(socket, "my cookie")
     end
   end
-  
+
   describe "Web Storage" do
     test ":session storage, plain" do
       socket = drab_socket()
