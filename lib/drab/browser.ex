@@ -532,12 +532,16 @@ defmodule Drab.Browser do
       iex> Drab.Browser.set_web_storage_item(socket, :session, "Persons", data, encoder: Drab.Coder.Cipher)
       {:ok, nil}
   """
-  @spec set_web_storage_item(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t()) :: Drab.Core.status()
+  @spec set_web_storage_item(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
+    :: Drab.Core.result()
   def set_web_storage_item(socket, storage_kind, key, data, options \\ [])
-  def set_web_storage_item(socket, :local, key, data, options), do: do_set_web_storage_item(socket, :local, key, data, options)
-  def set_web_storage_item(socket, :session, key, data, options), do: do_set_web_storage_item(socket, :session, key, data, options)
+  def set_web_storage_item(socket, :local, key, data, options),
+    do: do_set_web_storage_item(socket, :local, key, data, options)
+  def set_web_storage_item(socket, :session, key, data, options),
+    do: do_set_web_storage_item(socket, :session, key, data, options)
 
-  @spec set_web_storage_item(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t()) :: Drab.Core.status()
+  @spec do_set_web_storage_item(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
+    :: Drab.Core.result()
   defp do_set_web_storage_item(socket, storage_kind, key, data, options) do
     encoder = options[:encoder] || Drab.Coder.URL
 
@@ -561,7 +565,7 @@ defmodule Drab.Browser do
   def set_web_storage_item!(socket, :session, key, data, options),
     do: do_set_web_storage_item!(socket, :session, key, data, options)
 
-  @spec set_web_storage_item!(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
+  @spec do_set_web_storage_item!(Phoenix.Socket.t(), atom, String.t(), any, Keyword.t())
     :: nil | no_return
   defp do_set_web_storage_item!(socket, storage_kind, key, data, options) do
     socket
@@ -593,14 +597,16 @@ defmodule Drab.Browser do
       iex> Drab.Browser.get_web_storage_item(socket, :session, "Persons", decoder: Drab.Coder.Cipher)
       {:ok, [%{age: 42, name: "John"}, %{age: 20, name: "Paul"}]}
   """
-  @spec get_web_storage_item(Phoenix.Socket.t(), atom, String.t(), Keyword.t()) :: Drab.Core.status()
+  @spec get_web_storage_item(Phoenix.Socket.t(), atom, String.t(), Keyword.t())
+    :: Drab.Core.result()
   def get_web_storage_item(socket, storage_kind, key, options \\ [])
   def get_web_storage_item(socket, :local, key, options),
     do: do_get_web_storage_item(socket, :local, key, options)
   def get_web_storage_item(socket, :session, key, options),
     do: do_get_web_storage_item(socket, :session, key, options)
 
-  @spec get_web_storage_item(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t()) :: Drab.Core.status()
+  @spec get_web_storage_item(Phoenix.Socket.t(), String.t(), String.t(), Keyword.t())
+    :: Drab.Core.result()
   defp do_get_web_storage_item(socket, storage_kind, key, options) do
     decoder = options[:decoder] || Drab.Coder.URL
 
@@ -611,6 +617,7 @@ defmodule Drab.Browser do
     |> case do
         {:ok, nil} -> {:error, "key #{inspect key} not found"}
         {:ok, data} -> decoder.decode(data)
+        other -> other
       end
   end
 
@@ -648,7 +655,7 @@ defmodule Drab.Browser do
       iex> Drab.Browser.remove_web_storage_item(socket, "MyItem")
       {:ok, nil}
   """
-  @spec remove_web_storage_item(Phoenix.Socket.t(), String.t()) :: Drab.Core.status()
+  @spec remove_web_storage_item(Phoenix.Socket.t(), String.t()) :: Drab.Core.result()
   def remove_web_storage_item(socket, key) do
     exec_js(socket, """
         window.localStorage.removeItem("#{key}");
@@ -675,7 +682,7 @@ defmodule Drab.Browser do
       iex> Drab.Browser.check_web_storage_support(socket)
       {:ok, true}
   """
-  @spec check_web_storage_support(Phoenix.Socket.t()) :: Drab.Core.status()
+  @spec check_web_storage_support(Phoenix.Socket.t()) :: Drab.Core.result()
   def check_web_storage_support(socket) do
     result =
       exec_js(socket, """
@@ -684,7 +691,7 @@ defmodule Drab.Browser do
       case result do
         {:ok, "function"} -> {:ok, true}
         {:ok, "undefined"} -> {:ok, false}
-        {:error, error} -> {:error, error}
+        other -> other
       end
   end
 
