@@ -118,4 +118,38 @@ defmodule DrabTestApp.BrowserTest do
       assert delete_cookie(socket, "my cookie")
     end
   end
+  
+  describe "Web Storage" do
+    test ":session storage, plain" do
+      socket = drab_socket()
+      Drab.Browser.set_web_storage_item(socket, :session, "TEST", "42")
+      assert Drab.Browser.get_web_storage_item(socket, :session, "TEST") == {:ok, "42"}
+    end
+    test ":session storage, with ciphering" do
+      socket = drab_socket()
+      data = [%{name: "John", age: 42}, %{name: "Paul", age: 20}]
+      Drab.Browser.set_web_storage_item(socket, :session, "TEST", data, encoder: Drab.Coder.Cipher)
+      assert Drab.Browser.get_web_storage_item(socket, :session, "TEST", decoder: Drab.Coder.Cipher) == {:ok, data}
+    end
+    test ":local storage, plain" do
+      socket = drab_socket()
+      Drab.Browser.set_web_storage_item(socket, :local, "TEST", "42")
+      assert Drab.Browser.get_web_storage_item(socket, :local, "TEST") == {:ok, "42"}
+    end
+    test ":local storage, with ciphering" do
+      socket = drab_socket()
+      data = [%{name: "John", age: 42}, %{name: "Paul", age: 20}]
+      Drab.Browser.set_web_storage_item(socket, :local, "TEST", data, encoder: Drab.Coder.Cipher)
+      assert Drab.Browser.get_web_storage_item(socket, :local, "TEST", decoder: Drab.Coder.Cipher) == {:ok, data}
+    end
+    test "remove item" do
+      socket = drab_socket()
+      Drab.Browser.set_web_storage_item(socket, :local, "TEST", "42")
+      assert Drab.Browser.remove_web_storage_item(socket, "TEST") == {:ok, nil}
+    end
+    test "check browser support" do
+      socket = drab_socket()
+      assert Drab.Browser.check_web_storage_support(socket) == {:ok, true}
+    end
+  end
 end
