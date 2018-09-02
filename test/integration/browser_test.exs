@@ -105,5 +105,17 @@ defmodule DrabTestApp.BrowserTest do
       Process.sleep(1000)
       assert cookies(socket) == {:ok, %{}}
     end
+
+    test "named cookie" do
+      socket = drab_socket()
+      set_cookie!(socket, "my cookie", "ciacho!")
+      assert cookie!(socket, "my cookie") == "ciacho!"
+    end
+
+    test "delete cookie" do
+      socket = drab_socket()
+      set_cookie!(socket, "my cookie", "ciacho!")
+      assert delete_cookie(socket, "my cookie")
+    end
   end
 end
