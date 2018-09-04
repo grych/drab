@@ -141,8 +141,7 @@ defmodule Drab.Core do
     config entry, see Drab.Config
   * Drab Store is not the Plug Session! This is a different entity. Anyway, you have an access
     to the Plug Session (details below).
-  * Drab Store is stored on the client side and it is signed, but - as the Plug Session cookie -
-    not ciphered.
+  * Drab Store is stored on the client side and it is encrypted.
 
   ## Session
 

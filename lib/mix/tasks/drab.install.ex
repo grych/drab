@@ -140,6 +140,7 @@ defmodule Mix.Tasks.Drab.Install do
   end
 
   defp validate_phoenix_version do
+    Application.load(:phoenix)
     unless phoenix13?() do
       Mix.raise("""
       Only Phoenix 1.3 is supported with the installer, please proceed with manual install.
