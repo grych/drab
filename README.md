@@ -303,7 +303,7 @@ config :phoenix, :template_engines,
   drab: Drab.Live.Engine
 
 config :drab, MyAppWeb.Endpoint,
-  otp_app: :my_app_web
+  otp_app: :my_app
 ```
 
   5. Add `:drab` to applications started by default in `mix.exs`:
