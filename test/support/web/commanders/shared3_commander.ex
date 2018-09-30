@@ -3,5 +3,6 @@ defmodule DrabTestApp.Shared3Commander do
   use Drab.Commander
 
   defhandler button_clicked(_socket, _) do
+    :ok
   end
 end
