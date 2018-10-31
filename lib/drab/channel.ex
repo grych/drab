@@ -3,8 +3,6 @@ defmodule Drab.Channel do
 
   use Phoenix.Channel, Drab.Config.get(:phoenix_channel_options)
 
-  intercept(["subscribe", "unsubscribe"])
-
   @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}
   def join("__drab:" <> _broadcast_topic, _, socket) do
     # socket already contains controller and action
@@ -12,6 +10,7 @@ defmodule Drab.Channel do
     socket_with_pid = assign(socket, :__drab_pid, pid)
 
     {:ok, socket_with_pid}
+    # {:ok, assign(socket_with_pid, :topics, [])}
   end
 
   @spec handle_in(String.t(), map, Phoenix.Socket.t()) :: {:noreply, Phoenix.Socket.t()}
@@ -127,23 +126,15 @@ defmodule Drab.Channel do
     verify_and_cast(:event, [payload, event_handler_function, reply_to], socket)
   end
 
-  # special messages for subscription for external channels, called from Controller
-  def handle_out("subscribe", %{topic: topic}, socket) do
-    endpoint = socket.endpoint
+  def handle_info({:subscribe, %{topic: topic, endpoint: endpoint}}, state) do
     :ok = endpoint.subscribe(topic)
-    {:noreply, socket}
+    {:noreply, state}
   end
 
-  def handle_out("unsubscribe", %{topic: topic}, socket) do
-    endpoint = socket.endpoint
+  def handle_info({:unsubscribe, %{topic: topic, endpoint: endpoint}}, state) do
     :ok = endpoint.unsubscribe(topic)
-    {:noreply, socket}
+    {:noreply, state}
   end
-
-  # def handle_info(:run_presence, socket) do
-  #   Drab.Config.get(:presence, :module).start(socket, socket.topic)
-  #   {:noreply, socket}
-  # end
 
   def handle_info(%Phoenix.Socket.Broadcast{topic: _, event: ev, payload: payload}, socket) do
     push(socket, ev, payload)

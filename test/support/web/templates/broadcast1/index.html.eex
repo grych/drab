@@ -5,4 +5,9 @@
 
 <button id="broadcast1_button" drab-click='broadcast1' class='btn btn-danger'>Broadcast to the same url (default)</button>
 <div id="broadcast_out"></div>
-
+<hr>
+<form>
+  <input type="text" id="broadcast1_text" drab-change="text1_change">
+  <button drab-click="send_to_safari">Send to Safari</button>
+  <button drab-click="send_to_chrome">Send to chrome</button>
+</form>

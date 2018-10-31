@@ -556,13 +556,12 @@ defmodule Drab.Commander do
   def subscribe(socket, topic) when is_binary(topic) do
     drab = Drab.pid(socket)
     topics = external_topics(socket)
-
     if topic in topics || topic == socket.topic do
       :duplicate
     else
       Drab.set_topics(drab, [topic | topics])
       if Drab.Config.get(:presence), do: Drab.Config.get(:presence, :module).start(socket, topic)
-      Phoenix.Channel.broadcast(socket, "subscribe", %{topic: topic})
+      send socket.channel_pid, {:subscribe, %{topic: topic, endpoint: socket.endpoint}}
     end
   end
 
@@ -587,7 +586,7 @@ defmodule Drab.Commander do
       topics = external_topics(socket)
       Drab.set_topics(drab, List.delete(topics, topic))
       if Drab.Config.get(:presence), do: Drab.Config.get(:presence, :module).stop(socket, topic)
-      Phoenix.Channel.broadcast(socket, "unsubscribe", %{topic: topic})
+      send socket.channel_pid, {:unsubscribe, %{topic: topic, endpoint: socket.endpoint}}
     end
   end
 
