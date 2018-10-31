@@ -34,8 +34,6 @@
   window.Drab = {
     create: function (drab_return_token, drab_session_token, broadcast_topic) {
       this.Socket = <%= Drab.Config.get(endpoint, :js_socket_constructor) %>;
-
-      // this.drab_return_token = drab_return_token;
       this.drab_session_token = drab_session_token;
       this.self = this;
       this.counter = 0;
@@ -57,14 +55,14 @@
           __client_lib_version: Drab.client_lib_version,
           __client_id: Drab.myid
         });
-        var socket = new this.Socket("<%= Drab.Config.get(endpoint, :socket) %>", {
+        drab.socket = new this.Socket("<%= Drab.Config.get(endpoint, :socket) %>", {
           params: params
         });
         // this.socket.onError(function(ev) {console.log("SOCKET ERROR", ev);});
         // this.socket.onClose(function(ev) {console.log("SOCKET CLOSE", ev);});
 
-        socket.connect();
-        this.channel = socket.channel(this.drab_topic, {});
+        drab.socket.connect();
+        this.channel = drab.socket.channel(this.drab_topic, {});
 
         this.channel.join().receive("error", function (resp) {
           console.log("Unable to join the Drab Channel", resp);
@@ -85,7 +83,7 @@
           });
         });
 
-        socket.onClose(function (event) {
+        drab.socket.onClose(function (event) {
           if (!drab.already_disconnected) {
             drab.already_disconnected = true;
             for (var di = 0; di < drab.disconnected.length; di++) {
@@ -95,7 +93,7 @@
           }
         });
 
-        this.disconnect = function () { socket.conn.close(); }
+        this.disconnect = function () { drab.socket.conn.close(); }
       }
     },
     //
