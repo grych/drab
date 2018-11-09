@@ -248,10 +248,11 @@ defmodule DrabTestApp.CoreTest do
       change_to_secondary_session()
       core_index() |> navigate_to()
 
-      unless System.get_env("TRAVIS") do
+      # unless System.get_env("TRAVIS") do
         # for some stupid reasons it does not work with travis
-        assert Drab.Presence.count_connections(feature.socket) == 2
-      end
+      Process.sleep(1000)
+      assert Drab.Presence.count_connections(feature.socket) == 2
+      # end
     end
 
     @tag capture_log: true
