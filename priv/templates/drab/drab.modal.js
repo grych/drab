@@ -72,6 +72,7 @@ Drab.on_connect(function (resp, drab) {
         clicked(message, "cancel");
       }, message.timeout);
     }
+    Drab.enable_drab_on("#_drab_modal_wrapper_" + message.id + " .modal-body");
   });
 });
 

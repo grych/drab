@@ -2,11 +2,7 @@
 <div id="drab_pid" style="display: none;"></div>
 <div><%= @text %></div>
 
-<button id=b1 class="btn btn-success" drab-click='update_mini' drab-no-disable>no_args</button><br>
-<button id=b2 class="btn btn-success" drab-click='update_mini'>no_args</button><br>
-<br>
-<button class="btn btn-success" drab-click='update_mini(1)'>integer</button><br>
-<button class="btn btn-success" drab-click='update_mini("string")'>string</button><br>
+<button id=b1 class="btn btn-success" drab-click='show_modal' drab-no-disable>show_modal</button><br>
 
 <br>
 <br>

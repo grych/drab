@@ -2,7 +2,7 @@ defmodule DrabTestApp.LiveCommander do
   @moduledoc false
   # import Phoenix.HTML
 
-  use Drab.Commander, modules: [Drab.Live, Drab.Element]
+  use Drab.Commander, modules: [Drab.Live, Drab.Element, Drab.Modal]
   onload(:page_loaded)
   broadcasting(:same_action)
   access_session(:current_user_id)
@@ -117,5 +117,23 @@ defmodule DrabTestApp.LiveCommander do
 
   defhandler broadcast(socket, _sender) do
     broadcast_poke(socket, text: "broadcasted")
+  end
+
+  defhandler show_modal(socket, _sender) do
+    title = "TEST"
+    time = Time.utc_now |> Time.to_string
+    body = render_to_string("_custom.html", time: time)
+    buttons = [cancel: "Cancel", ok: "OK"]
+    alert(socket, title, body, buttons: buttons)
+  end
+
+  defhandler test_update(socket, parameters) do
+     set_html(socket, "#my_time", Time.utc_now |> Time.to_string)
+     set_html(socket, "#my_sender", "#{parameters["sender"]}")
+  end
+
+  defhandler test_update(socket, sender, parameters) do
+    # IO.inspect "test_update/3"
+     set_html(socket, "#my_sender", "#{parameters["sender"]}, value: #{sender["value"]}")
   end
 end
