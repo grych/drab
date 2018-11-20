@@ -265,8 +265,6 @@ defmodule Drab.Live do
 
   @impl true
   def transform_socket(socket, payload, _state) do
-    IO.puts "TRANSFORM socket"
-    IO.inspect payload
     socket =
       Phoenix.Socket.assign(
         socket,
