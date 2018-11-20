@@ -18,6 +18,15 @@ defmodule Drab.Live do
       config :phoenix, :template_engines,
         drab: Drab.Live.Engine
 
+  ## Performance
+  `Drab.Live` re-renders the page at the backend and pushes only the changed parts to the fronted.
+  Thus it is not advised to use it in the big, slow rendering pages. In this case it is better
+  to split the page to the partials and `poke` in the partial only, or use light update with
+  `Drab.Element` or `Drab.Query`.
+
+  Also, it is not advised to use `Drab.Live` with big assigns - they must be transferred from the
+  client when connected.
+
   ## Avoiding using Drab
   If there is no need to use Drab with some expression, you may mark it with `nodrab/1` function.
   Such expressions will be treated as a "normal" Phoenix expressions and will not be updatable
@@ -256,6 +265,8 @@ defmodule Drab.Live do
 
   @impl true
   def transform_socket(socket, payload, _state) do
+    IO.puts "TRANSFORM socket"
+    IO.inspect payload
     socket =
       Phoenix.Socket.assign(
         socket,
