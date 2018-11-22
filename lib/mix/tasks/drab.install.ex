@@ -25,12 +25,15 @@ defmodule Mix.Tasks.Drab.Install do
     user_socket = find_file("lib", "user_socket.ex")
     config = find_file("config", "config.exs")
     dev_config = find_file("config", "dev.exs")
+    app_js = if webpack?(), do: find_file("assets/js", "app.js")
 
     if Mix.shell().yes?("The installer is going to modify those files. OK to proceed?") do
       update("app.html.eex", app_html)
       update("user_socket.ex", user_socket)
       update("config.exs", config, app)
       update("dev.exs", dev_config)
+      update("app.js", app_js)
+      if webpack?(), do: update("config.exs - webpack", config, app)
 
       Mix.shell().info("""
       Drab has been successfully installed in your Phoenix application.
@@ -59,6 +62,11 @@ defmodule Mix.Tasks.Drab.Install do
     inject_to_file(file, "templates/.*(eex)$", inject)
   end
 
+    defp update("app.js", file, _app) do
+    inject = "window.__socket = require(\"phoenix\").Socket;"
+    add_to_file(file, inject)
+  end
+
   defp update("config.exs", file, app) do
     phoenix = """
     \n# Configures default Drab file extension
@@ -79,6 +87,19 @@ defmodule Mix.Tasks.Drab.Install do
     end
   end
 
+  defp update("config.exs - webpack", file, app) do
+    drab = """
+    # Configures Drab for webpack
+    config :drab, #{inspect(Mix.Drab.find_endpoint_in_config_exs(app))},
+      js_socket_constructor: "window.__socket"
+    """
+
+    unless inject_string_already_there(file, drab) do
+      logger = "# Configures Elixir's Logger\n"
+      inject_to_file(file, logger, drab <> "\n" <> logger)
+    end
+  end
+
   defp inject_to_file(file, search_for, replace_with) do
     unless inject_string_already_there(file, replace_with) do
       f = File.read!(file)
@@ -89,6 +110,14 @@ defmodule Mix.Tasks.Drab.Install do
       else
         File.write!(file, replaced, [:write])
       end
+    end
+  end
+
+  defp add_to_file(file, string) do
+    unless inject_string_already_there(file, string) do
+      f = File.read!(file)
+      added = "#{f}\n#{string}"
+      File.write!(file, added, [:write])
     end
   end
 
@@ -141,12 +170,19 @@ defmodule Mix.Tasks.Drab.Install do
 
   defp validate_phoenix_version do
     Application.load(:phoenix)
-    unless phoenix13?() do
+    unless supported_phoenix?() do
       Mix.raise("""
-      Only Phoenix 1.3 is supported with the installer, please proceed with manual install.
+      Only Phoenix 1.3 and 1.4 are supported with the installer, please proceed with manual install.
       """)
     end
   end
 
-  defp phoenix13?(), do: Regex.match?(~r/^1.3/, to_string(Application.spec(:phoenix, :vsn)))
+  defp supported_phoenix?() do
+    v = to_string(Application.spec(:phoenix, :vsn))
+    Regex.match?(~r/^1.[34]/, v)
+  end
+
+  defp webpack?() do
+    File.exists?(Path.join("assets", "webpack.config.js"))
+  end
 end

@@ -8,7 +8,7 @@ defmodule DrabTestApp.UserSocket do
   # channel "room:*", DrabTestApp.RoomChannel
 
   ## Transports
-  transport(:websocket, Phoenix.Transports.WebSocket)
+  # transport(:websocket, Phoenix.Transports.WebSocket)
   # transport :longpoll, Phoenix.Transports.LongPoll
 
   channel("__drab:*", Drab.Channel)

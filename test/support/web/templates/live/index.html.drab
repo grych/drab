@@ -67,7 +67,7 @@
 <br>
 
 <div>
-  <img src="<%= static_path(@conn, "/conn/should/not/be/in/assigns")%>">
+  <img src="<%= static_path(@conn, "/")%>">
 </div>
 
 <div>

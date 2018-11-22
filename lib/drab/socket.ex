@@ -36,7 +36,13 @@ defmodule Drab.Socket do
 
         channel "__drab:*", Drab.Channel
 
+        # For Phoenix <= 1.3
         def connect(params, socket) do
+          Drab.Socket.verify(socket, params)
+        end
+
+        # For Phoenix 1.4
+        def connect(params, socket, _connect_info) do
           Drab.Socket.verify(socket, params)
         end
       end
@@ -86,6 +92,10 @@ defmodule Drab.Socket do
 
       def connect(%{"__drab_return" => _} = token, socket) do
         Drab.Socket.verify(socket, token)
+      end
+
+      def connect(%{"__drab_return" => _} = token, socket, _) do
+        connect(token, socket)
       end
     end
   end
