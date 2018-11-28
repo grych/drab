@@ -104,6 +104,12 @@
       var reply_to = did();
       if (!(payload !== null && typeof payload === 'object' && Array.isArray(payload) === false))
         payload = {payload: payload};
+      var p = {};
+      for (var i = 0; i < Drab.additional_payloads.length; i++) {
+        var fx = Drab.additional_payloads[i];
+        p = Object.assign(p, fx(null, event));
+      }
+      payload = Object.assign(p, payload);
       if (execute_after) {
         Drab.event_reply_table[reply_to] = execute_after;
       }

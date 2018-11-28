@@ -16,10 +16,10 @@ defmodule DrabTestApp.LiveCommander do
     # exec_js(socket, "navigator.geolocation.watchPosition(function(pos){Drab.exec_elixir('position_changed', {\"lat\":pos.coords.latitude, \"lon\": pos.coords.longitude, \"drab\": __drab.index});}, function(err){}, {});", timeout: 1000)
   end
 
-  # defhandler position_changed(socket, payload) do
-  #   payload["drab"] |> IO.inspect(label: "__drab.index")
-  #   socket.assigns.__drab_index |> IO.inspect(label: "**SOCKET-0: ")
-  # end
+  defhandler position_changed(socket, payload) do
+    payload |> IO.inspect(label: "payload")
+    socket.assigns.__drab_index |> IO.inspect(label: "__drab_index: ")
+  end
 
   defhandler update_both(socket, _) do
     poke(socket, users: ["Mieczysław", "Andżelika", "Brajanek"], count: 3, color: "#66FFFF")

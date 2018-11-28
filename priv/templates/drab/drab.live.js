@@ -21,7 +21,7 @@ Drab.add_payload(function(sender) {
 });
 
 Drab.add_payload(function(sender) {
-  if (sender)
+  if (sender) {
     var shared_commander_id = sender.getAttribute("drab-commander-id");
     if (shared_commander_id) {
       var amperes = [];
@@ -35,6 +35,9 @@ Drab.add_payload(function(sender) {
         drab_commander_amperes: amperes
       };
     }
+  } else {
+    return {};
+  }
 });
 
 function find_csrf() {

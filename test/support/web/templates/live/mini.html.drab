@@ -3,6 +3,7 @@
 <div><%= @text %></div>
 
 <button id=b1 class="btn btn-success" drab-click='show_modal' drab-no-disable>show_modal</button><br>
+<button class="btn btn-success" onclick='Drab.exec_elixir("position_changed", {drab_index: "dupa", a: 1})'>position_changed</button>
 
 <br>
 <br>
