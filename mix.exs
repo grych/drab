@@ -55,7 +55,7 @@ defmodule Drab.Mixfile do
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0 or ~> 2.2.2 or ~> 2.3"},
-      {:plug_cowboy, "~> 1.0"},
+      {:plug_cowboy, "~> 1.0 or ~> 2.0"},
       {:ex_doc, "~> 0.18", only: :dev, runtime: false},
       {:hound, "~> 1.0", only: [:dev, :test]},
       {:inch_ex, "~> 1.0", only: [:docs], runtime: false},
