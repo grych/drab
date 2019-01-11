@@ -511,7 +511,7 @@ defmodule Drab.Live.EExEngine do
   defp encoded_assign(assign) do
     filter_expr =
       quote @anno do
-        Drab.Live.Assign.filter(Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(assign)))
+        Drab.Live.Assign.filter(Phoenix.HTML.Engine.fetch_assign!(var!(assigns), unquote(assign)))
       end
 
     base64_encoded_expr(filter_expr)
@@ -566,7 +566,7 @@ defmodule Drab.Live.EExEngine do
   @spec handle_assign(Macro.t()) :: Macro.t()
   defp handle_assign({:@, meta, [{name, _, atom}]}) when is_atom(name) and is_atom(atom) do
     quote line: meta[:line] || 0 do
-      Phoenix.HTML.Engine.fetch_assign(var!(assigns), unquote(name))
+      Phoenix.HTML.Engine.fetch_assign!(var!(assigns), unquote(name))
     end
   end
 
@@ -577,7 +577,7 @@ defmodule Drab.Live.EExEngine do
     {_, result} =
       Macro.prewalk(ast, [], fn node, acc ->
         case node do
-          {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]}
+          {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign!]}, _, [_, name]}
           when is_atom(name) ->
             {node, [name | acc]}
 
@@ -639,7 +639,7 @@ defmodule Drab.Live.EExEngine do
 
   @spec find_assign(Macro.t()) :: atom | false
   defp find_assign(
-         {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign]}, _, [_, name]}
+         {{:., _, [{:__aliases__, _, [:Phoenix, :HTML, :Engine]}, :fetch_assign!]}, _, [_, name]}
        )
        when is_atom(name),
        do: name

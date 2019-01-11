@@ -6,7 +6,7 @@ defmodule Drab.Live.EExEngineTest do
   @simple_expr {{:., [line: 7],
                  [
                    {:__aliases__, [line: 7, alias: false], [:Phoenix, :HTML, :Engine]},
-                   :fetch_assign
+                   :fetch_assign!
                  ]}, [line: 7],
                 [
                   {:var!, [line: 7, context: Drab.Live.EExEngine, import: Kernel],
@@ -21,7 +21,7 @@ defmodule Drab.Live.EExEngineTest do
                      {{:., [line: 5],
                        [
                          {:__aliases__, [line: 5, alias: false], [:Phoenix, :HTML, :Engine]},
-                         :fetch_assign
+                         :fetch_assign!
                        ]}, [line: 5],
                       [
                         {:var!, [line: 5, context: Drab.Live.EExEngine, import: Kernel],
@@ -43,7 +43,7 @@ defmodule Drab.Live.EExEngineTest do
                                 [
                                   {:__aliases__, [line: 7, alias: false],
                                    [:Phoenix, :HTML, :Engine]},
-                                  :fetch_assign
+                                  :fetch_assign!
                                 ]}, [line: 7],
                                [
                                  {:var!, [line: 7, context: Drab.Live.EExEngine, import: Kernel],
