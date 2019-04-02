@@ -150,62 +150,64 @@ defmodule Drab.Client do
 
   @spec generate_drab_js(Plug.Conn.t(), boolean, Keyword.t()) :: String.t()
   defp generate_drab_js(conn, connect?, assigns) do
-    controller = Phoenix.Controller.controller_module(conn)
+    if !conn.assigns[:live_view_module] do
+        controller = Phoenix.Controller.controller_module(conn)
 
-    if enables_drab?(controller) do
-      commander = commander_for(controller)
-      view = view_for(controller)
-      endpoint = Phoenix.Controller.endpoint_module(conn)
-      action = Phoenix.Controller.action_name(conn)
+        if enables_drab?(controller) do
+          commander = commander_for(controller)
+          view = view_for(controller)
+          endpoint = Phoenix.Controller.endpoint_module(conn)
+          action = Phoenix.Controller.action_name(conn)
 
-      controller_and_action =
-        Phoenix.Token.sign(
-          conn,
-          "controller_and_action",
-          controller: controller,
-          commander: commander,
-          view: view,
-          action: action,
-          assigns: assigns
-        )
+          controller_and_action =
+            Phoenix.Token.sign(
+              conn,
+              "controller_and_action",
+              controller: controller,
+              commander: commander,
+              view: view,
+              action: action,
+              assigns: assigns
+            )
 
-      broadcast_topic =
-        topic(commander.__drab__().broadcasting, controller, conn.request_path, action)
+          broadcast_topic =
+            topic(commander.__drab__().broadcasting, controller, conn.request_path, action)
 
-      templates = DrabModule.all_templates_for(commander.__drab__().modules)
+          templates = DrabModule.all_templates_for(commander.__drab__().modules)
 
-      access_session =
-        Enum.uniq(
-          commander.__drab__().access_session ++ Drab.Config.get(endpoint, :access_session)
-        )
+          access_session =
+            Enum.uniq(
+              commander.__drab__().access_session ++ Drab.Config.get(endpoint, :access_session)
+            )
 
-      session =
-        access_session
-        |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end)
-        |> Enum.into(%{})
+          session =
+            access_session
+            |> Enum.map(fn x -> {x, Plug.Conn.get_session(conn, x)} end)
+            |> Enum.into(%{})
 
-      session_token = Drab.Core.tokenize_store(conn, session)
+          session_token = Drab.Core.tokenize_store(conn, session)
 
-      bindings = [
-        controller_and_action: controller_and_action,
-        endpoint: endpoint,
-        commander: commander,
-        templates: templates,
-        drab_session_token: session_token,
-        broadcast_topic: broadcast_topic,
-        connect: connect?,
-        client_lib_version: @client_lib_version
-      ]
+          bindings = [
+            controller_and_action: controller_and_action,
+            endpoint: endpoint,
+            commander: commander,
+            templates: templates,
+            drab_session_token: session_token,
+            broadcast_topic: broadcast_topic,
+            connect: connect?,
+            client_lib_version: @client_lib_version
+          ]
 
-      js = render_template(endpoint, "drab.js", bindings)
+          js = render_template(endpoint, "drab.js", bindings)
 
-      Phoenix.HTML.raw("""
-      <script>
-        #{js}
-      </script>
-      """)
-    else
-      ""
+          Phoenix.HTML.raw("""
+          <script>
+            #{js}
+          </script>
+          """)
+        else
+          ""
+        end
     end
   end
 
