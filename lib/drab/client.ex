@@ -148,16 +148,36 @@ defmodule Drab.Client do
   @spec api_version() :: String.t()
   def api_version(), do: @client_lib_version
 
+  @spec get_controller_module(Plug.Conn.t()) :: atom() | nil
+  defp get_controller_module(conn) do
+    try do
+      Phoenix.Controller.controller_module(conn)
+    rescue
+      KeyError -> 
+        nil
+    end
+  end
+
+  @spec get_controller_action_name(Plug.Conn.t()) :: atom() | nil
+  defp get_controller_action_name(conn) do
+    try do
+      Phoenix.Controller.action_name(conn)
+    rescue
+      KeyError -> nil
+    end    
+  end
+
   @spec generate_drab_js(Plug.Conn.t(), boolean, Keyword.t()) :: String.t()
   defp generate_drab_js(conn, connect?, assigns) do
-    if !conn.assigns[:live_view_module] do
-        controller = Phoenix.Controller.controller_module(conn)
+    if (controller = get_controller_module(conn)) do
+        # controller = Phoenix.Controller.controller_module(conn)
 
         if enables_drab?(controller) do
           commander = commander_for(controller)
           view = view_for(controller)
           endpoint = Phoenix.Controller.endpoint_module(conn)
-          action = Phoenix.Controller.action_name(conn)
+          # action = Phoenix.Controller.action_name(conn)
+          action = get_controller_action_name(conn)
 
           controller_and_action =
             Phoenix.Token.sign(
