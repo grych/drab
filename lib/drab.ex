@@ -189,10 +189,22 @@ defmodule Drab do
     {:noreply, state}
   end
 
+  def terminate(reason, state) do
+    IO.puts "Process stoped by reason: #{inspect reason}"
+    {:stop, :normal, state}
+  end
+
   @doc false
   @spec handle_info(tuple, t) :: {:noreply, t}
   def handle_info({:EXIT, pid, :normal}, state) when pid != self() do
     # ignore exits of the subprocesses
+    {:noreply, state}
+  end
+
+  @doc false
+  @spec handle_info(tuple, t) :: {:noreply, t}
+  def handle_info({:EXIT, pid, :normal}, state) do
+    # get exits of the current procces
     {:noreply, state}
   end
 
@@ -276,6 +288,10 @@ defmodule Drab do
       {:reply, value, state}
     end
   end)
+
+  def handle_call(:delete_socket, _from, state) do
+    {:stop, :normal, state}
+  end
 
   @spec handle_callback(Phoenix.Socket.t(), atom, atom) :: Phoenix.Socket.t()
   defp handle_callback(socket, commander, callback) do
@@ -536,6 +552,10 @@ defmodule Drab do
       GenServer.cast(pid, {unquote(update_name), new_value})
     end
   end)
+
+  def delete_socket(pid) do
+    GenServer.stop(pid, :normal)
+  end
 
   @doc false
   @spec push_and_wait_for_response(Phoenix.Socket.t(), pid, String.t(), Keyword.t(), Keyword.t()) ::

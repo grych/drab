@@ -462,6 +462,24 @@ defmodule Drab.Core do
     # store(socket)[key]
   end
 
+  @doc false
+  @spec get_socket(pid) :: term
+  def get_socket(pid) when is_pid(pid) do
+    case Process.alive?(pid) do
+      true -> Drab.get_socket(pid)
+      false -> nil
+    end
+  end
+
+  @doc false
+  @spec get_socket(Phoenix.Socket.t()) :: term
+  def get_socket(%{assigns: %{__drab_pid: pid}}) do
+    case Process.alive?(pid) do
+      true -> Drab.get_socket(pid)
+      false -> nil
+    end
+  end
+
   @doc """
   Returns the value of the Drab store represented by the given key or `default` when key not found
 
@@ -498,6 +516,21 @@ defmodule Drab.Core do
   @spec save_socket(Phoenix.Socket.t()) :: :ok
   def save_socket(socket) do
     Drab.set_socket(Drab.pid(socket), socket)
+  end
+
+  @doc false
+  @spec delete_socket(pid) :: :ok
+  def delete_socket(pid) when is_pid(pid) do
+    case Process.alive?(pid) do
+      true -> Drab.delete_socket(pid)
+      false -> :ok
+    end
+  end
+
+  @doc false
+  @spec delete_socket(Phoenix.Socket.t()) :: :ok
+  def delete_socket(socket) do
+    Drab.delete_socket(Drab.pid(socket))
   end
 
   @doc """
