@@ -135,7 +135,7 @@ if Drab.Config.get(:presence) do
     @spec start(Phoenix.Socket.t(), String.t()) :: {:ok, binary()} | {:error, reason :: term()}
     def start(socket, topic) do
       case track(socket.channel_pid, topic, client_id(socket), %{
-             online_at: System.system_time(:seconds)
+             online_at: System.system_time(:second)
            }) do
         {:ok, reason} -> {:ok, reason}
         {:error, {:already_tracked, _, _, _} = reason} -> {:ok, reason}
