@@ -213,6 +213,15 @@ defmodule Drab do
     {:noreply, state}
   end
 
+  # pass any other handle_info to the Commander `handle_info_message/2` callbacks,
+  # which expect `message` and `socket` params (no `state` reply).
+  def handle_info(message, state) do
+    state.socket
+    |> get_commander()
+    |> apply(:handle_info_message, [message, state.socket])
+    {:noreply, state}
+  end
+
   @doc false
   @spec handle_cast(tuple, t) :: {:noreply, t}
   def handle_cast({:onconnect, socket, payload}, %Drab{commander: commander} = state) do
@@ -240,10 +249,18 @@ defmodule Drab do
   def handle_cast({:onload, socket, payload}, %Drab{commander: commander} = state) do
     socket = transform_socket(payload["payload"], socket, state)
 
+    # onload_init sync call with arity/0
+    handle_callback_sync(commander, commander_config(commander).onload_init)
+
+    # onload async call
     onload = commander_config(commander).onload
     handle_callback(socket, commander, onload)
 
     for shared_commander <- state.commanders do
+      # onload_init sync call with arity/0
+      handle_callback_sync(commander, commander_config(commander).onload_init)
+
+      # onload async call
       onload = commander_config(shared_commander).onload
       handle_callback(socket, shared_commander, onload)
     end
@@ -277,6 +294,7 @@ defmodule Drab do
     end
   end)
 
+  # Handles callbacks asynchronously
   @spec handle_callback(Phoenix.Socket.t(), atom, atom) :: Phoenix.Socket.t()
   defp handle_callback(socket, commander, callback) do
     if callback do
@@ -292,6 +310,19 @@ defmodule Drab do
     end
 
     socket
+  end
+
+  # Handles callbacks synchronously
+  # Temporary disabled until it will be needed, for avoiding warning
+  # @spec handle_callback_sync(Phoenix.Socket.t(), atom, atom) :: Phoenix.Socket.t()
+  # defp handle_callback_sync(socket, commander, callback) do
+  #   if callback, do: apply(commander, callback, [socket])
+  #   socket
+  # end
+
+  @spec handle_callback_sync(atom, atom) :: any
+  defp handle_callback_sync(commander, callback) do
+    if callback, do: apply(commander, callback, [])
   end
 
   @spec transform_payload(map, t) :: map
