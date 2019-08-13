@@ -284,8 +284,7 @@ defmodule Drab.Config do
   @spec drab_extension :: String.t()
   def drab_extension() do
     {drab_ext, Drab.Live.Engine} =
-      :phoenix
-      |> Application.get_env(:compiled_template_engines)
+      Phoenix.Template.engines()
       |> Enum.find(fn {_, v} -> v == Drab.Live.Engine end)
 
     "." <> to_string(drab_ext)
