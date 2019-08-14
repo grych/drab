@@ -170,13 +170,10 @@ defmodule Drab.Client do
   @spec generate_drab_js(Plug.Conn.t(), boolean, Keyword.t()) :: String.t()
   defp generate_drab_js(conn, connect?, assigns) do
     if (controller = get_controller_module(conn)) do
-        # controller = Phoenix.Controller.controller_module(conn)
-
         if enables_drab?(controller) do
           commander = commander_for(controller)
           view = view_for(controller)
           endpoint = Phoenix.Controller.endpoint_module(conn)
-          # action = Phoenix.Controller.action_name(conn)
           action = get_controller_action_name(conn)
 
           controller_and_action =
