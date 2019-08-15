@@ -4,7 +4,10 @@ use Mix.Config
 # you can enable the server option below.
 config :drab, DrabTestApp.Endpoint,
   http: [port: 4001],
-  server: true
+  server: true,
+  live_view: [
+     signing_salt: "+iGXfLGYMPyowoZribxgrSyeaPz9D/v2"
+   ]
 
 # Print only warnings and errors during test
 config :logger, level: :warn

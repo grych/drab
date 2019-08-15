@@ -2,7 +2,8 @@ defmodule DrabTestApp.Endpoint do
   @moduledoc false
 
   use Phoenix.Endpoint, otp_app: :drab
-
+  
+  socket "/live", Phoenix.LiveView.Socket
   socket("/socket", DrabTestApp.UserSocket)
 
   # Serve at "/" the static files from "priv/static" directory.
