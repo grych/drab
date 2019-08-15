@@ -16,9 +16,11 @@ before_install:
 elixir:
   - 1.6.6
   - 1.7.4
+  - 1.8.2
 otp_release:
   - 20.0
   - 21.0
+  - 22.0
 
 env:
   - MIX_ENV=test
