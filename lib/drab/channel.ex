@@ -1,6 +1,8 @@
 defmodule Drab.Channel do
   @moduledoc false
 
+  require Logger
+
   use Phoenix.Channel, Drab.Config.get(:phoenix_channel_options)
 
   @spec join(String.t(), any, Phoenix.Socket.t()) :: {:ok, Phoenix.Socket.t()}
@@ -60,7 +62,7 @@ defmodule Drab.Channel do
 
   def handle_in("onconnect", payload, socket) do
     # for debugging
-    if IEx.started?() do
+    Logger.debug(fn ->
       commander = Drab.get_commander(socket)
       modules = DrabModule.all_modules_for(commander.__drab__().modules)
 
@@ -92,7 +94,7 @@ defmodule Drab.Channel do
       p = inspect(socket.assigns.__drab_pid)
       pid_string = ~r/#PID<(?<pid>.*)>/ |> Regex.named_captures(p) |> Map.get("pid")
 
-      IO.puts("""
+      """
 
           Started Drab for #{socket.topic}, handling events in #{inspect(commander)}
           You may debug Drab functions in IEx by copy/paste the following:
@@ -101,8 +103,8 @@ defmodule Drab.Channel do
 
           Examples:
       #{Enum.join(examples, "\n")}
-      """)
-    end
+      """
+    end)
 
     session = Drab.Core.detokenize_store(socket, payload["drab_session_token"])
     socket = assign(socket, :__session, session)
