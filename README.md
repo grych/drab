@@ -51,6 +51,10 @@ end
 
   2. Phoenix ~> 1.2 (see [Installation Guide](https://hexdocs.pm/phoenix/installation.html#phoenix))
 
+## Browser Requirements
+
+This has the same requirements as Phoenix.Sockets.  Above that it depends on the javascript you call or other potential tools you use on top of Drab.
+
 ## Installation
 
   First of all, you need to have a Phoenix application, on top of which you will install Drab. If this is a standard app, generated with `mix phx.new`, you may use Drab Installer to make it running in one, simple step. Otherwise, see [Manual Installation](#manual-installation) section below.
