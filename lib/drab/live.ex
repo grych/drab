@@ -309,7 +309,7 @@ defmodule Drab.Live do
   Assign gets its value only while rendering the page or via `poke`. After changing the value
   of node attribute or property on the client side, the assign value will remain the same.
   """
-  @spec peek(Phoenix.Socket.t(), atom) :: result | no_return
+  @spec peek(Phoenix.Socket.t(), atom) :: {:ok, any()} | no_return
   def peek(socket, assign), do: peek(socket, nil, nil, assign)
 
   @doc """
@@ -320,7 +320,7 @@ defmodule Drab.Live do
       iex> peek(socket, "users.html", :count)
       {:ok, 42}
   """
-  @spec peek(Phoenix.Socket.t(), String.t(), atom) :: result | no_return
+  @spec peek(Phoenix.Socket.t(), String.t(), atom) :: {:ok, any()} | no_return
   def peek(socket, partial, assign), do: peek(socket, nil, partial, assign)
 
   @doc """
@@ -331,7 +331,7 @@ defmodule Drab.Live do
       {:ok, 42}
   """
   @spec peek(Phoenix.Socket.t(), atom | nil, String.t() | nil, atom | String.t()) ::
-          result | no_return
+    {:ok, any()} | no_return
   def peek(socket, view, partial, assign) when is_atom(assign) do
     case assigns_and_nodrab(socket) do
       {:ok, assigns_data} ->
