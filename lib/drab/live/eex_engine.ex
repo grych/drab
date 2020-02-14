@@ -115,7 +115,7 @@ defmodule Drab.Live.EExEngine do
 
   @impl true
   def handle_body(%Safe{safe: body, partial: partial}) do
-    body = List.flatten(body)
+    body = List.flatten(List.wrap(body))
     partial_hash = partial(body)
 
     init_js = """
