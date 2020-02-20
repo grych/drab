@@ -64,6 +64,17 @@ function debounce(func, wait, immediate) {
   };
 };
 
+function stopPropagation(func) {
+  return function () {
+    var context = this,
+        args = arguments,
+        evt = arguments[0] || window.event;
+    var ret = func.apply(context, args);
+    evt.stopPropagation();
+    return ret;
+  };
+};
+
 function payload(sender, event, argument) {
   var p;
   if (sender) {
