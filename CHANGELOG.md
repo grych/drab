@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.10.5
+
+Added a new `stopPropagation()` option to drab elements to stop the propagation of the event so it will not bubble.
+
 ## v0.9.2 Cookies and Safe
 
 This is a slow evolution release, containing a number of bug fixes and a few new features:
