@@ -13,6 +13,7 @@ defmodule DrabTestApp.Web do
 
       import DrabTestApp.Router.Helpers
       import DrabTestApp.Gettext
+      import Phoenix.LiveView.Controller, only: [live_render: 3]
     end
   end
 
@@ -29,12 +30,14 @@ defmodule DrabTestApp.Web do
       import DrabTestApp.Router.Helpers
       import DrabTestApp.ErrorHelpers
       import DrabTestApp.Gettext
+      import Phoenix.LiveView, only: [live_render: 2, live_render: 3, live_link: 1, live_link: 2]
     end
   end
 
   def router do
     quote do
       use Phoenix.Router
+      import Phoenix.LiveView.Router
     end
   end
 

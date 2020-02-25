@@ -7,6 +7,7 @@ defmodule DrabTestApp.Router do
     plug(:accepts, ["html"])
     plug(:fetch_session)
     plug(:fetch_flash)
+    plug Phoenix.LiveView.Flash
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
   end
@@ -49,6 +50,10 @@ defmodule DrabTestApp.Router do
     get("/tests/live/broadcasting", LiveController, :broadcasting, as: :broadcasting)
 
     get("/tests/element", ElementController, :index, as: :element)
+
+    get("/tests/cohabitation_drab", LVCohabitationController, :index_drab, as: :cohabitation)
+    get("/tests/cohabitation_lv", LVCohabitationController, :index_lv, as: :cohabitation)
+    live("/tests/cohabitation_live", LVCohabitationLive, as: :cohabitation_live)
   end
 
   # Other scopes may use custom stacks.

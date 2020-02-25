@@ -49,7 +49,7 @@ defmodule Drab.Mixfile do
 
   defp deps do
     [
-      {:phoenix, "~> 1.2"},
+      {:phoenix, "~> 1.4.8"},
       {:phoenix_html, "~> 2.13"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
@@ -63,7 +63,9 @@ defmodule Drab.Mixfile do
       {:floki, ">= 0.20.2"},
       {:dialyxir, "~> 1.0.0-rc.2", only: [:dev, :test], runtime: false},
       # {:credo, "~> 0.9.3", only: [:dev, :test], runtime: false},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+
+      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", only: [:test]}
     ]
   end
 
