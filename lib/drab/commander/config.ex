@@ -4,6 +4,7 @@ defmodule Drab.Commander.Config do
   defstruct commander: nil,
             controller: nil,
             view: nil,
+            onload_init: nil,
             onload: nil,
             onconnect: nil,
             ondisconnect: nil,

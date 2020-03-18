@@ -132,12 +132,21 @@ defmodule Drab.Commander do
       defmodule DrabExample.PageCommander do
         use Drab.Commander
 
+        onload_init: do_init
         onload :page_loaded
         onconnect :connected
         ondisconnect :disconnected
 
         before_handler :check_status
         after_handler  :clean_up, only: [:perform_long_process]
+
+        def do_init do
+          # notice that this callback is called synchronously, so
+          # it is not suitable for longer operations that could
+          # slow down the main process.
+          # Any operation here inherits the main process PID
+          ...
+        end
 
         def page_loaded(socket) do
           ...
@@ -169,6 +178,14 @@ defmodule Drab.Commander do
   Launched every time client browser connects to the server, including reconnects after server
   crash, network broken etc
 
+  #### `onload_init`
+  Launched synchronously just before the `onload` callback. Unlike all the others callbacks
+  that runs in their own process, this callback runs in the main process, and therefore is useful
+  to call those operations who needs the main process PID to operate correctly, 
+  as e.g. the subscription to PubSub events.
+  This callback is not suitable for hosting longer or harmful operations, since this 
+  could slow down or broke the main process. Use with caution.
+
   #### `onload`
   Launched only once after page loaded and connects to the server - exactly the same like
   `onconnect`, but launches only once, not after every reconnect
@@ -190,6 +207,11 @@ defmodule Drab.Commander do
   #### `after_handler`
   Runs after the event handler. Gets return value of the event handler function as a third argument.
   Can be filtered by `:only` or `:except` options, analogically to `before_handler`
+
+
+  ### `handle_info_message`
+  Launched every time a GenServer/PubSub event to which you have subscribed is fired.
+  See "PubSub support" for more informations.
 
   ### Using callbacks to check user permissions
   Callbacks are handy for security. You may retrieve controller name and action name from the
@@ -239,6 +261,92 @@ defmodule Drab.Commander do
 
   Drab injects function `render_to_string/2` into your Commander. It is a shorthand for
   `Phoenix.View.render_to_string/3` - Drab automatically chooses the current View.
+
+  ## PubSub support
+
+  You can use the PubSub mechanism to automatically update your pages on data changes.
+
+  Suppose for example you have a backend module that interfaces the database, and you 
+  whishes to automatically update your page every time a change occours in a 
+  database table by some operations made in other part of your application. You can
+  implement
+
+  Suppose you need to automatically update your page every time a change occours in a 
+  database table by some operations made in other part of your application. You can
+  implement a PubSub mechanism to react from the commander to any events you have 
+  subscribed to: add the subscription to the desidered `PubSub` in the 
+  `onload_init` event handler, then add a `handle_info_message/2` handler for any
+  event you need to react to.
+
+  Please note that the `handle_info_message/2` handler is a simplified version of the
+  GenServer/PubSub `handle_info/2` handler, it expects a message parameter, identical 
+  to the standard `handle_info/2` one, and a `socket` parameter, instead of the
+  `state` parameters, and it doesn't have to return anything.
+
+  For example:
+
+      # the backend:
+      defmodule MyApp.Backend do
+        # PubSub stuff
+          @topic inspect(__MODULE__)
+
+          def subscribe() do
+            Phoenix.PubSub.subscribe(MyApp.PubSub, @topic)
+          end
+
+          defp notify_subscribers({:ok, result}, event) do
+            Phoenix.PubSub.broadcast(MyApp.PubSub, @topic, {__MODULE__, event, result})
+            {:ok, result}
+          end
+          defp notify_subscribers({:error, reason}, _event), do: {:error, reason}
+
+        # CRUD stuff
+          ...
+          def create(...) do
+            ...
+            |> Repo.insert()
+            |> notify_subscribers([:data, :created])
+          end
+
+          def update(...) do
+            ...
+            |> Repo.update()
+            |> notify_subscribers([:data, :updated])
+          end
+
+          def delete(...) do
+            ...
+            |> Repo.delete()
+            |> notify_subscribers([:data, :deleted])
+          end
+      end
+
+    # the Commander
+      defmodule MyApp.Commander do
+        use Drab.Commander
+
+        onload_init(:do_init)
+
+        def do_init() do
+          # subscribe to any desidered PubSub
+          MyApp.Backend.subscribe()
+        end
+
+        ...
+
+        # handles the events
+        def handle_info_message({MyApp.Backend, [:data, :created], result}, socket) do
+          poke(socket, data: result)
+        end
+
+        # handles the events
+        def handle_info_message({MyApp.Backend, [:data, :updated], result}, socket) do
+          poke(socket, data: result)
+        end
+
+        ...
+      end
+
 
   ### Examples:
 
@@ -379,7 +487,7 @@ defmodule Drab.Commander do
     end
   end
 
-  Enum.each([:onload, :onconnect, :ondisconnect], fn macro_name ->
+  Enum.each([:onload_init, :onload, :onconnect, :ondisconnect], fn macro_name ->
     @doc """
     Sets up the callback for #{macro_name}. Receives handler function name as an atom.
 

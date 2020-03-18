@@ -49,6 +49,8 @@ defmodule DrabTestApp.Router do
     get("/tests/live/broadcasting", LiveController, :broadcasting, as: :broadcasting)
 
     get("/tests/element", ElementController, :index, as: :element)
+    
+    get("/tests/pubsub", PubsubController, :index, as: :pubsub)
   end
 
   # Other scopes may use custom stacks.
