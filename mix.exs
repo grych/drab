@@ -60,7 +60,7 @@ defmodule Drab.Mixfile do
       {:hound, "~> 1.0", only: [:dev, :test]},
       {:inch_ex, "~> 1.0", only: [:docs], runtime: false},
       {:deppie, "~> 1.0"},
-      {:floki, ">= 0.20.2"},
+      {:floki, ">= 0.27.0"},
       {:dialyxir, "~> 1.0.0-rc.2", only: [:dev, :test], runtime: false},
       # {:credo, "~> 0.9.3", only: [:dev, :test], runtime: false},
       {:jason, "~> 1.0"}
