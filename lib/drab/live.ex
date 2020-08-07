@@ -750,7 +750,8 @@ defmodule Drab.Live do
   end
 
   defp update_html_js(html, ampere, tag) do
-    case Floki.find(html, "[drab-ampere='#{ampere}']") do
+    {:ok, document} = Floki.parse_document(html)
+    case Floki.find(document, "[drab-ampere='#{ampere}']") do
       [{_, _, value}] ->
         new_value = Floki.raw_html(value, encode: false)
 
@@ -803,8 +804,9 @@ defmodule Drab.Live do
   defp update_csrf_token(html, nil), do: html
 
   defp update_csrf_token(html, csrf) do
-    html
-    |> Floki.parse()
+    {:ok, document} = Floki.parse_document(html)
+
+    document
     |> Floki.attr("input[name='_csrf_token']", "value", fn _ -> csrf end)
     |> Floki.attr("button[data-csrf]", "data-csrf", fn _ -> csrf end)
     |> Floki.attr("a[data-csrf]", "data-csrf", fn _ -> csrf end)
