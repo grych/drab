@@ -12,7 +12,7 @@
     "bootstrap": "~3.3.7"
   },
   "devDependencies": {
-    "babel-brunch": "~6.0.0",
+    "babel-brunch": "~7.0.1",
     "brunch": "2.7.4",
     "clean-css-brunch": "~2.0.0",
     "css-brunch": "~2.0.0",
